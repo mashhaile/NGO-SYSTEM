@@ -108,6 +108,7 @@ app.get("/beneficiaries", auth, async (req, res) => {
 });
 
 app.post("/beneficiaries", auth, async (req, res) => {
+  // Force the organizationId to come from the TOKEN, not the user's input
   const newData = { ...req.body, organizationId: req.user.organizationId };
   const saved = await Beneficiary.create(newData);
   res.json(saved);
