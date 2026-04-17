@@ -168,4 +168,9 @@ app.get("/program-stats", auth, async (req, res) => {
   res.json(stats);
 });
 
-app.listen(3000, () => console.log("NGO SaaS Server running on port 3000 🚀"));
+// This tells the app: Use Render's port, but if running on my PC, use 5000
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
