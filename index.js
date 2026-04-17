@@ -9,17 +9,26 @@ const path = require('path');
 const app = express();
 
 /* ------------------ CONFIG & DB ------------------ */
+// 1. Define Variables First
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ngo_system";
 const JWT_SECRET = process.env.JWT_SECRET || "backup_secret_key_123"; 
 
+// 2. Connect to Database
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.error("Database Error ❌:", err.message));
 
+/* ... All your middleware and routes go here ... */
+
+// 3. Start Server (This MUST be at the very bottom of index.js)
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 /* ------------------ MIDDLEWARE ------------------ */
 app.use(cors());
 app.use(express.json());
+// Serve your CSS, JS, and images automatically
 app.use(express.static(path.join(__dirname)));
 
 /* ------------------ MODELS ------------------ */
@@ -112,14 +121,23 @@ app.post("/beneficiaries", auth, async (req, res) => {
   }
 });
 
-app.put("/beneficiaries/:id", auth, async (req, res) => {
+app.get("/stats", auth, async (req, res) => {
   try {
-    const updated = await Beneficiary.findOneAndUpdate(
-      { _id: req.params.id, organizationId: req.user.organizationId },
-      req.body,
-      { new: true }
-    );
-    res.json(updated);
+    const total = await Beneficiary.countDocuments({ organizationId: req.user.organizationId });
+    const programs = await Beneficiary.distinct("program", { organizationId: req.user.organizationId });
+    res.json({ totalBeneficiaries: total, totalPrograms: programs.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/program-stats", auth, async (req, res) => {
+  try {
+    const stats = await Beneficiary.aggregate([
+      { $match: { organizationId: new mongoose.Types.ObjectId(String(req.user.organizationId)) } },
+      { $group: { _id: "$program", count: { $sum: 1 } } }
+    ]);
+    res.json(stats);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -137,41 +155,19 @@ app.delete("/beneficiaries/:id", auth, async (req, res) => {
     }
 });
 
-app.get("/stats", auth, async (req, res) => {
-  try {
-    const total = await Beneficiary.countDocuments({ organizationId: req.user.organizationId });
-    const programs = await Beneficiary.distinct("program", { organizationId: req.user.organizationId });
-    res.json({ totalBeneficiaries: total, totalPrograms: programs.length });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+/* ------------------ FRONTEND ROUTING (MODERN FIX) ------------------ */
 
-app.get("/program-stats", auth, async (req, res) => {
-  try {
-    const stats = await Beneficiary.aggregate([
-      { $match: { organizationId: new mongoose.Types.ObjectId(req.user.organizationId) } },
-      { $group: { _id: "$program", count: { $sum: 1 } } }
-    ]);
-    res.json(stats);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/* ------------------ FRONTEND ROUTING ------------------ */
-
-// Home route
+// 1. Root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Catch-all for other pages
-app.get('(.*)', (req, res) => {
+// 2. The "Smart" Catch-all (This replaces the crashing '*' route)
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 /* ------------------ START SERVER ------------------ */
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });
