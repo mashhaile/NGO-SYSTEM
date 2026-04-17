@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NGO System</title>
+</head>
+<body>
+
+  <h2>Add Beneficiary</h2>
+
+  <input id="name" placeholder="Name"><br><br>
+  <input id="phone" placeholder="Phone"><br><br>
+  <input id="address" placeholder="Address"><br><br>
+  <input id="program" placeholder="Program"><br><br>
+
+  <button onclick="addBeneficiary()">Add</button>
+
+  <h2>Beneficiaries List</h2>
+
+  <ul id="list"></ul>
+
+  <script>
+    const API = "http://localhost:3000/beneficiaries";
+
+    async function addBeneficiary() {
+      const data = {
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value,
+        address: document.getElementById("address").value,
+        program: document.getElementById("program").value
+      };
+
+      await fetch(API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      loadData();
+    }
+
+    async function loadData() {
+  const res = await fetch(API);
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(item => {
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      ${item.name} - ${item.program}
+      <button onclick="deleteBeneficiary('${item._id}')">Delete</button>
+    `;
+
+    list.appendChild(li);
+  });
+}
+    async function deleteBeneficiary(id) {
+  await fetch(API + "/" + id, {
+    method: "DELETE"
+  });
+
+  loadData();
+}
+
+    loadData();
+  </script>
+
+</body>
+</html>
