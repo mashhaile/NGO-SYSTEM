@@ -8,6 +8,17 @@ const bcrypt = require("bcryptjs");
 const app = express();
 app.use(cors());
 app.use(express.json());
+const express = require('express');
+const path = require('path');
+const app = express();
+
+// 1. Tell express to serve your frontend files (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname))); 
+
+// 2. Tell express to send index.html when someone lands on the main URL
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 /* ------------------ CONFIG & DB ------------------ */
 // FIX: This ensures your secret key always has a value
