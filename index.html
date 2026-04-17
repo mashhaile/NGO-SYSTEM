@@ -1,36 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NGO Central Command</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* CSS Variables: These store colors so we can reuse them easily */
         :root { --primary: #3182ce; --success: #38a169; --danger: #e53e3e; --bg: #f0f2f5; }
-        
-        /* Helper class to hide elements (like the dashboard before login) */
         .hidden { display: none !important; }
-        
-        /* Global Styles: Setting the font and background */
         body { font-family: 'Segoe UI', sans-serif; padding: 30px; background: var(--bg); color: #1a202c; margin: 0; }
-        
-        /* Box Style: The white containers for the stats and tables */
         .box { background: white; padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        /* Form Styling: Making inputs look modern and clean */
-        input, select { display: block; width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        
-        /* Button Styling */
+        input, select, textarea { display: block; width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         button { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: #2b6cb0; }
-        
-        /* Table Layout: Ensuring the beneficiary list is readable */
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; }
         th { background: #edf2f7; padding: 15px; text-align: left; color: #4a5568; font-size: 13px; text-transform: uppercase; }
         td { padding: 15px; border-bottom: 1px solid #edf2f7; font-size: 14px; }
         tr:hover { background-color: #f7fafc; }
-
-        /* Dashboard Layout: Creating the three-column row at the top */
         .analytics-row { display: flex; gap: 20px; align-items: stretch; margin-bottom: 25px; height: 200px; }
         .stat-card { flex: 1; padding: 20px; border-radius: 12px; color: white; text-align: center; display: flex; flex-direction: column; justify-content: center; }
         .chart-box { flex: 2; margin-bottom: 0; padding: 15px; display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -57,14 +44,12 @@
                 <span style="opacity: 0.9; font-size: 14px;">Total Beneficiaries</span>
                 <h1 id="totalUsers" style="margin: 5px 0; font-size: 42px;">0</h1>
             </div>
-
             <div class="chart-box">
                 <h3 style="margin: 0 0 10px 0; font-size: 12px; color: #718096; text-align: center; text-transform: uppercase;">Program Distribution</h3>
                 <div style="flex-grow: 1; position: relative;">
                     <canvas id="programChart"></canvas>
                 </div>
             </div>
-
             <div class="stat-card" style="background: var(--success);">
                 <span style="opacity: 0.9; font-size: 14px;">Active Programs</span>
                 <h1 id="totalPrograms" style="margin: 5px 0; font-size: 42px;">0</h1>
@@ -79,291 +64,3 @@
             </div>
 
             <div id="addForm" class="hidden" style="background: #f7fafc; padding: 20px; margin-top: 15px; border-radius: 8px; border: 1px dashed #cbd5e0;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                    <input id="name" placeholder="Full Name">
-                    <select id="sex">
-                        <option value="">Select Sex</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                    </select>
-                    <input id="age" type="number" placeholder="Age">
-                    <input id="phone" placeholder="Phone Number">
-                    <input id="address" placeholder="Physical Address">
-                    <input id="program" placeholder="Program Name">
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-    </div>
-
-<textarea id="details" placeholder="Important details (e.g., Medical history, family needs, or project notes...)" style="width: 100%; margin-top: 15px; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; height: 80px; font-family: inherit;"></textarea>
-
-                <button class="btn-primary" onclick="addBeneficiary()" style="width: 100%; margin-top: 15px;">Confirm Registration</button>
-            </div>
-        </div>
-
-        <div class="box" style="padding: 0; overflow: hidden;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Full Name</th>
-                        <th>Sex</th>
-                        <th>Age</th>
-                        <th>Phone</th>
-                        <th>Program</th>
-                        <th style="text-align: right;">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="list"></tbody>
-            </table>
-        </div>
-    </div>
-<div id="profileModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div class="box" style="width: 500px; max-width: 90%; position: relative;">
-        <span onclick="closeProfile()" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px;">&times;</span>
-        <div style="margin-top: 20px; background: #fffaf0; border-left: 4px solid #ed8936; padding: 15px; border-radius: 4px;">
-    <p style="color: #718096; margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; font-weight: bold;">Case Notes / Details</p>
-    <p id="profileDetails" style="margin: 0; line-height: 1.5; color: #2d3748; font-style: italic;">No specific details recorded.</p>
-</div>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div id="profileInitial" style="width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">?</div>
-            <h2 id="profileName" style="margin: 0;">Beneficiary Name</h2>
-            <span id="profileProgramBadge" style="background: #ebf8ff; color: #2b6cb0; padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: bold;">Program</span>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 14px;">
-            <div>
-                <p style="color: #718096; margin-bottom: 5px;">Sex</p>
-                <b id="profileSex">---</b>
-            </div>
-            <div>
-                <p style="color: #718096; margin-bottom: 5px;">Age</p>
-                <b id="profileAge">---</b>
-            </div>
-            <div>
-                <p style="color: #718096; margin-bottom: 5px;">Phone Number</p>
-                <b id="profilePhone">---</b>
-            </div>
-            <div>
-                <p style="color: #718096; margin-bottom: 5px;">Registration Date</p>
-                <b id="profileDate">---</b>
-            </div>
-        </div>
-
-        <div style="margin-top: 20px;">
-            <p style="color: #718096; margin-bottom: 5px;">Physical Address</p>
-            <b id="profileAddress">---</b>
-        </div>
-
-        <button onclick="closeProfile()" style="width: 100%; margin-top: 30px; background: #edf2f7; color: #4a5568;">Close Profile</button>
-    </div>
-</div>
-
-    <script>
-    // Configuration: The address of your backend server
-    const API = "http://localhost:3000";
-    let token = localStorage.getItem("ngo_token") || ""; 
-    let myChart; 
-
-    // When the page loads, check if we are already logged in
-    window.onload = () => { if (token) showApp(); };
-
-    // --- LOGIN FUNCTION (Added 'async' here to fix your error) ---
-    async function login() {
-        const emailEl = document.getElementById("username");
-        const passEl = document.getElementById("password");
-        const msgEl = document.getElementById("msg");
-
-        msgEl.innerText = "Connecting...";
-
-        try {
-            const res = await fetch(`${API}/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: emailEl.value, password: passEl.value })
-            });
-// models/User.js
-const User = mongoose.model("User", {
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
-  role: { type: String, enum: ['admin', 'staff'], default: 'staff' } // New field
-});
-            const data = await res.json();
-
-            if (res.ok && data.token) {
-                token = data.token;
-                localStorage.setItem("ngo_token", token);
-                showApp();
-            } else {
-                msgEl.innerText = "❌ Login Failed: " + (data.message || "Invalid credentials");
-            }
-        } catch (error) {
-            msgEl.innerText = "⚠️ Server Error: Is your backend running?";
-        }
-    }
-
-    // LOGOUT: Clears memory and reloads
-    function logout() {
-        localStorage.removeItem("ngo_token");
-        location.reload(); 
-    }
-
-    // SHOW APP: Displays dashboard and triggers data loading
-    function showApp() {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("protectedArea").classList.remove("hidden");
-        loadData();
-        loadStats();
-        loadChart();
-    }
-
-    function toggleForm() {
-        document.getElementById("addForm").classList.toggle("hidden");
-    }
-
-    // LOAD DATA: Fetches list from server
-    async function loadData() {
-        const res = await fetch(`${API}/beneficiaries`, { 
-            headers: { "Authorization": `Bearer ${token}` } 
-        });
-        const data = await res.json();
-        renderTable(data);
-    }
-
-    // RENDER TABLE: Updates the HTML table with data
-    function renderTable(data) {
-        document.getElementById("list").innerHTML = data.map(i => `
-            <tr>
-                <td onclick="viewProfile('${i._id}')" style="font-weight: 600; color: var(--primary); cursor: pointer; text-decoration: underline;">
-                    ${i.name}
-                </td>
-                <td>${i.sex || '---'}</td>
-                <td>${i.age || '---'}</td>
-                <td>${i.phone || '---'}</td>
-                <td><span style="background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">${i.program}</span></td>
-                <td style="text-align: right;">
-                    <button onclick="deleteItem('${i._id}')" style="color:var(--danger); background:none; font-size:12px;">Delete</button>
-                </td>
-            </tr>
-        `).join("");
-    }
-
-    // VIEW PROFILE: Shows the details modal
-    async function viewProfile(id) {
-        const res = await fetch(`${API}/beneficiaries`, { headers: { "Authorization": `Bearer ${token}` } });
-        const allData = await res.json();
-        const user = allData.find(u => u._id === id);
-
-        if (!user) return;
-
-        document.getElementById("profileName").innerText = user.name;
-        document.getElementById("profileInitial").innerText = user.name.charAt(0).toUpperCase();
-        document.getElementById("profileSex").innerText = user.sex || "N/A";
-        document.getElementById("profileAge").innerText = user.age || "N/A";
-        document.getElementById("profilePhone").innerText = user.phone || "N/A";
-        document.getElementById("profileAddress").innerText = user.address || "No address provided";
-        document.getElementById("profileProgramBadge").innerText = user.program;
-        document.getElementById("profileDetails").innerText = user.details || "No specific details recorded.";
-        document.getElementById("profileDate").innerText = new Date(user.createdAt).toLocaleDateString();
-
-        document.getElementById("profileModal").classList.remove("hidden");
-    }
-
-    function closeProfile() {
-        document.getElementById("profileModal").classList.add("hidden");
-    }
-
-    // ADD BENEFICIARY: Saves new record with Case Notes
-    async function addBeneficiary() {
-        const payload = {
-            name: document.getElementById("name").value,
-            sex: document.getElementById("sex").value,
-            age: document.getElementById("age").value,
-            phone: document.getElementById("phone").value,
-            address: document.getElementById("address").value,
-            program: document.getElementById("program").value,
-            details: document.getElementById("details").value
-        };
-
-        const res = await fetch(`${API}/beneficiaries`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify(payload)
-        });
-
-        if(res.ok) {
-            document.querySelectorAll("#addForm input, #addForm select, #addForm textarea").forEach(el => el.value = "");
-            toggleForm();
-            loadData();
-            loadStats();
-            loadChart();
-        }
-    }
-
-    // SEARCH: Filters list by name
-    async function searchData() {
-        const query = document.getElementById("searchInput").value.toLowerCase();
-        const res = await fetch(`${API}/beneficiaries`, { headers: { "Authorization": `Bearer ${token}` } });
-        const data = await res.json();
-        const filtered = data.filter(i => i.name.toLowerCase().includes(query));
-        renderTable(filtered);
-    }
-
-    // LOAD STATS: Updates card numbers
-    async function loadStats() {
-        const res = await fetch(`${API}/stats`, { headers: { "Authorization": `Bearer ${token}` } });
-        const d = await res.json();
-        document.getElementById("totalUsers").innerText = d.totalBeneficiaries || 0;
-        document.getElementById("totalPrograms").innerText = d.totalPrograms || 0;
-    }
-
-    // LOAD CHART: Updates the bar graph
-    async function loadChart() {
-        const res = await fetch(`${API}/program-stats`, { headers: { "Authorization": `Bearer ${token}` } });
-        const data = await res.json();
-        const ctx = document.getElementById('programChart').getContext('2d');
-        if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.map(x => x._id || "Other"),
-                datasets: [{ label: 'People', data: data.map(x => x.count), backgroundColor: '#3182ce', borderRadius: 4 }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { display: false }, x: { grid: { display: false } } }
-            }
-        });
-    }
-
-    // DELETE: Removes record
-    async function deleteItem(id) {
-        if(!confirm("Remove this beneficiary?")) return;
-        await fetch(`${API}/beneficiaries/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } });
-        loadData();
-        loadStats();
-        loadChart();
-    }
-
-    // EXPORT: Downloads CSV
-    async function exportToCSV() {
-        const res = await fetch(`${API}/beneficiaries`, { headers: { "Authorization": `Bearer ${token}` } });
-        const data = await res.json();
-        const headers = ["Name", "Sex", "Age", "Phone", "Program", "Details"];
-        const csvRows = [headers.join(",")];
-        data.forEach(i => {
-            csvRows.push([`"${i.name}"`, `"${i.sex}"`, i.age, `"${i.phone}"`, `"${i.program}"`, `"${i.details || ''}"`].join(","));
-        });
-        const blob = new Blob([csvRows.join("\n")], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "NGO_Report.csv";
-        a.click();
-    }
-</script>
-</body>
-</html>

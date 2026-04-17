@@ -6,24 +6,21 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const path = require('path');
 
-// 1. Serve static files (CSS, Images, JS) from your main folder
-app.use(express.static(path.join(__dirname)));
-
-// 2. Explicitly send index.html when someone visits the base URL
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
 const app = express();
-app.use(cors());
-app.use(express.json());
+
 /* ------------------ CONFIG & DB ------------------ */
-// FIX: This ensures your secret key always has a value
+const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ngo_system";
 const JWT_SECRET = process.env.JWT_SECRET || "backup_secret_key_123"; 
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.error("Database Error ❌:", err.message));
+
+/* ------------------ MIDDLEWARE ------------------ */
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname)));
 
 /* ------------------ MODELS ------------------ */
 const Organization = mongoose.model("Organization", {
@@ -36,26 +33,15 @@ const User = mongoose.model("User", {
   organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }
 });
 
-// index.js
-// This tells the database how to store a Beneficiary record
 const Beneficiary = mongoose.model("Beneficiary", {
-  // Links this person to a specific NGO/Organization
   organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
-  
-  // Basic Information
-  name: { type: String, required: true }, // Name is required
-  sex: String,                            // Male / Female
-  age: Number,                            // Store as a number for calculations
-  
-  // Contact & Location
-  phone: String,                          // Phone number
-  address: String,                        // Physical location
-  
-  // Project Data
-  program: String,                        // Which NGO program they belong to
-  details: String,                        // Long text for medical history/case notes
-  
-  // Automatically record when they were registered
+  name: { type: String, required: true },
+  sex: String,
+  age: Number,
+  phone: String,
+  address: String,
+  program: String,
+  details: String,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -67,7 +53,6 @@ const auth = (req, res, next) => {
   if (!token) return res.status(401).json({ message: "No token provided" });
 
   try {
-    // FIX: Using the JWT_SECRET variable we defined above
     const decoded = jwt.verify(token, JWT_SECRET); 
     req.user = decoded; 
     next();
@@ -76,7 +61,7 @@ const auth = (req, res, next) => {
   }
 };
 
-/* ------------------ ROUTES ------------------ */
+/* ------------------ API ROUTES ------------------ */
 
 app.post("/register", async (req, res) => {
   try {
@@ -95,7 +80,6 @@ app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (user && await bcrypt.compare(password, user.password)) {
-      // FIX: Using the JWT_SECRET variable we defined above
       const token = jwt.sign(
         { userId: user._id, organizationId: user.organizationId },
         JWT_SECRET, 
@@ -110,22 +94,28 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/beneficiaries", auth, async (req, res) => {
-  const data = await Beneficiary.find({ organizationId: req.user.organizationId });
-  res.json(data);
+  try {
+    const data = await Beneficiary.find({ organizationId: req.user.organizationId });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post("/beneficiaries", auth, async (req, res) => {
-  // Force the organizationId to come from the TOKEN, not the user's input
-  const newData = { ...req.body, organizationId: req.user.organizationId };
-  const saved = await Beneficiary.create(newData);
-  res.json(saved);
+  try {
+    const newData = { ...req.body, organizationId: req.user.organizationId };
+    const saved = await Beneficiary.create(newData);
+    res.json(saved);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Update a Beneficiary
 app.put("/beneficiaries/:id", auth, async (req, res) => {
   try {
     const updated = await Beneficiary.findOneAndUpdate(
-      { _id: req.params.id, organizationId: req.user.organizationId }, // Security: Must own the record
+      { _id: req.params.id, organizationId: req.user.organizationId },
       req.body,
       { new: true }
     );
@@ -134,22 +124,7 @@ app.put("/beneficiaries/:id", auth, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-//Aggregation
-app.get("/program-stats", auth, async (req, res) => {
-  try {
-    const stats = await Beneficiary.aggregate([
-      // 1. Only look at data for YOUR NGO
-      { $match: { organizationId: new mongoose.Types.ObjectId(req.user.organizationId) } },
-      // 2. Group them by program name and count them
-      { $group: { _id: "$program", count: { $sum: 1 } } }
-    ]);
-    res.json(stats);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// Delete a Beneficiary
 app.delete("/beneficiaries/:id", auth, async (req, res) => {
     try {
         await Beneficiary.findOneAndDelete({ 
@@ -161,23 +136,42 @@ app.delete("/beneficiaries/:id", auth, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 app.get("/stats", auth, async (req, res) => {
-  const total = await Beneficiary.countDocuments({ organizationId: req.user.organizationId });
-  const programs = await Beneficiary.distinct("program", { organizationId: req.user.organizationId });
-  res.json({ totalBeneficiaries: total, totalPrograms: programs.length });
+  try {
+    const total = await Beneficiary.countDocuments({ organizationId: req.user.organizationId });
+    const programs = await Beneficiary.distinct("program", { organizationId: req.user.organizationId });
+    res.json({ totalBeneficiaries: total, totalPrograms: programs.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get("/program-stats", auth, async (req, res) => {
-  const stats = await Beneficiary.aggregate([
-    { $match: { organizationId: new mongoose.Types.ObjectId(req.user.organizationId) } },
-    { $group: { _id: "$program", count: { $sum: 1 } } }
-  ]);
-  res.json(stats);
+  try {
+    const stats = await Beneficiary.aggregate([
+      { $match: { organizationId: new mongoose.Types.ObjectId(req.user.organizationId) } },
+      { $group: { _id: "$program", count: { $sum: 1 } } }
+    ]);
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// This tells the app: Use Render's port, but if running on my PC, use 5000
-const PORT = process.env.PORT || 5000;
+/* ------------------ FRONTEND ROUTING ------------------ */
 
+// Home route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Catch-all for other pages
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+/* ------------------ START SERVER ------------------ */
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
