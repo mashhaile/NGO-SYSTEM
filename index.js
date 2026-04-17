@@ -4,7 +4,15 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const path = require('path');
 
+// 1. Serve static files (CSS, Images, JS) from your main folder
+app.use(express.static(path.join(__dirname)));
+
+// 2. Explicitly send index.html when someone visits the base URL
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 const app = express();
 app.use(cors());
 app.use(express.json());
