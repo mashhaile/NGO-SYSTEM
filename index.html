@@ -27,7 +27,8 @@
         const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
                     ? "http://localhost:5000" 
                     : "https://ngo-system-e5af.onrender.com";
-
+  // This variable holds the full list in memory
+        let allBeneficiaries = [];
         let token = localStorage.getItem("ngo_token") || "";
         let myChart;
 
@@ -65,20 +66,38 @@
         function logout() { localStorage.removeItem("ngo_token"); location.reload(); }
         function toggleForm() { document.getElementById("addForm").classList.toggle("hidden"); }
 
-        async function loadData() {
-            const res = await fetch(`${API}/beneficiaries`, { headers: { "Authorization": `Bearer ${token}` } });
-            const data = await res.json();
-            document.getElementById("list").innerHTML = data.map(i => `
-                <tr>
-                    <td><b>${i.name}</b></td>
-                    <td>${i.sex || '-'}</td>
-                    <td>${i.age || '-'}</td>
-                    <td>${i.phone || '-'}</td>
-                    <td><span style="background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:20px; font-size:12px;">${i.program}</span></td>
-                    <td style="text-align:right;"><button onclick="deleteItem('${i._id}')" style="color:var(--danger); background:none;">Delete</button></td>
-                </tr>
-            `).join("");
-        }
+
+async function loadData() {
+    const res = await fetch(`${API}/beneficiaries`, { headers: { "Authorization": `Bearer ${token}` } });
+    allBeneficiaries = await res.json(); // Save the data here
+    renderTable(allBeneficiaries); // Draw the table
+}
+
+function filterData() {
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+    
+    // Filter the list based on name or program
+    const filtered = allBeneficiaries.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) || 
+        item.program.toLowerCase().includes(searchTerm)
+    );
+    
+    renderTable(filtered); // Redraw with only matches
+}
+
+// We move the table drawing logic to its own function
+function renderTable(data) {
+    document.getElementById("list").innerHTML = data.map(i => `
+        <tr>
+            <td><b>${i.name}</b></td>
+            <td>${i.sex || '-'}</td>
+            <td>${i.age || '-'}</td>
+            <td>${i.phone || '-'}</td>
+            <td><span style="background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:20px; font-size:12px;">${i.program}</span></td>
+            <td style="text-align:right;"><button onclick="deleteItem('${i._id}')" style="color:var(--danger); background:none;">Delete</button></td>
+        </tr>
+    `).join("");
+}
 
         async function addBeneficiary() {
             const payload = {
@@ -163,10 +182,11 @@
         </div>
 
         <div class="box">
-            <div style="display: flex; gap: 10px;">
-                <input id="searchInput" placeholder="🔍 Search..." style="flex: 3; margin: 0;">
-                <button class="btn-primary" onclick="toggleForm()" style="flex: 1;">+ Add Beneficiary</button>
-            </div>
+    <div style="display: flex; gap: 10px;">
+        <input id="searchInput" oninput="filterData()" placeholder="🔍 Search by name or program..." style="flex: 3; margin: 0;">
+        <button class="btn-primary" onclick="toggleForm()" style="flex: 1;">+ Add Beneficiary</button>
+    </div>
+    </div>
 
             <div id="addForm" class="hidden" style="background: #f7fafc; padding: 20px; margin-top: 15px; border-radius: 8px; border: 1px dashed #cbd5e0;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
