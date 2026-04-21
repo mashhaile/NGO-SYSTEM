@@ -9,32 +9,21 @@ const path = require('path');
 const app = express();
 
 /* ------------------ CONFIG & DB ------------------ */
-// 1. Define Variables First
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ngo_system";
 const JWT_SECRET = process.env.JWT_SECRET || "backup_secret_key_123"; 
 
-// 2. Connect to Database
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.error("Database Error ❌:", err.message));
 
-/* ... All your middleware and routes go here ... */
-
-// 3. Start Server (This MUST be at the very bottom of index.js)
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
-});
 /* ------------------ MIDDLEWARE ------------------ */
 app.use(cors());
 app.use(express.json());
-// Serve your CSS, JS, and images automatically
 app.use(express.static(path.join(__dirname)));
 
 /* ------------------ MODELS ------------------ */
-const Organization = mongoose.model("Organization", {
-  name: { type: String, required: true }
-});
+const Organization = mongoose.model("Organization", { name: { type: String, required: true } });
 
 const User = mongoose.model("User", {
   email: { type: String, required: true, unique: true },
@@ -45,12 +34,7 @@ const User = mongoose.model("User", {
 const Beneficiary = mongoose.model("Beneficiary", {
   organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
   name: { type: String, required: true },
-  sex: String,
-  age: Number,
-  phone: String,
-  address: String,
-  program: String,
-  details: String,
+  sex: String, age: Number, phone: String, address: String, program: String, details: String,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -58,7 +42,6 @@ const Beneficiary = mongoose.model("Beneficiary", {
 const auth = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1]; 
-
   if (!token) return res.status(401).json({ message: "No token provided" });
 
   try {
@@ -79,9 +62,7 @@ app.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({ email, password: hashedPassword, organizationId: org._id });
     res.json({ message: "Registration successful!" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 app.post("/login", async (req, res) => {
@@ -89,85 +70,59 @@ app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign(
-        { userId: user._id, organizationId: user.organizationId },
-        JWT_SECRET, 
-        { expiresIn: '1d' }
-      );
+      const token = jwt.sign({ userId: user._id, organizationId: user.organizationId }, JWT_SECRET, { expiresIn: '1d' });
       return res.json({ token });
     }
     res.status(401).json({ message: "Invalid email or password" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 app.get("/beneficiaries", auth, async (req, res) => {
-  try {
-    const data = await Beneficiary.find({ organizationId: req.user.organizationId });
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  const data = await Beneficiary.find({ organizationId: req.user.organizationId });
+  res.json(data);
 });
 
 app.post("/beneficiaries", auth, async (req, res) => {
-  try {
-    const newData = { ...req.body, organizationId: req.user.organizationId };
-    const saved = await Beneficiary.create(newData);
-    res.json(saved);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  const newData = { ...req.body, organizationId: req.user.organizationId };
+  const saved = await Beneficiary.create(newData);
+  res.json(saved);
+});
+
+// UPDATE ROUTE (Now using the correct 'auth' middleware)
+app.put('/beneficiaries/:id', auth, async (req, res) => {
+    try {
+        const updated = await Beneficiary.findOneAndUpdate(
+            { _id: req.params.id, organizationId: req.user.organizationId }, 
+            req.body, 
+            { new: true }
+        );
+        res.json(updated);
+    } catch (err) { res.status(400).json({ message: err.message }); }
+});
+
+app.delete("/beneficiaries/:id", auth, async (req, res) => {
+    await Beneficiary.findOneAndDelete({ _id: req.params.id, organizationId: req.user.organizationId });
+    res.json({ message: "Success" });
 });
 
 app.get("/stats", auth, async (req, res) => {
-  try {
     const total = await Beneficiary.countDocuments({ organizationId: req.user.organizationId });
     const programs = await Beneficiary.distinct("program", { organizationId: req.user.organizationId });
     res.json({ totalBeneficiaries: total, totalPrograms: programs.length });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 });
 
 app.get("/program-stats", auth, async (req, res) => {
-  try {
     const stats = await Beneficiary.aggregate([
       { $match: { organizationId: new mongoose.Types.ObjectId(String(req.user.organizationId)) } },
       { $group: { _id: "$program", count: { $sum: 1 } } }
     ]);
     res.json(stats);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 });
 
-app.delete("/beneficiaries/:id", auth, async (req, res) => {
-    try {
-        await Beneficiary.findOneAndDelete({ 
-            _id: req.params.id, 
-            organizationId: req.user.organizationId 
-        });
-        res.json({ message: "Success" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-/* ------------------ FRONTEND ROUTING (MODERN FIX) ------------------ */
-
-// 1. Root route
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// 2. The "Smart" Catch-all (This replaces the crashing '*' route)
-app.use((req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+/* ------------------ FRONTEND ROUTING ------------------ */
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 /* ------------------ START SERVER ------------------ */
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`🚀 Server is flying on port ${PORT}`);
 });

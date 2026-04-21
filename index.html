@@ -31,7 +31,77 @@
         let allBeneficiaries = [];
         let token = localStorage.getItem("ngo_token") || "";
         let myChart;
+let editingId = null; // This variable "remembers" who we are editing
 
+// 1. When you click "Edit", fill the form with that person's data
+function editItem(id) {
+    const item = allBeneficiaries.find(b => b._id === id);
+    if (!item) return;
+
+    editingId = id; // Set the global ID to the person being edited
+    
+    // Fill each input field
+    document.getElementById("name").value = item.name;
+    document.getElementById("sex").value = item.sex || "";
+    document.getElementById("age").value = item.age || "";
+    document.getElementById("phone").value = item.phone || "";
+    document.getElementById("address").value = item.address || "";
+    document.getElementById("program").value = item.program || "";
+    document.getElementById("details").value = item.details || "";
+
+    // Open the form if it's hidden
+    if (document.getElementById("addForm").classList.contains("hidden")) toggleForm();
+
+    // Change the "Save" button to say "Update"
+    const actionBtn = document.querySelector("#addForm button");
+    actionBtn.innerText = "Update Beneficiary";
+    actionBtn.onclick = saveUpdate; 
+}
+
+// 2. When you click "Update", send the new data to the server
+async function saveUpdate() {
+    const payload = {
+        name: document.getElementById("name").value,
+        sex: document.getElementById("sex").value,
+        age: document.getElementById("age").value,
+        phone: document.getElementById("phone").value,
+        address: document.getElementById("address").value,
+        program: document.getElementById("program").value,
+        details: document.getElementById("details").value
+    };
+
+    const res = await fetch(`${API}/beneficiaries/${editingId}`, {
+        method: "PUT",
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+        alert("Updated successfully! ✅");
+        editingId = null;
+        
+        // 1. Reset the button back to its original "Add" state
+        const actionBtn = document.querySelector("#addForm button");
+        actionBtn.innerText = "Save Beneficiary";
+        actionBtn.onclick = addBeneficiary;
+        
+        // 2. Clear inputs
+        document.querySelectorAll("#addForm input, #addForm select, #addForm textarea").forEach(el => el.value = "");
+
+        // 3. Close the form
+        toggleForm(); 
+
+        // 4. REFRESH EVERYTHING (Table, Stats, and Chart)
+        await loadData();   
+        loadStats();
+        loadChart();
+    } else {
+        alert("Update failed. ❌");
+    }
+}
         async function login() {
             const email = document.getElementById("username").value;
             const password = document.getElementById("password").value;
@@ -68,9 +138,13 @@
 
 
 async function loadData() {
-    const res = await fetch(`${API}/beneficiaries`, { headers: { "Authorization": `Bearer ${token}` } });
-    allBeneficiaries = await res.json(); // Save the data here
-    renderTable(allBeneficiaries); // Draw the table
+    const res = await fetch(`${API}/beneficiaries`, { 
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` },
+        cache: "no-store" // This forces the browser to ignore old saved data
+    });
+    allBeneficiaries = await res.json();
+    renderTable(allBeneficiaries);
 }
 
 function filterData() {
@@ -94,7 +168,10 @@ function renderTable(data) {
             <td>${i.age || '-'}</td>
             <td>${i.phone || '-'}</td>
             <td><span style="background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:20px; font-size:12px;">${i.program}</span></td>
-            <td style="text-align:right;"><button onclick="deleteItem('${i._id}')" style="color:var(--danger); background:none;">Delete</button></td>
+            <td style="text-align:right;">
+                <button onclick="editItem('${i._id}')" style="color:var(--primary); background:none; margin-right:10px; cursor:pointer;">Edit</button>
+                <button onclick="deleteItem('${i._id}')" style="color:var(--danger); background:none; cursor:pointer;">Delete</button>
+            </td>
         </tr>
     `).join("");
 }
