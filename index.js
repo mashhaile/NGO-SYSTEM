@@ -118,15 +118,28 @@ app.post("/beneficiaries", auth, upload.fields([{ name: 'photo', maxCount: 1 }, 
   }
 });
 
-app.put('/beneficiaries/:id', auth, async (req, res) => {
+// UPDATED PUT ROUTE to handle new photos/IDs during editing
+app.put('/beneficiaries/:id', auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'idCard', maxCount: 1 }]), async (req, res) => {
     try {
+        let updateData = { ...req.body };
+
+        // If new files are uploaded, add their new URLs to the update
+        if (req.files['photo']) {
+            updateData.photoUrl = req.files['photo'][0].path;
+        }
+        if (req.files['idCard']) {
+            updateData.idCardUrl = req.files['idCard'][0].path;
+        }
+
         const updated = await Beneficiary.findOneAndUpdate(
             { _id: req.params.id, organizationId: req.user.organizationId }, 
-            req.body, 
-            { new: true }
+            updateData, 
+            { returnDocument: 'after' }
         );
         res.json(updated);
-    } catch (err) { res.status(400).json({ message: err.message }); }
+    } catch (err) { 
+        res.status(400).json({ message: err.message }); 
+    }
 });
 
 app.delete("/beneficiaries/:id", auth, async (req, res) => {

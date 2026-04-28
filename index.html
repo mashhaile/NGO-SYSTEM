@@ -16,92 +16,25 @@
         .btn-primary:hover { background: #2b6cb0; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; }
         th { background: #edf2f7; padding: 15px; text-align: left; color: #4a5568; font-size: 13px; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #edf2f7; font-size: 14px; }
+        td { padding: 15px; border-bottom: 1px solid #edf2f7; font-size: 14px; vertical-align: middle; }
         tr:hover { background-color: #f7fafc; }
         .analytics-row { display: flex; gap: 20px; align-items: stretch; margin-bottom: 25px; height: 200px; }
         .stat-card { flex: 1; padding: 20px; border-radius: 12px; color: white; text-align: center; display: flex; flex-direction: column; justify-content: center; }
         .chart-box { flex: 2; margin-bottom: 0; padding: 15px; display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .profile-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #edf2f7; }
     </style>
 
     <script>
         const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
                     ? "http://localhost:5000" 
                     : "https://ngo-system-e5af.onrender.com";
-  // This variable holds the full list in memory
+
         let allBeneficiaries = [];
         let token = localStorage.getItem("ngo_token") || "";
         let myChart;
-let editingId = null; // This variable "remembers" who we are editing
+        let editingId = null;
 
-// 1. When you click "Edit", fill the form with that person's data
-function editItem(id) {
-    const item = allBeneficiaries.find(b => b._id === id);
-    if (!item) return;
-
-    editingId = id; // Set the global ID to the person being edited
-    
-    // Fill each input field
-    document.getElementById("name").value = item.name;
-    document.getElementById("sex").value = item.sex || "";
-    document.getElementById("age").value = item.age || "";
-    document.getElementById("phone").value = item.phone || "";
-    document.getElementById("address").value = item.address || "";
-    document.getElementById("program").value = item.program || "";
-    document.getElementById("details").value = item.details || "";
-
-    // Open the form if it's hidden
-    if (document.getElementById("addForm").classList.contains("hidden")) toggleForm();
-
-    // Change the "Save" button to say "Update"
-    const actionBtn = document.querySelector("#addForm button");
-    actionBtn.innerText = "Update Beneficiary";
-    actionBtn.onclick = saveUpdate; 
-}
-
-// 2. When you click "Update", send the new data to the server
-async function saveUpdate() {
-    const payload = {
-        name: document.getElementById("name").value,
-        sex: document.getElementById("sex").value,
-        age: document.getElementById("age").value,
-        phone: document.getElementById("phone").value,
-        address: document.getElementById("address").value,
-        program: document.getElementById("program").value,
-        details: document.getElementById("details").value
-    };
-
-    const res = await fetch(`${API}/beneficiaries/${editingId}`, {
-        method: "PUT",
-        headers: { 
-            "Content-Type": "application/json", 
-            "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-        alert("Updated successfully! ✅");
-        editingId = null;
-        
-        // 1. Reset the button back to its original "Add" state
-        const actionBtn = document.querySelector("#addForm button");
-        actionBtn.innerText = "Save Beneficiary";
-        actionBtn.onclick = addBeneficiary;
-        
-        // 2. Clear inputs
-        document.querySelectorAll("#addForm input, #addForm select, #addForm textarea").forEach(el => el.value = "");
-
-        // 3. Close the form
-        toggleForm(); 
-
-        // 4. REFRESH EVERYTHING (Table, Stats, and Chart)
-        await loadData();   
-        loadStats();
-        loadChart();
-    } else {
-        alert("Update failed. ❌");
-    }
-}
+        /* ------------------ AUTH LOGIC ------------------ */
         async function login() {
             const email = document.getElementById("username").value;
             const password = document.getElementById("password").value;
@@ -134,69 +67,147 @@ async function saveUpdate() {
         }
 
         function logout() { localStorage.removeItem("ngo_token"); location.reload(); }
-        function toggleForm() { document.getElementById("addForm").classList.toggle("hidden"); }
+        function toggleForm() { 
+            document.getElementById("addForm").classList.toggle("hidden");
+            if(document.getElementById("addForm").classList.contains("hidden")) resetForm();
+        }
 
+        function resetForm() {
+            editingId = null;
+            document.querySelectorAll("#addForm input, #addForm select, #addForm textarea").forEach(el => el.value = "");
+            const actionBtn = document.querySelector("#addForm button");
+            actionBtn.innerText = "Save Beneficiary";
+            actionBtn.onclick = addBeneficiary;
+        }
 
-async function loadData() {
-    const res = await fetch(`${API}/beneficiaries`, { 
-        method: "GET",
-        headers: { "Authorization": `Bearer ${token}` },
-        cache: "no-store" // This forces the browser to ignore old saved data
-    });
-    allBeneficiaries = await res.json();
-    renderTable(allBeneficiaries);
-}
+        /* ------------------ DATA LOADING ------------------ */
+        async function loadData() {
+            const res = await fetch(`${API}/beneficiaries`, { 
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            allBeneficiaries = await res.json();
+            renderTable(allBeneficiaries);
+        }
 
-function filterData() {
-    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-    
-    // Filter the list based on name or program
-    const filtered = allBeneficiaries.filter(item => 
-        item.name.toLowerCase().includes(searchTerm) || 
-        item.program.toLowerCase().includes(searchTerm)
-    );
-    
-    renderTable(filtered); // Redraw with only matches
-}
+        function filterData() {
+            const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+            const filtered = allBeneficiaries.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) || 
+                item.program.toLowerCase().includes(searchTerm)
+            );
+            renderTable(filtered);
+        }
 
-// We move the table drawing logic to its own function
-function renderTable(data) {
-    document.getElementById("list").innerHTML = data.map(i => `
-        <tr>
-            <td><b>${i.name}</b></td>
-            <td>${i.sex || '-'}</td>
-            <td>${i.age || '-'}</td>
-            <td>${i.phone || '-'}</td>
-            <td><span style="background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:20px; font-size:12px;">${i.program}</span></td>
-            <td style="text-align:right;">
-                <button onclick="editItem('${i._id}')" style="color:var(--primary); background:none; margin-right:10px; cursor:pointer;">Edit</button>
-                <button onclick="deleteItem('${i._id}')" style="color:var(--danger); background:none; cursor:pointer;">Delete</button>
-            </td>
-        </tr>
-    `).join("");
-}
+        function renderTable(data) {
+            document.getElementById("list").innerHTML = data.map(i => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            ${i.photoUrl ? `<img src="${i.photoUrl}" class="profile-img">` : `<div class="profile-img" style="background:#cbd5e0; display:flex; align-items:center; justify-content:center; font-size:10px; color:white;">NO IMG</div>`}
+                            <b>${i.name}</b>
+                        </div>
+                    </td>
+                    <td>${i.sex || '-'}</td>
+                    <td>${i.age || '-'}</td>
+                    <td>${i.phone || '-'}</td>
+                    <td><span style="background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:20px; font-size:12px;">${i.program}</span></td>
+                    <td style="text-align:right;">
+                        ${i.idCardUrl ? `<a href="${i.idCardUrl}" target="_blank" style="margin-right:10px; font-size:12px; color:var(--success);">View ID</a>` : ''}
+                        <button onclick="editItem('${i._id}')" style="color:var(--primary); background:none; margin-right:10px; cursor:pointer;">Edit</button>
+                        <button onclick="deleteItem('${i._id}')" style="color:var(--danger); background:none; cursor:pointer;">Delete</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
 
+        /* ------------------ CRUD OPERATIONS ------------------ */
         async function addBeneficiary() {
-            const payload = {
-                name: document.getElementById("name").value,
-                sex: document.getElementById("sex").value,
-                age: document.getElementById("age").value,
-                phone: document.getElementById("phone").value,
-                address: document.getElementById("address").value,
-                program: document.getElementById("program").value,
-                details: document.getElementById("details").value
-            };
+            const formData = new FormData();
+            formData.append("name", document.getElementById("name").value);
+            formData.append("sex", document.getElementById("sex").value);
+            formData.append("age", document.getElementById("age").value);
+            formData.append("phone", document.getElementById("phone").value);
+            formData.append("address", document.getElementById("address").value);
+            formData.append("program", document.getElementById("program").value);
+            formData.append("details", document.getElementById("details").value);
+            
+            const photoFile = document.getElementById("photoInput").files[0];
+            const idFile = document.getElementById("idCardInput").files[0];
+            if (photoFile) formData.append("photo", photoFile);
+            if (idFile) formData.append("idCard", idFile);
+
             const res = await fetch(`${API}/beneficiaries`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify(payload)
+                headers: { "Authorization": `Bearer ${token}` },
+                body: formData
             });
+
             if(res.ok) {
-                document.querySelectorAll("#addForm input, #addForm select, #addForm textarea").forEach(el => el.value = "");
-                toggleForm(); loadData(); loadStats(); loadChart();
+                alert("Saved successfully! 📂");
+                resetForm(); toggleForm(); loadData(); loadStats(); loadChart();
+            } else {
+                alert("Error saving data.");
             }
         }
 
+        function editItem(id) {
+            const item = allBeneficiaries.find(b => b._id === id);
+            if (!item) return;
+            editingId = id;
+            document.getElementById("name").value = item.name;
+            document.getElementById("sex").value = item.sex || "";
+            document.getElementById("age").value = item.age || "";
+            document.getElementById("phone").value = item.phone || "";
+            document.getElementById("address").value = item.address || "";
+            document.getElementById("program").value = item.program || "";
+            document.getElementById("details").value = item.details || "";
+
+            if (document.getElementById("addForm").classList.contains("hidden")) toggleForm();
+            const actionBtn = document.querySelector("#addForm button");
+            actionBtn.innerText = "Update Beneficiary Info";
+            actionBtn.onclick = saveUpdate; 
+        }
+
+        async function saveUpdate() {
+    const formData = new FormData();
+    formData.append("name", document.getElementById("name").value);
+    formData.append("sex", document.getElementById("sex").value);
+    formData.append("age", document.getElementById("age").value);
+    formData.append("phone", document.getElementById("phone").value);
+    formData.append("address", document.getElementById("address").value);
+    formData.append("program", document.getElementById("program").value);
+    formData.append("details", document.getElementById("details").value);
+    
+    const photoFile = document.getElementById("photoInput").files[0];
+    const idFile = document.getElementById("idCardInput").files[0];
+    if (photoFile) formData.append("photo", photoFile);
+    if (idFile) formData.append("idCard", idFile);
+
+    const res = await fetch(`${API}/beneficiaries/${editingId}`, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData // Sending FormData instead of JSON
+    });
+
+    if (res.ok) {
+        alert("Updated successfully! ✅");
+        resetForm();
+        if (!document.getElementById("addForm").classList.contains("hidden")) toggleForm(); 
+        await loadData(); 
+        loadStats();
+        loadChart();
+    } else {
+        alert("Update failed. ❌");
+    }
+}
+
+        async function deleteItem(id) {
+            if(!confirm("Are you sure?")) return;
+            await fetch(`${API}/beneficiaries/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } });
+            loadData(); loadStats(); loadChart();
+        }
+
+        /* ------------------ ANALYTICS ------------------ */
         async function loadStats() {
             const res = await fetch(`${API}/stats`, { headers: { "Authorization": `Bearer ${token}` } });
             const d = await res.json();
@@ -217,12 +228,6 @@ function renderTable(data) {
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-        }
-
-        async function deleteItem(id) {
-            if(!confirm("Delete?")) return;
-            await fetch(`${API}/beneficiaries/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } });
-            loadData(); loadStats(); loadChart();
         }
 
         window.onload = () => { if (token) showApp(); };
@@ -259,11 +264,10 @@ function renderTable(data) {
         </div>
 
         <div class="box">
-    <div style="display: flex; gap: 10px;">
-        <input id="searchInput" oninput="filterData()" placeholder="🔍 Search by name or program..." style="flex: 3; margin: 0;">
-        <button class="btn-primary" onclick="toggleForm()" style="flex: 1;">+ Add Beneficiary</button>
-    </div>
-    </div>
+            <div style="display: flex; gap: 10px;">
+                <input id="searchInput" oninput="filterData()" placeholder="🔍 Search by name or program..." style="flex: 3; margin: 0;">
+                <button class="btn-primary" onclick="toggleForm()" style="flex: 1;">+ Add Beneficiary</button>
+            </div>
 
             <div id="addForm" class="hidden" style="background: #f7fafc; padding: 20px; margin-top: 15px; border-radius: 8px; border: 1px dashed #cbd5e0;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
@@ -275,7 +279,19 @@ function renderTable(data) {
                     <input id="program" placeholder="Program">
                 </div>
                 <textarea id="details" placeholder="Details"></textarea>
-                <button class="btn-primary" onclick="addBeneficiary()" style="width: 100%; margin-top: 10px;">Save Beneficiary</button>
+                
+                <div style="display: flex; gap: 20px; margin-top: 10px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #edf2f7;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 11px; font-weight: bold; color: #718096; display: block; margin-bottom: 5px;">PROFILE PHOTO</label>
+                        <input type="file" id="photoInput" accept="image/*" style="border: none; padding: 0; margin: 0;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 11px; font-weight: bold; color: #718096; display: block; margin-bottom: 5px;">ID CARD (IMG/PDF)</label>
+                        <input type="file" id="idCardInput" accept="image/*,application/pdf" style="border: none; padding: 0; margin: 0;">
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="addBeneficiary()" style="width: 100%; margin-top: 15px;">Save Beneficiary</button>
             </div>
         </div>
 
