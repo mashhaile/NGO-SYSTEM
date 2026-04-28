@@ -5,6 +5,9 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const path = require('path');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
 
@@ -12,6 +15,22 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ngo_system";
 const JWT_SECRET = process.env.JWT_SECRET || "backup_secret_key_123"; 
+
+// Cloudinary Setup
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'ngo_beneficiaries',
+    allowed_formats: ['jpg', 'png', 'pdf']
+  },
+});
+const upload = multer({ storage: storage });
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
@@ -35,6 +54,8 @@ const Beneficiary = mongoose.model("Beneficiary", {
   organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
   name: { type: String, required: true },
   sex: String, age: Number, phone: String, address: String, program: String, details: String,
+  photoUrl: String,   // New field for photo link
+  idCardUrl: String,  // New field for ID link
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -43,7 +64,6 @@ const auth = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1]; 
   if (!token) return res.status(401).json({ message: "No token provided" });
-
   try {
     const decoded = jwt.verify(token, JWT_SECRET); 
     req.user = decoded; 
@@ -82,13 +102,22 @@ app.get("/beneficiaries", auth, async (req, res) => {
   res.json(data);
 });
 
-app.post("/beneficiaries", auth, async (req, res) => {
-  const newData = { ...req.body, organizationId: req.user.organizationId };
-  const saved = await Beneficiary.create(newData);
-  res.json(saved);
+// NEW POST ROUTE (Handles text + files)
+app.post("/beneficiaries", auth, upload.fields([{ name: 'photo', maxCount: 1 }, { name: 'idCard', maxCount: 1 }]), async (req, res) => {
+  try {
+    const newData = { 
+      ...req.body, 
+      organizationId: req.user.organizationId,
+      photoUrl: req.files['photo'] ? req.files['photo'][0].path : "",
+      idCardUrl: req.files['idCard'] ? req.files['idCard'][0].path : ""
+    };
+    const saved = await Beneficiary.create(newData);
+    res.json(saved);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// UPDATE ROUTE (Now using the correct 'auth' middleware)
 app.put('/beneficiaries/:id', auth, async (req, res) => {
     try {
         const updated = await Beneficiary.findOneAndUpdate(
@@ -119,10 +148,8 @@ app.get("/program-stats", auth, async (req, res) => {
     res.json(stats);
 });
 
-/* ------------------ FRONTEND ROUTING ------------------ */
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-/* ------------------ START SERVER ------------------ */
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server is flying on port ${PORT}`);
 });
