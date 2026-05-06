@@ -58,7 +58,15 @@ const Beneficiary = mongoose.model("Beneficiary", {
   idCardUrl: String,  // New field for ID link
   createdAt: { type: Date, default: Date.now }
 });
+const programSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    description: String,
+    startDate: Date,
+    status: { type: String, enum: ['Active', 'Completed', 'Planned'], default: 'Active' },
+    organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+});
 
+const Program = mongoose.model('Program', programSchema);
 /* ------------------ AUTH MIDDLEWARE ------------------ */
 const auth = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -100,6 +108,28 @@ app.post("/login", async (req, res) => {
 app.get("/beneficiaries", auth, async (req, res) => {
   const data = await Beneficiary.find({ organizationId: req.user.organizationId });
   res.json(data);
+});
+// Get all programs
+app.get('/programs', auth, async (req, res) => {
+    const programs = await Program.find({ organizationId: req.user.organizationId });
+    res.json(programs);
+});
+
+// Create a program
+app.post('/programs', auth, async (req, res) => {
+    const program = new Program({ ...req.body, organizationId: req.user.organizationId });
+    await program.save();
+    res.status(201).json(program);
+});
+
+// Update a program
+app.put('/programs/:id', auth, async (req, res) => {
+    const updated = await Program.findOneAndUpdate(
+        { _id: req.params.id, organizationId: req.user.organizationId },
+        req.body,
+        { returnDocument: 'after' }
+    );
+    res.json(updated);
 });
 
 // NEW POST ROUTE (Handles text + files)
