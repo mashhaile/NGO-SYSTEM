@@ -1,755 +1,2668 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NGO Central Command | ESD</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-<!-- Libraries for PDF generation -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NGO Central Command | ESD</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- PDF Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        
-        :root { --primary: #2563eb; --success: #059669; --danger: #dc2626; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; }
-        
-        .box { background: white; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .hidden { display: none !important; }
-        
-        input, select, textarea { 
-            width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; 
-            font-size: 0.875rem; transition: all 0.2s;
-        }
-        input:focus { outline: none; border-color: var(--primary); ring: 2px rgba(37, 99, 235, 0.2); }
-        
-        .nav-item.active { background: #1e293b; border-left: 4px solid var(--primary); color: white; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+:root {
+    --primary: #2563eb;
+    --success: #059669;
+    --danger: #dc2626;
+    --bg: #f8fafc;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: #1e293b;
+}
+
+.box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.nav-item.active {
+    background: #1e293b;
+    border-left: 4px solid var(--primary);
+    color: white;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+</style>
 </head>
+
 <body class="antialiased">
 
-    <!-- LOGIN SECTION -->
-    <div id="loginSection" class="min-h-screen flex items-center justify-center p-6">
-        <div class="box w-full max-width-[420px] p-10 shadow-2xl">
-            <div class="text-center mb-8">
-                <span class="text-5xl mb-4 block">🌍</span>
-                <h2 class="text-2xl font-extrabold tracking-tight">ESD Command</h2>
-                <p class="text-slate-500 text-sm mt-1">Please sign in to your account</p>
+<!-- LOGIN -->
+<div id="loginSection" class="min-h-screen flex items-center justify-center p-6">
+    <div class="box w-full max-w-[420px] p-10 shadow-2xl">
+
+        <div class="text-center mb-8">
+            <span class="text-5xl mb-4 block">🌍</span>
+            <h2 class="text-2xl font-extrabold tracking-tight">ESD Command</h2>
+            <p class="text-slate-500 text-sm mt-1">
+                Please sign in to your account
+            </p>
+        </div>
+
+        <div class="space-y-4">
+
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    Email Address
+                </label>
+
+                <input
+                    id="username"
+                    type="email"
+                    placeholder="name@organization.org"
+                    class="mt-1"
+                />
             </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Email Address</label>
-                    <input id="username" placeholder="name@organization.org" type="email" class="mt-1">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Password</label>
-                    <input id="password" type="password" placeholder="••••••••" class="mt-1">
-                </div>
-                <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all transform active:scale-[0.98]" onclick="login()">
-                    Sign In
-                </button>
-                <p id="msg" class="text-center text-sm font-medium text-red-500 min-h-[1.25rem]"></p>
+
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    Password
+                </label>
+
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    class="mt-1"
+                />
             </div>
+
+            <button
+                id="loginBtn"
+                onclick="login()"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all"
+            >
+                Sign In
+            </button>
+
+            <p
+                id="msg"
+                class="text-center text-sm font-medium text-red-500 min-h-[1.25rem]"
+            ></p>
         </div>
     </div>
+</div>
 
-    <!-- PROTECTED AREA -->
-    <div id="protectedArea" class="hidden flex h-screen overflow-hidden">
-                        
-  <!-- SIDEBAR -->
+<!-- PROTECTED -->
+<div id="protectedArea" class="hidden flex h-screen overflow-hidden">
+
+<!-- SIDEBAR -->
 <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0">
+
     <div class="p-6 text-lg font-extrabold text-white border-b border-slate-800 flex items-center gap-3">
-        <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-sm">ESD</div>
+        <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-sm">
+            ESD
+        </div>
+
         Command Center
     </div>
-    
+
     <nav class="flex-1 p-4 space-y-1 mt-4 flex flex-col">
-        <button onclick="showSection('dashboard')" id="nav-dashboard" class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center group">
-            <span class="mr-3 opacity-70 group-hover:opacity-100">📊</span> Dashboard
-        </button>
-        <button onclick="showSection('beneficiary')" id="nav-beneficiary" class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center group">
-            <span class="mr-3 opacity-70 group-hover:opacity-100">👥</span> Beneficiaries
-        </button>
-        <button onclick="showSection('program')" id="nav-program" class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center group">
-            <span class="mr-3 opacity-70 group-hover:opacity-100">📂</span> Programs
-        </button>
-        <button onclick="showSection('reports')" id="nav-reports" class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center group">
-            <span class="mr-3 opacity-70 group-hover:opacity-100">📄</span> Reports
+
+        <button
+            onclick="showSection('dashboard')"
+            id="nav-dashboard"
+            class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center"
+        >
+            📊 Dashboard
         </button>
 
-        <!-- THE MISSING LOGOUT BUTTON (Added here) -->
-        <button onclick="logout()" class="mt-auto w-full text-left p-3 rounded-lg text-red-400 hover:bg-red-500/10 transition flex items-center group">
-            <span class="mr-3 opacity-70 group-hover:opacity-100">🚪</span> Logout
+        <button
+            onclick="showSection('beneficiary')"
+            id="nav-beneficiary"
+            class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center"
+        >
+            👥 Beneficiaries
         </button>
+
+        <button
+            onclick="showSection('program')"
+            id="nav-program"
+            class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center"
+        >
+            📂 Programs
+        </button>
+        <button onclick="showSection('training')" id="nav-training" class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3">
+    <span>🎓</span> Training Module
+</button>
+
+        <button
+            onclick="showSection('reports')"
+            id="nav-reports"
+            class="nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center"
+        >
+            📄 Reports
+        </button>
+
+        <!-- Optional Admin -->
+        <button
+            id="admin-nav-item"
+            class="hidden nav-item w-full text-left p-3 rounded-lg hover:bg-slate-800 transition flex items-center"
+        >
+            🔐 Admin
+        </button>
+
+        <button
+            onclick="logout()"
+            class="mt-auto w-full text-left p-3 rounded-lg text-red-400 hover:bg-red-500/10 transition flex items-center"
+        >
+            🚪 Logout
+        </button>
+
     </nav>
 </aside>
-                <!-- MAIN CONTENT -->
-        <main class="flex-1 overflow-y-auto bg-slate-50">
-            <div class="max-w-6xl mx-auto p-6 lg:p-10">
-                <!-- SECTION: DASHBOARD -->
-                <section id="dashboard-section">
-                    <header class="mb-10">
-                        <h1 class="text-3xl font-extrabold text-slate-900">Operational Overview</h1>
-                        <p class="text-slate-500">Real-time impact and program metrics</p>
-                    </header>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                        <div class="p-6 rounded-2xl bg-white border border-blue-100 flex items-center justify-between shadow-sm">
-                            <div>
-                                <p class="text-slate-500 uppercase text-xs font-bold tracking-widest">Total Beneficiaries</p>
-                                <h2 id="totalUsers" class="text-4xl font-black text-blue-600 mt-1">0</h2>
-                            </div>
-                            <div class="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center text-2xl">👥</div>
-                        </div>
-                        <div class="p-6 rounded-2xl bg-white border border-emerald-100 flex items-center justify-between shadow-sm">
-                            <div>
-                                <p class="text-slate-500 uppercase text-xs font-bold tracking-widest">Active Programs</p>
-                                <h2 id="totalPrograms" class="text-4xl font-black text-emerald-600 mt-1">0</h2>
-                            </div>
-                            <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-2xl">📂</div>
-                        </div>
-                    </div>
+<!-- MAIN -->
+<main class="flex-1 overflow-y-auto bg-slate-50">
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="box">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6">Program Distribution</h3>
-                            <div class="h-[300px]"><canvas id="programChart"></canvas></div>
-                        </div>
-                        <div class="box">
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6">Gender Demographics</h3>
-                            <div class="h-[300px]"><canvas id="genderChart"></canvas></div>
-                        </div>
-                    </div>
-                </section>
+<div class="max-w-6xl mx-auto p-6 lg:p-10">
 
-                <!-- SECTION: BENEFICIARIES -->
-                <section id="beneficiary-section" class="hidden">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                        <div>
-                            <h1 class="text-3xl font-extrabold text-slate-900">Beneficiaries</h1>
-                            <p class="text-slate-500">Registry of all individuals in the system</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="exportToCSV()" class="bg-white text-slate-700 px-4 py-2.5 rounded-lg font-bold border border-slate-200 hover:bg-slate-50 transition flex items-center gap-2 text-sm shadow-sm">
-                                📥 Export
-                            </button>
-                            <button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition text-sm" onclick="toggleForm()">+ Add New</button>
-                        </div>
-                    </div>
+<!-- DASHBOARD -->
+<section id="dashboard-section">
 
-                    <div class="box p-3 mb-6">
-                        <div class="relative">
-                            <span class="absolute left-4 top-3.5 opacity-40">🔍</span>
-                            <input id="searchInput" oninput="filterData()" placeholder="Search by name, program, or phone number..." class="pl-11 bg-slate-50 border-transparent focus:bg-white">
-                        </div>
-                    </div>
+<header class="mb-10">
+    <h1 class="text-3xl font-extrabold text-slate-900">
+        Operational Overview
+    </h1>
 
-                    <!-- Add/Edit Form -->
-                    <div id="addForm" class="hidden box border-2 border-blue-100 bg-blue-50/30 mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
-                        <h3 id="formTitle" class="text-lg font-bold mb-6 text-blue-900">Registration Details</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div class="space-y-1">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Full Name</label>
-                                <input id="name" placeholder="Enter name">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Gender</label>
-                                <select id="sex"><option value="">Select</option><option>Male</option><option>Female</option></select>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Age</label>
-                                <input id="age" type="number" placeholder="Years">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Phone</label>
-                                <input id="phone" placeholder="+251...">
-                            </div>
-                            <div class="space-y-1 md:col-span-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Address</label>
-                                <input id="address" placeholder="Physical location">
-                            </div>
-                            <div class="space-y-1 md:col-span-3">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Program Enrollment</label>
-                                <select id="program"><option value="">Select Program</option></select>
-                            </div>
-                        </div>
-                        <div class="mt-5 space-y-1">
-                            <label class="text-xs font-bold text-slate-500 uppercase">Internal Case Notes</label>
-                            <textarea id="details" placeholder="Describe status, needs, or history..." rows="3"></textarea>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
-                            <div class="bg-white p-4 rounded-xl border border-slate-200">
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Profile Photo</label>
-                                <input type="file" id="photoInput" accept="image/*" class="border-none p-0 text-xs cursor-pointer">
-                            </div>
-                            <div class="bg-white p-4 rounded-xl border border-slate-200">
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Identification Doc</label>
-                                <input type="file" id="idCardInput" accept="image/*,application/pdf" class="border-none p-0 text-xs cursor-pointer">
-                            </div>
-                        </div>
-                        <div class="flex gap-3 pt-4 border-t border-blue-100">
-                            <button class="bg-blue-600 text-white flex-1 py-3 rounded-xl font-bold shadow-lg shadow-blue-100" id="saveBeneficiaryBtn" onclick="addBeneficiary()">Save Beneficiary</button>
-                            <button class="bg-slate-200 text-slate-700 px-8 py-3 rounded-xl font-bold" onclick="toggleForm()">Cancel</button>
-                        </div>
-                    </div>
+    <p class="text-slate-500">
+        Real-time impact and program metrics
+    </p>
+</header>
 
-                    <div class="box p-0 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-100">
-                                        <th class="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Profile</th>
-                                        <th class="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Bio</th>
-                                        <th class="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Program</th>
-                                        <th class="p-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="list" class="divide-y divide-slate-50"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
 
-                <!-- SECTION: PROGRAMS -->
-                <section id="program-section" class="hidden">
-                    <div class="flex justify-between items-center mb-8">
-                        <div>
-                            <h1 class="text-3xl font-extrabold text-slate-900">Programs</h1>
-                            <p class="text-slate-500">Frameworks and initiatives</p>
-                        </div>
-                        <button onclick="toggleProgramForm()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition text-sm">+ Create Program</button>
-                    </div>
+    <div class="p-6 rounded-2xl bg-white border border-blue-100 flex items-center justify-between shadow-sm">
+        <div>
+            <p class="text-slate-500 uppercase text-xs font-bold tracking-widest">
+                Total Beneficiaries
+            </p>
 
-                    <div id="programForm" class="hidden box border-2 border-emerald-100 bg-emerald-50/30 mb-8">
-                        <div class="flex flex-col md:flex-row gap-4 items-end">
-                            <div class="flex-1 space-y-1 w-full">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Name</label>
-                                <input type="text" id="progName" placeholder="Program title" class="m-0">
-                            </div>
-                            <div class="md:w-48 space-y-1 w-full">
-                                <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
-                                <select id="progStatus" class="m-0">
-                                    <option value="Active">Active</option>
-                                    <option value="Planned">Planned</option>
-                                    <option value="Completed">Completed</option>
-                                </select>
-                            </div>
-                            <div class="flex gap-2 w-full md:w-auto">
-                                <button onclick="saveProgram()" class="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-bold flex-1 md:flex-none">Save</button>
-                                <button onclick="toggleProgramForm()" class="bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-bold">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="box p-0 overflow-hidden">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="bg-slate-50 border-b border-slate-100">
-                                    <th class="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Program Name</th>
-                                    <th class="p-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                                    <th class="p-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="programTableBody" class="divide-y divide-slate-50"></tbody>
-                        </table>
-                    </div>
-                </section>
-                <!-- SECTION: REPORTS -->
-<section id="reports-section" class="hidden animate-in fade-in duration-500">
-    <header class="mb-10">
-        <h1 class="text-3xl font-extrabold text-slate-900">Intelligence & Reports</h1>
-        <p class="text-slate-500">Export data and generate official documentation</p>
-    </header>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- PDF Card -->
-        <div class="box p-8 flex flex-col items-center text-center group border-2 border-transparent hover:border-blue-100 transition-all">
-            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">📄</div>
-            <h3 class="font-bold text-slate-800">Formal PDF</h3>
-            <p class="text-sm text-slate-500 mb-6">Generates a branded document with a clean data table.</p>
-            <button onclick="generatePDFReport()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg">Download PDF</button>
+            <h2 id="totalUsers" class="text-4xl font-black text-blue-600 mt-1">
+                0
+            </h2>
         </div>
 
-        <!-- CSV Card -->
-        <div class="box p-8 flex flex-col items-center text-center group border-2 border-transparent hover:border-emerald-100 transition-all">
-            <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">📊</div>
-            <h3 class="font-bold text-slate-800">Data Spreadsheet</h3>
-            <p class="text-sm text-slate-500 mb-6">Export raw beneficiary data for Excel or Google Sheets.</p>
-            <button onclick="exportToCSV()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-emerald-600 transition shadow-lg">Download CSV</button>
+        <div class="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center text-2xl">
+            👥
+        </div>
+    </div>
+
+    <div class="p-6 rounded-2xl bg-white border border-emerald-100 flex items-center justify-between shadow-sm">
+        <div>
+            <p class="text-slate-500 uppercase text-xs font-bold tracking-widest">
+                Active Programs
+            </p>
+
+            <h2 id="totalPrograms" class="text-4xl font-black text-emerald-600 mt-1">
+                0
+            </h2>
         </div>
 
-        <!-- Email Card -->
-        <div class="box p-8 flex flex-col items-center text-center group border-2 border-transparent hover:border-indigo-100 transition-all">
-            <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform">📧</div>
-            <h3 class="font-bold text-slate-800">Share via Email</h3>
-            <p class="text-sm text-slate-500 mb-6">Send a summary of the current data to your email client.</p>
-            <button onclick="shareByEmail()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-indigo-600 transition shadow-lg">Prepare Email</button>
+        <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-2xl">
+            📂
         </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <div class="box">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6">
+            Program Distribution
+        </h3>
+
+        <div class="h-[300px]">
+            <canvas id="programChart"></canvas>
+        </div>
+    </div>
+
+    <div class="box">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6">
+            Gender Demographics
+        </h3>
+
+        <div class="h-[300px]">
+            <canvas id="genderChart"></canvas>
+        </div>
+    </div>
+
+</div>
+</section>
+<section id="training-section" class="hidden">
+    <div class="flex justify-between items-center mb-6 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Training & Workshops</h1>
+            <p class="text-slate-500 text-sm">Official ESD Registry for Capacity Building</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="generateTrainingReport()" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg font-bold border border-slate-200 hover:bg-slate-200 transition">
+                📄 Export Registry
+            </button>
+            <button onclick="exportTrainingToExcel()" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg font-bold border border-slate-200 hover:bg-slate-200 transition">
+    📊 Export Excel
+</button>
+            <button onclick="toggleTrainingForm()" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition">
+                + New Session
+            </button>
+        </div>
+    </div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <p class="text-xs uppercase font-bold text-slate-500">Sessions</p>
+        <h2 id="trainingTotalSessions" class="text-3xl font-black text-blue-600">0</h2>
+    </div>
+    <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <p class="text-xs uppercase font-bold text-slate-500">Participants</p>
+        <h2 id="trainingTotalParticipants" class="text-3xl font-black text-emerald-600">0</h2>
+    </div>
+    <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <p class="text-xs uppercase font-bold text-slate-500">Male</p>
+        <h2 id="trainingTotalMale" class="text-3xl font-black text-sky-600">0</h2>
+    </div>
+    <div class="bg-white p-4 rounded-xl border shadow-sm">
+        <p class="text-xs uppercase font-bold text-slate-500">Female</p>
+        <h2 id="trainingTotalFemale" class="text-3xl font-black text-pink-600">0</h2>
+    </div>
+</div>
+    <div id="trainingForm" class="hidden bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-600 mb-6">
+    <h3 class="font-bold text-lg mb-4">Record New Training Session</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-3">
+    <label class="text-xs font-bold text-slate-500">PARTICIPANTS</label>
+
+    <div class="border rounded p-3 max-h-40 overflow-y-auto bg-white" id="beneficiarySelector">
+        <!-- populated by JS -->
+    </div>
+</div>
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">TRAINING TITLE</label>
+            <input type="text" id="trainTitle" placeholder="e.g. Cultivation Training" class="w-full p-2 border rounded" />
+        </div>
+        
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">TARGET GROUP</label>
+            <input type="text" id="trainCategory" placeholder="e.g. Farmers" class="w-full p-2 border rounded" />
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">DATE DURATION</label>
+            <input type="text" id="trainDateRange" placeholder="e.g. June 01 - July 02" class="w-full p-2 border rounded" />
+        </div>
+        
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">MALE COUNT</label>
+            <input type="number" id="trainMale" value="0" oninput="updateTrainingLiveTotal()" class="w-full p-2 border rounded" />
+
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">FEMALE COUNT</label>
+            <input type="number" id="trainFemale" value="0" oninput="updateTrainingLiveTotal()" class="w-full p-2 border rounded" />
+        </div>
+<div class="md:col-span-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
+    <p class="text-sm text-slate-600">
+        Total Participants:
+        <span id="trainingLiveTotal" class="font-black text-blue-600">0</span>
+    </p>
+</div>
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">STATUS</label>
+            <select id="trainStatus" class="w-full p-2 border rounded">
+                <option value="Completed">Completed</option>
+                <option value="Ongoing">Ongoing</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="mt-4 flex gap-2">
+        <button type="button" onclick="saveTraining()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">
+            Save Session
+        </button>
+        <button type="button" onclick="toggleTrainingForm()" class="text-slate-500 px-4">Cancel</button>
+    </div>
+</div>
+<div class="mb-4">
+    <input
+        id="trainingSearch"
+        oninput="filterTrainings()"
+        placeholder="Search training sessions..."
+        class="w-full p-3 border rounded-lg"
+    />
+</div>
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                    <th class="p-4 font-bold text-slate-600">SESSION TITLE</th>
+                    <th class="p-4 font-bold text-slate-600">TRAINER</th>
+                    <th class="p-4 font-bold text-slate-600 text-center">DATE</th>
+                    <th class="p-4 font-bold text-slate-600 text-center">STATUS</th>
+                    <th class="p-4 font-bold text-slate-600 text-right">ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="trainingTableBody">
+                </tbody>
+        </table>
     </div>
 </section>
-            </div>
-        </main>
-    </div>
+<!-- BENEFICIARIES -->
+<section id="beneficiary-section" class="hidden">
 
-    <!-- PROFILE MODAL -->
-    <div id="profileModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="p-6 border-b flex justify-between items-center bg-slate-50/50">
-                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Member Registry</span>
-                <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 transition text-xl">&times;</button>
-            </div>
-            <div id="modalContent" class="p-8 lg:p-12"></div>
-        </div>
-    </div>
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
 
-    <script>
-        const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
-                    ? "http://localhost:5000" 
-                    : "https://ngo-system-e5af.onrender.com";
+<div>
+    <h1 class="text-3xl font-extrabold text-slate-900">
+        Beneficiaries
+    </h1>
 
-        let allBeneficiaries = [];
-        let token = localStorage.getItem("ngo_token") || "";
-        let myChart, genderChart;
-        let editingId = null;
-        let editingProgramId = null;
+    <p class="text-slate-500">
+        Registry of all individuals in the system
+    </p>
+</div>
 
-        /* --- UI NAVIGATION --- */
-        function showSection(sectionName) {
-            document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            document.getElementById(`${sectionName}-section`).classList.remove('hidden');
-            document.getElementById(`nav-${sectionName}`).classList.add('active');
+<div class="flex gap-2">
 
-            if (sectionName === 'beneficiary') loadData();
-            if (sectionName === 'program') loadPrograms();
-            if (sectionName === 'dashboard') { 
-                loadStats(); 
-                loadChart(); 
-                loadData().then(() => loadGenderChart()); 
-            }
+    <button
+        onclick="exportToCSV()"
+        class="bg-white text-slate-700 px-4 py-2.5 rounded-lg font-bold border border-slate-200"
+    >
+        📥 Export
+    </button>
+
+    <button
+        onclick="toggleForm()"
+        class="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold"
+    >
+        + Add New
+    </button>
+
+</div>
+</div>
+<div class="flex gap-2">
+    <input type="file" id="excelInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleExcel(event)" />
+    <button onclick="document.getElementById('excelInput').click()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-bold">
+        📊 Bulk Upload
+    </button>
+    <!-- ... your other buttons ... -->
+</div>
+<div class="box p-3 mb-6">
+
+<div class="relative">
+    <span class="absolute left-4 top-3.5 opacity-40">🔍</span>
+
+    <input
+        id="searchInput"
+        oninput="filterData()"
+        placeholder="Search..."
+        class="pl-11 bg-slate-50 border-transparent"
+    />
+</div>
+
+</div>
+
+<!-- FORM -->
+<div id="addForm" class="hidden box mb-8">
+
+<h3 id="formTitle" class="text-lg font-bold mb-6">
+    Registration Details
+</h3>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+<input id="name" placeholder="Full Name" />
+<select id="sex">
+    <option value="">Gender</option>
+    <option>Male</option>
+    <option>Female</option>
+</select>
+
+<input id="age" type="number" placeholder="Age" />
+
+<input id="phone" placeholder="Phone" />
+
+<input id="address" placeholder="Address" class="md:col-span-2" />
+
+<select id="program" class="md:col-span-3">
+    <option value="">Select Program</option>
+</select>
+
+</div>
+
+<textarea
+    id="details"
+    rows="3"
+    placeholder="Internal Case Notes"
+    class="mt-5"
+></textarea>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+
+<input
+    type="file"
+    id="photoInput"
+    accept="image/*"
+/>
+
+<input
+    type="file"
+    id="idCardInput"
+    accept="image/*,application/pdf"
+/>
+
+</div>
+
+<div class="flex gap-3 pt-4">
+
+<button
+    id="saveBeneficiaryBtn"
+    onclick="addBeneficiary()"
+    class="bg-blue-600 text-white flex-1 py-3 rounded-xl font-bold"
+>
+    Save Beneficiary
+</button>
+
+<button
+    onclick="toggleForm()"
+    class="bg-slate-200 text-slate-700 px-8 py-3 rounded-xl font-bold"
+>
+    Cancel
+</button>
+
+</div>
+</div>
+
+<!-- TABLE -->
+<div class="box p-0 overflow-hidden">
+
+<div class="overflow-x-auto">
+
+<table class="w-full">
+
+<thead>
+<tr class="bg-slate-50 border-b border-slate-100">
+
+<th class="p-4 text-left">Profile</th>
+<th class="p-4 text-left">Bio</th>
+<th class="p-4 text-left">Program</th>
+<th class="p-4 text-right">Actions</th>
+
+</tr>
+</thead>
+
+<tbody id="list"></tbody>
+
+</table>
+
+</div>
+</div>
+
+</section>
+
+<!-- PROGRAMS -->
+<section id="program-section" class="hidden">
+
+<div class="flex justify-between items-center mb-8">
+
+<div>
+    <h1 class="text-3xl font-extrabold text-slate-900">
+        Programs
+    </h1>
+
+    <p class="text-slate-500">
+        Frameworks and initiatives
+    </p>
+</div>
+
+<button
+    onclick="toggleProgramForm()"
+    class="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-bold"
+>
+    + Create Program
+</button>
+
+</div>
+
+<div id="programForm" class="hidden box mb-8">
+
+<div class="flex flex-col md:flex-row gap-4 items-end">
+
+<input
+    type="text"
+    id="progName"
+    placeholder="Program title"
+    class="flex-1"
+/>
+
+<select id="progStatus" class="md:w-48">
+    <option value="Active">Active</option>
+    <option value="Planned">Planned</option>
+    <option value="Completed">Completed</option>
+</select>
+
+<div class="flex gap-2">
+
+<button
+    onclick="saveProgram()"
+    class="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-bold"
+>
+    Save
+</button>
+
+<button
+    onclick="toggleProgramForm()"
+    class="bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-bold"
+>
+    Cancel
+</button>
+
+</div>
+
+</div>
+</div>
+
+<div class="box p-0 overflow-hidden">
+
+<table class="w-full">
+
+<thead>
+<tr class="bg-slate-50 border-b border-slate-100">
+<th class="p-4 text-left">Program Name</th>
+<th class="p-4 text-left">Status</th>
+<th class="p-4 text-right">Actions</th>
+</tr>
+</thead>
+
+<tbody id="programTableBody"></tbody>
+
+</table>
+
+</div>
+
+</section>
+
+<!-- REPORTS -->
+<section id="reports-section" class="hidden">
+
+<header class="mb-10">
+    <h1 class="text-3xl font-extrabold text-slate-900">
+        Intelligence & Reports
+    </h1>
+
+    <p class="text-slate-500">
+        Export data and generate official documentation
+    </p>
+</header>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+<div class="box p-8 text-center">
+    <div class="text-4xl mb-4">📄</div>
+
+    <button
+        onclick="generatePDFReport()"
+        class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold"
+    >
+        Download PDF
+    </button>
+</div>
+
+<div class="box p-8 text-center">
+    <div class="text-4xl mb-4">📊</div>
+
+    <button
+        onclick="exportToCSV()"
+        class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold"
+    >
+        Download CSV
+    </button>
+</div>
+
+<div class="box p-8 text-center">
+    <div class="text-4xl mb-4">📧</div>
+
+    <button
+        onclick="shareByEmail()"
+        class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold"
+    >
+        Prepare Email
+    </button>
+</div>
+
+</div>
+</section>
+
+</div>
+</main>
+</div>
+
+<!-- MODAL -->
+<div
+    id="profileModal"
+    class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4"
+>
+
+<div class="bg-white rounded-3xl max-w-2xl w-full overflow-y-auto">
+
+<div class="p-6 border-b flex justify-between items-center">
+
+<span class="text-xs font-black text-slate-400 uppercase">
+    Member Registry
+</span>
+
+<button
+    onclick="closeModal()"
+    class="text-2xl"
+>
+    &times;
+</button>
+
+</div>
+
+<div id="modalContent" class="p-8"></div>
+
+</div>
+</div>
+
+<!-- REPLACE ONLY THIS ENTIRE <script> SECTION -->
+
+<script>
+const API =
+window.location.hostname === "localhost" ||
+window.location.hostname === "127.0.0.1"
+? "http://localhost:5000"
+: "https://ngo-system-e5af.onrender.com";
+
+let allBeneficiaries = [];
+let allPrograms = [];
+let allTrainings = [];
+let token = localStorage.getItem("ngo_token") || "";
+
+let myChart = null;
+let genderChart = null;
+
+let editingId = null;
+let editingProgramId = null;
+let editingTrainingId = null;
+/* =========================
+   SECURITY
+========================= */
+function escapeHTML(str) {
+    return String(str || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[m]));
+}
+async function handleExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Get the first worksheet
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Convert to JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) {
+            alert("The Excel file is empty!");
+            return;
         }
 
-        /* --- AUTH --- */
-        async function login() {
-            const email = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            const msgEl = document.getElementById("msg");
-            const btn = document.getElementById("loginBtn");
+        if (confirm(`Detected ${jsonData.length} beneficiaries. Start upload?`)) {
+            let successCount = 0;
 
-            if(!email || !password) return msgEl.innerText = "Please fill all fields.";
+            for (const row of jsonData) {
+                try {
+                    // Mapping Excel columns to your database fields
+                    const payload = {
+                        name: row.Name || row.name,
+                        sex: row.Gender || row.sex || "Unknown",
+                        age: row.Age || row.age || 0,
+                        phone: row.Phone || row.phone || "",
+                        program: row.Program || row.program || "",
+                        address: row.Address || row.address || "",
+                        details: row.Notes || row.details || "Imported via Excel"
+                    };
 
-            btn.disabled = true;
-            btn.innerText = "⏳ Authenticating...";
-            msgEl.innerText = "";
+                    const res = await fetch(`${API}/beneficiaries`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
 
-            try {
-                const res = await fetch(`${API}/login`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                if (res.ok && data.token) {
-                    token = data.token;
-                    localStorage.setItem("ngo_token", token);
-                    showApp();
-                } else {
-                    msgEl.innerText = "❌ " + (data.message || "Invalid Credentials");
-                    btn.disabled = false;
-                    btn.innerText = "Sign In";
+                    if (res.ok) successCount++;
+                } catch (err) {
+                    console.error("Failed to upload row:", row, err);
                 }
-            } catch (err) { 
-                msgEl.innerText = "⚠️ Connection failed."; 
-                btn.disabled = false;
-                btn.innerText = "Sign In";
             }
-        }
-// 1. CSV EXPORT LOGIC
-function exportToCSV() {
-    if (allBeneficiaries.length === 0) return alert("No data available to export.");
 
-    const headers = ["Name", "Gender", "Age", "Phone", "Program", "Address"];
-    const csvContent = [
+            alert(`Successfully imported ${successCount} out of ${jsonData.length} records.`);
+            loadData(); // Refresh the table
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+/* =========================
+   API HELPER
+========================= */
+async function apiFetch(url, options = {}) {
+
+    const headers = {
+        ...(options.headers || {})
+    };
+
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers
+    });
+
+    if (response.status === 401) {
+
+        localStorage.removeItem("ngo_token");
+
+        alert("Session expired. Please login again.");
+
+        location.reload();
+
+        throw new Error("Unauthorized");
+    }
+
+    return response;
+}
+
+/* =========================
+   NAVIGATION
+========================= */
+function showSection(sectionName) {
+
+    const sections = ['dashboard', 'beneficiary', 'program', 'reports', 'training'];
+
+    sections.forEach(section => {
+
+        document
+        .getElementById(`${section}-section`)
+        ?.classList.add("hidden");
+
+        document
+        .getElementById(`nav-${section}`)
+        ?.classList.remove("active");
+    });
+
+    document
+    .getElementById(`${sectionName}-section`)
+    ?.classList.remove("hidden");
+
+    document
+    .getElementById(`nav-${sectionName}`)
+    ?.classList.add("active");
+}
+
+/* =========================
+   RBAC
+========================= */
+function applyRBAC(role) {
+
+    const adminNav =
+    document.getElementById("admin-nav-item");
+
+    if (!adminNav) return;
+
+    if (role === "admin") {
+
+        adminNav.classList.remove("hidden");
+
+    } else {
+
+        adminNav.classList.add("hidden");
+
+        if (!document.getElementById("rbac-style")) {
+
+            const style =
+            document.createElement("style");
+
+            style.id = "rbac-style";
+
+            style.innerHTML = `
+                .admin-only {
+                    display: none !important;
+                }
+            `;
+
+            document.head.appendChild(style);
+        }
+    }
+}
+
+/* =========================
+   AUTH
+========================= */
+async function login() {
+
+    const email =
+    document.getElementById("username").value.trim();
+
+    const password =
+    document.getElementById("password").value.trim();
+
+    const msgEl =
+    document.getElementById("msg");
+
+    const btn =
+    document.getElementById("loginBtn");
+
+    if (!email || !password) {
+
+        msgEl.innerText =
+        "Please fill all fields.";
+
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Authenticating...";
+
+    try {
+
+        const res = await fetch(`${API}/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.token) {
+
+            token = data.token;
+
+            localStorage.setItem("ngo_token", token);
+
+            applyRBAC(data.role || "user");
+
+            btn.innerText = "Success!";
+
+            showApp();
+
+        } else {
+
+            msgEl.innerText =
+            data.message || "Invalid credentials";
+
+            btn.disabled = false;
+            btn.innerText = "Sign In";
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        msgEl.innerText =
+        "Connection failed.";
+
+        btn.disabled = false;
+        btn.innerText = "Sign In";
+    }
+}
+
+function logout() {
+
+    if (!confirm("Logout now?")) return;
+
+    localStorage.removeItem("ngo_token");
+
+    location.reload();
+}
+
+/* =========================
+   APP
+========================= */
+async function showApp() {
+
+    document
+    .getElementById("loginSection")
+    .classList.add("hidden");
+
+    document
+    .getElementById("protectedArea")
+    .classList.remove("hidden");
+
+    showSection("dashboard");
+
+    await loadPrograms();
+    await loadData();
+    await loadStats();    
+    await loadChart();
+    await loadTrainings();
+}
+
+/* =========================
+   BENEFICIARIES
+========================= */
+async function loadData() {
+
+    try {
+
+        const res = await apiFetch(
+            `${API}/beneficiaries`
+        );
+
+        if (!res.ok) {
+            throw new Error("Failed");
+        }
+
+        allBeneficiaries =
+        await res.json();
+
+        if (!Array.isArray(allBeneficiaries)) {
+            allBeneficiaries = [];
+        }
+
+        renderTable(allBeneficiaries);
+
+        loadGenderChart();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Unable to load beneficiaries.");
+    }
+}
+function updateTrainingLiveTotal() {
+    const male = parseInt(document.getElementById("trainMale").value) || 0;
+    const female = parseInt(document.getElementById("trainFemale").value) || 0;
+
+    document.getElementById("trainingLiveTotal").innerText = male + female;
+}
+function exportTrainingToExcel() {
+    if (!allTrainings.length) {
+        alert("No training sessions available.");
+        return;
+    }
+
+    const data = allTrainings.map(t => ({
+        "Training Title": t.title,
+        "Target Group": t.category,
+        "Date Duration": t.dateRange,
+        "Male": t.male,
+        "Female": t.female,
+        "Total": t.total,
+        "Status": t.status
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Trainings");
+
+    XLSX.writeFile(
+        workbook,
+        `ESD_Training_Registry_${new Date().getTime()}.xlsx`
+    );
+}
+function renderTrainingBeneficiariesSelector() {
+    const box = document.getElementById("beneficiarySelector");
+    if (!box) return;
+
+    if (!allBeneficiaries || !allBeneficiaries.length) {
+        box.innerHTML = `
+            <div class="text-slate-400 text-sm">
+                No beneficiaries available.
+            </div>
+        `;
+        return;
+    }
+
+    box.innerHTML = `
+        <!-- Search Input -->
+        <input
+            type="text"
+            id="participantSearchInput"
+            placeholder="Type beneficiary name to search and add..."
+            class="w-full p-2 border rounded mb-2"
+            oninput="searchTrainingParticipants()"
+        />
+
+        <!-- Search Results -->
+        <div
+            id="participantSearchResults"
+            class="border rounded bg-white max-h-40 overflow-y-auto mb-3 hidden"
+        ></div>
+
+        <!-- Selected Participants -->
+        <div
+            id="selectedParticipants"
+            class="flex flex-wrap gap-2"
+        ></div>
+    `;
+}
+
+function searchTrainingParticipants() {
+    const input = document.getElementById("participantSearchInput");
+    const results = document.getElementById("participantSearchResults");
+
+    if (!input || !results) return;
+
+    const query = input.value.toLowerCase().trim();
+
+    if (!query) {
+        results.classList.add("hidden");
+        results.innerHTML = "";
+        return;
+    }
+
+    // Already selected IDs
+    const selectedIds = Array.from(
+        document.querySelectorAll("#selectedParticipants .selected-participant")
+    ).map(el => el.dataset.id);
+
+    // Filter beneficiaries
+    const matches = allBeneficiaries
+        .filter(b =>
+            (b.name || "").toLowerCase().includes(query) &&
+            !selectedIds.includes(b._id)
+        )
+        .slice(0, 20);
+
+    if (!matches.length) {
+        results.innerHTML = `
+            <div class="p-2 text-sm text-slate-400">
+                No matches found.
+            </div>
+        `;
+        results.classList.remove("hidden");
+        return;
+    }
+
+    results.innerHTML = matches.map(b => `
+        <button
+            type="button"
+            onclick="addTrainingParticipant('${b._id}')"
+            class="w-full text-left px-3 py-2 hover:bg-slate-50 border-b last:border-b-0"
+        >
+            ${escapeHTML(b.name)}
+        </button>
+    `).join("");
+
+    results.classList.remove("hidden");
+}
+
+// REPLACE ONLY YOUR addTrainingParticipant() FUNCTION WITH THIS VERSION
+
+function addTrainingParticipant(id) {
+    const beneficiary = allBeneficiaries.find(b => b._id === id);
+    if (!beneficiary) return;
+
+    const container = document.getElementById("selectedParticipants");
+    if (!container) return;
+
+    // Prevent duplicates
+    if (
+        container.querySelector(
+            `.selected-participant[data-id="${id}"]`
+        )
+    ) {
+        return;
+    }
+
+    // Create selected participant chip
+    const wrapper = document.createElement("div");
+    wrapper.className =
+        "selected-participant inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm";
+    wrapper.dataset.id = id;
+
+    wrapper.innerHTML = `
+        <input
+            type="checkbox"
+            class="participant-check hidden"
+            value="${id}"
+            checked
+        />
+        <span>${escapeHTML(beneficiary.name)}</span>
+        <button
+            type="button"
+            onclick="removeTrainingParticipant(this)"
+            class="text-red-500 font-bold ml-1"
+        >
+            ×
+        </button>
+    `;
+
+    container.appendChild(wrapper);
+
+    // ==========================================
+    // AUTO UPDATE MALE / FEMALE COUNTERS
+    // ==========================================
+    const sex = (beneficiary.sex || "").toLowerCase();
+
+    const maleInput = document.getElementById("trainMale");
+    const femaleInput = document.getElementById("trainFemale");
+
+    let male = parseInt(maleInput.value) || 0;
+    let female = parseInt(femaleInput.value) || 0;
+
+    if (sex === "male") {
+        male++;
+        maleInput.value = male;
+    } else if (sex === "female") {
+        female++;
+        femaleInput.value = female;
+    }
+
+    // Update total participants
+    updateTrainingLiveTotal();
+
+    // Clear search box and results
+    document.getElementById("participantSearchInput").value = "";
+    document.getElementById("participantSearchResults").innerHTML = "";
+    document.getElementById("participantSearchResults").classList.add("hidden");
+}
+
+
+// ADD THIS NEW FUNCTION BELOW IT
+
+function removeTrainingParticipant(button) {
+    const wrapper = button.parentElement;
+    const id = wrapper.dataset.id;
+
+    const beneficiary = allBeneficiaries.find(b => b._id === id);
+
+    if (beneficiary) {
+        const sex = (beneficiary.sex || "").toLowerCase();
+
+        const maleInput = document.getElementById("trainMale");
+        const femaleInput = document.getElementById("trainFemale");
+
+        let male = parseInt(maleInput.value) || 0;
+        let female = parseInt(femaleInput.value) || 0;
+
+        if (sex === "male" && male > 0) {
+            maleInput.value = male - 1;
+        } else if (sex === "female" && female > 0) {
+            femaleInput.value = female - 1;
+        }
+
+        // Refresh total
+        updateTrainingLiveTotal();
+    }
+
+    // Remove chip
+    wrapper.remove();
+}
+function toggleTrainingForm() {
+    const form = document.getElementById("trainingForm");
+    if (form) {
+        form.classList.toggle("hidden");
+    } else {
+        console.error("Error: 'trainingForm' element not found in HTML.");
+    }
+}
+async function loadData() {
+    const res = await apiFetch(`${API}/beneficiaries`);
+    allBeneficiaries = await res.json();
+
+    renderTable(allBeneficiaries);
+    loadGenderChart();
+
+    // IMPORTANT: refresh training selector here
+    renderTrainingBeneficiariesSelector();
+}
+// REPLACE YOUR ENTIRE saveTraining() FUNCTION WITH THIS VERSION
+// This version guarantees male, female, and total are saved to MongoDB.
+
+async function saveTraining() {
+    try {
+        // Form elements
+        const titleEl = document.getElementById("trainTitle");
+        const categoryEl = document.getElementById("trainCategory");
+        const dateRangeEl = document.getElementById("trainDateRange");
+        const maleEl = document.getElementById("trainMale");
+        const femaleEl = document.getElementById("trainFemale");
+        const statusEl = document.getElementById("trainStatus");
+
+        // Validate title
+        const title = titleEl.value.trim();
+        if (!title) {
+            alert("Training title is required.");
+            titleEl.focus();
+            return;
+        }
+
+        // Collect selected participants
+        const selected = Array.from(
+            document.querySelectorAll(".participant-check:checked")
+        ).map(el => {
+            const b = allBeneficiaries.find(x => x._id === el.value);
+
+            return {
+                id: b?._id || el.value,
+                name: b?.name || "Unknown"
+            };
+        });
+
+        // IMPORTANT: Read values directly from form
+        const male = parseInt(maleEl.value) || 0;
+        const female = parseInt(femaleEl.value) || 0;
+        const total = male + female;
+
+        // Build payload (these fields will now be saved)
+        const payload = {
+            title,
+            category: categoryEl.value.trim(),
+            dateRange: dateRangeEl.value.trim(),
+            male: male,
+            female: female,
+            total: total,
+            status: statusEl.value,
+            participants: selected
+        };
+
+        console.log("Training payload being sent:", payload);
+
+        // Create or update
+        const method = editingTrainingId ? "PUT" : "POST";
+        const url = editingTrainingId
+            ? `${API}/trainings/${editingTrainingId}`
+            : `${API}/trainings`;
+
+        const res = await apiFetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        let result = {};
+        try {
+            result = await res.json();
+        } catch (e) {}
+
+        if (!res.ok) {
+            throw new Error(
+                result.message ||
+                result.error ||
+                "Error saving training"
+            );
+        }
+
+        alert(
+            editingTrainingId
+                ? "Training updated successfully ✅"
+                : "Training saved successfully ✅"
+        );
+
+        // Refresh data from database
+        await loadTrainings();
+
+        // Reset form
+        resetTrainingForm();
+
+        // Hide form
+        document.getElementById("trainingForm").classList.add("hidden");
+
+    } catch (err) {
+        console.error("saveTraining error:", err);
+        alert("Failed to save training:\n" + err.message);
+    }
+}
+function updateTrainingSummary(data) {
+    const sessions = data.length;
+    const male = data.reduce((sum, t) => sum + (t.male || 0), 0);
+    const female = data.reduce((sum, t) => sum + (t.female || 0), 0);
+    const participants = male + female;
+
+    document.getElementById("trainingTotalSessions").innerText = sessions;
+    document.getElementById("trainingTotalParticipants").innerText = participants;
+    document.getElementById("trainingTotalMale").innerText = male;
+    document.getElementById("trainingTotalFemale").innerText = female;
+}
+function filterTrainings() {
+    const q = document.getElementById("trainingSearch").value.toLowerCase();
+
+    const filtered = allTrainings.filter(t =>
+        (t.title || "").toLowerCase().includes(q) ||
+        (t.category || "").toLowerCase().includes(q) ||
+        (t.status || "").toLowerCase().includes(q)
+    );
+
+    renderTrainings(filtered);
+}
+function resetTrainingForm() {
+    editingTrainingId = null;
+
+    document.getElementById("trainTitle").value = "";
+    document.getElementById("trainCategory").value = "";
+    document.getElementById("trainDateRange").value = "";
+    document.getElementById("trainMale").value = 0;
+    document.getElementById("trainFemale").value = 0;
+    document.getElementById("trainStatus").value = "Completed";
+
+    document.querySelectorAll(".participant-check").forEach(c => {
+        c.checked = false;
+    });
+
+    updateTrainingLiveTotal();
+
+    const btn = document.querySelector('#trainingForm button[onclick="saveTraining()"]');
+    if (btn) btn.innerText = "Save Session";
+}
+function renderTrainings(data = allTrainings) {
+    const tbody = document.getElementById("trainingTableBody");
+    if (!tbody) return;
+
+    if (!data.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="p-8 text-center text-slate-400">
+                    No training sessions found.
+                </td>
+            </tr>
+        `;
+        updateTrainingSummary([]);
+        return;
+    }
+
+    tbody.innerHTML = data.map(t => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="p-4 font-bold text-slate-800">${escapeHTML(t.title)}</td>
+            <td class="p-4 text-slate-600">${escapeHTML(t.category || "")}</td>
+            <td class="p-4 text-center">${escapeHTML(t.dateRange || "")}</td>
+            <td class="p-4 text-center">
+                <span class="${
+                    t.status === "Completed"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-100 text-amber-700"
+                } px-3 py-1 rounded-full text-xs font-bold">
+                    ${escapeHTML(t.status || "Completed")}
+                </span>
+            </td>
+            <td class="p-4 text-right space-x-3">
+                <button onclick="editTraining('${t._id}')" class="text-blue-600 font-bold text-sm">
+                    Edit
+                </button>
+                <button onclick="deleteTraining('${t._id}')" class="text-red-500 font-bold text-sm">
+                    Delete
+                </button>
+            </td>
+        </tr>
+    `).join("");
+
+    updateTrainingSummary(data);
+}
+// REPLACE YOUR ENTIRE generateTrainingReport() FUNCTION WITH THIS VERSION
+
+function generateTrainingReport() {
+    if (!allTrainings || !allTrainings.length) {
+        alert("No training sessions available.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+
+    // ==============================
+    // HEADER
+    // ==============================
+    doc.setFillColor(30, 41, 59);
+    doc.rect(0, 0, 297, 25, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("ESD TRAINING & CAPACITY BUILDING REPORT", 15, 16);
+
+    doc.setFontSize(10);
+    doc.text(
+        `Generated on: ${new Date().toLocaleDateString()}`,
+        230,
+        16
+    );
+
+    // ==============================
+    // TABLE DATA
+    // ==============================
+    const tableRows = allTrainings.map(t => {
+        // Always calculate totals from male + female
+        const male = Number(t.male) || 0;
+        const female = Number(t.female) || 0;
+        const total = male + female;
+
+        return [
+            t.title || "",
+            t.category || "",
+            t.dateRange || "",
+            male,
+            female,
+            total,
+            t.status || ""
+        ];
+    });
+
+    // ==============================
+    // MAIN TABLE
+    // ==============================
+    doc.autoTable({
+        startY: 35,
+        head: [[
+            "TRAINING TITLE",
+            "TARGET GROUP",
+            "DATE DURATION",
+            "MALE",
+            "FEMALE",
+            "TOTAL",
+            "STATUS"
+        ]],
+        body: tableRows,
+        theme: "grid",
+        headStyles: {
+            fillColor: [37, 99, 235],
+            fontStyle: "bold",
+            halign: "center"
+        },
+        styles: {
+            fontSize: 9,
+            cellPadding: 4
+        },
+        columnStyles: {
+            3: { halign: "center" }, // Male
+            4: { halign: "center" }, // Female
+            5: { halign: "center", fontStyle: "bold" }, // Total
+            6: { halign: "center" }  // Status
+        }
+    });
+
+    // ==============================
+    // GRAND TOTALS
+    // ==============================
+    const totalSessions = allTrainings.length;
+    const totalMale = allTrainings.reduce(
+        (sum, t) => sum + (Number(t.male) || 0),
+        0
+    );
+    const totalFemale = allTrainings.reduce(
+        (sum, t) => sum + (Number(t.female) || 0),
+        0
+    );
+    const totalParticipants = totalMale + totalFemale;
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(30, 41, 59);
+
+    doc.text(`Total Sessions: ${totalSessions}`, 14, finalY);
+    doc.text(`Total Male: ${totalMale}`, 90, finalY);
+    doc.text(`Total Female: ${totalFemale}`, 160, finalY);
+    doc.text(`Grand Total: ${totalParticipants}`, 235, finalY);
+
+    // ==============================
+    // SAVE FILE
+    // ==============================
+    doc.save(
+        `ESD_Training_Impact_Report_${new Date().getTime()}.pdf`
+    );
+}
+
+function renderTable(data) {
+
+    const table =
+    document.getElementById("list");
+
+    if (!data.length) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="4" class="p-10 text-center text-slate-400">
+                    No beneficiaries found
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    table.innerHTML = data.map(i => `
+
+        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+
+            <td class="p-4">
+
+                <div class="flex items-center gap-4">
+
+                    ${
+                        i.photoUrl
+                        ? `
+                        <img
+                            src="${i.photoUrl}"
+                            class="w-10 h-10 rounded-full object-cover border"
+                            onerror="this.style.display='none'"
+                        >
+                        `
+                        : `
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                            👤
+                        </div>
+                        `
+                    }
+
+                    <span class="font-bold text-slate-800">
+                        ${escapeHTML(i.name)}
+                    </span>
+
+                </div>
+
+            </td>
+
+            <td class="p-4">
+
+                <div class="text-sm">
+
+                    <div>
+                        ${escapeHTML(i.sex)}
+                    </div>
+
+                    <div class="text-slate-400 text-xs">
+                        ${escapeHTML(i.age)} years
+                    </div>
+
+                </div>
+
+            </td>
+
+            <td class="p-4">
+
+                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-xs font-bold">
+                    ${escapeHTML(i.program)}
+                </span>
+
+            </td>
+
+            <td class="p-4 text-right space-x-3">
+
+                <button
+                    onclick="viewProfile('${i._id}')"
+                    class="text-emerald-600 font-bold text-sm"
+                >
+                    View
+                </button>
+
+                <button
+                    onclick="editItem('${i._id}')"
+                    class="text-blue-600 font-bold text-sm"
+                >
+                    Edit
+                </button>
+
+                <button
+                    onclick="deleteItem('${i._id}')"
+                    class="admin-only text-red-500 font-bold text-sm"
+                >
+                    Delete
+                </button>
+
+            </td>
+
+        </tr>
+
+    `).join("");
+}
+function editTraining(id) {
+    const training = allTrainings.find(t => t._id === id);
+
+    if (!training) {
+        alert("Training not found.");
+        return;
+    }
+
+    editingTrainingId = id;
+
+    document.getElementById("trainTitle").value = training.title || "";
+    document.getElementById("trainCategory").value = training.category || "";
+    document.getElementById("trainDateRange").value = training.dateRange || "";
+    document.getElementById("trainMale").value = training.male || 0;
+    document.getElementById("trainFemale").value = training.female || 0;
+    document.getElementById("trainStatus").value = training.status || "Completed";
+
+    // Show the form
+    document.getElementById("trainingForm").classList.remove("hidden");
+
+    // Update button text
+    const btn = document.querySelector('#trainingForm button[onclick="saveTraining()"]');
+    if (btn) {
+        btn.innerText = "Update Session";
+    }
+}
+function filterData() {
+
+    const search =
+    document
+    .getElementById("searchInput")
+    .value
+    .toLowerCase();
+
+    const filtered =
+    allBeneficiaries.filter(item =>
+
+        (item.name || '')
+        .toLowerCase()
+        .includes(search)
+
+        ||
+
+        (item.program || '')
+        .toLowerCase()
+        .includes(search)
+
+        ||
+
+        (item.phone || '')
+        .toLowerCase()
+        .includes(search)
+    );
+
+    renderTable(filtered);
+}
+
+function toggleForm(force = null) {
+
+    const form =
+    document.getElementById("addForm");
+
+    if (force === true) {
+        form.classList.remove("hidden");
+    } else if (force === false) {
+        form.classList.add("hidden");
+    } else {
+        form.classList.toggle("hidden");
+    }
+
+    if (form.classList.contains("hidden")) {
+        resetForm();
+    }
+}
+
+function resetForm() {
+
+    editingId = null;
+
+    document
+    .getElementById("formTitle")
+    .innerText = "Registration Details";
+
+    document
+    .querySelectorAll("#addForm input, #addForm select, #addForm textarea")
+    .forEach(el => {
+        if (el.type !== "file") {
+            el.value = "";
+        }
+    });
+
+    document.getElementById("photoInput").value = "";
+    document.getElementById("idCardInput").value = "";
+
+    const btn =
+    document.getElementById("saveBeneficiaryBtn");
+
+    btn.innerText = "Save Beneficiary";
+
+    btn.onclick = addBeneficiary;
+}
+
+/* =========================
+   FORM DATA
+========================= */
+function buildBeneficiaryFormData() {
+
+    const formData = new FormData();
+
+    formData.append(
+        "name",
+        document.getElementById("name").value.trim()
+    );
+
+    formData.append(
+        "sex",
+        document.getElementById("sex").value
+    );
+
+    formData.append(
+        "age",
+        document.getElementById("age").value
+    );
+
+    formData.append(
+        "phone",
+        document.getElementById("phone").value.trim()
+    );
+
+    formData.append(
+        "address",
+        document.getElementById("address").value.trim()
+    );
+
+    formData.append(
+        "program",
+        document.getElementById("program").value
+    );
+
+    formData.append(
+        "details",
+        document.getElementById("details").value.trim()
+    );
+
+    const photo =
+    document.getElementById("photoInput").files[0];
+
+    const idCard =
+    document.getElementById("idCardInput").files[0];
+
+    if (photo) {
+        formData.append("photo", photo);
+    }
+
+    if (idCard) {
+        formData.append("idCard", idCard);
+    }
+
+    return formData;
+}
+
+/* =========================
+   ADD BENEFICIARY
+========================= */
+async function addBeneficiary() {
+
+    const btn =
+    document.getElementById("saveBeneficiaryBtn");
+
+    const name =
+    document.getElementById("name").value.trim();
+
+    if (!name) {
+
+        alert("Name is required.");
+
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Saving...";
+
+    try {
+
+        const formData =
+        buildBeneficiaryFormData();
+
+        const res = await apiFetch(
+            `${API}/beneficiaries`,
+            {
+                method:"POST",
+                body:formData
+            }
+        );
+
+        if (!res.ok) {
+
+            const err = await res.text();
+
+            throw new Error(err);
+        }
+
+        alert("Beneficiary added.");
+
+        toggleForm(false);
+
+        await loadData();
+        await loadStats();
+        await loadChart();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Error saving beneficiary.");
+    }
+
+    btn.disabled = false;
+    btn.innerText = "Save Beneficiary";
+}
+
+/* =========================
+   EDIT BENEFICIARY
+========================= */
+function editItem(id) {
+
+    const item =
+    allBeneficiaries.find(
+        b => b._id === id
+    );
+
+    if (!item) {
+
+        alert("Beneficiary not found.");
+
+        return;
+    }
+
+    editingId = id;
+
+    toggleForm(true);
+
+    document
+    .getElementById("formTitle")
+    .innerText =
+    `Update Record: ${item.name}`;
+
+    document.getElementById("name").value =
+    item.name || "";
+
+    document.getElementById("sex").value =
+    item.sex || "";
+
+    document.getElementById("age").value =
+    item.age || "";
+
+    document.getElementById("phone").value =
+    item.phone || "";
+
+    document.getElementById("address").value =
+    item.address || "";
+
+    document.getElementById("program").value =
+    item.program || "";
+
+    document.getElementById("details").value =
+    item.details || "";
+
+    const btn =
+    document.getElementById("saveBeneficiaryBtn");
+
+    btn.innerText =
+    "Update Beneficiary";
+
+    btn.onclick = saveUpdate;
+}
+
+/* =========================
+   UPDATE BENEFICIARY
+========================= */
+async function saveUpdate() {
+
+    if (!editingId) {
+
+        alert("No beneficiary selected.");
+
+        return;
+    }
+
+    const btn =
+    document.getElementById("saveBeneficiaryBtn");
+
+    btn.disabled = true;
+    btn.innerText = "Updating...";
+
+    try {
+
+        const formData =
+        buildBeneficiaryFormData();
+
+        const res = await apiFetch(
+            `${API}/beneficiaries/${editingId}`,
+            {
+                method:"PUT",
+                body:formData
+            }
+        );
+
+        if (!res.ok) {
+
+            const err = await res.text();
+
+            throw new Error(err);
+        }
+
+        alert("Beneficiary updated.");
+
+        toggleForm(false);
+
+        await loadData();
+        await loadStats();
+        await loadChart();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Error updating beneficiary.");
+    }
+
+    btn.disabled = false;
+    btn.innerText = "Save Beneficiary";
+}
+
+/* =========================
+   DELETE
+========================= */
+async function deleteItem(id) {
+
+    if (!confirm("Delete this beneficiary?")) {
+        return;
+    }
+
+    try {
+
+        const res = await apiFetch(
+            `${API}/beneficiaries/${id}`,
+            {
+                method:"DELETE"
+            }
+        );
+
+        if (!res.ok) {
+            throw new Error();
+        }
+
+        await loadData();
+        await loadStats();
+        await loadChart();
+
+        alert("Deleted successfully.");
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Delete failed.");
+    }
+}
+
+/* =========================
+   PROFILE MODAL
+========================= */
+function viewProfile(id) {
+
+    const b =
+    allBeneficiaries.find(
+        item => item._id === id
+    );
+
+    if (!b) return;
+
+    document.getElementById("modalContent").innerHTML = `
+
+        <div class="flex items-center gap-5 mb-6">
+
+            ${
+                b.photoUrl
+                ? `
+                <img
+                    src="${b.photoUrl}"
+                    class="w-24 h-24 rounded-2xl object-cover border"
+                >
+                `
+                : `
+                <div class="w-24 h-24 rounded-2xl bg-slate-100 flex items-center justify-center text-4xl">
+                    👤
+                </div>
+                `
+            }
+
+            <div>
+
+                <h1 class="text-3xl font-black">
+                    ${escapeHTML(b.name)}
+                </h1>
+
+                <p class="text-slate-500">
+                    ${escapeHTML(b.program)}
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+
+            <div class="box">
+                <strong>Gender</strong>
+                <p>${escapeHTML(b.sex)}</p>
+            </div>
+
+            <div class="box">
+                <strong>Age</strong>
+                <p>${escapeHTML(b.age)}</p>
+            </div>
+
+            <div class="box">
+                <strong>Phone</strong>
+                <p>${escapeHTML(b.phone)}</p>
+            </div>
+
+            <div class="box">
+                <strong>Address</strong>
+                <p>${escapeHTML(b.address)}</p>
+            </div>
+
+        </div>
+
+        <div class="box mt-5">
+            <strong>Details</strong>
+
+            <p class="mt-2 text-slate-600 whitespace-pre-wrap">
+                ${escapeHTML(b.details)}
+            </p>
+        </div>
+
+    `;
+
+    document
+    .getElementById("profileModal")
+    .classList.remove("hidden");
+}
+
+function closeModal() {
+
+    document
+    .getElementById("profileModal")
+    .classList.add("hidden");
+}
+
+/* =========================
+   PROGRAMS
+========================= */
+async function loadPrograms() {
+
+    try {
+
+        const res = await apiFetch(
+            `${API}/programs`
+        );
+
+        if (!res.ok) {
+            throw new Error();
+        }
+
+        allPrograms =
+        await res.json();
+
+        renderPrograms();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Unable to load programs.");
+    }
+}
+
+function renderPrograms() {
+
+    document.getElementById("programTableBody").innerHTML =
+    allPrograms.map(p => `
+
+        <tr class="border-b border-slate-100">
+
+            <td class="p-4 font-bold">
+                ${escapeHTML(p.name)}
+            </td>
+
+            <td class="p-4">
+                ${escapeHTML(p.status)}
+            </td>
+
+            <td class="p-4 text-right">
+
+                <button
+                    onclick="editProgram('${p._id}')"
+                    class="text-blue-600 font-bold"
+                >
+                    Modify
+                </button>
+
+            </td>
+
+        </tr>
+
+    `).join("");
+
+    document.getElementById("program").innerHTML =
+    `
+        <option value="">Select Program</option>
+
+        ${allPrograms.map(p => `
+            <option value="${escapeHTML(p.name)}">
+                ${escapeHTML(p.name)}
+            </option>
+        `).join("")}
+    `;
+}
+
+function toggleProgramForm(force = null) {
+
+    const form =
+    document.getElementById("programForm");
+
+    if (force === true) {
+        form.classList.remove("hidden");
+    } else if (force === false) {
+        form.classList.add("hidden");
+    } else {
+        form.classList.toggle("hidden");
+    }
+
+    if (form.classList.contains("hidden")) {
+
+        editingProgramId = null;
+
+        document.getElementById("progName").value = "";
+
+        document.getElementById("progStatus").value = "Active";
+    }
+}
+
+function editProgram(id) {
+
+    const program =
+    allPrograms.find(p => p._id === id);
+
+    if (!program) return;
+
+    editingProgramId = id;
+
+    document.getElementById("progName").value =
+    program.name || "";
+
+    document.getElementById("progStatus").value =
+    program.status || "Active";
+
+    toggleProgramForm(true);
+}
+
+async function saveProgram() {
+
+    const name =
+    document.getElementById("progName").value.trim();
+
+    const status =
+    document.getElementById("progStatus").value;
+
+    if (!name) {
+
+        alert("Program name required.");
+
+        return;
+    }
+
+    const method =
+    editingProgramId ? "PUT" : "POST";
+
+    const url =
+    editingProgramId
+    ? `${API}/programs/${editingProgramId}`
+    : `${API}/programs`;
+
+    try {
+
+        const res = await apiFetch(url, {
+
+            method,
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                name,
+                status
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error();
+        }
+
+        toggleProgramForm(false);
+
+        await loadPrograms();
+        await loadStats();
+        await loadChart();
+
+        alert("Program saved.");
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Unable to save program.");
+    }
+}
+
+/* =========================
+   EXPORT CSV
+========================= */
+function exportToCSV() {
+
+    if (!allBeneficiaries.length) {
+
+        alert("No data available.");
+
+        return;
+    }
+
+    const headers = [
+        "Name",
+        "Gender",
+        "Age",
+        "Phone",
+        "Program",
+        "Address"
+    ];
+
+    const rows =
+    allBeneficiaries.map(b => [
+        `"${(b.name || '').replace(/"/g, '""')}"`,
+        `"${(b.sex || '').replace(/"/g, '""')}"`,
+        `"${(b.age || '').replace(/"/g, '""')}"`,
+        `"${(b.phone || '').replace(/"/g, '""')}"`,
+        `"${(b.program || '').replace(/"/g, '""')}"`,
+        `"${(b.address || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csv =
+    [
         headers.join(","),
-        ...allBeneficiaries.map(b => [
-            `"${b.name}"`, b.sex, b.age, `"${b.phone}"`, `"${b.program}"`, `"${b.address}"`
-        ].join(","))
+        ...rows.map(r => r.join(","))
     ].join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", `NGO_Report_${new Date().toLocaleDateString()}.csv`);
-    document.body.appendChild(link);
+    const blob =
+    new Blob([csv], {
+        type:'text/csv'
+    });
+
+    const link =
+    document.createElement("a");
+
+    link.href =
+    URL.createObjectURL(blob);
+
+    link.download =
+    `ESD_Export_${Date.now()}.csv`;
+
     link.click();
-    document.body.removeChild(link);
 }
 
-// 2. PDF GENERATION LOGIC
+/* =========================
+   PDF
+========================= */
 function generatePDFReport() {
+
+    if (!allBeneficiaries.length) {
+
+        alert("No beneficiaries available.");
+
+        return;
+    }
+
     const { jsPDF } = window.jspdf;
+
     const doc = new jsPDF();
 
-    // Add Branded Header
-    doc.setFontSize(22);
-    doc.setTextColor(30, 41, 59); // Slate-800
-    doc.text("Operational Impact Report", 14, 22);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139); // Slate-500
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-    doc.text(`Total Records: ${allBeneficiaries.length}`, 14, 35);
+    doc.setFontSize(18);
 
-    // Create the Table
-    const tableData = allBeneficiaries.map(b => [b.name, b.sex, b.age, b.program, b.phone]);
+    doc.text(
+        "Operational Impact Report",
+        14,
+        20
+    );
+
+    doc.setFontSize(11);
+
+    doc.text(
+        `Generated: ${new Date().toLocaleString()}`,
+        14,
+        28
+    );
+
+    const rows =
+    allBeneficiaries.map(b => [
+        b.name || '',
+        b.sex || '',
+        b.age || '',
+        b.program || '',
+        b.phone || ''
+    ]);
+
     doc.autoTable({
-        startY: 45,
-        head: [['Name', 'Gender', 'Age', 'Program', 'Phone']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: { fillColor: [30, 41, 59], fontWeight: 'bold' },
-        styles: { fontSize: 9 }
+        startY: 36,
+        head:[['Name','Gender','Age','Program','Phone']],
+        body: rows
     });
 
-    doc.save(`NGO_Official_Report_${Date.now()}.pdf`);
+    doc.save("NGO_Report.pdf");
 }
 
-// 3. EMAIL SHARING LOGIC
+/* =========================
+   EMAIL
+========================= */
 function shareByEmail() {
-    const subject = encodeURIComponent("NGO Beneficiary Summary Report");
-    let body = `Summary Report for ${new Date().toLocaleDateString()}\n\n`;
-    body += `Total Beneficiaries: ${allBeneficiaries.length}\n`;
-    body += `-------------------------------------------\n\n`;
-    
-    // Add first 5 records as a preview
-    allBeneficiaries.slice(0, 5).forEach(b => {
-        body += `- ${b.name} (${b.program})\n`;
+
+    const subject =
+    encodeURIComponent(
+        "NGO Beneficiary Report"
+    );
+
+    let body =
+    `Total Beneficiaries: ${allBeneficiaries.length}\n\n`;
+
+    allBeneficiaries
+    .slice(0,5)
+    .forEach(b => {
+        body += `- ${b.name}\n`;
     });
-    
-    if(allBeneficiaries.length > 5) body += `\n...and ${allBeneficiaries.length - 5} others.`;
 
-    window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+    window.location.href =
+    `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
 }
-        function showApp() {
-            document.getElementById("loginSection").classList.add("hidden");
-            document.getElementById("protectedArea").classList.remove("hidden");
-            loadPrograms().then(() => showSection('dashboard'));
+
+/* =========================
+   DASHBOARD STATS
+========================= */
+async function loadStats() {
+
+    try {
+
+        const res = await apiFetch(
+            `${API}/stats`
+        );
+
+        if (!res.ok) {
+            throw new Error();
         }
 
-        function logout() { 
-            if(confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem("ngo_token"); 
-                location.reload(); 
+        const d =
+        await res.json();
+
+        document.getElementById("totalUsers").innerText =
+        d.totalBeneficiaries || 0;
+
+        document.getElementById("totalPrograms").innerText =
+        d.totalPrograms || 0;
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+async function deleteTraining(id) {
+    if (!confirm("Delete this training session?")) return;
+
+    const res = await apiFetch(`${API}/trainings/${id}`, {
+        method: "DELETE"
+    });
+
+    if (res.ok) {
+        await loadTrainings();
+        alert("Training deleted successfully.");
+    }
+}
+/* =========================
+   LOAD TRAININGS
+========================= */
+async function loadTrainings() {
+    try {
+        const res = await apiFetch(`${API}/trainings`);
+
+        if (!res.ok) {
+            throw new Error("Failed to load trainings");
+        }
+
+        let data = await res.json();
+
+        if (!Array.isArray(data)) {
+            data = [];
+        }
+
+        // Normalize all records so male, female, and total
+        // are always available even for old database records.
+        allTrainings = data.map(t => {
+            const male = Number(t.male) || 0;
+            const female = Number(t.female) || 0;
+
+            return {
+                ...t,
+                male: male,
+                female: female,
+                total: male + female
+            };
+        });
+
+        // Render table and update summary cards
+        renderTrainings(allTrainings);
+        updateTrainingSummary(allTrainings);
+
+    } catch (err) {
+        console.error("Could not load trainings:", err);
+
+        allTrainings = [];
+        renderTrainings([]);
+        updateTrainingSummary([]);
+    }
+}
+/* =========================
+   PROGRAM CHART
+========================= */
+async function loadChart() {
+
+    try {
+
+        const res = await apiFetch(
+            `${API}/program-stats`
+        );
+
+        if (!res.ok) {
+            throw new Error();
+        }
+
+        const data =
+        await res.json();
+
+        const ctx =
+        document
+        .getElementById("programChart")
+        .getContext("2d");
+
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        myChart = new Chart(ctx, {
+
+            type:'bar',
+
+            data:{
+
+                labels:
+                data.map(x => x._id || "Other"),
+
+                datasets:[{
+                    label:'Enrollment',
+                    data:data.map(x => x.count),
+                    backgroundColor:'#3b82f6',
+                    borderRadius:6
+                }]
+            },
+
+            options:{
+                responsive:true,
+                maintainAspectRatio:false
             }
+        });
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
+/* =========================
+   GENDER CHART
+========================= */
+function loadGenderChart() {
+
+    const males =
+    allBeneficiaries.filter(
+        b => b.sex === "Male"
+    ).length;
+
+    const females =
+    allBeneficiaries.filter(
+        b => b.sex === "Female"
+    ).length;
+
+    const ctx =
+    document
+    .getElementById("genderChart")
+    .getContext("2d");
+
+    if (genderChart) {
+        genderChart.destroy();
+    }
+
+    genderChart = new Chart(ctx, {
+
+        type:'doughnut',
+
+        data:{
+            labels:['Male','Female'],
+            datasets:[{
+                data:[males,females],
+                backgroundColor:[
+                    '#3b82f6',
+                    '#ec4899'
+                ]
+            }]
+        },
+
+        options:{
+            responsive:true,
+            maintainAspectRatio:false
+        }
+    });
+}
+
+/* =========================
+   AUTO LOGIN
+========================= */
+window.onload = async () => {
+
+    if (!token) return;
+
+    try {
+
+        const res = await apiFetch(
+            `${API}/stats`
+        );
+
+        if (res.ok) {
+
+            showApp();
+
+        } else {
+
+            localStorage.removeItem("ngo_token");
         }
 
-        /* --- BENEFICIARIES LOGIC --- */
-        async function loadData() {
-            try {
-                const res = await fetch(`${API}/beneficiaries`, { headers: { "Authorization": `Bearer ${token}` } });
-                allBeneficiaries = await res.json();
-                renderTable(allBeneficiaries);
-            } catch (e) { console.error("Data load failed", e); }
-        }
+    } catch (err) {
 
-        function renderTable(data) {
-            document.getElementById("list").innerHTML = data.map(i => `
-                <tr class="hover:bg-slate-50 transition-colors group">
-                    <td class="p-4">
-                        <div class="flex items-center gap-4">
-                            ${i.photoUrl ? `<img src="${i.photoUrl}" class="w-10 h-10 rounded-full object-cover ring-2 ring-white">` : `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs">👤</div>`}
-                            <span class="font-bold text-slate-800">${i.name}</span>
-                        </div>
-                    </td>
-                    <td class="p-4">
-                        <div class="text-sm">
-                            <div class="font-medium text-slate-600">${i.sex || '-'}</div>
-                            <div class="text-slate-400 text-xs">${i.age ? i.age + ' years' : '-'}</div>
-                        </div>
-                    </td>
-                    <td class="p-4"><span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border border-blue-100">${i.program}</span></td>
-                    <td class="p-4 text-right space-x-2">
-                        <button onclick="viewProfile('${i._id}')" class="text-slate-400 hover:text-emerald-600 font-bold p-2 text-sm transition">View</button>
-                        <button onclick="editItem('${i._id}')" class="text-slate-400 hover:text-blue-600 font-bold p-2 text-sm transition">Edit</button>
-                        <button onclick="deleteItem('${i._id}')" class="text-slate-300 hover:text-red-500 font-bold p-2 text-sm transition">Delete</button>
-                    </td>
-                </tr>
-            `).join("");
-        }
+        console.error(err);
 
-        function viewProfile(id) {
-            const b = allBeneficiaries.find(item => item._id === id);
-            document.getElementById("modalContent").innerHTML = `
-                <div class="flex flex-col md:flex-row gap-12">
-                    <div class="w-full md:w-2/5">
-                        <div class="relative">
-                             <img src="${b.photoUrl || 'https://via.placeholder.com/400'}" class="w-full aspect-square rounded-3xl object-cover shadow-2xl">
-                             <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white px-6 py-2 rounded-full shadow-lg border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase text-center tracking-widest">Active Status</p>
-                                <p class="text-emerald-600 font-bold text-xs">Verified Member</p>
-                             </div>
-                        </div>
-                    </div>
-                    <div class="flex-1">
-                        <h1 class="text-4xl font-black text-slate-900 leading-tight">${b.name}</h1>
-                        <div class="mt-4 flex gap-4">
-                            <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600">${b.sex}</div>
-                            <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600">${b.age} Years</div>
-                        </div>
+        localStorage.removeItem("ngo_token");
+    }
+};
+</script>
 
-                        <div class="mt-10 grid grid-cols-1 gap-6">
-                            <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Program Assignment</label><p class="text-blue-600 font-bold text-lg">${b.program}</p></div>
-                            <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact Information</label><p class="font-semibold text-slate-700">${b.phone || 'No phone recorded'}</p></div>
-                            <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registered Address</label><p class="font-semibold text-slate-700">${b.address || 'No address recorded'}</p></div>
-                            <div class="pt-6 border-t border-slate-100"><label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Case Description</label><p class="text-slate-500 leading-relaxed mt-2 italic">"${b.details || 'No case details provided.'}"</p></div>
-                        </div>
-
-                        <div class="mt-10 flex gap-3">
-                            ${b.idCardUrl ? `<a href="${b.idCardUrl}" target="_blank" class="bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-slate-200">View ID Document</a>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-            document.getElementById("profileModal").classList.remove("hidden");
-        }
-
-        function closeModal() { document.getElementById("profileModal").classList.add("hidden"); }
-
-        async function addBeneficiary() {
-            const btn = document.getElementById("saveBeneficiaryBtn");
-            btn.disabled = true;
-            btn.innerText = "Saving to Ledger...";
-
-            const formData = new FormData();
-            formData.append("name", document.getElementById("name").value);
-            formData.append("sex", document.getElementById("sex").value);
-            formData.append("age", document.getElementById("age").value);
-            formData.append("phone", document.getElementById("phone").value);
-            formData.append("address", document.getElementById("address").value);
-            formData.append("program", document.getElementById("program").value);
-            formData.append("details", document.getElementById("details").value);
-            
-            const photoFile = document.getElementById("photoInput").files[0];
-            const idFile = document.getElementById("idCardInput").files[0];
-            if (photoFile) formData.append("photo", photoFile);
-            if (idFile) formData.append("idCard", idFile);
-
-            const res = await fetch(`${API}/beneficiaries`, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${token}` },
-                body: formData
-            });
-
-            if(res.ok) { 
-                resetForm(); 
-                toggleForm(); 
-                await loadData(); 
-            } else { 
-                alert("Error saving beneficiary."); 
-            }
-            btn.disabled = false;
-            btn.innerText = "Save Beneficiary";
-        }
-
-        async function saveUpdate() {
-            const formData = new FormData();
-            formData.append("name", document.getElementById("name").value);
-            formData.append("sex", document.getElementById("sex").value);
-            formData.append("age", document.getElementById("age").value);
-            formData.append("phone", document.getElementById("phone").value);
-            formData.append("address", document.getElementById("address").value);
-            formData.append("program", document.getElementById("program").value);
-            formData.append("details", document.getElementById("details").value);
-            
-            const photoFile = document.getElementById("photoInput").files[0];
-            const idFile = document.getElementById("idCardInput").files[0];
-            if (photoFile) formData.append("photo", photoFile);
-            if (idFile) formData.append("idCard", idFile);
-
-            const res = await fetch(`${API}/beneficiaries/${editingId}`, {
-                method: "PUT",
-                headers: { "Authorization": `Bearer ${token}` },
-                body: formData
-            });
-
-            if (res.ok) { 
-                resetForm(); 
-                toggleForm(); 
-                await loadData(); 
-            }
-        }
-
-        function editItem(id) {
-            const item = allBeneficiaries.find(b => b._id === id);
-            if (!item) return;
-            editingId = id;
-            document.getElementById("formTitle").innerText = "Update Record: " + item.name;
-            document.getElementById("name").value = item.name;
-            document.getElementById("sex").value = item.sex || "";
-            document.getElementById("age").value = item.age || "";
-            document.getElementById("phone").value = item.phone || "";
-            document.getElementById("address").value = item.address || "";
-            document.getElementById("program").value = item.program || "";
-            document.getElementById("details").value = item.details || "";
-
-            if (document.getElementById("addForm").classList.contains("hidden")) toggleForm();
-            const actionBtn = document.getElementById("saveBeneficiaryBtn");
-            actionBtn.innerText = "Update Information";
-            actionBtn.onclick = saveUpdate; 
-        }
-
-        async function deleteItem(id) {
-            if(!confirm("⚠️ PERMANENT ACTION: Delete this record?")) return;
-            await fetch(`${API}/beneficiaries/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } });
-            loadData();
-        }
-
-        function filterData() {
-            const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-            const filtered = allBeneficiaries.filter(item => 
-                item.name.toLowerCase().includes(searchTerm) || 
-                item.program.toLowerCase().includes(searchTerm) ||
-                (item.phone && item.phone.includes(searchTerm))
-            );
-            renderTable(filtered);
-        }
-
-        function toggleForm() { 
-            const form = document.getElementById("addForm");
-            form.classList.toggle("hidden");
-            if(form.classList.contains("hidden")) resetForm();
-        }
-
-        function resetForm() {
-            editingId = null;
-            document.getElementById("formTitle").innerText = "Registration Details";
-            document.querySelectorAll("#addForm input, #addForm select, #addForm textarea").forEach(el => el.value = "");
-            document.getElementById("saveBeneficiaryBtn").innerText = "Save Beneficiary";
-            document.getElementById("saveBeneficiaryBtn").onclick = addBeneficiary;
-        }
-
-        /* --- PROGRAMS LOGIC --- */
-        async function loadPrograms() {
-            const res = await fetch(`${API}/programs`, { headers: { "Authorization": `Bearer ${token}` } });
-            const programs = await res.json();
-            
-            const tbody = document.getElementById("programTableBody");
-            tbody.innerHTML = programs.map(p => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-4 font-bold text-slate-700">${p.name}</td>
-                    <td class="p-4">
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${p.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
-                            ${p.status}
-                        </span>
-                    </td>
-                    <td class="p-4 text-right">
-                        <button onclick="editProgram('${p._id}', '${p.name}', '${p.status}')" class="text-blue-600 font-bold text-sm">Modify</button>
-                    </td>
-                </tr>`).join('');
-
-            const progDropdown = document.getElementById("program");
-            progDropdown.innerHTML = '<option value="">Select Program</option>' + 
-                programs.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-        }
-
-        async function saveProgram() {
-            const name = document.getElementById("progName").value;
-            const status = document.getElementById("progStatus").value;
-            if (!name) return alert("Program name is required");
-
-            const method = editingProgramId ? "PUT" : "POST";
-            const url = editingProgramId ? `${API}/programs/${editingProgramId}` : `${API}/programs`;
-
-            const res = await fetch(url, {
-                method: method,
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify({ name, status })
-            });
-
-            if (res.ok) {
-                editingProgramId = null;
-                document.getElementById("progName").value = "";
-                document.getElementById("programForm").classList.add("hidden");
-                await loadPrograms();
-            }
-        }
-
-        function editProgram(id, name, status) {
-            editingProgramId = id;
-            document.getElementById("progName").value = name;
-            document.getElementById("progStatus").value = status;
-            document.getElementById("programForm").classList.remove("hidden");
-        }
-
-        function toggleProgramForm() { 
-            editingProgramId = null;
-            document.getElementById("progName").value = "";
-            document.getElementById("programForm").classList.toggle("hidden"); 
-        }
-
-        /* --- EXPORT LOGIC --- */
-        function exportToCSV() {
-            if (allBeneficiaries.length === 0) return alert("No data to export.");
-            const headers = ["Name", "Sex", "Age", "Phone", "Address", "Program", "Details"];
-            const rows = allBeneficiaries.map(b => [
-                `"${b.name || ''}"`, `"${b.sex || ''}"`, `"${b.age || ''}"`, 
-                `"${b.phone || ''}"`, `"${b.address || ''}"`, `"${b.program || ''}"`, 
-                `"${(b.details || '').replace(/\n/g, ' ')}"`
-            ]);
-            const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `ESD_Export_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-        }
-
-        /* --- ANALYTICS --- */
-        async function loadStats() {
-            const res = await fetch(`${API}/stats`, { headers: { "Authorization": `Bearer ${token}` } });
-            const d = await res.json();
-            document.getElementById("totalUsers").innerText = d.totalBeneficiaries || 0;
-            document.getElementById("totalPrograms").innerText = d.totalPrograms || 0;
-        }
-
-        async function loadChart() {
-            const res = await fetch(`${API}/program-stats`, { headers: { "Authorization": `Bearer ${token}` } });
-            const data = await res.json();
-            const ctx = document.getElementById('programChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.map(x => x._id || "Other"),
-                    datasets: [{ label: 'Enrollment', data: data.map(x => x.count), backgroundColor: '#3b82f6', borderRadius: 6 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-            });
-        }
-
-        async function loadGenderChart() {
-            const males = allBeneficiaries.filter(b => b.sex === 'Male').length;
-            const females = allBeneficiaries.filter(b => b.sex === 'Female').length;
-            const ctx = document.getElementById('genderChart').getContext('2d');
-            if (genderChart) genderChart.destroy();
-            genderChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Male', 'Female'],
-                    datasets: [{ data: [males, females], backgroundColor: ['#3b82f6', '#ec4899'], borderWidth: 0, hoverOffset: 4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true, padding: 20 } } } }
-            });
-        }
-
-        window.onload = () => { if (token) showApp(); };
-    </script>
 </body>
 </html>
