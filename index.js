@@ -500,7 +500,24 @@ app.delete("/trainings/:id", auth, async (req, res) => {
     });
   }
 });
+app.put("/programs/:id", async (req, res) => {
+    try {
+        const updated = await Program.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
 
+        if (!updated) {
+            return res.status(404).json({ message: "Program not found" });
+        }
+
+        res.json(updated);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 /* ------------------ STATS ------------------ */
 
 // Dashboard stats
@@ -559,4 +576,20 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server is flying on port ${PORT}`);
+});
+app.delete("/programs/:id", auth, async (req, res) => {
+    try {
+        await Program.findOneAndDelete({
+            _id: req.params.id,
+            organizationId: req.user.organizationId
+        });
+
+        res.json({ message: "Program deleted successfully" });
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error deleting program",
+            error: err.message
+        });
+    }
 });

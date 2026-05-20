@@ -2058,7 +2058,27 @@ async function deleteItem(id) {
         alert("Delete failed.");
     }
 }
+async function deleteProgram(id) {
+    if (!confirm("Are you sure you want to delete this program?")) return;
 
+    try {
+        const res = await apiFetch(`${API}/programs/${id}`, {
+            method: "DELETE"
+        });
+
+        if (!res.ok) throw new Error();
+
+        await loadPrograms();
+        await loadStats();
+        await loadChart();
+
+        alert("Program deleted");
+
+    } catch (err) {
+        console.error(err);
+        alert("Failed to delete program");
+    }
+}
 /* =========================
    PROFILE MODAL
 ========================= */
@@ -2193,17 +2213,10 @@ function renderPrograms() {
                 ${escapeHTML(p.status)}
             </td>
 
-            <td class="p-4 text-right">
-
-                <button
-                    onclick="editProgram('${p._id}')"
-                    class="text-blue-600 font-bold"
-                >
-                    Modify
-                </button>
-
-            </td>
-
+            <td class="p-4 text-right space-x-3">
+    <button onclick="editProgram('${p._id}')">Edit</button>
+    <button onclick="deleteProgram('${p._id}')">Delete</button>
+</td>
         </tr>
 
     `).join("");
@@ -2244,82 +2257,59 @@ function toggleProgramForm(force = null) {
 }
 
 function editProgram(id) {
-
-    const program =
-    allPrograms.find(p => p._id === id);
-
-    if (!program) return;
+    const p = allPrograms.find(x => x._id === id);
+    if (!p) return;
 
     editingProgramId = id;
 
-    document.getElementById("progName").value =
-    program.name || "";
+    document.getElementById("progName").value = p.name;
+    document.getElementById("progStatus").value = p.status;
 
-    document.getElementById("progStatus").value =
-    program.status || "Active";
-
-    toggleProgramForm(true);
+    document.getElementById("programForm").classList.remove("hidden");
 }
 
 async function saveProgram() {
-
-    const name =
-    document.getElementById("progName").value.trim();
-
-    const status =
-    document.getElementById("progStatus").value;
+    const name = document.getElementById("progName").value.trim();
+    const status = document.getElementById("progStatus").value;
 
     if (!name) {
-
-        alert("Program name required.");
-
+        alert("Program name is required");
         return;
     }
 
-    const method =
-    editingProgramId ? "PUT" : "POST";
-
-    const url =
-    editingProgramId
-    ? `${API}/programs/${editingProgramId}`
-    : `${API}/programs`;
+    const payload = { name, status };
 
     try {
+        const url = editingProgramId
+            ? `${API}/programs/${editingProgramId}`
+            : `${API}/programs`;
+
+        const method = editingProgramId ? "PUT" : "POST";
 
         const res = await apiFetch(url, {
-
             method,
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-                name,
-                status
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
         });
 
-        if (!res.ok) {
-            throw new Error();
-        }
+        if (!res.ok) throw new Error("Save failed");
 
-        toggleProgramForm(false);
+        alert(editingProgramId ? "Program updated" : "Program created");
+
+        editingProgramId = null;
+
+        document.getElementById("progName").value = "";
+        document.getElementById("progStatus").value = "Active";
+
+        document.getElementById("programForm").classList.add("hidden");
 
         await loadPrograms();
-        await loadStats();
-        await loadChart();
-
-        alert("Program saved.");
 
     } catch (err) {
-
         console.error(err);
-
-        alert("Unable to save program.");
+        alert("Failed to save program");
     }
 }
-
 /* =========================
    EXPORT CSV
 ========================= */
