@@ -1,0 +1,515 @@
+import {
+    useEffect,
+    useState
+} from "react";
+
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CircularProgress,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField,
+    Typography
+} from "@mui/material";
+
+import {
+    ArrowBack
+} from "@mui/icons-material";
+
+import {
+    useNavigate,
+    useParams
+} from "react-router-dom";
+
+import {
+    toast
+} from "react-toastify";
+
+import {
+    getUsersService,
+    updateUserService
+} from "../services/userService";
+
+
+// ==========================================
+// EDIT USER PAGE
+// ==========================================
+
+const UserEditPage = () => {
+
+    const navigate = useNavigate();
+
+    const { id } = useParams();
+
+
+    const [loading, setLoading] = useState(true);
+
+    const [saving, setSaving] = useState(false);
+
+
+    const [formData, setFormData] = useState({
+
+        name: "",
+
+        role: "data_entry",
+
+        status: "active"
+
+    });
+
+
+    // ==========================================
+    // LOAD USER
+    // ==========================================
+
+    const loadUser = async () => {
+
+        try {
+
+            setLoading(true);
+
+
+            const response =
+                await getUsersService();
+
+
+            if (!response.success) {
+
+                throw new Error(
+                    response.message ||
+                    "Failed to load users"
+                );
+
+            }
+
+
+            const users =
+                response.data || [];
+
+
+            const user =
+                users.find(
+                    item =>
+                        String(
+                            item._id || item.id
+                        ) === String(id)
+                );
+
+
+            if (!user) {
+
+                toast.error(
+                    "User not found"
+                );
+
+
+                navigate(
+                    "/users",
+                    {
+                        replace: true
+                    }
+                );
+
+                return;
+
+            }
+
+
+            setFormData({
+
+                name:
+                    user.name || "",
+
+                role:
+                    user.role || "data_entry",
+
+                status:
+                    user.status || "active"
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Load user error:",
+                error
+            );
+
+
+            toast.error(
+                error.response?.data?.message ||
+                error.message ||
+                "Failed to load user"
+            );
+
+        }
+        finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+
+    // ==========================================
+    // INITIAL LOAD
+    // ==========================================
+
+    useEffect(() => {
+
+        loadUser();
+
+    }, [id]);
+
+
+    // ==========================================
+    // HANDLE CHANGE
+    // ==========================================
+
+    const handleChange = (event) => {
+
+        const {
+            name,
+            value
+        } = event.target;
+
+
+        setFormData(
+            previous => ({
+
+                ...previous,
+
+                [name]: value
+
+            })
+        );
+
+    };
+
+
+    // ==========================================
+    // SUBMIT
+    // ==========================================
+
+    const handleSubmit = async (event) => {
+
+        event.preventDefault();
+
+
+        if (!formData.name.trim()) {
+
+            toast.error(
+                "Name is required"
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            setSaving(true);
+
+
+            const response =
+                await updateUserService(
+                    id,
+                    formData
+                );
+
+
+            if (response.success) {
+
+                toast.success(
+                    "User updated successfully"
+                );
+
+
+                navigate(
+                    "/users",
+                    {
+                        replace: true
+                    }
+                );
+
+            }
+            else {
+
+                toast.error(
+                    response.message ||
+                    "Failed to update user"
+                );
+
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "Update user error:",
+                error
+            );
+
+
+            toast.error(
+                error.response?.data?.message ||
+                error.message ||
+                "Failed to update user"
+            );
+
+        }
+        finally {
+
+            setSaving(false);
+
+        }
+
+    };
+
+
+    // ==========================================
+    // LOADING
+    // ==========================================
+
+    if (loading) {
+
+        return (
+
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "300px"
+                }}
+            >
+
+                <CircularProgress />
+
+            </Box>
+
+        );
+
+    }
+
+
+    // ==========================================
+    // PAGE
+    // ==========================================
+
+    return (
+
+        <Box>
+
+            {/* ==================================
+                HEADER
+            ================================== */}
+
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    mb: 3
+                }}
+            >
+
+                <Button
+                    startIcon={<ArrowBack />}
+                    onClick={() =>
+                        navigate("/users")
+                    }
+                >
+                    Back
+                </Button>
+
+
+                <Box>
+
+                    <Typography
+                        variant="h5"
+                        fontWeight={700}
+                    >
+                        Edit User
+                    </Typography>
+
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                    >
+                        Update user information and access.
+                    </Typography>
+
+                </Box>
+
+            </Box>
+
+
+            {/* ==================================
+                FORM
+            ================================== */}
+
+            <Card
+                sx={{
+                    maxWidth: 700
+                }}
+            >
+
+                <CardContent>
+
+                    <Box
+                        component="form"
+                        onSubmit={handleSubmit}
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 3
+                        }}
+                    >
+
+                        {/* NAME */}
+
+                        <TextField
+                            label="Full Name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                        />
+
+
+                        {/* ROLE */}
+
+                        <FormControl
+                            fullWidth
+                            required
+                        >
+
+                            <InputLabel>
+                                Role
+                            </InputLabel>
+
+
+                            <Select
+                                name="role"
+                                value={formData.role}
+                                label="Role"
+                                onChange={handleChange}
+                            >
+
+                                <MenuItem value="data_entry">
+                                    Data Entry
+                                </MenuItem>
+
+
+                                <MenuItem value="viewer">
+                                    Viewer
+                                </MenuItem>
+
+
+                                <MenuItem value="organization_admin">
+                                    Organization Admin
+                                </MenuItem>
+
+                            </Select>
+
+                        </FormControl>
+
+
+                        {/* STATUS */}
+
+                        <FormControl
+                            fullWidth
+                            required
+                        >
+
+                            <InputLabel>
+                                Status
+                            </InputLabel>
+
+
+                            <Select
+                                name="status"
+                                value={formData.status}
+                                label="Status"
+                                onChange={handleChange}
+                            >
+
+                                <MenuItem value="active">
+                                    Active
+                                </MenuItem>
+
+
+                                <MenuItem value="inactive">
+                                    Inactive
+                                </MenuItem>
+
+
+                                <MenuItem value="suspended">
+                                    Suspended
+                                </MenuItem>
+
+                            </Select>
+
+                        </FormControl>
+
+
+                        {/* ACTIONS */}
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: 2,
+                                mt: 1
+                            }}
+                        >
+
+                            <Button
+                                variant="outlined"
+                                onClick={() =>
+                                    navigate("/users")
+                                }
+                                disabled={saving}
+                            >
+                                Cancel
+                            </Button>
+
+
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                disabled={saving}
+                            >
+                                {saving
+                                    ? "Saving..."
+                                    : "Save Changes"
+                                }
+                            </Button>
+
+                        </Box>
+
+                    </Box>
+
+                </CardContent>
+
+            </Card>
+
+        </Box>
+
+    );
+
+};
+
+
+export default UserEditPage;

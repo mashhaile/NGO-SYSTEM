@@ -1,0 +1,303 @@
+const ROLES =
+    require("./roles");
+
+const PERMISSIONS =
+    require("./permissions");
+
+
+
+const rolePermissions = {
+
+    // =====================================
+    // SUPER ADMIN
+    // =====================================
+
+    [ROLES.SUPER_ADMIN]: [
+
+        "*"
+
+    ],
+
+
+
+    // =====================================
+    // ORGANIZATION ADMIN
+    // =====================================
+
+    [ROLES.ORG_ADMIN]: [
+
+        // Organization Settings
+
+        PERMISSIONS.ORGANIZATION_READ,
+        PERMISSIONS.ORGANIZATION_UPDATE,
+
+
+        // Users
+
+        PERMISSIONS.USER_CREATE,
+        PERMISSIONS.USER_READ,
+        PERMISSIONS.USER_UPDATE,
+        PERMISSIONS.USER_DELETE,
+
+
+        // User Role Assignment
+
+        PERMISSIONS.USER_ASSIGN_DATA_ENTRY,
+        PERMISSIONS.USER_ASSIGN_VIEWER,
+        PERMISSIONS.USER_ASSIGN_ORG_ADMIN,
+
+
+        // Beneficiaries
+
+        PERMISSIONS.BENEFICIARY_CREATE,
+        PERMISSIONS.BENEFICIARY_READ,
+        PERMISSIONS.BENEFICIARY_UPDATE,
+        PERMISSIONS.BENEFICIARY_DELETE,
+
+
+        // Enterprises
+
+        PERMISSIONS.ENTERPRISE_CREATE,
+        PERMISSIONS.ENTERPRISE_READ,
+        PERMISSIONS.ENTERPRISE_UPDATE,
+        PERMISSIONS.ENTERPRISE_DELETE,
+
+
+        // Custom Fields
+
+        PERMISSIONS.CUSTOMFIELD_CREATE,
+        PERMISSIONS.CUSTOMFIELD_READ,
+        PERMISSIONS.CUSTOMFIELD_UPDATE,
+        PERMISSIONS.CUSTOMFIELD_DELETE,
+
+
+        // Lookup Management
+
+        PERMISSIONS.LOOKUP_CREATE,
+        PERMISSIONS.LOOKUP_READ,
+        PERMISSIONS.LOOKUP_UPDATE,
+        PERMISSIONS.LOOKUP_DELETE,
+
+
+        // Programs
+
+        PERMISSIONS.PROGRAM_CREATE,
+        PERMISSIONS.PROGRAM_READ,
+        PERMISSIONS.PROGRAM_UPDATE,
+        PERMISSIONS.PROGRAM_DELETE,
+
+
+        // Projects
+
+        PERMISSIONS.PROJECT_CREATE,
+        PERMISSIONS.PROJECT_READ,
+        PERMISSIONS.PROJECT_UPDATE,
+        PERMISSIONS.PROJECT_DELETE,
+
+
+        // Services
+
+        PERMISSIONS.SERVICE_CREATE,
+        PERMISSIONS.SERVICE_READ,
+        PERMISSIONS.SERVICE_UPDATE,
+        PERMISSIONS.SERVICE_DELETE,
+
+
+        // Enrollments
+
+        PERMISSIONS.ENROLLMENT_CREATE,
+        PERMISSIONS.ENROLLMENT_READ,
+        PERMISSIONS.ENROLLMENT_UPDATE,
+        PERMISSIONS.ENROLLMENT_DELETE,
+
+
+        // Activities
+
+        PERMISSIONS.ACTIVITY_CREATE,
+        PERMISSIONS.ACTIVITY_READ,
+        PERMISSIONS.ACTIVITY_UPDATE,
+        PERMISSIONS.ACTIVITY_DELETE,
+
+
+        // Activity Runs
+
+        PERMISSIONS.ACTIVITY_RUN_CREATE,
+        PERMISSIONS.ACTIVITY_RUN_READ,
+        PERMISSIONS.ACTIVITY_RUN_UPDATE,
+        PERMISSIONS.ACTIVITY_RUN_DELETE,
+
+
+        // Attendance Sessions
+
+        PERMISSIONS.ATTENDANCE_CREATE,
+        PERMISSIONS.ATTENDANCE_READ,
+        PERMISSIONS.ATTENDANCE_UPDATE,
+        PERMISSIONS.ATTENDANCE_DELETE,
+
+
+        // Attendance Records
+
+        PERMISSIONS.ATTENDANCE_RECORD_CREATE,
+        PERMISSIONS.ATTENDANCE_RECORD_READ,
+        PERMISSIONS.ATTENDANCE_RECORD_UPDATE,
+        PERMISSIONS.ATTENDANCE_RECORD_DELETE,
+
+
+        // Donors
+
+        PERMISSIONS.DONOR_CREATE,
+        PERMISSIONS.DONOR_READ,
+        PERMISSIONS.DONOR_UPDATE,
+        PERMISSIONS.DONOR_DELETE,
+
+
+        // Donations
+
+        PERMISSIONS.DONATION_CREATE,
+        PERMISSIONS.DONATION_READ,
+        PERMISSIONS.DONATION_UPDATE,
+        PERMISSIONS.DONATION_DELETE,
+
+
+        // Audit
+
+        PERMISSIONS.AUDIT_LOG_READ,
+
+
+        // Notifications
+
+        PERMISSIONS.NOTIFICATION_READ
+
+    ],
+
+
+
+    // =====================================
+    // DATA ENTRY
+    // =====================================
+
+    [ROLES.DATA_ENTRY]: [
+
+        // Beneficiaries
+
+        PERMISSIONS.BENEFICIARY_CREATE,
+        PERMISSIONS.BENEFICIARY_READ,
+        PERMISSIONS.BENEFICIARY_UPDATE,
+
+
+        // Enterprises
+
+        PERMISSIONS.ENTERPRISE_CREATE,
+        PERMISSIONS.ENTERPRISE_READ,
+        PERMISSIONS.ENTERPRISE_UPDATE,
+
+
+        // Lookup Read
+
+        PERMISSIONS.LOOKUP_READ,
+
+
+        // Programs
+
+        PERMISSIONS.PROGRAM_READ,
+
+
+        // Projects
+
+        PERMISSIONS.PROJECT_CREATE,
+        PERMISSIONS.PROJECT_READ,
+        PERMISSIONS.PROJECT_UPDATE,
+
+
+        // Enrollments
+
+        PERMISSIONS.ENROLLMENT_CREATE,
+        PERMISSIONS.ENROLLMENT_READ,
+        PERMISSIONS.ENROLLMENT_UPDATE,
+
+
+        // Activities
+
+        PERMISSIONS.ACTIVITY_READ,
+
+
+        // Activity Runs
+
+        PERMISSIONS.ACTIVITY_RUN_CREATE,
+        PERMISSIONS.ACTIVITY_RUN_READ,
+        PERMISSIONS.ACTIVITY_RUN_UPDATE,
+
+
+        // Attendance
+
+        PERMISSIONS.ATTENDANCE_CREATE,
+        PERMISSIONS.ATTENDANCE_READ,
+        PERMISSIONS.ATTENDANCE_UPDATE,
+
+
+        // Attendance Records
+
+        PERMISSIONS.ATTENDANCE_RECORD_CREATE,
+        PERMISSIONS.ATTENDANCE_RECORD_READ,
+        PERMISSIONS.ATTENDANCE_RECORD_UPDATE,
+
+
+        // Donors
+
+        PERMISSIONS.DONOR_READ,
+
+
+        // Donations
+
+        PERMISSIONS.DONATION_CREATE,
+        PERMISSIONS.DONATION_READ,
+
+
+        // Services
+
+        PERMISSIONS.SERVICE_CREATE,
+        PERMISSIONS.SERVICE_READ,
+        PERMISSIONS.SERVICE_UPDATE
+
+    ],
+
+
+
+    // =====================================
+    // VIEWER
+    // =====================================
+
+    [ROLES.VIEWER]: [
+
+        PERMISSIONS.BENEFICIARY_READ,
+
+        PERMISSIONS.ENTERPRISE_READ,
+
+        PERMISSIONS.PROGRAM_READ,
+
+        PERMISSIONS.PROJECT_READ,
+
+        PERMISSIONS.SERVICE_READ,
+
+        PERMISSIONS.ENROLLMENT_READ,
+
+        PERMISSIONS.ACTIVITY_READ,
+
+        PERMISSIONS.ACTIVITY_RUN_READ,
+
+        PERMISSIONS.ATTENDANCE_READ,
+
+        PERMISSIONS.ATTENDANCE_RECORD_READ,
+
+        PERMISSIONS.DONOR_READ,
+
+        PERMISSIONS.DONATION_READ
+
+    ]
+
+};
+
+
+
+module.exports =
+    rolePermissions;

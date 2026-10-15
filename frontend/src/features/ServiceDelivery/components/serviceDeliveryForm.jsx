@@ -1,0 +1,3636 @@
+import {
+    useMemo
+} from "react";
+
+
+import {
+    Box,
+    Autocomplete,
+    TextField
+} from "@mui/material";
+
+
+import {
+    PageCard,
+    FormSection,
+    FormGrid,
+    FormActions,
+    AppTextField,
+    AppSelect,
+    AppDatePicker,
+    AppButton
+} from "../../../components/ui";
+
+
+import ServiceDeliveryItems
+    from "./serviceDeliveryItems";
+
+
+import ServiceDeliveryAllocations
+    from "./serviceDeliveryAllocations";
+
+
+// =====================================================
+// OBJECT ID DETECTION
+// =====================================================
+
+const isObjectIdLike = (
+    value
+) => {
+
+    return (
+        typeof value === "string" &&
+        /^[a-fA-F0-9]{24}$/.test(
+            value
+        )
+    );
+
+};
+
+
+// =====================================================
+// NORMALIZE LOOKUP VALUE
+// =====================================================
+
+const normalizeLookupValue = (
+    value
+) => {
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+
+        return "";
+
+    }
+
+
+    if (
+        typeof value === "object"
+    ) {
+
+        if (
+            value?.beneficiary
+        ) {
+
+            return normalizeLookupValue(
+                value.beneficiary
+            );
+
+        }
+
+
+        if (
+            value?._id !== undefined &&
+            value?._id !== null &&
+            value?._id !== ""
+        ) {
+
+            return String(
+                value._id
+            );
+
+        }
+
+
+        if (
+            value?.id !== undefined &&
+            value?.id !== null &&
+            value?.id !== ""
+        ) {
+
+            return String(
+                value.id
+            );
+
+        }
+
+
+        if (
+            value?.value !== undefined &&
+            value?.value !== null &&
+            value?.value !== ""
+        ) {
+
+            if (
+                typeof value.value === "object"
+            ) {
+
+                return normalizeLookupValue(
+                    value.value
+                );
+
+            }
+
+
+            return String(
+                value.value
+            );
+
+        }
+
+
+        return "";
+
+    }
+
+
+    return String(
+        value
+    );
+
+};
+
+
+// =====================================================
+// NORMALIZE LOOKUP LABEL
+// =====================================================
+
+const normalizeLookupLabel = (
+    value
+) => {
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+
+        return "";
+
+    }
+
+
+    if (
+        typeof value === "object"
+    ) {
+
+        if (
+            value?.label !== undefined &&
+            value?.label !== null &&
+            value?.label !== ""
+        ) {
+
+            return String(
+                value.label
+            );
+
+        }
+
+
+        if (
+            value?.name !== undefined &&
+            value?.name !== null &&
+            value?.name !== ""
+        ) {
+
+            return String(
+                value.name
+            );
+
+        }
+
+
+        if (
+            value?.text !== undefined &&
+            value?.text !== null &&
+            value?.text !== ""
+        ) {
+
+            return String(
+                value.text
+            );
+
+        }
+
+
+        if (
+            value?.value !== undefined &&
+            value?.value !== null &&
+            value?.value !== ""
+        ) {
+
+            if (
+                typeof value.value === "object"
+            ) {
+
+                return normalizeLookupLabel(
+                    value.value
+                );
+
+            }
+
+
+            const primitiveValue =
+                String(
+                    value.value
+                );
+
+
+            if (
+                !isObjectIdLike(
+                    primitiveValue
+                )
+            ) {
+
+                return primitiveValue;
+
+            }
+
+        }
+
+
+        return "";
+
+    }
+
+
+    const primitiveValue =
+        String(
+            value
+        );
+
+
+    if (
+        isObjectIdLike(
+            primitiveValue
+        )
+    ) {
+
+        return "";
+
+    }
+
+
+    return primitiveValue;
+
+};
+
+
+// =====================================================
+// NORMALIZE LOOKUP CODE
+// =====================================================
+
+const normalizeLookupCode = (
+    value
+) => {
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+
+        return "";
+
+    }
+
+
+    if (
+        typeof value === "object"
+    ) {
+
+        if (
+            value?.code !== undefined &&
+            value?.code !== null &&
+            value?.code !== ""
+        ) {
+
+            return String(
+                value.code
+            );
+
+        }
+
+
+        if (
+            value?.unitCode !== undefined &&
+            value?.unitCode !== null &&
+            value?.unitCode !== ""
+        ) {
+
+            return String(
+                value.unitCode
+            );
+
+        }
+
+
+        if (
+            value?.lookupCode !== undefined &&
+            value?.lookupCode !== null &&
+            value?.lookupCode !== ""
+        ) {
+
+            return String(
+                value.lookupCode
+            );
+
+        }
+
+
+        if (
+            value?.value !== undefined &&
+            typeof value.value === "object"
+        ) {
+
+            return normalizeLookupCode(
+                value.value
+            );
+
+        }
+
+
+        return "";
+
+    }
+
+
+    return "";
+
+};
+
+
+// =====================================================
+// NORMALIZE LOOKUP SEMANTIC TYPE
+// =====================================================
+
+const normalizeSemanticType = (
+    value
+) => {
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+
+        return "";
+
+    }
+
+
+    if (
+        typeof value === "object"
+    ) {
+
+        if (
+            value?.semanticType !== undefined &&
+            value?.semanticType !== null &&
+            value?.semanticType !== ""
+        ) {
+
+            return String(
+                value.semanticType
+            ).toLowerCase();
+
+        }
+
+
+        if (
+            value?.metadata?.semanticType !== undefined &&
+            value?.metadata?.semanticType !== null &&
+            value?.metadata?.semanticType !== ""
+        ) {
+
+            return String(
+                value.metadata.semanticType
+            ).toLowerCase();
+
+        }
+
+
+        if (
+            value?.value !== undefined &&
+            typeof value.value === "object"
+        ) {
+
+            return normalizeSemanticType(
+                value.value
+            );
+
+        }
+
+
+        return "";
+
+    }
+
+
+    return String(
+        value
+    ).toLowerCase();
+
+};
+
+
+// =====================================================
+// NORMALIZE LOOKUP OPTIONS
+// =====================================================
+
+const normalizeOptions = (
+    items
+) => {
+
+    if (
+        !Array.isArray(
+            items
+        )
+    ) {
+
+        return [];
+
+    }
+
+
+    const normalized = [];
+
+
+    items.forEach(
+        (item) => {
+
+            if (
+                !item ||
+                item?.active === false
+            ) {
+
+                return;
+
+            }
+
+
+            const source =
+                item;
+
+
+            const rawValue =
+                source?.value !== undefined &&
+                source?.value !== null &&
+                typeof source.value === "object"
+                    ? source.value
+                    : source;
+
+
+            const id =
+                normalizeLookupValue(
+                    source?._id ??
+                    source?.id ??
+                    (
+                        typeof source?.value !== "object"
+                            ? source?.value
+                            : undefined
+                    ) ??
+                    rawValue
+                );
+
+
+            const label =
+                normalizeLookupLabel(
+                    source
+                ) ||
+                normalizeLookupLabel(
+                    rawValue
+                );
+
+
+            if (
+                !id ||
+                !label
+            ) {
+
+                return;
+
+            }
+
+
+            const code =
+                normalizeLookupCode(
+                    source
+                ) ||
+                normalizeLookupCode(
+                    rawValue
+                );
+
+
+            const semanticType =
+                normalizeSemanticType(
+                    source
+                ) ||
+                normalizeSemanticType(
+                    rawValue
+                );
+
+
+            const normalizedOption = {
+
+                ...source,
+
+                value:
+                    String(
+                        id
+                    ),
+
+                label:
+                    String(
+                        label
+                    ),
+
+                _id:
+                    String(
+                        id
+                    ),
+
+                id:
+                    String(
+                        id
+                    ),
+
+                code,
+
+                unitCode:
+                    source?.unitCode ??
+                    rawValue?.unitCode ??
+                    code,
+
+                lookupCode:
+                    source?.lookupCode ??
+                    rawValue?.lookupCode ??
+                    code,
+
+                semanticType,
+
+                original:
+                    source
+
+            };
+
+
+            normalized.push(
+                normalizedOption
+            );
+
+        }
+    );
+
+
+    const seen =
+        new Set();
+
+
+    return normalized.filter(
+        (option) => {
+
+            const key =
+                String(
+                    option.value
+                );
+
+
+            if (
+                seen.has(
+                    key
+                )
+            ) {
+
+                return false;
+
+            }
+
+
+            seen.add(
+                key
+            );
+
+
+            return true;
+
+        }
+    );
+
+};
+
+
+// =====================================================
+// GET RELATED ID
+// =====================================================
+
+const getRelatedId = (
+    item,
+    field
+) => {
+
+    if (
+        !item
+    ) {
+
+        return "";
+
+    }
+
+
+    return normalizeLookupValue(
+        item?.[field]
+    );
+
+};
+
+
+// =====================================================
+// NORMALIZE BENEFICIARY RECORD
+// =====================================================
+
+const normalizeBeneficiaryRecord = (
+    value
+) => {
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+
+        return null;
+
+    }
+
+
+    if (
+        typeof value === "string"
+    ) {
+
+        return {
+
+            beneficiary:
+                value,
+
+            enrollment:
+                null,
+
+            status:
+                "Received",
+
+            quantity:
+                null,
+
+            remarks:
+                "",
+
+            allocations:
+                []
+
+        };
+
+    }
+
+
+    const beneficiaryId =
+        normalizeLookupValue(
+            value?.beneficiary ??
+            value
+        );
+
+
+    if (
+        !beneficiaryId
+    ) {
+
+        return null;
+
+    }
+
+
+    const allocations =
+        Array.isArray(
+            value?.allocations
+        )
+            ? value.allocations
+                .map(
+                    (allocation) => {
+
+                        if (
+                            !allocation
+                        ) {
+
+                            return null;
+
+                        }
+
+
+                        // ---------------------------------
+                        // SERVICE ITEM ID
+                        // ---------------------------------
+
+                        const serviceItem =
+                            normalizeLookupValue(
+                                allocation?.serviceItem
+                            );
+
+
+                        if (
+                            !serviceItem
+                        ) {
+
+                            return null;
+
+                        }
+
+
+                        // ---------------------------------
+                        // DETAIL ITEM ID
+                        //
+                        // IMPORTANT:
+                        // Preserve detailItem so that
+                        // beneficiary allocations can be
+                        // attached to supporting detail
+                        // items instead of only the parent
+                        // service item.
+                        // ---------------------------------
+
+                        const detailItem =
+                            normalizeLookupValue(
+                                allocation?.detailItem
+                            ) || null;
+
+
+                        // ---------------------------------
+                        // ALLOCATION VALUES
+                        // ---------------------------------
+
+                        const quantity =
+                            Number(
+                                allocation?.quantity ?? 0
+                            );
+
+
+                        const allocatedValue =
+                            Number(
+                                allocation?.allocatedValue ?? 0
+                            );
+
+
+                        return {
+
+                            serviceItem,
+
+                            detailItem,
+
+                            quantity:
+                                Number.isFinite(
+                                    quantity
+                                )
+                                    ? quantity
+                                    : 0,
+
+                            allocatedValue:
+                                Number.isFinite(
+                                    allocatedValue
+                                )
+                                    ? allocatedValue
+                                    : 0,
+
+                            remarks:
+                                typeof allocation?.remarks ===
+                                "string"
+                                    ? allocation.remarks
+                                    : ""
+
+                        };
+
+                    }
+                )
+                .filter(
+                    Boolean
+                )
+            : [];
+
+
+    const rawQuantity =
+        value?.quantity;
+
+
+    const quantity =
+        rawQuantity === undefined ||
+        rawQuantity === null ||
+        rawQuantity === ""
+            ? null
+            : Number(
+                rawQuantity
+            );
+
+
+    return {
+
+        beneficiary:
+            beneficiaryId,
+
+        enrollment:
+            normalizeLookupValue(
+                value?.enrollment
+            ) || null,
+
+        status:
+            value?.status ||
+            "Received",
+
+        quantity:
+            Number.isFinite(
+                quantity
+            )
+                ? quantity
+                : null,
+
+        remarks:
+            value?.remarks ||
+            "",
+
+        allocations
+
+    };
+
+};
+
+
+// =====================================================
+// NORMALIZE ALLOCATION BEHAVIOR
+// =====================================================
+
+const normalizeAllocationBehavior = (
+    value
+) => {
+
+    const normalized =
+        String(
+            value ||
+            ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (
+        normalized ===
+        "PARTICIPATION"
+    ) {
+
+        return "PARTICIPATION";
+
+    }
+
+
+    return "CONSUMPTION";
+
+};
+
+
+// =====================================================
+// SERVICE DELIVERY FORM
+// =====================================================
+
+const ServiceDeliveryForm = ({
+
+    formData,
+
+    setFormData,
+
+    beneficiaries = [],
+
+    programs = [],
+
+    projects = [],
+
+    activities = [],
+
+    activityRuns = [],
+
+    serviceCategories = [],
+
+    units = [],
+
+    onSubmit,
+
+    onProgramChange,
+
+    loading = false
+
+}) => {
+
+
+    // =================================================
+    // SAFE VALUES
+    // =================================================
+
+    const programValue =
+        normalizeLookupValue(
+            formData?.program
+        );
+
+
+    const projectValue =
+        normalizeLookupValue(
+            formData?.project
+        );
+
+
+    const activityValue =
+        normalizeLookupValue(
+            formData?.activity
+        );
+
+
+    const activityRunValue =
+        normalizeLookupValue(
+            formData?.activityRun
+        );
+
+
+    const recipientType =
+        formData?.recipientType ||
+        "Individual";
+
+
+    const recipientName =
+        typeof formData?.recipientName ===
+        "string"
+            ? formData.recipientName
+            : "";
+
+
+    const requiresRecipientName =
+        recipientType ===
+            "Household" ||
+        recipientType ===
+            "Group / Community" ||
+        recipientType ===
+            "Institution";
+
+
+    // =================================================
+    // ALLOWED ALLOCATION METHODS
+    // =================================================
+
+    const allowedAllocationMethods =
+        useMemo(
+            () => {
+
+                switch (
+                    recipientType
+                ) {
+
+                    case "Individual":
+
+                        return [
+                            {
+                                value:
+                                    "Individual",
+                                label:
+                                    "Individual"
+                            },
+                            {
+                                value:
+                                    "Shared",
+                                label:
+                                    "Shared"
+                            }
+                        ];
+
+
+                    case "Household":
+
+                        return [
+                            {
+                                value:
+                                    "Shared",
+                                label:
+                                    "Shared"
+                            }
+                        ];
+
+
+                    case "Group / Community":
+
+                        return [
+                            {
+                                value:
+                                    "Group",
+                                label:
+                                    "Group"
+                            }
+                        ];
+
+
+                    case "Institution":
+
+                        return [
+                            {
+                                value:
+                                    "Shared",
+                                label:
+                                    "Shared"
+                            }
+                        ];
+
+
+                    default:
+
+                        return [];
+
+                }
+
+            },
+            [
+                recipientType
+            ]
+        );
+
+
+    // =================================================
+    // SAFE / VALID ALLOCATION METHOD
+    // =================================================
+
+    const allowedAllocationValues =
+        useMemo(
+            () =>
+                allowedAllocationMethods.map(
+                    (option) =>
+                        option.value
+                ),
+            [
+                allowedAllocationMethods
+            ]
+        );
+
+
+    const defaultAllocationMethod =
+        allowedAllocationMethods[0]?.value ||
+        "";
+
+
+    const allocationMethod =
+        allowedAllocationValues.includes(
+            formData?.allocationMethod
+        )
+            ? formData.allocationMethod
+            : defaultAllocationMethod;
+
+
+    // =================================================
+    // NORMALIZED UNIT OPTIONS
+    // =================================================
+
+    const unitOptions =
+        useMemo(
+            () =>
+                normalizeOptions(
+                    units
+                ),
+            [
+                units
+            ]
+        );
+
+
+    // =================================================
+    // SERVICE CATEGORY OPTIONS
+    // =================================================
+
+    const serviceCategoryOptions =
+        useMemo(
+            () =>
+                normalizeOptions(
+                    serviceCategories
+                ),
+            [
+                serviceCategories
+            ]
+        );
+
+
+    // =================================================
+    // FILTER PROJECTS BY PROGRAM
+    // =================================================
+
+    const filteredProjects =
+        useMemo(
+            () => {
+
+                if (
+                    !programValue
+                ) {
+
+                    return [];
+
+                }
+
+
+                return (
+                    Array.isArray(
+                        projects
+                    )
+                        ? projects
+                        : []
+                ).filter(
+                    (project) => {
+
+                        const projectProgram =
+                            getRelatedId(
+                                project,
+                                "program"
+                            );
+
+
+                        return (
+                            projectProgram ===
+                            programValue
+                        );
+
+                    }
+                );
+
+            },
+            [
+                projects,
+                programValue
+            ]
+        );
+
+
+    // =================================================
+    // FILTER ACTIVITIES BY PROJECT
+    // =================================================
+
+    const filteredActivities =
+        useMemo(
+            () => {
+
+                if (
+                    !projectValue
+                ) {
+
+                    return [];
+
+                }
+
+
+                return (
+                    Array.isArray(
+                        activities
+                    )
+                        ? activities
+                        : []
+                ).filter(
+                    (activity) => {
+
+                        const activityProject =
+                            getRelatedId(
+                                activity,
+                                "project"
+                            );
+
+
+                        return (
+                            activityProject ===
+                            projectValue
+                        );
+
+                    }
+                );
+
+            },
+            [
+                activities,
+                projectValue
+            ]
+        );
+
+
+    // =================================================
+    // FILTER ACTIVITY RUNS BY ACTIVITY
+    // =================================================
+
+    const filteredActivityRuns =
+        useMemo(
+            () => {
+
+                if (
+                    !activityValue
+                ) {
+
+                    return [];
+
+                }
+
+
+                return (
+                    Array.isArray(
+                        activityRuns
+                    )
+                        ? activityRuns
+                        : []
+                ).filter(
+                    (activityRun) => {
+
+                        const runActivity =
+                            getRelatedId(
+                                activityRun,
+                                "activity"
+                            );
+
+
+                        return (
+                            runActivity ===
+                            activityValue
+                        );
+
+                    }
+                );
+
+            },
+            [
+                activityRuns,
+                activityValue
+            ]
+        );
+
+
+    // =================================================
+    // BENEFICIARY OPTIONS
+    // =================================================
+
+    const beneficiaryOptions =
+        useMemo(
+            () => {
+
+                if (
+                    !Array.isArray(
+                        beneficiaries
+                    )
+                ) {
+
+                    return [];
+
+                }
+
+
+                const options =
+                    beneficiaries
+                        .map(
+                            (record) => {
+
+                                if (
+                                    !record
+                                ) {
+
+                                    return null;
+
+                                }
+
+
+                                const nestedBeneficiary =
+                                    record?.beneficiary &&
+                                    typeof record.beneficiary === "object"
+                                        ? record.beneficiary
+                                        : null;
+
+
+                                const beneficiaryId =
+                                    nestedBeneficiary?._id ??
+                                    nestedBeneficiary?.id ??
+                                    (
+                                        typeof record?.beneficiary === "string"
+                                            ? record.beneficiary
+                                            : null
+                                    ) ??
+                                    (
+                                        typeof record?.beneficiary === "object"
+                                            ? null
+                                            : record?.beneficiary
+                                    ) ??
+                                    record?.beneficiaryId ??
+                                    record?.value ??
+                                    record?.id ??
+                                    record?._id ??
+                                    "";
+
+
+                                const normalizedId =
+                                    normalizeLookupValue(
+                                        beneficiaryId
+                                    );
+
+
+                                if (
+                                    !normalizedId
+                                ) {
+
+                                    return null;
+
+                                }
+
+
+                                const fullName =
+                                    nestedBeneficiary?.fullName ||
+                                    record?.fullName ||
+                                    [
+                                        nestedBeneficiary?.firstName ||
+                                            record?.firstName,
+                                        nestedBeneficiary?.middleName ||
+                                            record?.middleName,
+                                        nestedBeneficiary?.lastName ||
+                                            record?.lastName
+                                    ]
+                                        .filter(Boolean)
+                                        .join(" ");
+
+
+                                const label =
+                                    fullName ||
+                                    nestedBeneficiary?.beneficiaryNumber ||
+                                    record?.beneficiaryNumber ||
+                                    nestedBeneficiary?.name ||
+                                    record?.name ||
+                                    record?.label ||
+                                    "";
+
+
+                                if (
+                                    !label
+                                ) {
+
+                                    return null;
+
+                                }
+
+
+                                const enrollmentId =
+                                    normalizeLookupValue(
+                                        record?.enrollment
+                                    ) ||
+                                    (
+                                        record?.enrollment?._id
+                                            ? String(
+                                                record.enrollment._id
+                                            )
+                                            : null
+                                    ) ||
+                                    null;
+
+
+                                return {
+
+                                    value:
+                                        String(
+                                            normalizedId
+                                        ),
+
+                                    label:
+                                        String(
+                                            label
+                                        ),
+
+                                    _id:
+                                        String(
+                                            normalizedId
+                                        ),
+
+                                    id:
+                                        String(
+                                            normalizedId
+                                        ),
+
+                                    enrollment:
+                                        enrollmentId,
+
+                                    original:
+                                        record
+
+                                };
+
+                            }
+                        )
+                        .filter(
+                            Boolean
+                        );
+
+
+                const seen =
+                    new Set();
+
+
+                return options.filter(
+                    (option) => {
+
+                        const id =
+                            String(
+                                option.value
+                            );
+
+
+                        if (
+                            seen.has(
+                                id
+                            )
+                        ) {
+
+                            return false;
+
+                        }
+
+
+                        seen.add(
+                            id
+                        );
+
+
+                        return true;
+
+                    }
+                );
+
+            },
+            [
+                beneficiaries
+            ]
+        );
+
+
+    // =================================================
+    // SELECTED BENEFICIARIES
+    //
+    // IMPORTANT:
+    // Do NOT keep a second local state copy.
+    // formData.beneficiaries is the single source
+    // of truth for the Autocomplete.
+    // =================================================
+
+    const selectedBeneficiaryOptions =
+        useMemo(
+            () => {
+
+                const records =
+                    Array.isArray(
+                        formData?.beneficiaries
+                    )
+                        ? formData.beneficiaries
+                        : [];
+
+
+                if (
+                    records.length === 0
+                ) {
+
+                    return [];
+
+                }
+
+
+                return records
+                    .map(
+                        (record) => {
+
+                            const normalized =
+                                normalizeBeneficiaryRecord(
+                                    record
+                                );
+
+
+                            if (
+                                !normalized?.beneficiary
+                            ) {
+
+                                return null;
+
+                            }
+
+
+                            const beneficiaryId =
+                                String(
+                                    normalized.beneficiary
+                                );
+
+
+                            const existingOption =
+                                beneficiaryOptions.find(
+                                    (option) =>
+                                        String(
+                                            option?.value
+                                        ) ===
+                                        beneficiaryId
+                                );
+
+
+                            if (
+                                existingOption
+                            ) {
+
+                                return existingOption;
+
+                            }
+
+
+                            // Keep the selected beneficiary visible
+                            // even while the lookup list is loading.
+                            return {
+
+                                value:
+                                    beneficiaryId,
+
+                                label:
+                                    beneficiaryId,
+
+                                _id:
+                                    beneficiaryId,
+
+                                id:
+                                    beneficiaryId,
+
+                                enrollment:
+                                    normalized.enrollment ||
+                                    null,
+
+                                original:
+                                    record
+
+                            };
+
+                        }
+                    )
+                    .filter(
+                        Boolean
+                    );
+
+            },
+            [
+                formData?.beneficiaries,
+                beneficiaryOptions
+            ]
+        );
+
+
+    // =================================================
+    // PROGRAM OPTIONS
+    // =================================================
+
+    const programOptions =
+        useMemo(
+            () => {
+
+                if (
+                    !Array.isArray(
+                        programs
+                    )
+                ) {
+
+                    return [];
+
+                }
+
+
+                return programs
+                    .map(
+                        (program) => {
+
+                            const value =
+                                normalizeLookupValue(
+                                    program?._id ??
+                                    program?.id ??
+                                    program?.value
+                                );
+
+
+                            const label =
+                                normalizeLookupLabel(
+                                    program
+                                ) ||
+                                normalizeLookupLabel(
+                                    program?.value
+                                );
+
+
+                            return {
+
+                                value,
+
+                                label
+
+                            };
+
+                        }
+                    )
+                    .filter(
+                        (option) =>
+                            option.value &&
+                            option.label
+                    );
+
+            },
+            [
+                programs
+            ]
+        );
+
+
+    // =================================================
+    // PROJECT OPTIONS
+    // =================================================
+
+    const projectOptions =
+        useMemo(
+            () =>
+                filteredProjects
+                    .map(
+                        (project) => {
+
+                            const value =
+                                normalizeLookupValue(
+                                    project?._id ??
+                                    project?.id ??
+                                    project?.value
+                                );
+
+
+                            const label =
+                                normalizeLookupLabel(
+                                    project
+                                ) ||
+                                normalizeLookupLabel(
+                                    project?.value
+                                );
+
+
+                            return {
+
+                                value,
+
+                                label
+
+                            };
+
+                        }
+                    )
+                    .filter(
+                        (option) =>
+                            option.value &&
+                            option.label
+                    ),
+            [
+                filteredProjects
+            ]
+        );
+
+
+    // =================================================
+    // ACTIVITY OPTIONS
+    // =================================================
+
+    const activityOptions =
+        useMemo(
+            () =>
+                filteredActivities
+                    .map(
+                        (activity) => {
+
+                            const value =
+                                normalizeLookupValue(
+                                    activity?._id ??
+                                    activity?.id ??
+                                    activity?.value
+                                );
+
+
+                            const label =
+                                normalizeLookupLabel(
+                                    activity
+                                ) ||
+                                normalizeLookupLabel(
+                                    activity?.value
+                                );
+
+
+                            return {
+
+                                value,
+
+                                label
+
+                            };
+
+                        }
+                    )
+                    .filter(
+                        (option) =>
+                            option.value &&
+                            option.label
+                    ),
+            [
+                filteredActivities
+            ]
+        );
+
+
+    // =================================================
+    // ACTIVITY RUN OPTIONS
+    // =================================================
+
+    const activityRunOptions =
+        useMemo(
+            () =>
+                filteredActivityRuns
+                    .map(
+                        (activityRun) => {
+
+                            const value =
+                                normalizeLookupValue(
+                                    activityRun?._id ??
+                                    activityRun?.id ??
+                                    activityRun?.value
+                                );
+
+
+                            const label =
+                                normalizeLookupLabel(
+                                    activityRun
+                                ) ||
+                                normalizeLookupLabel(
+                                    activityRun?.runCode
+                                ) ||
+                                normalizeLookupLabel(
+                                    activityRun?.value
+                                );
+
+
+                            return {
+
+                                value,
+
+                                label
+
+                            };
+
+                        }
+                    )
+                    .filter(
+                        (option) =>
+                            option.value &&
+                            option.label
+                    ),
+            [
+                filteredActivityRuns
+            ]
+        );
+
+
+    // =================================================
+    // FIELD CHANGE
+    // =================================================
+
+    const handleChange = (
+        field,
+        value
+    ) => {
+
+        setFormData(
+            (prev) => ({
+
+                ...prev,
+
+                [field]:
+                    value
+
+            })
+        );
+
+    };
+
+
+    // =====================================================
+    // RECIPIENT TYPE CHANGE
+    // =====================================================
+
+    const handleRecipientTypeChange = (
+        value
+    ) => {
+
+        const nextRecipientType =
+            value ||
+            "Individual";
+
+
+        let nextAllocationMethod;
+
+
+        switch (
+            nextRecipientType
+        ) {
+
+            case "Individual":
+
+                nextAllocationMethod =
+                    "Individual";
+
+                break;
+
+
+            case "Household":
+
+                nextAllocationMethod =
+                    "Shared";
+
+                break;
+
+
+            case "Group / Community":
+
+                nextAllocationMethod =
+                    "Group";
+
+                break;
+
+
+            case "Institution":
+
+                nextAllocationMethod =
+                    "Shared";
+
+                break;
+
+
+            default:
+
+                nextAllocationMethod =
+                    "Individual";
+
+        }
+
+
+        setFormData(
+            (prev) => {
+
+                const currentRecipientType =
+                    prev?.recipientType ||
+                    "Individual";
+
+
+                const currentAllocationMethod =
+                    prev?.allocationMethod ||
+                    "";
+
+
+                const recipientChanged =
+                    currentRecipientType !==
+                    nextRecipientType;
+
+
+                const allocationChanged =
+                    currentAllocationMethod !==
+                    nextAllocationMethod;
+
+
+                if (
+                    !recipientChanged &&
+                    !allocationChanged
+                ) {
+
+                    return prev;
+
+                }
+
+
+                return {
+
+                    ...prev,
+
+                    recipientType:
+                        nextRecipientType,
+
+                    recipientName:
+                        recipientChanged
+                            ? ""
+                            : prev?.recipientName || "",
+
+                    allocationMethod:
+                        nextAllocationMethod,
+
+                    // Always clear beneficiary-specific
+                    // values when recipient/allocation changes.
+                    beneficiaries:
+                        [],
+
+                    beneficiary:
+                        "",
+
+                    enrollment:
+                        null
+
+                };
+
+            }
+        );
+
+    };
+
+
+    // =====================================================
+    // ALLOCATION METHOD CHANGE
+    // =====================================================
+
+    const handleAllocationMethodChange = (
+        value
+    ) => {
+
+        const nextAllocationMethod =
+            value ||
+            "";
+
+
+        if (
+            !allowedAllocationValues.includes(
+                nextAllocationMethod
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        setFormData(
+            (prev) => {
+
+                const currentAllocationMethod =
+                    prev?.allocationMethod ||
+                    "";
+
+
+                if (
+                    currentAllocationMethod ===
+                    nextAllocationMethod
+                ) {
+
+                    return prev;
+
+                }
+
+
+                return {
+
+                    ...prev,
+
+                    allocationMethod:
+                        nextAllocationMethod,
+
+                    beneficiaries:
+                        [],
+
+                    beneficiary:
+                        "",
+
+                    enrollment:
+                        null
+
+                };
+
+            }
+        );
+
+    };
+
+
+    // =====================================================
+    // BENEFICIARY CHANGE
+    // =====================================================
+
+    const handleBeneficiaryChange = (
+        _event,
+        selectedOptions
+    ) => {
+
+        const selected =
+            Array.isArray(
+                selectedOptions
+            )
+                ? selectedOptions
+                : [];
+
+
+        setFormData(
+            (prev) => {
+
+                const existingRecords =
+                    Array.isArray(
+                        prev?.beneficiaries
+                    )
+                        ? prev.beneficiaries
+                        : [];
+
+
+                const existingMap =
+                    new Map();
+
+
+                existingRecords.forEach(
+                    (item) => {
+
+                        const record =
+                            normalizeBeneficiaryRecord(
+                                item
+                            );
+
+
+                        if (
+                            record?.beneficiary
+                        ) {
+
+                            existingMap.set(
+                                String(
+                                    record.beneficiary
+                                ),
+                                record
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                const normalized =
+                    selected
+                        .map(
+                            (option) => {
+
+                                const id =
+                                    normalizeLookupValue(
+                                        option?.value ??
+                                        option?._id ??
+                                        option?.id
+                                    );
+
+
+                                if (
+                                    !id
+                                ) {
+
+                                    return null;
+
+                                }
+
+
+                                const existing =
+                                    existingMap.get(
+                                        String(
+                                            id
+                                        )
+                                    );
+
+
+                                if (
+                                    existing
+                                ) {
+
+                                    // IMPORTANT:
+                                    // Keep existing allocations intact,
+                                    // including detailItem allocations.
+                                    return existing;
+
+                                }
+
+
+                                return {
+
+                                    beneficiary:
+                                        String(
+                                            id
+                                        ),
+
+                                    enrollment:
+                                        normalizeLookupValue(
+                                            option?.enrollment
+                                        ) || null,
+
+                                    status:
+                                        "Received",
+
+                                    quantity:
+                                        null,
+
+                                    remarks:
+                                        "",
+
+                                    allocations:
+                                        []
+
+                                };
+
+                            }
+                        )
+                        .filter(
+                            Boolean
+                        );
+
+
+                return {
+
+                    ...prev,
+
+                    beneficiaries:
+                        normalized
+
+                };
+
+            }
+        );
+
+    };
+
+
+    // =================================================
+    // PROGRAM CHANGE
+    // =================================================
+
+    const handleProgramChange = (
+        value
+    ) => {
+
+        const programId =
+            normalizeLookupValue(
+                value
+            );
+
+
+        setFormData(
+            (prev) => ({
+
+                ...prev,
+
+                program:
+                    programId,
+
+                beneficiaries:
+                    [],
+
+                beneficiary:
+                    "",
+
+                enrollment:
+                    null,
+
+                project:
+                    "",
+
+                activity:
+                    "",
+
+                activityRun:
+                    ""
+
+            })
+        );
+
+
+        if (
+            typeof onProgramChange ===
+            "function"
+        ) {
+
+            onProgramChange(
+                programId
+            );
+
+        }
+
+    };
+
+
+    // =================================================
+    // PROJECT CHANGE
+    // =================================================
+
+    const handleProjectChange = (
+        value
+    ) => {
+
+        const projectId =
+            normalizeLookupValue(
+                value
+            );
+
+
+        setFormData(
+            (prev) => ({
+
+                ...prev,
+
+                project:
+                    projectId,
+
+                activity:
+                    "",
+
+                activityRun:
+                    ""
+
+            })
+        );
+
+    };
+
+
+    // =================================================
+    // ACTIVITY CHANGE
+    // =================================================
+
+    const handleActivityChange = (
+        value
+    ) => {
+
+        const activityId =
+            normalizeLookupValue(
+                value
+            );
+
+
+        setFormData(
+            (prev) => ({
+
+                ...prev,
+
+                activity:
+                    activityId,
+
+                activityRun:
+                    ""
+
+            })
+        );
+
+    };
+
+
+    // =================================================
+    // SUBMIT
+    // =================================================
+
+    const submitHandler = async (
+        event
+    ) => {
+
+        event?.preventDefault?.();
+
+
+        // =====================================================
+        // SAFE ITEMS
+        // =====================================================
+
+        const items =
+            Array.isArray(
+                formData?.items
+            )
+                ? formData.items
+                : [];
+
+
+        // =====================================================
+        // VALIDATION
+        // =====================================================
+
+        if (
+            !formData?.recipientType
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            formData?.recipientType === "Individual" &&
+            (
+                !Array.isArray(
+                    beneficiaries
+                ) ||
+                beneficiaries.length === 0
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            items.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        for (
+            const item of items
+        ) {
+
+            if (
+                !item?.serviceCategory ||
+                !item?.serviceType ||
+                !item?.unit
+            ) {
+
+                return;
+
+            }
+
+
+            const quantity =
+                Number(
+                    item?.quantity ??
+                    0
+                );
+
+
+            if (
+                !Number.isFinite(
+                    quantity
+                ) ||
+                quantity <= 0
+            ) {
+
+                return;
+
+            }
+
+
+            const unitCost =
+                Number(
+                    item?.unitCost ??
+                    0
+                );
+
+
+            if (
+                !Number.isFinite(
+                    unitCost
+                ) ||
+                unitCost < 0
+            ) {
+
+                return;
+
+            }
+
+        }
+
+
+        // =====================================================
+        // DETAIL ITEM VALIDATION
+        //
+        // IMPORTANT BUSINESS RULE:
+        //
+        // The combined value of detail items belonging
+        // to one parent service item must NEVER exceed
+        // the parent service item's actual total cost.
+        //
+        // Parent total:
+        // quantity × unitCost
+        //
+        // Detail total:
+        // quantity × unitCost
+        //
+        // Detail totals may be less than the parent total.
+        // They do NOT have to equal the parent total.
+        // =====================================================
+
+        for (
+            let itemIndex = 0;
+            itemIndex < items.length;
+            itemIndex += 1
+        ) {
+
+            const item =
+                items[itemIndex];
+
+
+            const parentQuantity =
+                Number(
+                    item?.quantity ??
+                    0
+                );
+
+
+            const parentUnitCost =
+                Number(
+                    item?.unitCost ??
+                    0
+                );
+
+
+            const parentTotal =
+                (
+                    Number.isFinite(
+                        parentQuantity
+                    ) &&
+                    parentQuantity > 0
+                        ? parentQuantity
+                        : 0
+                ) *
+                (
+                    Number.isFinite(
+                        parentUnitCost
+                    ) &&
+                    parentUnitCost >= 0
+                        ? parentUnitCost
+                        : 0
+                );
+
+
+            const detailItems =
+                Array.isArray(
+                    item?.detailItems
+                )
+                    ? item.detailItems
+                    : [];
+
+
+            let detailTotal =
+                0;
+
+
+            for (
+                const detail of detailItems
+            ) {
+
+                if (
+                    !detail
+                ) {
+
+                    continue;
+
+                }
+
+
+                const detailQuantity =
+                    Number(
+                        detail?.quantity ??
+                        0
+                    );
+
+
+                const detailUnitCost =
+                    Number(
+                        detail?.unitCost ??
+                        0
+                    );
+
+
+                const safeDetailQuantity =
+                    Number.isFinite(
+                        detailQuantity
+                    ) &&
+                    detailQuantity > 0
+                        ? detailQuantity
+                        : 0;
+
+
+                const safeDetailUnitCost =
+                    Number.isFinite(
+                        detailUnitCost
+                    ) &&
+                    detailUnitCost >= 0
+                        ? detailUnitCost
+                        : 0;
+
+
+                detailTotal +=
+                    safeDetailQuantity *
+                    safeDetailUnitCost;
+
+            }
+
+
+            // Small tolerance prevents floating-point
+            // precision issues with decimal currency values.
+            const comparisonTolerance =
+                0.000001;
+
+
+            if (
+                detailTotal >
+                parentTotal +
+                comparisonTolerance
+            ) {
+
+                const serviceNumber =
+                    itemIndex + 1;
+
+
+                const parentTotalFormatted =
+                    parentTotal.toLocaleString(
+                        "en-US",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    );
+
+
+                const detailTotalFormatted =
+                    detailTotal.toLocaleString(
+                        "en-US",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    );
+
+
+                window.alert(
+                    `Service Item ${serviceNumber}: Detail item total cannot exceed the parent service item's total cost.\n\n` +
+                    `Parent service item total: ETB ${parentTotalFormatted}\n` +
+                    `Detail items total: ETB ${detailTotalFormatted}\n\n` +
+                    `Please reduce the detail item quantities or unit costs before saving.`
+                );
+
+
+                return;
+
+            }
+
+        }
+
+
+        // =====================================================
+        // NORMALIZE ITEMS
+        // =====================================================
+
+        const normalizedItems =
+            items.map(
+                (item) => {
+
+                    const quantity =
+                        Number(
+                            item?.quantity ??
+                            1
+                        );
+
+
+                    const unitCost =
+                        Number(
+                            item?.unitCost ??
+                            0
+                        );
+
+
+                    const normalizedDetailItems =
+                        Array.isArray(
+                            item?.detailItems
+                        )
+                            ? item.detailItems
+                                .map(
+                                    (detail) => {
+
+                                        if (
+                                            !detail
+                                        ) {
+
+                                            return null;
+
+                                        }
+
+
+                                        const detailQuantity =
+                                            Number(
+                                                detail?.quantity ??
+                                                1
+                                            );
+
+
+                                        const detailUnitCost =
+                                            Number(
+                                                detail?.unitCost ??
+                                                0
+                                            );
+
+
+                                        const safeQuantity =
+                                            Number.isFinite(
+                                                detailQuantity
+                                            ) &&
+                                            detailQuantity > 0
+                                                ? detailQuantity
+                                                : 1;
+
+
+                                        const safeUnitCost =
+                                            Number.isFinite(
+                                                detailUnitCost
+                                            ) &&
+                                            detailUnitCost >= 0
+                                                ? detailUnitCost
+                                                : 0;
+
+
+                                        const normalizedDetail = {
+
+                                            name:
+                                                typeof detail?.name ===
+                                                "string"
+                                                    ? detail.name.trim()
+                                                    : "",
+
+                                            quantity:
+                                                safeQuantity,
+
+                                            unit:
+                                                normalizeLookupValue(
+                                                    detail?.unit
+                                                ) ||
+                                                null,
+
+                                            unitCost:
+                                                safeUnitCost,
+
+                                            totalCost:
+                                                safeQuantity *
+                                                safeUnitCost
+
+                                        };
+
+
+                                        // Preserve detail _id
+                                        const detailId =
+                                            normalizeLookupValue(
+                                                detail?._id ??
+                                                detail?.id
+                                            );
+
+
+                                        if (
+                                            detailId
+                                        ) {
+
+                                            normalizedDetail._id =
+                                                detailId;
+
+                                        }
+
+
+                                        return normalizedDetail;
+
+                                    }
+                                )
+                                .filter(
+                                    Boolean
+                                )
+                            : [];
+
+
+                    const normalizedItem = {
+
+                        serviceCategory:
+                            normalizeLookupValue(
+                                item?.serviceCategory
+                            ),
+
+                        serviceType:
+                            normalizeLookupValue(
+                                item?.serviceType
+                            ),
+
+                        // ---------------------------------
+                        // ALLOCATION BEHAVIOR
+                        //
+                        // This is inherited from the
+                        // selected Service Type by
+                        // ServiceDeliveryItems.
+                        //
+                        // The fallback keeps older/new
+                        // items compatible.
+                        // ---------------------------------
+
+                        allocationBehavior:
+                            normalizeAllocationBehavior(
+                                item?.allocationBehavior
+                            ),
+
+                        quantity:
+                            Number.isFinite(
+                                quantity
+                            ) &&
+                            quantity > 0
+                                ? quantity
+                                : 1,
+
+                        unit:
+                            normalizeLookupValue(
+                                item?.unit
+                            ),
+
+                        unitCost:
+                            Number.isFinite(
+                                unitCost
+                            ) &&
+                            unitCost >= 0
+                                ? unitCost
+                                : 0,
+
+                        // ---------------------------------
+                        // DONOR
+                        // ---------------------------------
+
+                        donor:
+                            normalizeLookupValue(
+                                item?.donor
+                            ) ||
+                            null,
+
+                        // ---------------------------------
+                        // DONATION
+                        // ---------------------------------
+
+                        donation:
+                            normalizeLookupValue(
+                                item?.donation
+                            ) ||
+                            null,
+
+                        // ---------------------------------
+                        // DETAIL ITEMS
+                        // ---------------------------------
+
+                        detailItems:
+                            normalizedDetailItems,
+
+                        remarks:
+                            item?.remarks ||
+                            ""
+
+                    };
+
+
+                    // Preserve parent service item _id
+                    const itemId =
+                        normalizeLookupValue(
+                            item?._id ??
+                            item?.id
+                        );
+
+
+                    if (
+                        itemId
+                    ) {
+
+                        normalizedItem._id =
+                            itemId;
+
+                    }
+
+
+                    return normalizedItem;
+
+                }
+            );
+
+
+        // =====================================================
+        // NORMALIZE BENEFICIARIES
+        //
+        // IMPORTANT:
+        // Preserve detailItem on every allocation.
+        // =====================================================
+
+        const normalizedBeneficiaries =
+            Array.isArray(
+                formData?.beneficiaries
+            )
+                ? formData.beneficiaries
+                    .map(
+                        normalizeBeneficiaryRecord
+                    )
+                    .filter(
+                        Boolean
+                    )
+                : [];
+
+
+        // =====================================================
+        // BUILD PAYLOAD
+        // =====================================================
+
+        const payload = {
+
+            recipientType:
+                formData?.recipientType ||
+                "",
+
+            recipientName:
+                formData?.recipientName ||
+                "",
+
+            allocationMethod:
+                formData?.allocationMethod ||
+                "",
+
+            beneficiaries:
+                normalizedBeneficiaries,
+
+            program:
+                normalizeLookupValue(
+                    formData?.program
+                ) ||
+                null,
+
+            project:
+                normalizeLookupValue(
+                    formData?.project
+                ) ||
+                null,
+
+            activity:
+                normalizeLookupValue(
+                    formData?.activity
+                ) ||
+                null,
+
+            activityRun:
+                normalizeLookupValue(
+                    formData?.activityRun
+                ) ||
+                null,
+
+            deliveryDate:
+                formData?.deliveryDate ||
+                null,
+
+            deliveryLocation:
+                formData?.deliveryLocation ||
+                "",
+
+            status:
+                formData?.status ||
+                "Delivered",
+
+            // ---------------------------------
+            // Legacy / top-level donation
+            // ---------------------------------
+            donation:
+                normalizeLookupValue(
+                    formData?.donation
+                ) ||
+                null,
+
+            items:
+                normalizedItems,
+
+            beneficiary:
+                normalizeLookupValue(
+                    formData?.beneficiary
+                ) ||
+                null,
+
+            enrollment:
+                normalizeLookupValue(
+                    formData?.enrollment
+                ) ||
+                null,
+
+            fundingSource:
+                normalizeLookupValue(
+                    formData?.fundingSource
+                ) ||
+                null,
+
+            deliveredBy:
+                normalizeLookupValue(
+                    formData?.deliveredBy
+                ) ||
+                null,
+
+            documents:
+                Array.isArray(
+                    formData?.documents
+                )
+                    ? formData.documents
+                    : []
+
+        };
+
+
+        // =====================================================
+        // DEBUG
+        // =====================================================
+
+        console.log(
+            "SERVICE DELIVERY PAYLOAD:",
+            JSON.stringify(
+                payload,
+                null,
+                2
+            )
+        );
+
+
+        // =====================================================
+        // SUBMIT
+        // =====================================================
+
+        await onSubmit(
+            payload
+        );
+
+    };
+
+
+    // =================================================
+    // RENDER
+    // =================================================
+
+    return (
+
+        <Box
+
+            component="form"
+
+            onSubmit={
+                submitHandler
+            }
+
+            sx={{
+                width: "100%"
+            }}
+
+        >
+
+            <PageCard>
+
+                <FormSection
+                    title="Service Delivery Information"
+                >
+
+                    <FormGrid>
+
+                        <AppSelect
+
+                            label="Recipient Type"
+
+                            required
+
+                            value={
+                                recipientType
+                            }
+
+                            placeholder="Select Recipient Type"
+
+                            options={[
+                                {
+                                    value:
+                                        "Individual",
+                                    label:
+                                        "Individual"
+                                },
+                                {
+                                    value:
+                                        "Household",
+                                    label:
+                                        "Household"
+                                },
+                                {
+                                    value:
+                                        "Group / Community",
+                                    label:
+                                        "Group / Community"
+                                },
+                                {
+                                    value:
+                                        "Institution",
+                                    label:
+                                        "Institution"
+                                }
+                            ]}
+
+                            onChange={
+                                (e) =>
+                                    handleRecipientTypeChange(
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+
+                        {
+                            requiresRecipientName && (
+
+                                <AppTextField
+
+                                    label={
+                                        recipientType ===
+                                            "Group / Community"
+                                            ? "Group / Community Name"
+                                            : recipientType ===
+                                                "Institution"
+                                                ? "Institution Name"
+                                                : "Household Name / Identifier"
+                                    }
+
+                                    required
+
+                                    fullWidth
+
+                                    value={
+                                        recipientName
+                                    }
+
+                                    placeholder={
+                                        recipientType ===
+                                            "Group / Community"
+                                            ? "Enter group or community name"
+                                            : recipientType ===
+                                                "Institution"
+                                                ? "Enter institution name"
+                                                : "Enter household name or identifier"
+                                    }
+
+                                    onChange={
+                                        (e) =>
+                                            handleChange(
+                                                "recipientName",
+                                                e.target.value
+                                            )
+                                    }
+
+                                />
+
+                            )
+                        }
+
+
+                        <AppSelect
+
+                            label="Allocation Method"
+
+                            required
+
+                            value={
+                                allocationMethod
+                            }
+
+                            placeholder="Select Allocation Method"
+
+                            options={
+                                allowedAllocationMethods
+                            }
+
+                            onChange={
+                                (e) =>
+                                    handleAllocationMethodChange(
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+
+                        <AppSelect
+
+                            label="Program"
+
+                            required
+
+                            value={
+                                programValue
+                            }
+
+                            placeholder="Select Program"
+
+                            options={
+                                programOptions
+                            }
+
+                            onChange={
+                                (e) =>
+                                    handleProgramChange(
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+
+                        {/* =================================================
+                            BENEFICIARIES
+                            ================================================= */}
+
+                        <Autocomplete
+
+                            multiple
+
+                            fullWidth
+
+                            disablePortal
+
+                            options={
+                                beneficiaryOptions
+                            }
+
+                            value={
+                                selectedBeneficiaryOptions
+                            }
+
+                            disabled={
+                                allocationMethod ===
+                                "Group"
+                            }
+
+                            filterSelectedOptions
+
+                            getOptionLabel={
+                                (option) =>
+                                    String(
+                                        option?.label ||
+                                        ""
+                                    )
+                            }
+
+                            isOptionEqualToValue={
+                                (
+                                    option,
+                                    value
+                                ) =>
+                                    String(
+                                        option?.value ||
+                                        ""
+                                    ) ===
+                                    String(
+                                        value?.value ||
+                                        ""
+                                    )
+                            }
+
+                            onChange={
+                                (
+                                    event,
+                                    newValue
+                                ) => {
+
+                                    handleBeneficiaryChange(
+                                        event,
+                                        newValue
+                                    );
+
+                                }
+                            }
+
+                            renderOption={
+                                (
+                                    props,
+                                    option
+                                ) => (
+
+                                    <li
+                                        {...props}
+                                        key={
+                                            String(
+                                                option.value
+                                            )
+                                        }
+                                    >
+
+                                        {
+                                            option.label
+                                        }
+
+                                    </li>
+
+                                )
+                            }
+
+                            renderInput={
+                                (params) => (
+
+                                    <TextField
+                                        {...params}
+
+                                        label="Beneficiaries"
+
+                                        placeholder={
+                                            allocationMethod ===
+                                            "Group"
+                                                ? "Not required for group allocation"
+                                                : "Search and select beneficiaries"
+                                        }
+
+                                    />
+
+                                )
+                            }
+
+                        />
+
+
+                        <AppSelect
+
+                            label="Project"
+
+                            value={
+                                projectValue
+                            }
+
+                            placeholder={
+                                programValue
+                                    ? "Select Project"
+                                    : "Select Program First"
+                            }
+
+                            disabled={
+                                !programValue
+                            }
+
+                            options={
+                                projectOptions
+                            }
+
+                            onChange={
+                                (e) =>
+                                    handleProjectChange(
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+
+                        <AppSelect
+
+                            label="Activity"
+
+                            value={
+                                activityValue
+                            }
+
+                            placeholder={
+                                projectValue
+                                    ? "Select Activity"
+                                    : "Select Project First"
+                            }
+
+                            disabled={
+                                !projectValue
+                            }
+
+                            options={
+                                activityOptions
+                            }
+
+                            onChange={
+                                (e) =>
+                                    handleActivityChange(
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+
+                        <AppSelect
+
+                            label="Activity Run"
+
+                            value={
+                                activityRunValue
+                            }
+
+                            placeholder={
+                                activityValue
+                                    ? "Select Activity Run"
+                                    : "Select Activity First"
+                            }
+
+                            disabled={
+                                !activityValue
+                            }
+
+                            options={
+                                activityRunOptions
+                            }
+
+                            onChange={
+                                (e) =>
+                                    handleChange(
+                                        "activityRun",
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+
+                        <AppDatePicker
+
+                            label="Service Delivery Date"
+
+                            required
+
+                            value={
+                                formData?.deliveryDate ||
+                                null
+                            }
+
+                            onChange={
+                                (value) =>
+                                    handleChange(
+                                        "deliveryDate",
+                                        value
+                                    )
+                            }
+
+                        />
+
+                    </FormGrid>
+
+
+                    <Box
+                        sx={{
+                            mt: 2
+                        }}
+                    >
+
+                        <AppTextField
+
+                            fullWidth
+
+                            label="Delivery Location"
+
+                            value={
+                                formData?.deliveryLocation ||
+                                ""
+                            }
+
+                            onChange={
+                                (e) =>
+                                    handleChange(
+                                        "deliveryLocation",
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+                    </Box>
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* =================================================
+                SERVICE ITEMS
+                ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Service Items"
+                >
+
+                    <ServiceDeliveryItems
+
+                        items={
+                            Array.isArray(
+                                formData?.items
+                            )
+                                ? formData.items
+                                : []
+                        }
+
+                        setItems={
+                            (updater) =>
+                                setFormData(
+                                    (prev) => {
+
+                                        const currentItems =
+                                            Array.isArray(
+                                                prev?.items
+                                            )
+                                                ? prev.items
+                                                : [];
+
+
+                                        const nextItems =
+                                            typeof updater ===
+                                            "function"
+                                                ? updater(
+                                                    currentItems
+                                                )
+                                                : updater;
+
+
+                                        return {
+
+                                            ...prev,
+
+                                            items:
+                                                Array.isArray(
+                                                    nextItems
+                                                )
+                                                    ? nextItems
+                                                    : currentItems
+
+                                        };
+
+                                    }
+                                )
+                        }
+
+                        serviceCategories={
+                            serviceCategoryOptions
+                        }
+
+                        units={
+                            unitOptions
+                        }
+
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* =================================================
+                INDIVIDUAL BENEFICIARY ALLOCATION
+                ================================================= */}
+
+            {
+                (
+                    allocationMethod === "Individual" ||
+                    (
+                        allocationMethod === "Shared" &&
+                        selectedBeneficiaryOptions.length > 0
+                    )
+                ) && (
+
+                    <PageCard>
+
+                        <FormSection
+                            title="Beneficiary Allocation"
+                        >
+
+                            <ServiceDeliveryAllocations
+
+                                items={
+                                    Array.isArray(
+                                        formData?.items
+                                    )
+                                        ? formData.items
+                                        : []
+                                }
+
+                                beneficiaries={
+                                    Array.isArray(
+                                        formData?.beneficiaries
+                                    )
+                                        ? formData.beneficiaries
+                                        : []
+                                }
+
+                                beneficiaryOptions={
+                                    beneficiaryOptions
+                                }
+
+                                unitOptions={
+                                    unitOptions
+                                }
+
+                                allocationMethod={
+                                    allocationMethod
+                                }
+
+                                setFormData={
+                                    setFormData
+                                }
+
+                            />
+
+                        </FormSection>
+
+                    </PageCard>
+
+                )
+            }
+
+
+            {/* =================================================
+                STATUS
+                ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Status"
+                >
+
+                    <FormGrid
+                        columns={1}
+                    >
+
+                        <AppSelect
+
+                            label="Status"
+
+                            value={
+                                formData?.status ||
+                                "Draft"
+                            }
+
+                            placeholder="Select Status"
+
+                            options={[
+                                {
+                                    value:
+                                        "Draft",
+                                    label:
+                                        "Draft"
+                                },
+                                {
+                                    value:
+                                        "Pending Approval",
+                                    label:
+                                        "Pending Approval"
+                                },
+                                {
+                                    value:
+                                        "Approved",
+                                    label:
+                                        "Approved"
+                                },
+                                {
+                                    value:
+                                        "Delivered",
+                                    label:
+                                        "Delivered"
+                                },
+                                {
+                                    value:
+                                        "Cancelled",
+                                    label:
+                                        "Cancelled"
+                                }
+                            ]}
+
+                            onChange={
+                                (e) =>
+                                    handleChange(
+                                        "status",
+                                        e.target.value
+                                    )
+                            }
+
+                        />
+
+                    </FormGrid>
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* =================================================
+                FORM ACTIONS
+                ================================================= */}
+
+            <FormActions>
+
+                <AppButton
+
+                    type="submit"
+
+                    variant="contained"
+
+                    size="large"
+
+                    disabled={
+                        loading
+                    }
+
+                >
+
+                    {
+                        loading
+                            ? "Saving..."
+                            : "Save Service Delivery"
+                    }
+
+                </AppButton>
+
+            </FormActions>
+
+        </Box>
+
+    );
+
+};
+
+
+export default ServiceDeliveryForm;
