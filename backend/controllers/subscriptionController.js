@@ -15,11 +15,11 @@ const asyncHandler =
 
 
 const ApiResponse =
-    require("../utils/ApiResponse");
+    require("../utils/apiresponse");
 
 
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 
 const {

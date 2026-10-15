@@ -2,7 +2,7 @@ const notificationService =
 require("./notificationService");
 
 const User =
-require("../models/User");
+require("../models/user");
 
 const {
     ROLES

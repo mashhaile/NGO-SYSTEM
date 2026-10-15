@@ -1,7 +1,7 @@
-const Organization = require("../models/Organization");
-const User = require("../models/User");
-const Subscription = require("../models/Subscription");
-const Plan = require("../models/Plan");
+const Organization = require("../models/organization");
+const User = require("../models/user");
+const Subscription = require("../models/subscription");
+const Plan = require("../models/plan");
 
 
 

@@ -5,7 +5,7 @@ const asyncHandler =
     require("../utils/asyncHandler");
 
 const ApiResponse =
-    require("../utils/ApiResponse");
+    require("../utils/apiresponse");
 
 
 // =====================================================

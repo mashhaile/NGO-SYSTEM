@@ -10,7 +10,7 @@ const {
     require("../config/serviceDeliveryUnits");
 
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 
 // =====================================================

@@ -2,13 +2,13 @@ const Project =
     require("../models/Project");
 
 const Program =
-    require("../models/Program");
+    require("../models/program");
 
 const Donor =
-    require("../models/Donor");
+    require("../models/donor");
 
 const User =
-    require("../models/User");
+    require("../models/user");
 
 const mongoose =
     require("mongoose");

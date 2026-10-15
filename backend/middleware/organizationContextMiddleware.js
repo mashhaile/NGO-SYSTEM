@@ -1,11 +1,11 @@
 const Organization =
-    require("../models/Organization");
+    require("../models/organization");
 
 const subscriptionService =
     require("../services/subscriptionService");
 
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 const {
     ROLES

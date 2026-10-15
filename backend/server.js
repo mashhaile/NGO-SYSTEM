@@ -25,7 +25,7 @@ const beneficiaryRoutes =
     require("./routes/beneficiaryRoutes");
 
 const authRoutes =
-    require("./routes/authRoutes");
+    require("./routes/authroutes");
 
 const userRoutes =
     require("./routes/userRoutes");

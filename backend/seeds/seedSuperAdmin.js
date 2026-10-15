@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 
-const User = require("../models/User");
+const User = require("../models/user");
 
 const {
     ROLES,

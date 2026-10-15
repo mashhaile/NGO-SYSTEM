@@ -6,10 +6,10 @@ const bcrypt =
 
 
 const Organization =
-    require("../models/Organization");
+    require("../models/organization");
 
 const User =
-    require("../models/User");
+    require("../models/user");
 
 const Plan =
     require("../models/plan");
@@ -19,7 +19,7 @@ const Subscription =
 
 
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 const generateSequence =
     require("../utils/generateSequence");

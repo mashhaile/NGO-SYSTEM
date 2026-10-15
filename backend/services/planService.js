@@ -1,6 +1,6 @@
 const Plan = require("../models/plan");
 
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/apiError");
 
 const {
     BILLING_CYCLES

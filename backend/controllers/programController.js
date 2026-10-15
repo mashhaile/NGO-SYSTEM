@@ -17,7 +17,7 @@ const {
 
     getProgramsLookup
 
-} = require("../services/programService");
+} = require("../services/programservice");
 
 
 const subscriptionService =
@@ -25,7 +25,7 @@ const subscriptionService =
 
 
 const Program =
-    require("../models/Program");
+    require("../models/program");
 
 
 

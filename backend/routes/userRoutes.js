@@ -20,10 +20,10 @@ const authorize =
     require("../middleware/authorize");
 
 const limitMiddleware =
-    require("../middleware/limitMiddleware");
+    require("../middleware/LimitMiddleware");
 
 const User =
-    require("../models/User");
+    require("../models/user");
 
 
 // ==========================================

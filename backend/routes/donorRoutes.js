@@ -18,12 +18,12 @@ const limitMiddleware =
     require("../middleware/LimitMiddleware");
 
 const Donor =
-    require("../models/Donor");
+    require("../models/donor");
 
 const {
     createDonorSchema,
     updateDonorSchema
-} = require("../validators/donorValidator");
+} = require("../validators/donorvalidator");
 
 const {
     createDonorController,

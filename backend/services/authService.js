@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 
-const User = require("../models/User");
+const User = require("../models/user");
 
 const generateToken = require("../utils/generateToken");
 
@@ -9,7 +9,7 @@ const {
 } = require("../config/constants");
 
 const rolePermissions =
-    require("../constants/rolePermissions");
+    require("../constants/rolepermissions");
 
 
 // ==========================================

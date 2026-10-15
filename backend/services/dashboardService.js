@@ -1,8 +1,8 @@
 const Beneficiary = require("../models/Beneficiary");
-const Program = require("../models/Program");
-const Donor = require("../models/Donor");
-const Donation = require("../models/Donation");
-const Enrollment = require("../models/Enrollment");
+const Program = require("../models/program");
+const Donor = require("../models/donor");
+const Donation = require("../models/donation");
+const Enrollment = require("../models/enrollment");
 const ServiceDelivery = require("../models/ServiceDelivery");
 
 

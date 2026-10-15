@@ -9,10 +9,10 @@ const Plan =
     require("../models/plan");
 
 const Organization =
-    require("../models/Organization");
+    require("../models/organization");
 
 const User =
-    require("../models/User");
+    require("../models/user");
 
 const Beneficiary =
     require("../models/Beneficiary");
@@ -21,10 +21,10 @@ const Enterprise =
     require("../models/Enterprise");
 
 const Donor =
-    require("../models/Donor");
+    require("../models/donor");
 
 const Program =
-    require("../models/Program");
+    require("../models/program");
 
 const ServiceDelivery =
     require("../models/ServiceDelivery");
@@ -51,7 +51,7 @@ const CustomField =
     require("../models/CustomField");
 
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 
 const {

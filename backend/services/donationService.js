@@ -2,10 +2,10 @@ const Donation =
     require("../models/donation");
 
 const Donor =
-    require("../models/Donor");
+    require("../models/donor");
 
 const Program =
-    require("../models/Program");
+    require("../models/program");
 
 const Project =
     require("../models/Project");

@@ -8,7 +8,7 @@ const Enrollment =
     require("../../models/enrollment");
 
 const Program =
-    require("../../models/Program");
+    require("../../models/program");
 
 const Project =
     require("../../models/Project");

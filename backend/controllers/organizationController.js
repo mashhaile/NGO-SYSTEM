@@ -2,7 +2,7 @@ const organizationService =
     require("../services/organizationservice");
 
 const ApiResponse =
-    require("../utils/ApiResponse");
+    require("../utils/apiresponse");
 
 const asyncHandler =
     require("../utils/asyncHandler");

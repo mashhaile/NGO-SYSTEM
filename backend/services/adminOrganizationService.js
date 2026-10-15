@@ -2,10 +2,10 @@ const bcrypt =
     require("bcrypt");
 
 const Organization =
-    require("../models/Organization");
+    require("../models/organization");
 
 const User =
-    require("../models/User");
+    require("../models/user");
 
 const Beneficiary =
     require("../models/Beneficiary");
@@ -14,10 +14,10 @@ const Enterprise =
     require("../models/Enterprise");
 
 const Donor =
-    require("../models/Donor");
+    require("../models/donor");
 
 const Program =
-    require("../models/Program");
+    require("../models/program");
 
 const Project =
     require("../models/Project");
@@ -53,7 +53,7 @@ const systemNotificationService =
     require("./systemNotificationService");
 
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 const {
     ORGANIZATION_STATUS,

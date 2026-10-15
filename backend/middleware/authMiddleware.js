@@ -2,10 +2,10 @@ const jwt =
     require("jsonwebtoken");
 
 const User =
-    require("../models/User");
+    require("../models/user");
 
 const Organization =
-    require("../models/Organization");
+    require("../models/organization");
 
 const {
     USER_STATUS,
@@ -14,7 +14,7 @@ const {
 } = require("../config/constants");
 
 const rolePermissions =
-    require("../constants/rolePermissions");
+    require("../constants/rolepermissions");
 
 
 // ==========================================

@@ -1,5 +1,5 @@
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 const {
     ROLES

@@ -28,7 +28,7 @@ const limitMiddleware =
 // ======================================================
 
 const Program =
-    require("../models/Program");
+    require("../models/program");
 
 
 // ======================================================
@@ -41,7 +41,7 @@ const {
 
     updateProgramSchema
 
-} = require("../validators/programValidator");
+} = require("../validators/programvalidator");
 
 
 // ======================================================

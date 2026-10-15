@@ -1,17 +1,17 @@
 const Organization =
-    require("../models/Organization");
+    require("../models/organization");
 
 const User =
-    require("../models/User");
+    require("../models/user");
 
 const Beneficiary =
     require("../models/Beneficiary");
 
 const Donor =
-    require("../models/Donor");
+    require("../models/donor");
 
 const Program =
-    require("../models/Program");
+    require("../models/program");
 
 const Subscription =
     require("../models/subscription");

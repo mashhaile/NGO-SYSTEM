@@ -1,5 +1,5 @@
-const Donor = require("../../models/Donor");
-const Donation = require("../../models/Donation");
+const Donor = require("../../models/donor");
+const Donation = require("../../models/donation");
 const ServiceDelivery = require("../../models/ServiceDelivery");
 
 const {

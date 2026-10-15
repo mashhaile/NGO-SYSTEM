@@ -1,5 +1,5 @@
 const Subscription =
-require("../models/Subscription");
+require("../models/subscription");
 
 const systemNotificationService =
 require("./systemNotificationService");

@@ -1,6 +1,6 @@
-const Program = require("../../models/Program");
+const Program = require("../../models/program");
 const Enrollment = require("../../models/enrollment");
-const Donation = require("../../models/Donation");
+const Donation = require("../../models/donation");
 const ServiceDelivery = require("../../models/ServiceDelivery");
 
 const {

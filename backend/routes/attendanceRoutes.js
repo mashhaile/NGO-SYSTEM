@@ -6,7 +6,7 @@ const router = express.Router();
 const attendanceController = require("../controllers/attendanceController");
 
 
-const auth = require("../middleware/authmiddleware");
+const auth = require("../middleware/authMiddleware");
 
 
 

@@ -3,11 +3,11 @@ require("bcrypt");
 
 
 const User =
-require("../models/User");
+require("../models/user");
 
 
 const Organization =
-require("../models/Organization");
+require("../models/organization");
 
 
 const {

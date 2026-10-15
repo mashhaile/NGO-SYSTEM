@@ -1,20 +1,20 @@
 const Subscription =
-require("../models/Subscription");
+require("../models/subscription");
 
 const User =
-require("../models/User");
+require("../models/user");
 
 const Beneficiary =
 require("../models/Beneficiary");
 
 const Donor =
-require("../models/Donor");
+require("../models/donor");
 
 const Program =
-require("../models/Program");
+require("../models/program");
 
 const Donation =
-require("../models/Donation");
+require("../models/donation");
 
 const ServiceDelivery =
 require("../models/ServiceDelivery");

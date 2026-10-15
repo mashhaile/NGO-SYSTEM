@@ -1,9 +1,9 @@
 const bcrypt = require("bcrypt");
 
-const User = require("../models/User");
+const User = require("../models/user");
 
 const ApiError =
-    require("../utils/ApiError");
+    require("../utils/apiError");
 
 const {
     ROLES,
