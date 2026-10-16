@@ -26,13 +26,26 @@ export const setReduxStore = (
 
 
 // =====================================================
+// API BASE URL
+// =====================================================
+// - Development: http://localhost:5000/api/v1
+// - Production:  VITE_API_URL if set, otherwise "/api/v1"
+//                (same domain, proxied to the backend)
+
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.DEV
+        ? "http://localhost:5000/api/v1"
+        : "/api/v1");
+
+
+// =====================================================
 // AXIOS CLIENT
 // =====================================================
 
 const axiosClient = axios.create({
 
-    baseURL:
-        "http://localhost:5000/api/v1",
+    baseURL: API_URL,
 
     headers: {
         "Content-Type":
