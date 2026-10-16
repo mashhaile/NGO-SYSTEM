@@ -27,7 +27,7 @@ import {
 
 import {
     getDonorsService
-} from "../../donors/services/donorService";
+} from "../../donors/services/DonorService";
 
 
 import {
@@ -53,12 +53,12 @@ import {
 import {
     getDonationByIdThunk,
     updateDonationThunk
-} from "../store/donationThunks";
+} from "../store/DonationThunks";
 
 
 import {
     clearCurrentDonation
-} from "../store/donationSlice";
+} from "../store/DonationSlice";
 
 
 import DonationForm

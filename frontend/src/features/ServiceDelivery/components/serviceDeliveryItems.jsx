@@ -33,12 +33,12 @@ import {
 
 import {
     getDonorsLookupService
-} from "../../donors/services/donorService";
+} from "../../donors/services/DonorService";
 
 
 import {
     getDonationsService
-} from "../../donations/services/donationService";
+} from "../../donations/services/DonationService";
 
 
 // =====================================================

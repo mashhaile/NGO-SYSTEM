@@ -28,7 +28,7 @@ import {
 
 import {
     getDonorsLookupService
-} from "../../donors/services/donorService";
+} from "../../donors/services/DonorService";
 
 import {
     getStaffLookupService

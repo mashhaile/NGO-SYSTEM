@@ -21,7 +21,7 @@ import {
 
 
 import CustomFieldRenderer
-    from "../../customFields/components/CustomFieldRenderer";
+    from "../../customfields/components/CustomFieldRenderer";
 
 
 import useBeneficiaryForm

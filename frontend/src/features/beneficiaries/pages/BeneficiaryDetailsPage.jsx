@@ -18,7 +18,7 @@ import {
 
 import {
     getCustomFieldsByModuleService
-} from "../../customFields/services/customFieldService";
+} from "../../customfields/services/customFieldService";
 
 import {
     PageContainer,

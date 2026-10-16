@@ -58,7 +58,7 @@ import enterpriseMemberReducer
 
 import {
     customFieldReducer
-} from "../features/customFields/store";
+} from "../features/customfields/store";
 
 
 // ==========================================================

@@ -30,7 +30,7 @@ import {
 
 import {
     getDonorsService
-} from "../../donors/services/donorService";
+} from "../../donors/services/DonorService";
 
 
 import {

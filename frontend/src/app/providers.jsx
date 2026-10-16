@@ -33,7 +33,7 @@ import {
 } from "./store";
 
 
-import queryClient from "./queryClient";
+import queryClient from "./QueryClient";
 
 
 import theme from "../theme";

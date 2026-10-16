@@ -67,13 +67,13 @@ import OrganizationSettingsPage
 // ==========================================================
 
 import CustomFieldListPage
-    from "../features/customFields/pages/CustomFieldListPage";
+    from "../features/customfields/pages/CustomFieldListPage";
 
 import CustomFieldCreatePage
-    from "../features/customFields/pages/CustomFieldCreatePage";
+    from "../features/customfields/pages/CustomFieldCreatePage";
 
 import CustomFieldEditPage
-    from "../features/customFields/pages/CustomFieldEditPage";
+    from "../features/customfields/pages/CustomFieldEditPage";
 
 
 // ==========================================================

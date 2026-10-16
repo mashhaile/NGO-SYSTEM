@@ -1,14 +1,14 @@
 export { default as ProjectListPage }
-from "./pages/ProjectListPage";
+from "./pages/projectListPage";
 
 
 export { default as ProjectCreatePage }
-from "./pages/ProjectCreatePage";
+from "./pages/projectCreatePage";
 
 
 export { default as ProjectDetailsPage }
-from "./pages/ProjectDetailsPage";
+from "./pages/projectDetailsPage";
 
 
 export { default as ProjectEditPage }
-from "./pages/ProjectEditPage";
+from "./pages/projectEditPage";

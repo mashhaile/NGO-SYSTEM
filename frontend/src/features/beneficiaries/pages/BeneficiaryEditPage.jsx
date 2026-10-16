@@ -11,7 +11,7 @@ import {
 
 
 import BeneficiaryForm
-    from "../components/beneficiaryForm";
+    from "../components/BeneficiaryForm";
 
 
 import {
@@ -22,7 +22,7 @@ import {
 
 import {
     getCustomFieldsByModuleService
-} from "../../customFields/services/customFieldService";
+} from "../../customfields/services/customFieldService";
 
 
 import {

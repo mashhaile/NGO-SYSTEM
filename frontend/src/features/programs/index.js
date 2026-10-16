@@ -26,7 +26,7 @@ from "./pages/ProgramEditPage";
 export {
     default as programReducer
 }
-from "./store/programSlice";
+from "./store/ProgramSlice";
 
 
-export * from "./store/programThunks";
+export * from "./store/ProgramThunks";

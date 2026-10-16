@@ -27,7 +27,7 @@ import {
 
 
 import ProjectTable
-    from "../components/ProjectTable";
+    from "../components/projectTable";
 
 
 import {

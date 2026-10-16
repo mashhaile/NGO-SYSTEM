@@ -11,7 +11,7 @@ import {
     updateProgramThunk,
     deleteProgramThunk
 
-} from "./programThunks";
+} from "./ProgramThunks";
 
 
 

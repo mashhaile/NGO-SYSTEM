@@ -20,7 +20,7 @@ import TopBar
     from "./TopBar";
 
 import Footer
-    from "./Footer";
+    from "./footer";
 
 
 export const DRAWER_WIDTH = 260;

@@ -5,7 +5,7 @@ export {
 
 export {
     default as ServiceDeliveryCreatePage
-} from "./pages/serviceDeliveryCreatePage";
+} from "./pages/ServiceDeliveryCreatePage";
 
 
 export {

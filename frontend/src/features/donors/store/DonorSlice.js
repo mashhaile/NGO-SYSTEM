@@ -16,7 +16,7 @@ import {
     deleteDonorService
 
 }
-from "../services/donorService";
+from "../services/DonorService";
 
 
 
