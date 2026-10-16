@@ -166,7 +166,12 @@ const rolePermissions = {
 
         // Notifications
 
-        PERMISSIONS.NOTIFICATION_READ
+        PERMISSIONS.NOTIFICATION_READ,
+
+
+        // Reports
+
+        PERMISSIONS.REPORT_READ
 
     ],
 
@@ -257,7 +262,12 @@ const rolePermissions = {
 
         PERMISSIONS.SERVICE_CREATE,
         PERMISSIONS.SERVICE_READ,
-        PERMISSIONS.SERVICE_UPDATE
+        PERMISSIONS.SERVICE_UPDATE,
+
+
+        // Reports
+
+        PERMISSIONS.REPORT_READ
 
     ],
 
@@ -291,7 +301,9 @@ const rolePermissions = {
 
         PERMISSIONS.DONOR_READ,
 
-        PERMISSIONS.DONATION_READ
+        PERMISSIONS.DONATION_READ,
+
+        PERMISSIONS.REPORT_READ
 
     ]
 

@@ -1,4 +1,3 @@
-
 const PERMISSIONS = {
 
     // =====================================================
@@ -311,7 +310,15 @@ const PERMISSIONS = {
         "customfield.update",
 
     CUSTOMFIELD_DELETE:
-        "customfield.delete"
+        "customfield.delete",
+
+
+    // =====================================================
+    // REPORTS
+    // =====================================================
+
+    REPORT_READ:
+        "report.read"
 
 };
 
