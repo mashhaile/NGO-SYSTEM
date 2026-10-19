@@ -95,7 +95,8 @@ const historySchema =
                     "Approved",
                     "Returned",
                     "Activity Created",
-                    "Activity Linked"
+                    "Activity Linked",
+                    "Activity Updated"
                 ],
                 required: true
             },

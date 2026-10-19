@@ -264,6 +264,32 @@ const linkActivity = async (req, res, next) => {
 };
 
 
+const updateLinkedActivity = async (req, res, next) => {
+
+    try {
+
+        const tor =
+            await torService.updateLinkedActivity(
+                req.params.id,
+                req.user.organizationId,
+                req.user.userId,
+                req.body
+            );
+
+        res.json({
+            success: true,
+            message: "Activity updated",
+            data: tor
+        });
+
+    }
+    catch (error) {
+        next(error);
+    }
+
+};
+
+
 const downloadTorPdf = async (req, res, next) => {
 
     try {
@@ -307,5 +333,6 @@ module.exports = {
     returnTor,
     createActivityFromTor,
     linkActivity,
+    updateLinkedActivity,
     downloadTorPdf
 };

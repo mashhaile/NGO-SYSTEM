@@ -135,6 +135,7 @@ const rolePermissions = {
         PERMISSIONS.TOR_DELETE,
         PERMISSIONS.TOR_APPROVE,
         PERMISSIONS.TOR_CREATE_ACTIVITY,
+        PERMISSIONS.TOR_UPDATE_ACTIVITY,
 
 
         // Attendance Sessions
@@ -250,6 +251,7 @@ const rolePermissions = {
         PERMISSIONS.TOR_READ,
         PERMISSIONS.TOR_UPDATE,
         PERMISSIONS.TOR_CREATE_ACTIVITY,
+        PERMISSIONS.TOR_UPDATE_ACTIVITY,
 
 
         // Attendance

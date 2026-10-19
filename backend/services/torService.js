@@ -1059,6 +1059,103 @@ const linkActivity = async (
 
 
 // =====================================================
+// RENAME / RETYPE THE LINKED ACTIVITY
+// =====================================================
+//
+// Lets TOR authors fix the activity's name and type
+// without general activity edit rights. The approved
+// TOR itself is not changed.
+//
+// =====================================================
+
+const updateLinkedActivity = async (
+    id,
+    organizationId,
+    userId,
+    data
+) => {
+
+    const tor =
+        await findTor(id, organizationId);
+
+    if (!tor.activity) {
+        throw new ApiError(
+            "This TOR has no linked activity yet.",
+            409
+        );
+    }
+
+    const before =
+        await Activity.findOne({
+            _id: tor.activity,
+            organization: organizationId,
+            isDeleted: false
+        })
+            .select("name activityType")
+            .lean();
+
+    if (!before) {
+        throw new ApiError(
+            "The linked activity no longer exists.",
+            404
+        );
+    }
+
+    const changes = {};
+
+    const notes = [];
+
+    if (
+        data.name !== undefined &&
+        data.name !== before.name
+    ) {
+        changes.name = data.name;
+        notes.push(`Name: "${before.name}" → "${data.name}"`);
+    }
+
+    if (
+        data.activityType !== undefined &&
+        data.activityType !== before.activityType
+    ) {
+        changes.activityType = data.activityType;
+        notes.push(`Type: ${before.activityType || "-"} → ${data.activityType}`);
+    }
+
+    if (!notes.length) {
+        return getTorById(tor._id, organizationId);
+    }
+
+    await activityService.updateActivity(
+        tor.activity,
+        changes,
+        organizationId,
+        userId
+    );
+
+    await TermsOfReference.updateOne(
+        {
+            _id: tor._id
+        },
+        {
+            $push: {
+                history:
+                    historyEntry(
+                        "Activity Updated",
+                        tor.status,
+                        userId,
+                        notes.join("; ")
+                    )
+            }
+        }
+    );
+
+    return getTorById(tor._id, organizationId);
+
+};
+
+
+
+// =====================================================
 // PDF
 // =====================================================
 
@@ -1379,5 +1476,6 @@ module.exports = {
     returnTor,
     createActivityFromTor,
     linkActivity,
+    updateLinkedActivity,
     buildTorPdf
 };

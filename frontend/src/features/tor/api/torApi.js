@@ -145,6 +145,19 @@ export const linkActivityApi = async (id, activity) => {
 };
 
 
+export const updateLinkedActivityApi = async (id, data) => {
+
+    const response =
+        await axiosClient.patch(
+            `/tors/${id}/activity`,
+            data
+        );
+
+    return response.data?.data;
+
+};
+
+
 // =====================================================
 // PDF
 // =====================================================

@@ -199,6 +199,28 @@ const approveTorSchema =
     });
 
 
+// Name / type of the activity linked to the TOR.
+
+const updateLinkedActivitySchema =
+    Joi.object({
+
+        name:
+            Joi.string()
+                .trim()
+                .min(3)
+                .messages({
+                    "string.min":
+                        "Activity name must be at least 3 characters."
+                }),
+
+        activityType:
+            Joi.string()
+                .valid(...ACTIVITY_TYPES)
+
+    })
+        .min(1);
+
+
 const linkActivitySchema =
     Joi.object({
 
@@ -209,6 +231,7 @@ const linkActivitySchema =
 
 
 module.exports = {
+    updateLinkedActivitySchema,
     linkActivitySchema,
     createTorSchema,
     updateTorSchema,

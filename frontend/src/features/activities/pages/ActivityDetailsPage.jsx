@@ -17,6 +17,7 @@ import {
 
 import {
     Chip,
+    Link,
     Stack
 } from "@mui/material";
 
@@ -52,6 +53,20 @@ import {
 
 import useZoneLabel
     from "../../locations/hooks/useZoneLabel";
+
+
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+
+import {
+    getTorsApi
+} from "../../tor/api/torApi";
+
+
+import {
+    hasPermission
+} from "../../tor/utils/torPermissions";
 
 
 
@@ -132,6 +147,48 @@ const ActivityDetailsPage = () => {
         useZoneLabel(
             activity?.regionCode
         );
+
+    const {
+        user
+    } = useAuth();
+
+    const canReadTors =
+        hasPermission(
+            user,
+            "tor.read"
+        );
+
+    // TORs this activity was created from / linked to
+
+    const [tors, setTors] =
+        useState([]);
+
+    useEffect(() => {
+
+        if (!canReadTors) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        getTorsApi({
+            activity: id,
+            limit: 10
+        })
+
+            .then(response => {
+                if (!cancelled) {
+                    setTors(response.data || []);
+                }
+            })
+
+            .catch(() => {});
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [id, canReadTors]);
 
 
     // =================================================
@@ -365,6 +422,36 @@ const ActivityDetailsPage = () => {
                         label="Activity Name"
                         value={activity.name}
                     />
+
+                    {canReadTors && (
+
+                        <InfoRow
+                            label="Terms of Reference"
+                            value={
+                                tors.length
+                                    ? (
+                                        <Stack spacing={0.5}>
+                                            {tors.map(tor => (
+                                                <Link
+                                                    key={tor._id}
+                                                    component="button"
+                                                    underline="hover"
+                                                    fontWeight={600}
+                                                    sx={{ textAlign: "left" }}
+                                                    onClick={() =>
+                                                        navigate(`/tors/${tor._id}`)
+                                                    }
+                                                >
+                                                    {tor.torNumber} – {tor.title} ({tor.status})
+                                                </Link>
+                                            ))}
+                                        </Stack>
+                                    )
+                                    : "No TOR linked"
+                            }
+                        />
+
+                    )}
 
                     <InfoRow
                         label="Project"

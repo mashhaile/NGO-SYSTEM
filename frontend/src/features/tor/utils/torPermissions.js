@@ -73,7 +73,13 @@ export const getTorActions = (user, tor) => {
 
         canLinkActivity:
             (!tor?.activity || editable) &&
-            hasPermission(user, "tor.update")
+            hasPermission(user, "tor.update"),
+
+        // Rename / retype the linked activity only.
+
+        canEditLinkedActivity:
+            Boolean(tor?.activity) &&
+            hasPermission(user, "tor.update_activity")
     };
 
 };

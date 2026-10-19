@@ -257,6 +257,13 @@ const PERMISSIONS = {
     TOR_CREATE_ACTIVITY:
         "tor.create_activity",
 
+    // Rename / retype the activity linked to a TOR.
+    // Narrower than activity.update: only name and type,
+    // only for activities linked to a TOR.
+
+    TOR_UPDATE_ACTIVITY:
+        "tor.update_activity",
+
 
     // =====================================================
     // ATTENDANCE

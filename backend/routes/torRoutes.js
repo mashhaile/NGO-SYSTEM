@@ -29,6 +29,7 @@ const {
     returnTor,
     createActivityFromTor,
     linkActivity,
+    updateLinkedActivity,
     downloadTorPdf
 } = require("../controllers/torController");
 
@@ -38,7 +39,8 @@ const {
     updateTorSchema,
     returnTorSchema,
     approveTorSchema,
-    linkActivitySchema
+    linkActivitySchema,
+    updateLinkedActivitySchema
 } = require("../validators/torValidator");
 
 
@@ -57,6 +59,7 @@ const {
 // POST   /tors/:id/return     Submitted -> Returned   (tor.approve, comment required)
 // POST   /tors/:id/create-activity  Approved TOR -> new Activity (tor.create_activity)
 // POST   /tors/:id/link-activity    link an existing activity of the same project
+// PATCH  /tors/:id/activity         rename / retype the linked activity (tor.update_activity)
 // GET    /tors/:id/pdf        download PDF
 //
 // =====================================================
@@ -148,6 +151,15 @@ router.post(
     authorize("tor.update"),
     validate(linkActivitySchema),
     linkActivity
+);
+
+
+router.patch(
+    "/:id/activity",
+    ...base,
+    authorize("tor.update_activity"),
+    validate(updateLinkedActivitySchema),
+    updateLinkedActivity
 );
 
 

@@ -45,6 +45,7 @@ import {
     FormSection,
     InfoRow,
     AppButton,
+    AppIconButton,
     StatusChip,
     LoadingState,
     ConfirmDialog,
@@ -68,6 +69,7 @@ import {
     deleteTorApi,
     createActivityFromTorApi,
     linkActivityApi,
+    updateLinkedActivityApi,
     downloadTorPdfApi,
     getApiErrorMessage
 } from "../api/torApi";
@@ -89,6 +91,10 @@ import TorReviewDialog
 
 import TorLinkActivityDialog
     from "../components/TorLinkActivityDialog";
+
+
+import TorEditActivityDialog
+    from "../components/TorEditActivityDialog";
 
 
 
@@ -691,16 +697,43 @@ const TorDetailsPage = () => {
                         value={
                             tor.activity
                                 ? (
-                                    <Link
-                                        component="button"
-                                        underline="hover"
-                                        fontWeight={600}
-                                        onClick={() =>
-                                            navigate(`/activities/${tor.activity._id}`)
-                                        }
+                                    <Stack
+                                        direction="row"
+                                        spacing={0.5}
+                                        alignItems="center"
                                     >
-                                        {codeName(tor.activity, "activityCode")}
-                                    </Link>
+
+                                        <Link
+                                            component="button"
+                                            underline="hover"
+                                            fontWeight={600}
+                                            onClick={() =>
+                                                navigate(`/activities/${tor.activity._id}`)
+                                            }
+                                        >
+                                            {codeName(tor.activity, "activityCode")}
+                                        </Link>
+
+                                        {tor.activity.activityType && (
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                            >
+                                                · {tor.activity.activityType}
+                                            </Typography>
+                                        )}
+
+                                        {actions.canEditLinkedActivity && (
+                                            <AppIconButton
+                                                icon={<Edit fontSize="small" />}
+                                                tooltip="Edit activity name and type"
+                                                onClick={() =>
+                                                    openDialog("editActivity")
+                                                }
+                                            />
+                                        )}
+
+                                    </Stack>
                                 )
                                 : (
                                     <Typography
@@ -1029,6 +1062,25 @@ const TorDetailsPage = () => {
                     )
                 }
             />
+
+            {tor.activity && (
+
+                <TorEditActivityDialog
+                    key={`edit-activity-${dialogKey}`}
+                    open={dialog === "editActivity"}
+                    activity={tor.activity}
+                    loading={busy}
+                    error={actionError}
+                    onClose={closeDialog}
+                    onConfirm={(changes) =>
+                        runAction(
+                            () => updateLinkedActivityApi(id, changes),
+                            "Activity updated."
+                        )
+                    }
+                />
+
+            )}
 
             <TorReviewDialog
                 key={`review-${dialogKey}`}
