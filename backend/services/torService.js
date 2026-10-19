@@ -14,6 +14,12 @@ const Activity =
 const ActivityRun =
     require("../models/ActivityRun");
 
+const Project =
+    require("../models/Project");
+
+const activityService =
+    require("./activityService");
+
 const Organization =
     require("../models/organization");
 
@@ -185,14 +191,57 @@ const validateDates = (startDate, endDate) => {
 };
 
 
-// Activity must belong to the organization; the run,
-// if given, must belong to that activity.
+// Project must belong to the organization. The
+// activity is optional (usually created after
+// approval); if given it must belong to the same
+// project, and the run must belong to the activity.
 
 const resolveLinks = async (
     organizationId,
+    projectId,
     activityId,
     activityRunId
 ) => {
+
+    if (!mongoose.isValidObjectId(projectId)) {
+        throw new ApiError(
+            "Project is required.",
+            400
+        );
+    }
+
+    const project =
+        await Project.findOne({
+            _id: projectId,
+            organization: organizationId,
+            isDeleted: false
+        })
+            .select("_id")
+            .lean();
+
+    if (!project) {
+        throw new ApiError(
+            "Project not found.",
+            404
+        );
+    }
+
+    if (!activityId) {
+
+        if (activityRunId) {
+            throw new ApiError(
+                "Select the activity before the activity run.",
+                400
+            );
+        }
+
+        return {
+            project: project._id,
+            activity: null,
+            activityRun: null
+        };
+
+    }
 
     const activity =
         await Activity.findOne({
@@ -207,6 +256,13 @@ const resolveLinks = async (
         throw new ApiError(
             "Activity not found.",
             404
+        );
+    }
+
+    if (String(activity.project) !== String(project._id)) {
+        throw new ApiError(
+            "The activity belongs to a different project than this TOR.",
+            400
         );
     }
 
@@ -234,9 +290,9 @@ const resolveLinks = async (
     }
 
     return {
+        project: project._id,
         activity: activity._id,
-        activityRun: activityRun?._id || null,
-        project: activity.project || null
+        activityRun: activityRun?._id || null
     };
 
 };
@@ -299,6 +355,7 @@ const historyEntry = (
 
 const SECTION_FIELDS = [
     "title",
+    "activityType",
     "background",
     "objectives",
     "expectedOutputs",
@@ -350,6 +407,10 @@ const pickFields = (data) => {
         fields.currency = "ETB";
     }
 
+    if (fields.activityType === "") {
+        fields.activityType = "Training";
+    }
+
     return fields;
 
 };
@@ -374,7 +435,8 @@ const createTor = async (
     const links =
         await resolveLinks(
             organizationId,
-            data.activity,
+            data.project,
+            emptyToNull(data.activity),
             emptyToNull(data.activityRun)
         );
 
@@ -570,6 +632,7 @@ const updateTor = async (
     );
 
     if (
+        data.project !== undefined ||
         data.activity !== undefined ||
         data.activityRun !== undefined
     ) {
@@ -578,7 +641,10 @@ const updateTor = async (
             tor,
             await resolveLinks(
                 organizationId,
-                data.activity || tor.activity,
+                data.project || tor.project,
+                data.activity !== undefined
+                    ? emptyToNull(data.activity)
+                    : tor.activity,
                 data.activityRun !== undefined
                     ? emptyToNull(data.activityRun)
                     : tor.activityRun
@@ -812,6 +878,187 @@ const returnTor = async (
 
 
 // =====================================================
+// ACTIVITY FROM APPROVED TOR
+// =====================================================
+//
+// The TOR comes first; once approved, its activity is
+// created from it (or an existing one is linked).
+//
+// =====================================================
+
+const createActivityFromTor = async (
+    id,
+    organizationId,
+    userId
+) => {
+
+    const tor =
+        await findTor(id, organizationId);
+
+    if (tor.status !== TOR_STATUS.APPROVED) {
+        throw new ApiError(
+            "Only an approved TOR can create its activity.",
+            409
+        );
+    }
+
+    if (tor.activity) {
+        throw new ApiError(
+            "This TOR is already linked to an activity.",
+            409
+        );
+    }
+
+    const activity =
+        await activityService.createActivity(
+            {
+                project: tor.project,
+                name: tor.title,
+                activityType: tor.activityType || "Training",
+                participantSource: "Enrolled Beneficiaries",
+                targetGroups: [],
+                description: tor.objectives,
+                activityDate: tor.startDate,
+                region: tor.region,
+                regionCode: tor.regionCode,
+                zone: tor.zone,
+                zoneCode: tor.zoneCode,
+                woreda: tor.woreda,
+                woredaCode: tor.woredaCode,
+                location: tor.venue,
+                facilitator: tor.facilitators,
+                targetParticipants: tor.expectedParticipants || 0,
+                status: "Planned",
+                remarks: `Created from approved TOR ${tor.torNumber}`
+            },
+            organizationId,
+            userId
+        );
+
+    // Link only if nobody linked an activity meanwhile;
+    // otherwise remove the activity just created.
+
+    const linked =
+        await TermsOfReference.findOneAndUpdate(
+            {
+                _id: tor._id,
+                organization: organizationId,
+                isDeleted: false,
+                status: TOR_STATUS.APPROVED,
+                activity: null
+            },
+            {
+                $set: {
+                    activity: activity._id,
+                    updatedBy: userId
+                },
+                $push: {
+                    history:
+                        historyEntry(
+                            "Activity Created",
+                            TOR_STATUS.APPROVED,
+                            userId,
+                            `${activity.activityCode} - ${activity.name}`
+                        )
+                }
+            },
+            {
+                returnDocument: "after"
+            }
+        );
+
+    if (!linked) {
+
+        await Activity.deleteOne({
+            _id: activity._id
+        });
+
+        throw new ApiError(
+            "This TOR was linked to another activity in the meantime.",
+            409
+        );
+
+    }
+
+    return {
+        tor:
+            await getTorById(tor._id, organizationId),
+        activity
+    };
+
+};
+
+
+const linkActivity = async (
+    id,
+    organizationId,
+    userId,
+    activityId
+) => {
+
+    const tor =
+        await findTor(id, organizationId);
+
+    if (
+        tor.activity &&
+        !EDITABLE_STATUSES.includes(tor.status)
+    ) {
+        throw new ApiError(
+            "This TOR is already linked to an activity.",
+            409
+        );
+    }
+
+    const links =
+        await resolveLinks(
+            organizationId,
+            tor.project,
+            activityId,
+            null
+        );
+
+    const linked =
+        await TermsOfReference.findOneAndUpdate(
+            {
+                _id: tor._id,
+                organization: organizationId,
+                isDeleted: false,
+                activity: tor.activity || null
+            },
+            {
+                $set: {
+                    activity: links.activity,
+                    activityRun: null,
+                    updatedBy: userId
+                },
+                $push: {
+                    history:
+                        historyEntry(
+                            "Activity Linked",
+                            tor.status,
+                            userId
+                        )
+                }
+            },
+            {
+                returnDocument: "after"
+            }
+        );
+
+    if (!linked) {
+        throw new ApiError(
+            "This TOR was changed in the meantime. Reload and try again.",
+            409
+        );
+    }
+
+    return getTorById(tor._id, organizationId);
+
+};
+
+
+
+// =====================================================
 // PDF
 // =====================================================
 
@@ -993,7 +1240,7 @@ const buildTorPdf = async (
         [
             { label: "TOR No.", value: tor.torNumber },
             { label: "Status", value: tor.status },
-            { label: "Activity", value: codeName(tor.activity, "activityCode") },
+            { label: "Activity", value: tor.activity ? codeName(tor.activity, "activityCode") : "Not created yet" },
             { label: "Activity Run", value: codeName(tor.activityRun, "runCode") },
             { label: "Project", value: codeName(tor.project, "projectCode") },
             { label: "Participants", value: String(tor.expectedParticipants || "-") },
@@ -1130,5 +1377,7 @@ module.exports = {
     submitTor,
     approveTor,
     returnTor,
+    createActivityFromTor,
+    linkActivity,
     buildTorPdf
 };

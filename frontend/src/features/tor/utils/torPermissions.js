@@ -60,7 +60,18 @@ export const getTorActions = (user, tor) => {
 
         canReview:
             status === TOR_STATUS.SUBMITTED &&
-            hasPermission(user, "tor.approve")
+            hasPermission(user, "tor.approve"),
+
+        // The activity comes after the TOR is approved.
+
+        canCreateActivity:
+            status === TOR_STATUS.APPROVED &&
+            !tor?.activity &&
+            hasPermission(user, "activity.create"),
+
+        canLinkActivity:
+            (!tor?.activity || editable) &&
+            hasPermission(user, "tor.update")
     };
 
 };

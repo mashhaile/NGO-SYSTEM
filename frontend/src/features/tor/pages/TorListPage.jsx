@@ -190,12 +190,21 @@ const TorListPage = () => {
         },
 
         {
-            field: "activity",
-            headerName: "Activity",
-            flex: 1.2,
-            minWidth: 180,
+            field: "project",
+            headerName: "Project",
+            flex: 1.1,
+            minWidth: 170,
             valueGetter: (value) =>
                 value?.name || "-"
+        },
+
+        {
+            field: "activity",
+            headerName: "Activity",
+            flex: 1.1,
+            minWidth: 170,
+            valueGetter: (value) =>
+                value?.name || "Not created yet"
         },
 
         {

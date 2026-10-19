@@ -58,10 +58,36 @@ const budgetLine =
     });
 
 
+const ACTIVITY_TYPES = [
+    "Training",
+    "Workshop",
+    "Seminar",
+    "Meeting",
+    "Conference",
+    "Awareness Campaign",
+    "Field Visit",
+    "Monitoring Visit",
+    "Assessment",
+    "Distribution",
+    "Community Dialogue",
+    "Other"
+];
+
+
 const torFields = {
+
+    // Optional: usually linked after approval.
+
+    activity:
+        objectId.allow("", null),
 
     activityRun:
         objectId.allow("", null),
+
+    activityType:
+        Joi.string()
+            .valid(...ACTIVITY_TYPES)
+            .allow("", null),
 
     background: text,
 
@@ -123,7 +149,7 @@ const createTorSchema =
                 .trim()
                 .required(),
 
-        activity:
+        project:
             objectId.required(),
 
         ...torFields
@@ -138,7 +164,7 @@ const updateTorSchema =
             Joi.string()
                 .trim(),
 
-        activity:
+        project:
             objectId,
 
         ...torFields
@@ -173,7 +199,17 @@ const approveTorSchema =
     });
 
 
+const linkActivitySchema =
+    Joi.object({
+
+        activity:
+            objectId.required()
+
+    });
+
+
 module.exports = {
+    linkActivitySchema,
     createTorSchema,
     updateTorSchema,
     returnTorSchema,

@@ -1,6 +1,9 @@
 const torService =
     require("../services/torService");
 
+const subscriptionService =
+    require("../services/subscriptionService");
+
 
 // ==========================================
 // TERMS OF REFERENCE CONTROLLER
@@ -203,6 +206,64 @@ const returnTor = async (req, res, next) => {
 };
 
 
+const createActivityFromTor = async (req, res, next) => {
+
+    try {
+
+        // Same plan limit as creating an activity directly.
+
+        await subscriptionService.checkResourceLimit(
+            req.user.organizationId,
+            "activities"
+        );
+
+        const result =
+            await torService.createActivityFromTor(
+                req.params.id,
+                req.user.organizationId,
+                req.user.userId
+            );
+
+        res.status(201).json({
+            success: true,
+            message: "Activity created from the approved TOR",
+            data: result
+        });
+
+    }
+    catch (error) {
+        next(error);
+    }
+
+};
+
+
+const linkActivity = async (req, res, next) => {
+
+    try {
+
+        const tor =
+            await torService.linkActivity(
+                req.params.id,
+                req.user.organizationId,
+                req.user.userId,
+                req.body.activity
+            );
+
+        res.json({
+            success: true,
+            message: "Activity linked to the TOR",
+            data: tor
+        });
+
+    }
+    catch (error) {
+        next(error);
+    }
+
+};
+
+
 const downloadTorPdf = async (req, res, next) => {
 
     try {
@@ -244,5 +305,7 @@ module.exports = {
     submitTor,
     approveTor,
     returnTor,
+    createActivityFromTor,
+    linkActivity,
     downloadTorPdf
 };

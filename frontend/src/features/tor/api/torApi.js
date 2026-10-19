@@ -115,6 +115,37 @@ export const returnTorApi = async (id, comment) => {
 
 
 // =====================================================
+// ACTIVITY (after approval)
+// =====================================================
+
+export const createActivityFromTorApi = async (id) => {
+
+    const response =
+        await axiosClient.post(
+            `/tors/${id}/create-activity`
+        );
+
+    return response.data?.data;
+
+};
+
+
+export const linkActivityApi = async (id, activity) => {
+
+    const response =
+        await axiosClient.post(
+            `/tors/${id}/link-activity`,
+            {
+                activity
+            }
+        );
+
+    return response.data?.data;
+
+};
+
+
+// =====================================================
 // PDF
 // =====================================================
 

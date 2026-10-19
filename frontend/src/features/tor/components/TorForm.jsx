@@ -25,8 +25,14 @@ import {
     AppTextField,
     AppDatePicker,
     AppAutoComplete,
+    AppSelect,
     AppButton
 } from "../../../components/ui";
+
+
+import {
+    getProjectLookupService
+} from "../../projects/services/projectService";
 
 
 import {
@@ -52,9 +58,34 @@ import TorBudgetLines
 // FORM STATE
 // =====================================================
 
+const ACTIVITY_TYPES = [
+    "Training",
+    "Workshop",
+    "Seminar",
+    "Meeting",
+    "Conference",
+    "Awareness Campaign",
+    "Field Visit",
+    "Monitoring Visit",
+    "Assessment",
+    "Distribution",
+    "Community Dialogue",
+    "Other"
+].map(
+    item => ({
+        value: item,
+        label: item
+    })
+);
+
+
 const initialState = {
 
     title: "",
+
+    project: "",
+
+    activityType: "Training",
 
     activity: "",
 
@@ -139,6 +170,7 @@ const buildFormState = (initialData) => {
 
     return {
         ...state,
+        project: getId(initialData.project),
         activity: getId(initialData.activity),
         activityRun: getId(initialData.activityRun),
         startDate: toDateString(initialData.startDate),
@@ -185,6 +217,9 @@ const TorForm = ({
     const [errors, setErrors] =
         useState({});
 
+    const [projects, setProjects] =
+        useState([]);
+
     const [activities, setActivities] =
         useState([]);
 
@@ -198,6 +233,26 @@ const TorForm = ({
     // =================================================
     // LOOKUPS
     // =================================================
+
+    useEffect(() => {
+
+        getProjectLookupService()
+
+            .then(response =>
+                setProjects(
+                    response.data?.data || []
+                )
+            )
+
+            .catch(loadError =>
+                console.error(
+                    "Project lookup error",
+                    loadError
+                )
+            );
+
+    }, []);
+
 
     useEffect(() => {
 
@@ -285,6 +340,20 @@ const TorForm = ({
     const changeFields = useCallback(
         (patch) => {
 
+            setErrors(prev => {
+
+                const next = {
+                    ...prev
+                };
+
+                Object.keys(patch).forEach(key => {
+                    next[key] = "";
+                });
+
+                return next;
+
+            });
+
             setForm(prev => ({
                 ...prev,
                 ...patch
@@ -325,8 +394,8 @@ const TorForm = ({
             next.title = "Title is required";
         }
 
-        if (!form.activity) {
-            next.activity = "Activity is required";
+        if (!form.project) {
+            next.project = "Project is required";
         }
 
         if (
@@ -357,6 +426,8 @@ const TorForm = ({
         ...form,
 
         title: form.title.trim(),
+
+        activity: form.activity || null,
 
         activityRun: form.activityRun || null,
 
@@ -402,8 +473,21 @@ const TorForm = ({
     };
 
 
+    const selectedProject =
+        projects.find(
+            item => item._id === form.project
+        ) || null;
+
+    // Only activities of the chosen project
+
+    const projectActivities =
+        activities.filter(
+            item =>
+                getId(item.project) === form.project
+        );
+
     const selectedActivity =
-        activities.find(
+        projectActivities.find(
             item => item._id === form.activity
         ) || null;
 
@@ -448,7 +532,7 @@ const TorForm = ({
 
                 <FormSection
                     title="TOR Information"
-                    subtitle="Which activity this terms of reference is for."
+                    subtitle="The activity is usually created from the TOR after approval, so it can be left empty."
                 >
 
                     <Box sx={{ mb: 2 }}>
@@ -465,13 +549,50 @@ const TorForm = ({
                     <FormGrid columns={2}>
 
                         <AppAutoComplete
-                            label="Activity"
+                            label="Project"
                             required
-                            options={activities}
+                            options={projects}
+                            value={selectedProject}
+                            placeholder="Select Project"
+                            error={Boolean(errors.project)}
+                            helperText={errors.project || ""}
+                            getOptionLabel={(option) =>
+                                option
+                                    ? `${option.projectCode} - ${option.name}`
+                                    : ""
+                            }
+                            isOptionEqualToValue={(a, b) =>
+                                a._id === b._id
+                            }
+                            onChange={(value) =>
+                                changeFields({
+                                    project: value?._id || "",
+                                    activity: "",
+                                    activityRun: ""
+                                })
+                            }
+                        />
+
+                        <AppSelect
+                            label="Activity Type"
+                            required
+                            value={form.activityType}
+                            options={ACTIVITY_TYPES}
+                            onChange={(e) =>
+                                changeField("activityType", e.target.value)
+                            }
+                        />
+
+                        <AppAutoComplete
+                            label="Existing Activity (optional)"
+                            options={projectActivities}
                             value={selectedActivity}
-                            placeholder="Select Activity"
-                            error={Boolean(errors.activity)}
-                            helperText={errors.activity || ""}
+                            disabled={!form.project}
+                            placeholder={
+                                form.project
+                                    ? "Leave empty to create it after approval"
+                                    : "Select a project first"
+                            }
                             getOptionLabel={(option) =>
                                 option
                                     ? `${option.activityCode} - ${option.name}`
@@ -480,10 +601,12 @@ const TorForm = ({
                             isOptionEqualToValue={(a, b) =>
                                 a._id === b._id
                             }
-                            onChange={(value) => {
-                                changeField("activity", value?._id || "");
-                                changeField("activityRun", "");
-                            }}
+                            onChange={(value) =>
+                                changeFields({
+                                    activity: value?._id || "",
+                                    activityRun: ""
+                                })
+                            }
                         />
 
                         <AppAutoComplete

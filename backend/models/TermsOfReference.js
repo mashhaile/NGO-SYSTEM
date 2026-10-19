@@ -6,7 +6,11 @@ const mongoose = require("mongoose");
 // =====================================================
 //
 // TOR for an activity / training, written in fixed
-// sections and approved before implementation.
+// sections and approved BEFORE the activity exists.
+//
+// A TOR belongs to a project. After approval the
+// activity is created from it (or an existing one is
+// linked), see createActivityFromTor / linkActivity.
 //
 // Workflow (see services/torService.js):
 //
@@ -89,7 +93,9 @@ const historySchema =
                     "Updated",
                     "Submitted",
                     "Approved",
-                    "Returned"
+                    "Returned",
+                    "Activity Created",
+                    "Activity Linked"
                 ],
                 required: true
             },
@@ -156,10 +162,19 @@ const termsOfReferenceSchema =
             // LINKS
             // -----------------------------------------
 
+            project: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Project",
+                required: true
+            },
+
+            // Set after approval, when the activity is
+            // created from this TOR or linked.
+
             activity: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Activity",
-                required: true
+                default: null
             },
 
             activityRun: {
@@ -168,12 +183,13 @@ const termsOfReferenceSchema =
                 default: null
             },
 
-            // Copied from the activity for filtering
+            // Used when the activity is created from
+            // this TOR.
 
-            project: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Project",
-                default: null
+            activityType: {
+                type: String,
+                default: "Training",
+                trim: true
             },
 
 
@@ -419,6 +435,11 @@ termsOfReferenceSchema.index(
 termsOfReferenceSchema.index({
     organization: 1,
     activity: 1
+});
+
+termsOfReferenceSchema.index({
+    organization: 1,
+    project: 1
 });
 
 termsOfReferenceSchema.index({

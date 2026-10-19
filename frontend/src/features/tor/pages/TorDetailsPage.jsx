@@ -14,6 +14,7 @@ import {
 import {
     Alert,
     Box,
+    Link,
     Stack,
     Table,
     TableBody,
@@ -31,7 +32,9 @@ import {
     Edit,
     PictureAsPdf,
     Replay,
-    Send
+    Send,
+    AddTask,
+    Link as LinkIcon
 } from "@mui/icons-material";
 
 
@@ -63,6 +66,8 @@ import {
     approveTorApi,
     returnTorApi,
     deleteTorApi,
+    createActivityFromTorApi,
+    linkActivityApi,
     downloadTorPdfApi,
     getApiErrorMessage
 } from "../api/torApi";
@@ -80,6 +85,10 @@ import {
 
 import TorReviewDialog
     from "../components/TorReviewDialog";
+
+
+import TorLinkActivityDialog
+    from "../components/TorLinkActivityDialog";
 
 
 
@@ -479,6 +488,18 @@ const TorDetailsPage = () => {
             )}
 
 
+            {actions.canCreateActivity && (
+
+                <Alert
+                    severity="info"
+                    sx={{ mb: 3 }}
+                >
+                    <strong>Approved.</strong> Next step: create the activity from this TOR, or link one that already exists.
+                </Alert>
+
+            )}
+
+
             {tor.status === "Returned" && tor.reviewComment && (
 
                 <Alert
@@ -527,6 +548,29 @@ const TorDetailsPage = () => {
                             useFlexGap
                             flexWrap="wrap"
                         >
+
+                            {actions.canCreateActivity && (
+                                <AppButton
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={<AddTask />}
+                                    onClick={() => openDialog("createActivity")}
+                                >
+                                    Create Activity from TOR
+                                </AppButton>
+                            )}
+
+                            {actions.canLinkActivity && (
+                                <AppButton
+                                    variant="outlined"
+                                    startIcon={<LinkIcon />}
+                                    onClick={() => openDialog("linkActivity")}
+                                >
+                                    {tor.activity
+                                        ? "Change Linked Activity"
+                                        : "Link Existing Activity"}
+                                </AppButton>
+                            )}
 
                             {actions.canEdit && (
                                 <AppButton
@@ -633,19 +677,48 @@ const TorDetailsPage = () => {
                     <InfoRow label="Title" value={tor.title} />
 
                     <InfoRow
-                        label="Activity"
-                        value={codeName(tor.activity, "activityCode")}
-                    />
-
-                    <InfoRow
-                        label="Activity Run"
-                        value={codeName(tor.activityRun, "runCode")}
-                    />
-
-                    <InfoRow
                         label="Project"
                         value={codeName(tor.project, "projectCode")}
                     />
+
+                    <InfoRow
+                        label="Activity Type"
+                        value={tor.activityType}
+                    />
+
+                    <InfoRow
+                        label="Activity"
+                        value={
+                            tor.activity
+                                ? (
+                                    <Link
+                                        component="button"
+                                        underline="hover"
+                                        fontWeight={600}
+                                        onClick={() =>
+                                            navigate(`/activities/${tor.activity._id}`)
+                                        }
+                                    >
+                                        {codeName(tor.activity, "activityCode")}
+                                    </Link>
+                                )
+                                : (
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                    >
+                                        Not created yet. It is created from this TOR after approval.
+                                    </Typography>
+                                )
+                        }
+                    />
+
+                    {tor.activityRun && (
+                        <InfoRow
+                            label="Activity Run"
+                            value={codeName(tor.activityRun, "runCode")}
+                        />
+                    )}
 
                 </FormSection>
 
@@ -919,6 +992,40 @@ const TorDetailsPage = () => {
                     runAction(
                         () => submitTorApi(id),
                         "TOR submitted for approval."
+                    )
+                }
+            />
+
+            <ConfirmDialog
+                open={dialog === "createActivity"}
+                title="Create Activity from TOR"
+                message={
+                    actionError ||
+                    `A new activity "${tor.title}" will be created in the project, using this TOR's date, venue, location, participants and facilitators. You can adjust it afterwards.`
+                }
+                confirmLabel="Create Activity"
+                loading={busy}
+                onClose={closeDialog}
+                onConfirm={() =>
+                    runAction(
+                        async () =>
+                            (await createActivityFromTorApi(id)).tor,
+                        "Activity created and linked to this TOR."
+                    )
+                }
+            />
+
+            <TorLinkActivityDialog
+                key={`link-${dialogKey}`}
+                open={dialog === "linkActivity"}
+                projectId={tor.project?._id || tor.project}
+                loading={busy}
+                error={actionError}
+                onClose={closeDialog}
+                onConfirm={(activityId) =>
+                    runAction(
+                        () => linkActivityApi(id, activityId),
+                        "Activity linked to this TOR."
                     )
                 }
             />
