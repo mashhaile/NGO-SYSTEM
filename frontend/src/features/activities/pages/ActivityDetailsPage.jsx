@@ -1,916 +1,550 @@
 import {
     useEffect,
     useState
-}
-from "react";
+} from "react";
 
 
 import {
     useParams,
     useNavigate
-}
-from "react-router-dom";
+} from "react-router-dom";
 
 
 import {
     useDispatch
-}
-from "react-redux";
+} from "react-redux";
 
 
 import {
-
-    Box,
-
-    Typography,
-
-    Button,
-
     Chip,
-
-    Divider,
-
     Stack
-
-}
-from "@mui/material";
+} from "@mui/material";
 
 
 import {
-
-    ArrowBack,
-
     Edit,
-
     Delete
+} from "@mui/icons-material";
 
-}
-from "@mui/icons-material";
+
+import {
+    PageContainer,
+    PageHeader,
+    PageCard,
+    FormSection,
+    InfoRow,
+    AppButton,
+    StatusChip,
+    LoadingState,
+    ConfirmDeleteDialog
+} from "../../../components/ui";
 
 
 import {
     deleteActivityThunk
-}
-from "../store";
+} from "../store";
 
 
 import {
     getActivityByIdService
-}
-from "../services/activityService";
-
-
-import {
-
-    PageContainer,
-
-    PageHeader,
-
-    PageCard,
-
-    ConfirmDeleteDialog,
-
-    LoadingState
-
-}
-from "../../../components/ui";
+} from "../services/activityService";
 
 
 import useZoneLabel
-from "../../locations/hooks/useZoneLabel";
+    from "../../locations/hooks/useZoneLabel";
 
 
 
+// =====================================================
+// FORMATTERS
+// =====================================================
 
+const formatDate = (value) => {
 
+    if (!value) {
+        return "-";
+    }
 
-const statusColors={
+    const date =
+        new Date(value);
 
-
-    Planned:"warning",
-
-    Ongoing:"info",
-
-    Completed:"success",
-
-    Cancelled:"error"
-
+    return Number.isNaN(date.getTime())
+        ? "-"
+        : date.toLocaleDateString();
 
 };
 
 
+const formatDateTime = (value) => {
 
+    if (!value) {
+        return "-";
+    }
 
+    const date =
+        new Date(value);
 
-
-
-
-
-
-const ActivityDetailsPage=()=>{
-
-
-const {id}=useParams();
-
-
-const navigate=useNavigate();
-
-
-const dispatch=useDispatch();
-
-
-
-
-const [activity,setActivity]=useState(null);
-
-const [loading,setLoading]=useState(true);
-
-const [error,setError]=useState("");
-
-const [openDelete,setOpenDelete]=useState(false);
-
-
-const zoneLabel=useZoneLabel(activity?.regionCode);
-
-
-
-
-
-
-
-
-
-
-useEffect(()=>{
-
-
-loadActivity();
-
-
-},[id]);
-
-
-
-
-
-
-
-
-
-
-const loadActivity=async()=>{
-
-
-try{
-
-
-setLoading(true);
-
-
-
-const response=
-
-await getActivityByIdService(id);
-
-
-
-const data=
-
-response?.data?.data ||
-
-response?.data ||
-
-response;
-
-
-
-setActivity(data);
-
-
-
-}
-
-catch(error){
-
-
-setError(
-
-error.response?.data?.message ||
-
-"Failed to load activity"
-
-);
-
-
-}
-
-finally{
-
-
-setLoading(false);
-
-
-}
-
-
+    return Number.isNaN(date.getTime())
+        ? "-"
+        : date.toLocaleString();
 
 };
 
 
+const formatCodeName = (item, codeKey) =>
+    item && typeof item === "object"
+        ? [item[codeKey], item.name]
+            .filter(Boolean)
+            .join(" - ")
+        : "-";
 
 
 
+// =====================================================
+// ACTIVITY DETAILS PAGE
+// =====================================================
+
+const ActivityDetailsPage = () => {
+
+    const {
+        id
+    } = useParams();
+
+    const navigate =
+        useNavigate();
+
+    const dispatch =
+        useDispatch();
+
+    const [activity, setActivity] =
+        useState(null);
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [error, setError] =
+        useState("");
+
+    const [openDelete, setOpenDelete] =
+        useState(false);
+
+    const zoneLabel =
+        useZoneLabel(
+            activity?.regionCode
+        );
 
 
+    // =================================================
+    // LOAD
+    // =================================================
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        getActivityByIdService(id)
+
+            .then(response => {
+
+                if (!cancelled) {
+                    setActivity(
+                        response?.data?.data ||
+                        response?.data ||
+                        response
+                    );
+                }
+
+            })
+
+            .catch(loadError => {
+
+                if (!cancelled) {
+                    setError(
+                        loadError.response?.data?.message ||
+                        "Failed to load activity"
+                    );
+                }
+
+            })
+
+            .finally(() => {
+
+                if (!cancelled) {
+                    setLoading(false);
+                }
+
+            });
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [id]);
 
 
-const handleDelete=async()=>{
+    // =================================================
+    // DELETE
+    // =================================================
+
+    const handleDelete = async () => {
+
+        await dispatch(
+            deleteActivityThunk(id)
+        ).unwrap();
+
+        navigate("/activities");
+
+    };
 
 
-await dispatch(
+    const backButton = (
 
-deleteActivityThunk(id)
+        <AppButton
+            variant="outlined"
+            onClick={() =>
+                navigate("/activities")
+            }
+            sx={{
+                mt: 3,
+                mb: 5
+            }}
+        >
+            Back to Activities
+        </AppButton>
 
-).unwrap();
+    );
 
 
+    // =================================================
+    // LOADING
+    // =================================================
 
-navigate("/activities");
+    if (loading) {
 
+        return (
+
+            <PageContainer>
+
+                <PageHeader
+                    title="Activity Details"
+                    subtitle="Loading activity information"
+                />
+
+                <LoadingState
+                    message="Loading activity..."
+                />
+
+            </PageContainer>
+
+        );
+
+    }
+
+
+    // =================================================
+    // NOT FOUND
+    // =================================================
+
+    if (error || !activity) {
+
+        return (
+
+            <PageContainer>
+
+                <PageHeader
+                    title="Activity Details"
+                    subtitle="Activity record could not be found."
+                />
+
+                <PageCard>
+
+                    <FormSection
+                        title="Record Not Found"
+                    >
+
+                        <InfoRow
+                            label="Activity"
+                            value={
+                                error ||
+                                "No activity information available."
+                            }
+                        />
+
+                    </FormSection>
+
+                </PageCard>
+
+                {backButton}
+
+            </PageContainer>
+
+        );
+
+    }
+
+
+    const targetGroups =
+        activity.targetGroups || [];
+
+
+    // =================================================
+    // PAGE
+    // =================================================
+
+    return (
+
+        <PageContainer>
+
+            <PageHeader
+                title="Activity Details"
+                subtitle={
+                    activity.activityCode ||
+                    "Activity record"
+                }
+            />
+
+
+            {/* ACTIONS */}
+
+            <PageCard>
+
+                <FormSection>
+
+                    <Stack
+                        direction={{
+                            xs: "column",
+                            sm: "row"
+                        }}
+                        spacing={1.5}
+                    >
+
+                        <AppButton
+                            variant="contained"
+                            startIcon={<Edit />}
+                            onClick={() =>
+                                navigate(
+                                    `/activities/${id}/edit`
+                                )
+                            }
+                        >
+                            Edit Activity
+                        </AppButton>
+
+                        <AppButton
+                            variant="outlined"
+                            color="error"
+                            startIcon={<Delete />}
+                            onClick={() =>
+                                setOpenDelete(true)
+                            }
+                        >
+                            Delete Activity
+                        </AppButton>
+
+                    </Stack>
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* ACTIVITY */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Activity Information"
+                >
+
+                    <InfoRow
+                        label="Activity Code"
+                        value={activity.activityCode}
+                    />
+
+                    <InfoRow
+                        label="Activity Name"
+                        value={activity.name}
+                    />
+
+                    <InfoRow
+                        label="Project"
+                        value={
+                            formatCodeName(
+                                activity.project,
+                                "projectCode"
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Program"
+                        value={
+                            formatCodeName(
+                                activity.program,
+                                "programCode"
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Activity Type"
+                        value={activity.activityType}
+                    />
+
+                    <InfoRow
+                        label="Participant Source"
+                        value={activity.participantSource}
+                    />
+
+                    <InfoRow
+                        label="Target Groups"
+                        value={
+                            targetGroups.length
+                                ? (
+                                    <Stack
+                                        direction="row"
+                                        spacing={1}
+                                        useFlexGap
+                                        flexWrap="wrap"
+                                    >
+                                        {targetGroups.map(group => (
+                                            <Chip
+                                                key={group}
+                                                label={group}
+                                                size="small"
+                                            />
+                                        ))}
+                                    </Stack>
+                                )
+                                : "-"
+                        }
+                    />
+
+                    <InfoRow
+                        label="Facilitator"
+                        value={activity.facilitator}
+                    />
+
+                    <InfoRow
+                        label="Target Participants"
+                        value={activity.targetParticipants ?? "-"}
+                    />
+
+                    <InfoRow
+                        label="Description"
+                        value={activity.description}
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* DATE AND LOCATION */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Date and Location"
+                >
+
+                    <InfoRow
+                        label="Activity Date"
+                        value={
+                            formatDate(
+                                activity.activityDate
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Region"
+                        value={activity.region}
+                    />
+
+                    <InfoRow
+                        label={zoneLabel}
+                        value={activity.zone}
+                    />
+
+                    <InfoRow
+                        label="Woreda"
+                        value={activity.woreda}
+                    />
+
+                    <InfoRow
+                        label="Venue / Site"
+                        value={activity.location}
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* RECORD */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Record Information"
+                >
+
+                    <InfoRow
+                        label="Status"
+                        value={
+                            <StatusChip
+                                status={activity.status}
+                            />
+                        }
+                    />
+
+                    <InfoRow
+                        label="Remarks"
+                        value={activity.remarks}
+                    />
+
+                    <InfoRow
+                        label="Created At"
+                        value={
+                            formatDateTime(
+                                activity.createdAt
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Updated At"
+                        value={
+                            formatDateTime(
+                                activity.updatedAt
+                            )
+                        }
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {backButton}
+
+
+            <ConfirmDeleteDialog
+                open={openDelete}
+                title="Delete Activity"
+                message="Are you sure you want to delete this activity?"
+                onClose={() =>
+                    setOpenDelete(false)
+                }
+                onConfirm={handleDelete}
+            />
+
+        </PageContainer>
+
+    );
 
 };
-
-
-
-
-
-
-
-
-
-if(loading){
-
-
-return(
-
-<PageContainer>
-
-<PageCard>
-
-<LoadingState
-
-message="Loading activity..."
-
-/>
-
-</PageCard>
-
-</PageContainer>
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-
-if(error){
-
-
-return(
-
-<PageContainer>
-
-<PageCard>
-
-<Typography color="error">
-
-{error}
-
-</Typography>
-
-</PageCard>
-
-</PageContainer>
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-return(
-
-<PageContainer>
-
-
-
-
-
-<PageHeader
-
-
-title="Activity Details"
-
-
-subtitle="View complete activity information"
-
-
-
-action={()=>navigate(`/activities/${id}/edit`)}
-
-
-actionLabel="Edit"
-
-
-actionIcon={<Edit/>}
-
-
-/>
-
-
-
-
-
-
-
-
-
-
-<Stack
-
-direction="row"
-
-spacing={2}
-
-mb={3}
-
->
-
-
-<Button
-
-
-variant="outlined"
-
-
-startIcon={<ArrowBack/>}
-
-
-onClick={()=>navigate("/activities")}
-
->
-
-Back
-
-</Button>
-
-
-</Stack>
-
-
-
-
-
-
-
-
-
-<PageCard>
-
-
-
-
-
-<Typography
-
-variant="h6"
-
-fontWeight="700"
-
-mb={2}
-
->
-
-Activity Information
-
-</Typography>
-
-
-
-
-
-<Divider sx={{mb:3}}/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Activity Code"
-
-value={activity.activityCode}
-
-/>
-
-
-
-
-
-
-
-<InfoRow
-
-label="Activity Name"
-
-value={activity.name}
-
-/>
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Program"
-
-value={
-
-activity.program
-
-?
-
-`${activity.program.programCode} - ${activity.program.name}`
-
-:
-
-"-"
-
-}
-
-/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Activity Type"
-
-value={activity.activityType}
-
-/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Participant Source"
-
-value={activity.participantSource}
-
-/>
-
-
-
-
-
-
-
-
-
-<Box mb={2}>
-
-
-<Typography
-
-fontWeight="600"
-
-sx={{width:220}}
-
->
-
-Target Groups
-
-</Typography>
-
-
-
-<Stack
-
-direction="row"
-
-spacing={1}
-
-mt={1}
-
-flexWrap="wrap"
-
->
-
-
-{
-
-(activity.targetGroups || [])
-
-.map(group=>(
-
-
-<Chip
-
-key={group}
-
-label={group}
-
-size="small"
-
-/>
-
-
-))
-
-}
-
-
-
-</Stack>
-
-
-
-</Box>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Description"
-
-value={activity.description}
-
-/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Activity Date"
-
-value={
-
-activity.activityDate
-
-?
-
-new Date(activity.activityDate)
-
-.toLocaleDateString()
-
-:
-
-"-"
-
-}
-
-/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Region"
-
-value={activity.region}
-
-/>
-
-
-
-<InfoRow
-
-label={zoneLabel}
-
-value={activity.zone}
-
-/>
-
-
-
-<InfoRow
-
-label="Woreda"
-
-value={activity.woreda}
-
-/>
-
-
-
-<InfoRow
-
-label="Venue / Site"
-
-value={activity.location}
-
-/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Facilitator"
-
-value={activity.facilitator}
-
-/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Target Participants"
-
-value={activity.targetParticipants}
-
-/>
-
-
-
-
-
-
-
-
-
-<InfoRow
-
-label="Remarks"
-
-value={activity.remarks}
-
-/>
-
-
-
-
-
-
-
-
-
-<Box mt={3}>
-
-
-<Typography
-
-fontWeight="700"
-
-mb={1}
-
->
-
-Status
-
-</Typography>
-
-
-
-<Chip
-
-
-label={activity.status}
-
-
-color={
-
-statusColors[activity.status]
-
-||
-
-"default"
-
-}
-
-
-/>
-
-
-</Box>
-
-
-
-
-
-
-
-
-</PageCard>
-
-
-
-
-
-
-
-
-
-<Box
-
-display="flex"
-
-justifyContent="flex-end"
-
-mt={3}
-
->
-
-
-<Button
-
-
-variant="contained"
-
-
-color="error"
-
-
-startIcon={<Delete/>}
-
-
-onClick={()=>setOpenDelete(true)}
-
->
-
-Delete Activity
-
-</Button>
-
-
-</Box>
-
-
-
-
-
-
-
-
-
-<ConfirmDeleteDialog
-
-
-open={openDelete}
-
-
-title="Delete Activity"
-
-
-message="Are you sure you want to delete this activity?"
-
-
-onClose={()=>setOpenDelete(false)}
-
-
-onConfirm={handleDelete}
-
-
-/>
-
-
-
-
-
-
-</PageContainer>
-
-
-);
-
-
-};
-
-
-
-
-
-
-
-
-
-const InfoRow=({label,value})=>(
-
-
-<Box
-
-display="flex"
-
-mb={2}
-
->
-
-
-<Typography
-
-fontWeight="600"
-
-sx={{
-
-width:220
-
-}}
-
->
-
-{label}
-
-</Typography>
-
-
-
-
-<Typography
-
-color="text.secondary"
-
->
-
-{value || "-"}
-
-</Typography>
-
-
-
-</Box>
-
-
-);
-
-
-
-
 
 
 export default ActivityDetailsPage;

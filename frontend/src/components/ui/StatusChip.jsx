@@ -18,6 +18,14 @@ const STATUS_STYLES = {
         bgcolor: "warning.light",
         color: "warning.dark"
     },
+    planned: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+    ongoing: {
+        bgcolor: "info.light",
+        color: "info.dark"
+    },
 
     dropped: {
         bgcolor: "warning.light",

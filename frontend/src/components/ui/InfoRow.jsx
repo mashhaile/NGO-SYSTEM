@@ -58,6 +58,7 @@ const InfoRow = ({
             <Typography
                 variant="body2"
                 color="text.primary"
+                component="div"
                 sx={{
                     flex: 1,
                     minWidth: 0,

@@ -1,564 +1,469 @@
 import {
     useEffect,
     useState
-}
-from "react";
+} from "react";
 
 
 import {
     useParams,
     useNavigate
-}
-from "react-router-dom";
+} from "react-router-dom";
 
 
 import {
     useDispatch
-}
-from "react-redux";
+} from "react-redux";
 
 
 import {
-
-PageContainer,
-
-PageHeader,
-
-PageCard
-
-}
-from "../../../components/ui";
-
-
-import {
-    ArrowBack,
     Edit
-}
-from "@mui/icons-material";
+} from "@mui/icons-material";
 
 
 import {
-    Button,
-    Stack,
-    Typography,
-    Grid,
-    Divider
-}
-from "@mui/material";
+    PageContainer,
+    PageHeader,
+    PageCard,
+    FormSection,
+    InfoRow,
+    AppButton,
+    StatusChip,
+    LoadingState
+} from "../../../components/ui";
 
 
 import {
     getActivityRunByIdThunk
-}
-from "../store";
+} from "../store";
 
 
 import useZoneLabel
-from "../../locations/hooks/useZoneLabel";
+    from "../../locations/hooks/useZoneLabel";
 
 
 
+// =====================================================
+// FORMATTERS
+// =====================================================
 
+const formatDate = (value) => {
 
+    if (!value) {
+        return "-";
+    }
 
-const ActivityRunDetailsPage = ()=>{
+    const date =
+        new Date(value);
 
-
-const {
-    id
-}
-=
-useParams();
-
-
-const navigate = useNavigate();
-
-
-const dispatch = useDispatch();
-
-
-
-const [run,setRun]=useState(null);
-
-
-const zoneLabel=useZoneLabel(run?.regionCode);
-
-
-
-
-
-
-
-useEffect(()=>{
-
-
-load();
-
-
-},[id]);
-
-
-
-
-
-
-
-const load=async()=>{
-
-
-try{
-
-
-const data = await dispatch(
-
-getActivityRunByIdThunk(id)
-
-).unwrap();
-
-
-
-setRun(data);
-
-
-
-}
-catch(error){
-
-
-console.error(error);
-
-
-}
-
+    return Number.isNaN(date.getTime())
+        ? "-"
+        : date.toLocaleDateString();
 
 };
 
 
+const formatDateTime = (value) => {
 
+    if (!value) {
+        return "-";
+    }
 
+    const date =
+        new Date(value);
 
-
-
-
-
-if(!run){
-
-
-return null;
-
-
-}
-
-
-
-
-
-
-
-
-
-return (
-
-<PageContainer>
-
-
-
-
-
-<PageHeader
-
-title="Activity Run Details"
-
-subtitle={run.runCode}
-
-
-/>
-
-
-
-
-
-
-
-
-
-<PageCard>
-
-
-<Stack
-
-direction="row"
-
-spacing={2}
-
-mb={3}
-
->
-
-
-<Button
-
-variant="outlined"
-
-startIcon={<ArrowBack/>}
-
-onClick={()=>navigate("/activity-runs")}
-
->
-
-Back
-
-</Button>
-
-
-
-
-
-<Button
-
-variant="contained"
-
-startIcon={<Edit/>}
-
-onClick={()=>navigate(
-
-`/activity-runs/${id}/edit`
-
-)}
-
->
-
-Edit
-
-</Button>
-
-
-
-</Stack>
-
-
-
-
-
-
-
-
-
-<Grid
-
-container
-
-spacing={3}
-
->
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-Run Code
-
-</Typography>
-
-
-<Typography>
-
-{run.runCode}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-Activity
-
-</Typography>
-
-
-<Typography>
-
-{run.activity?.name || "-"}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-Start Date
-
-</Typography>
-
-
-<Typography>
-
-{
-
-new Date(run.startDate)
-.toLocaleDateString()
-
-}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-End Date
-
-</Typography>
-
-
-<Typography>
-
-{
-
-new Date(run.endDate)
-.toLocaleDateString()
-
-}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-Region
-
-</Typography>
-
-
-<Typography>
-
-{run.region || "-"}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-{zoneLabel}
-
-</Typography>
-
-
-<Typography>
-
-{run.zone || "-"}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-Woreda
-
-</Typography>
-
-
-<Typography>
-
-{run.woreda || "-"}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-Venue / Site
-
-</Typography>
-
-
-<Typography>
-
-{run.location || "-"}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<Typography variant="subtitle2">
-
-Status
-
-</Typography>
-
-
-<Typography>
-
-{run.status}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={12}>
-
-
-<Divider/>
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={12}>
-
-
-<Typography variant="subtitle2">
-
-Notes
-
-</Typography>
-
-
-<Typography>
-
-{run.notes || "-"}
-
-</Typography>
-
-
-</Grid>
-
-
-
-
-
-
-</Grid>
-
-
-
-
-
-</PageCard>
-
-
-
-
-
-
-</PageContainer>
-
-
-);
-
+    return Number.isNaN(date.getTime())
+        ? "-"
+        : date.toLocaleString();
 
 };
 
 
+const formatCodeName = (item, codeKey) =>
+    item && typeof item === "object"
+        ? [item[codeKey], item.name]
+            .filter(Boolean)
+            .join(" - ")
+        : "-";
 
+
+
+// =====================================================
+// ACTIVITY RUN DETAILS PAGE
+// =====================================================
+
+const ActivityRunDetailsPage = () => {
+
+    const {
+        id
+    } = useParams();
+
+    const navigate =
+        useNavigate();
+
+    const dispatch =
+        useDispatch();
+
+    const [run, setRun] =
+        useState(null);
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [error, setError] =
+        useState("");
+
+    const zoneLabel =
+        useZoneLabel(
+            run?.regionCode
+        );
+
+
+    // =================================================
+    // LOAD
+    // =================================================
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        dispatch(
+            getActivityRunByIdThunk(id)
+        )
+            .unwrap()
+
+            .then(data => {
+
+                if (!cancelled) {
+                    setRun(data);
+                }
+
+            })
+
+            .catch(loadError => {
+
+                console.error(loadError);
+
+                if (!cancelled) {
+                    setError(
+                        loadError?.message ||
+                        (typeof loadError === "string" ? loadError : "") ||
+                        "Failed to load activity run"
+                    );
+                }
+
+            })
+
+            .finally(() => {
+
+                if (!cancelled) {
+                    setLoading(false);
+                }
+
+            });
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [dispatch, id]);
+
+
+    const backButton = (
+
+        <AppButton
+            variant="outlined"
+            onClick={() =>
+                navigate("/activity-runs")
+            }
+            sx={{
+                mt: 3,
+                mb: 5
+            }}
+        >
+            Back to Activity Runs
+        </AppButton>
+
+    );
+
+
+    // =================================================
+    // LOADING
+    // =================================================
+
+    if (loading) {
+
+        return (
+
+            <PageContainer>
+
+                <PageHeader
+                    title="Activity Run Details"
+                    subtitle="Loading activity run information"
+                />
+
+                <LoadingState
+                    message="Loading activity run..."
+                />
+
+            </PageContainer>
+
+        );
+
+    }
+
+
+    // =================================================
+    // NOT FOUND
+    // =================================================
+
+    if (error || !run) {
+
+        return (
+
+            <PageContainer>
+
+                <PageHeader
+                    title="Activity Run Details"
+                    subtitle="Activity run record could not be found."
+                />
+
+                <PageCard>
+
+                    <FormSection
+                        title="Record Not Found"
+                    >
+
+                        <InfoRow
+                            label="Activity Run"
+                            value={
+                                error ||
+                                "No activity run information available."
+                            }
+                        />
+
+                    </FormSection>
+
+                </PageCard>
+
+                {backButton}
+
+            </PageContainer>
+
+        );
+
+    }
+
+
+    // =================================================
+    // PAGE
+    // =================================================
+
+    return (
+
+        <PageContainer>
+
+            <PageHeader
+                title="Activity Run Details"
+                subtitle={
+                    run.runCode ||
+                    "Activity run record"
+                }
+            />
+
+
+            {/* ACTIONS */}
+
+            <PageCard>
+
+                <FormSection>
+
+                    <AppButton
+                        variant="contained"
+                        startIcon={<Edit />}
+                        onClick={() =>
+                            navigate(
+                                `/activity-runs/${id}/edit`
+                            )
+                        }
+                    >
+                        Edit Activity Run
+                    </AppButton>
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* RUN */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Run Information"
+                >
+
+                    <InfoRow
+                        label="Run Code"
+                        value={run.runCode}
+                    />
+
+                    <InfoRow
+                        label="Run Name"
+                        value={run.name}
+                    />
+
+                    <InfoRow
+                        label="Activity"
+                        value={
+                            formatCodeName(
+                                run.activity,
+                                "activityCode"
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Project"
+                        value={
+                            formatCodeName(
+                                run.project,
+                                "projectCode"
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Program"
+                        value={
+                            formatCodeName(
+                                run.program,
+                                "programCode"
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Trainer"
+                        value={
+                            run.trainer?.name ||
+                            run.trainer?.email ||
+                            "-"
+                        }
+                    />
+
+                    <InfoRow
+                        label="Target Group"
+                        value={run.targetGroup}
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* SCHEDULE AND LOCATION */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Schedule and Location"
+                >
+
+                    <InfoRow
+                        label="Start Date"
+                        value={
+                            formatDate(
+                                run.startDate
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="End Date"
+                        value={
+                            formatDate(
+                                run.endDate
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Region"
+                        value={run.region}
+                    />
+
+                    <InfoRow
+                        label={zoneLabel}
+                        value={run.zone}
+                    />
+
+                    <InfoRow
+                        label="Woreda"
+                        value={run.woreda}
+                    />
+
+                    <InfoRow
+                        label="Venue / Site"
+                        value={run.location}
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* RECORD */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Record Information"
+                >
+
+                    <InfoRow
+                        label="Status"
+                        value={
+                            <StatusChip
+                                status={run.status}
+                            />
+                        }
+                    />
+
+                    <InfoRow
+                        label="Notes"
+                        value={run.notes}
+                    />
+
+                    <InfoRow
+                        label="Created At"
+                        value={
+                            formatDateTime(
+                                run.createdAt
+                            )
+                        }
+                    />
+
+                    <InfoRow
+                        label="Updated At"
+                        value={
+                            formatDateTime(
+                                run.updatedAt
+                            )
+                        }
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {backButton}
+
+        </PageContainer>
+
+    );
+
+};
 
 
 export default ActivityRunDetailsPage;
