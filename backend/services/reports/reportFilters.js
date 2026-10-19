@@ -969,7 +969,71 @@ const buildPeriodFilter = (
 // EXPORT
 // =====================================================
 
+// =====================================================
+// LOCATION FILTER
+// =====================================================
+//
+// Filters by official P-codes from the location
+// cascade (regionCode / zoneCode / woredaCode).
+//
+// prefix targets nested fields, e.g. "location." for
+// AttendanceRecord.location.regionCode.
+//
+// =====================================================
+
+const LOCATION_FILTER_KEYS = [
+    "regionCode",
+    "zoneCode",
+    "woredaCode"
+];
+
+
+const applyLocationFilter = (
+    query,
+    filters = {},
+    prefix = ""
+) => {
+
+    LOCATION_FILTER_KEYS.forEach(key => {
+
+        const value =
+            String(filters[key] || "")
+                .trim()
+                .toUpperCase();
+
+        if (value) {
+            query[prefix + key] =
+                value;
+        }
+
+    });
+
+    return query;
+
+};
+
+
+const getLocationFilterSummary = (
+    filters = {}
+) => ({
+
+    region:
+        filters.region || null,
+
+    zone:
+        filters.zone || null,
+
+    woreda:
+        filters.woreda || null
+
+});
+
+
 module.exports = {
+
+    applyLocationFilter,
+
+    getLocationFilterSummary,
 
     buildCommonFilters,
 

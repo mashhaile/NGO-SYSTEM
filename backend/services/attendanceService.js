@@ -1,6 +1,7 @@
 const Attendance = require("../models/Attendance");
 const AttendanceRecord = require("../models/AttendanceRecord");
 const ActivityRun = require("../models/ActivityRun");
+const Beneficiary = require("../models/Beneficiary");
 
 // ==========================================
 // CREATE ATTENDANCE SESSION
@@ -267,6 +268,138 @@ const saveAttendanceRecords = async (
     });
 
     // ==========================================
+    // Location snapshot sources
+    // ==========================================
+    //
+    // 1. Beneficiary: registered location
+    // 2. External: location entered on the sheet
+    // 3. Otherwise: activity run location
+    //
+    // ==========================================
+
+    const LOCATION_FIELDS = [
+        "region",
+        "regionCode",
+        "zone",
+        "zoneCode",
+        "woreda",
+        "woredaCode",
+        "kebele"
+    ];
+
+    const pickLocation = (source) => {
+
+        if (!source) {
+            return null;
+        }
+
+        const location = {};
+
+        LOCATION_FIELDS.forEach(field => {
+            if (source[field]) {
+                location[field] =
+                    source[field];
+            }
+        });
+
+        return Object.keys(location).length
+            ? location
+            : null;
+
+    };
+
+    const hasLocation = (location) =>
+        Boolean(
+            location &&
+            Object.values(location)
+                .some(Boolean)
+        );
+
+
+    const beneficiaryIds =
+        records
+            .filter(
+                item =>
+                    item.participantType ===
+                        "Beneficiary" &&
+                    item.beneficiary
+            )
+            .map(item => item.beneficiary);
+
+    const beneficiaries =
+        beneficiaryIds.length
+            ? await Beneficiary.find({
+                _id: {
+                    $in: beneficiaryIds
+                },
+                organization:
+                    organizationId
+            })
+                .select(LOCATION_FIELDS.join(" "))
+                .lean()
+            : [];
+
+    const beneficiaryLocations =
+        new Map(
+            beneficiaries.map(
+                beneficiary => [
+                    String(beneficiary._id),
+                    pickLocation(beneficiary)
+                ]
+            )
+        );
+
+    const activityRun =
+        attendance.activityRun
+            ? await ActivityRun.findById(
+                attendance.activityRun
+            )
+                .select("region regionCode zone zoneCode woreda woredaCode location")
+                .lean()
+            : null;
+
+    const runLocation =
+        activityRun
+            ? {
+                ...pickLocation(activityRun),
+                site:
+                    activityRun.location || null
+            }
+            : null;
+
+    const resolveLocation = (item) => {
+
+        if (
+            item.participantType === "Beneficiary"
+        ) {
+
+            const beneficiaryLocation =
+                beneficiaryLocations.get(
+                    String(item.beneficiary)
+                );
+
+            if (beneficiaryLocation) {
+                return {
+                    ...beneficiaryLocation,
+                    site:
+                        runLocation?.site || null
+                };
+            }
+
+        }
+
+        if (hasLocation(item.location)) {
+            return item.location;
+        }
+
+        return hasLocation(runLocation)
+            ? runLocation
+            : null;
+
+    };
+
+
+    // ==========================================
     // Prepare records
     // ==========================================
 
@@ -329,7 +462,7 @@ const saveAttendanceRecords = async (
                         item.ageGroup || null,
 
                     location:
-                        item.location || null,
+                        resolveLocation(item),
 
                     disabilityStatus:
                         item.disabilityStatus ||

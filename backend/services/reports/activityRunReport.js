@@ -2,7 +2,8 @@ const ActivityRun =
     require("../../models/ActivityRun");
 
 const {
-    buildDateFilter
+    buildDateFilter,
+    applyLocationFilter
 } = require("./reportFilters");
 
 
@@ -92,6 +93,16 @@ const generate = async (
             filters.status;
 
     }
+
+
+    // =================================================
+    // LOCATION FILTER
+    // =================================================
+
+    applyLocationFilter(
+        query,
+        filters
+    );
 
 
     // =================================================
@@ -191,6 +202,15 @@ const generate = async (
 
                     endDate:
                         run.endDate,
+
+                    region:
+                        run.region,
+
+                    zone:
+                        run.zone,
+
+                    woreda:
+                        run.woreda,
 
                     location:
                         run.location,

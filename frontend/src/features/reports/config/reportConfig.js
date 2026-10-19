@@ -235,6 +235,9 @@ export const reportConfig = {
                 true,
 
             activityRun:
+                true,
+
+            location:
                 true
 
         }
@@ -275,6 +278,9 @@ export const reportConfig = {
                 true,
 
             activityRun:
+                true,
+
+            location:
                 true
 
         }
@@ -386,6 +392,9 @@ export const reportConfig = {
                 true,
 
             activityRun:
+                true,
+
+            location:
                 true
 
         }

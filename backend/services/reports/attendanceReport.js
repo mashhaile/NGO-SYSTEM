@@ -4,6 +4,11 @@ const Attendance = require("../../models/Attendance");
 const AttendanceRecord = require("../../models/AttendanceRecord");
 const Lookup = require("../../models/Lookup");
 
+const {
+    applyLocationFilter,
+    getLocationFilterSummary
+} = require("./reportFilters");
+
 
 // =====================================================
 // HELPERS
@@ -1250,6 +1255,17 @@ const generate = async (
 
 
         // =================================================
+        // LOCATION
+        // =================================================
+
+        applyLocationFilter(
+            recordQuery,
+            filters,
+            "location."
+        );
+
+
+        // =================================================
         // GET RECORDS
         // =================================================
 
@@ -1820,8 +1836,24 @@ const generate = async (
                                         record.checkOutTime,
 
 
-                                    location:
-                                        record.location,
+                                    region:
+                                        record.location?.region || null,
+
+
+                                    zone:
+                                        record.location?.zone || null,
+
+
+                                    woreda:
+                                        record.location?.woreda || null,
+
+
+                                    kebele:
+                                        record.location?.kebele || null,
+
+
+                                    site:
+                                        record.location?.site || null,
 
 
                                     notes:
@@ -2357,7 +2389,11 @@ const generate = async (
             disability:
                 filters.disability !== undefined
                     ? filters.disability
-                    : null
+                    : null,
+
+            ...getLocationFilterSummary(
+                filters
+            )
 
         },
 

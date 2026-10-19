@@ -39,6 +39,26 @@ const initialFilters = {
         "",
 
     enterprise:
+        "",
+
+    // location cascade (codes are sent as filters)
+
+    region:
+        "",
+
+    regionCode:
+        "",
+
+    zone:
+        "",
+
+    zoneCode:
+        "",
+
+    woreda:
+        "",
+
+    woredaCode:
         ""
 
 };

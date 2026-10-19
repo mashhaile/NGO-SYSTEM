@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useEffect,
     useMemo
 } from "react";
@@ -24,6 +25,10 @@ import {
     AppDatePicker,
     AppButton
 } from "../../../components/ui";
+
+
+import LocationCascadeFields
+    from "../../locations/components/LocationCascadeFields";
 
 
 import {
@@ -426,6 +431,34 @@ const ReportFilters = ({
 
     const showEnterpriseFilter =
         filterConfig.enterprise === true;
+
+
+    const showLocationFilter =
+        filterConfig.location === true;
+
+
+    // =================================================
+    // LOCATION CHANGE
+    // =================================================
+
+    const handleLocationChange =
+        useCallback(
+            (patch) => {
+
+                Object.entries(patch)
+                    .forEach(
+                        ([field, value]) =>
+                            dispatch(
+                                setReportFilter({
+                                    field,
+                                    value
+                                })
+                            )
+                    );
+
+            },
+            [dispatch]
+        );
 
 
     // =================================================
@@ -1829,6 +1862,23 @@ const ReportFilters = ({
                                 placeholder="All Enterprises"
                                 options={
                                     enterpriseOptions
+                                }
+                            />
+
+                        )
+                    }
+
+
+                    {
+                        showLocationFilter && (
+
+                            <LocationCascadeFields
+                                value={filters}
+                                onChange={
+                                    handleLocationChange
+                                }
+                                disabled={
+                                    filterLoading
                                 }
                             />
 

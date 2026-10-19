@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useEffect,
     useState
 } from "react";
@@ -24,6 +25,10 @@ import {
 } from "../../beneficiaries/services/lookupService";
 
 
+import LocationCascadeFields
+from "../../locations/components/LocationCascadeFields";
+
+
 import {
     getStaffLookupService
 } from "../../users/services/lookupService";
@@ -47,8 +52,11 @@ const emptyExternal = {
 
     location:{
         region:"",
+        regionCode:"",
         zone:"",
+        zoneCode:"",
         woreda:"",
+        woredaCode:"",
         kebele:"",
         village:"",
         site:""
@@ -211,8 +219,9 @@ setExternal(prev=>({
 
 
 
-const updateLocation=(field,value)=>{
+// location cascade: several fields at once
 
+const changeLocationFields=useCallback((patch)=>{
 
 setExternal(prev=>({
 
@@ -222,14 +231,13 @@ location:{
 
 ...prev.location,
 
-[field]:value
+...patch
 
 }
 
 }));
 
-
-};
+},[]);
 
 
 
@@ -747,61 +755,25 @@ Elderly
 
 
 
-<Grid size={{xs:12,md:3}}>
+<LocationCascadeFields
 
+value={external.location}
 
-<TextField
+onChange={changeLocationFields}
 
-fullWidth
+size="medium"
 
-label="Region"
+renderItem={(field,key)=>(
 
-value={
-external.location.region
-}
+<Grid key={key} size={{xs:12,md:3}}>
 
-onChange={(e)=>
-updateLocation(
-"region",
-e.target.value
-)
-}
-
-
-/>
-
+{field}
 
 </Grid>
 
-
-
-
-
-<Grid size={{xs:12,md:3}}>
-
-
-<TextField
-
-fullWidth
-
-label="Woreda"
-
-value={
-external.location.woreda
-}
-
-onChange={(e)=>
-updateLocation(
-"woreda",
-e.target.value
-)
-}
-
+)}
 
 />
-
-
-</Grid>
 
 
 

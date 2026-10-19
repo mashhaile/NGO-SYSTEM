@@ -112,6 +112,26 @@ const attendanceRecordSchema = new mongoose.Schema(
                 default: null
             },
 
+            // Official P-codes (AdminArea)
+
+            regionCode: {
+                type: String,
+                trim: true,
+                default: null
+            },
+
+            zoneCode: {
+                type: String,
+                trim: true,
+                default: null
+            },
+
+            woredaCode: {
+                type: String,
+                trim: true,
+                default: null
+            },
+
             zone: {
                 type: String,
                 trim: true,
@@ -379,6 +399,11 @@ attendanceRecordSchema.index({
 attendanceRecordSchema.index({
     organization: 1,
     "location.region": 1
+});
+
+attendanceRecordSchema.index({
+    organization: 1,
+    "location.regionCode": 1
 });
 
 attendanceRecordSchema.index({

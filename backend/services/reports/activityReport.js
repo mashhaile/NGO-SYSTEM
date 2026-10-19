@@ -5,7 +5,9 @@ const AttendanceRecord = require("../../models/AttendanceRecord");
 const Project = require("../../models/Project");
 
 const {
-    buildDateFilter
+    buildDateFilter,
+    applyLocationFilter,
+    getLocationFilterSummary
 } = require("./reportFilters");
 
 
@@ -816,6 +818,16 @@ const generate = async (
 
 
     // =================================================
+    // LOCATION FILTER
+    // =================================================
+
+    applyLocationFilter(
+        query,
+        filters
+    );
+
+
+    // =================================================
     // ACTIVITY TYPE FILTER
     // =================================================
 
@@ -1163,7 +1175,7 @@ const generate = async (
                             "activityRun",
 
                         select:
-                            "runCode name startDate endDate location activity project program"
+                            "runCode name startDate endDate region zone woreda location activity project program"
 
                     }
                 )
@@ -1665,6 +1677,15 @@ const generate = async (
                                 endDate:
                                     activityRun.endDate,
 
+                                region:
+                                    activityRun.region,
+
+                                zone:
+                                    activityRun.zone,
+
+                                woreda:
+                                    activityRun.woreda,
+
                                 location:
                                     activityRun.location,
 
@@ -1998,6 +2019,15 @@ const generate = async (
 
                     activityDate:
                         activity.activityDate,
+
+                    region:
+                        activity.region,
+
+                    zone:
+                        activity.zone,
+
+                    woreda:
+                        activity.woreda,
 
                     location:
                         activity.location,
@@ -3188,7 +3218,11 @@ const generate = async (
                 filters.activityType || null,
 
             participantSource:
-                filters.participantSource || null
+                filters.participantSource || null,
+
+            ...getLocationFilterSummary(
+                filters
+            )
 
         },
 
