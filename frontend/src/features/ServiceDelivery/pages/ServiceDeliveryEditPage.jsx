@@ -3072,7 +3072,7 @@ const ServiceDeliveryEditPage = () => {
 
             normalizedDelivery.status =
                 delivery?.status ||
-                "Draft";
+                "Delivered";
 
 
             normalizedDelivery.deliveredBy =
@@ -3838,7 +3838,7 @@ if (allocationConflicts.length > 0) {
 
                 status:
                     data?.status ||
-                    "Draft",
+                    "Delivered",
 
                 deliveredBy:
                     getId(
@@ -4129,7 +4129,7 @@ if (allocationConflicts.length > 0) {
                         label="Status"
                         value={
                             formData.status ||
-                            "Draft"
+                            "Delivered"
                         }
                     />
 

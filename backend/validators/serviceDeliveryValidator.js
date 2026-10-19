@@ -1,5 +1,10 @@
 const Joi = require("joi");
 
+const {
+    SERVICE_DELIVERY_STATUSES,
+    DEFAULT_SERVICE_DELIVERY_STATUS
+} = require("../constants/serviceDeliveryStatus");
+
 
 // ======================================================
 // OBJECT ID VALIDATION
@@ -980,13 +985,9 @@ const createFields = {
     status:
         Joi.string()
             .valid(
-                "Draft",
-                "Pending Approval",
-                "Approved",
-                "Delivered",
-                "Cancelled"
+                ...SERVICE_DELIVERY_STATUSES
             )
-            .default("Draft")
+            .default(DEFAULT_SERVICE_DELIVERY_STATUS)
             .messages({
 
                 "any.only":
@@ -1497,11 +1498,7 @@ const updateFields = {
     status:
         Joi.string()
             .valid(
-                "Draft",
-                "Pending Approval",
-                "Approved",
-                "Delivered",
-                "Cancelled"
+                ...SERVICE_DELIVERY_STATUSES
             )
             .optional()
             .messages({

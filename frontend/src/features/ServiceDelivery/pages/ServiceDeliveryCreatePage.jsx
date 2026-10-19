@@ -161,7 +161,7 @@ const ServiceDeliveryCreatePage = () => {
             "",
 
         status:
-            "Draft",
+            "Delivered",
 
         items: [
 

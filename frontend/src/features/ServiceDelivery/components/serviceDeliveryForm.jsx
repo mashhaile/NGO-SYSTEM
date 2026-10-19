@@ -3539,32 +3539,16 @@ const ServiceDeliveryForm = ({
 
                             label="Status"
 
+                            required
+
                             value={
                                 formData?.status ||
-                                "Draft"
+                                "Delivered"
                             }
 
                             placeholder="Select Status"
 
                             options={[
-                                {
-                                    value:
-                                        "Draft",
-                                    label:
-                                        "Draft"
-                                },
-                                {
-                                    value:
-                                        "Pending Approval",
-                                    label:
-                                        "Pending Approval"
-                                },
-                                {
-                                    value:
-                                        "Approved",
-                                    label:
-                                        "Approved"
-                                },
                                 {
                                     value:
                                         "Delivered",
@@ -3578,6 +3562,13 @@ const ServiceDeliveryForm = ({
                                         "Cancelled"
                                 }
                             ]}
+
+                            helperText={
+                                formData?.status ===
+                                "Cancelled"
+                                    ? "Cancelled deliveries are kept for audit but excluded from reports. To edit it later, set it back to Delivered."
+                                    : ""
+                            }
 
                             onChange={
                                 (e) =>

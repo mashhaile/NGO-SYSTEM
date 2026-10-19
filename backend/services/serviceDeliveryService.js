@@ -39,6 +39,11 @@ const {
 } =
     require("../config/serviceDeliveryUnits");
 
+const {
+    SERVICE_DELIVERY_STATUS,
+    DEFAULT_SERVICE_DELIVERY_STATUS
+} = require("../constants/serviceDeliveryStatus");
+
 
 // ======================================================
 // VALIDATE OBJECT ID
@@ -3510,7 +3515,7 @@ const createServiceDelivery = async (
 
         status:
             data.status ||
-            "Draft",
+            DEFAULT_SERVICE_DELIVERY_STATUS,
 
         deliveredBy:
             data.deliveredBy ||
@@ -4261,6 +4266,28 @@ const updateServiceDelivery = async (
     ) {
         throw new Error(
             "Service delivery not found."
+        );
+    }
+
+    // ==================================================
+    // CANCELLED DELIVERIES ARE LOCKED
+    //
+    // A cancelled delivery can only be changed in the
+    // same save that sets it back to Delivered.
+    // ==================================================
+
+    const nextStatus =
+        data.status ||
+        service.status;
+
+    if (
+        service.status ===
+            SERVICE_DELIVERY_STATUS.CANCELLED &&
+        nextStatus ===
+            SERVICE_DELIVERY_STATUS.CANCELLED
+    ) {
+        throw new Error(
+            "This service delivery is cancelled. Set its status back to Delivered to make changes."
         );
     }
 

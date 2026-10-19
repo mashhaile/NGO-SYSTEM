@@ -691,7 +691,7 @@ const ServiceDeliveryTable = ({
                         <StatusChip
                             status={
                                 params.value ||
-                                "Draft"
+                                "Delivered"
                             }
                         />
 

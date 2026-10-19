@@ -2810,7 +2810,7 @@ const ServiceDeliveryDetailsPage = () => {
                 <StatusChip
                     status={
                         delivery.status ||
-                        "Draft"
+                        "Delivered"
                     }
                 />
 

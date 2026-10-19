@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 
+const {
+    SERVICE_DELIVERY_STATUSES,
+    DEFAULT_SERVICE_DELIVERY_STATUS
+} = require("../constants/serviceDeliveryStatus");
+
 
 
 // ==========================================
@@ -783,25 +788,16 @@ const serviceDeliverySchema = new mongoose.Schema(
     // Delivery Status
     // ======================================
 
+    // Delivered or Cancelled
+    // (see constants/serviceDeliveryStatus.js)
+
     status: {
 
         type: String,
 
-        enum: [
+        enum: SERVICE_DELIVERY_STATUSES,
 
-            "Draft",
-
-            "Pending Approval",
-
-            "Approved",
-
-            "Delivered",
-
-            "Cancelled"
-
-        ],
-
-        default: "Draft"
+        default: DEFAULT_SERVICE_DELIVERY_STATUS
 
     },
 
