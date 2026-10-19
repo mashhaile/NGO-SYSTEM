@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useEffect,
     useState
 } from "react";
@@ -35,6 +36,9 @@ const initialState = {
     region: "",
     zone: "",
     woreda: "",
+    regionCode: "",
+    zoneCode: "",
+    woredaCode: "",
     kebele: "",
     address: "",
 
@@ -435,6 +439,15 @@ const useBeneficiaryForm = ({
             woreda:
                 initialData.woreda || "",
 
+            regionCode:
+                initialData.regionCode || "",
+
+            zoneCode:
+                initialData.zoneCode || "",
+
+            woredaCode:
+                initialData.woredaCode || "",
+
             kebele:
                 initialData.kebele || "",
 
@@ -536,6 +549,32 @@ const useBeneficiaryForm = ({
         );
 
     };
+
+
+    // =====================================================
+    // CHANGE SEVERAL FIELDS
+    // =====================================================
+    //
+    // Used by cascading location fields.
+    //
+    // =====================================================
+
+    const changeFields = useCallback(
+        (patch) => {
+
+            setForm(
+                prev => ({
+
+                    ...prev,
+
+                    ...patch
+
+                })
+            );
+
+        },
+        []
+    );
 
 
     // =====================================================
@@ -863,6 +902,15 @@ const useBeneficiaryForm = ({
             woreda:
                 form.woreda,
 
+            regionCode:
+                form.regionCode,
+
+            zoneCode:
+                form.zoneCode,
+
+            woredaCode:
+                form.woredaCode,
+
             kebele:
                 form.kebele,
 
@@ -1091,6 +1139,8 @@ const useBeneficiaryForm = ({
         setForm,
 
         changeField,
+
+        changeFields,
 
         handleVulnerableGroupsChange,
 

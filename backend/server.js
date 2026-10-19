@@ -315,6 +315,11 @@ app.use(
     require("./routes/lookupRoutes")
 );
 
+app.use(
+    "/api/v1/locations",
+    require("./routes/locationRoutes")
+);
+
 
 // ================= Test / Health Routes =================
 

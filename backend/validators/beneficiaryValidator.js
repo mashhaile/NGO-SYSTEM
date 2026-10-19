@@ -229,6 +229,18 @@ const createBeneficiarySchema = Joi.object({
         .allow("")
         .optional(),
 
+    regionCode: Joi.string()
+        .allow("")
+        .optional(),
+
+    zoneCode: Joi.string()
+        .allow("")
+        .optional(),
+
+    woredaCode: Joi.string()
+        .allow("")
+        .optional(),
+
     kebele: Joi.string()
         .allow("")
         .optional(),
@@ -425,6 +437,15 @@ const updateBeneficiarySchema = Joi.object({
         .allow(""),
 
     woreda: Joi.string()
+        .allow(""),
+
+    regionCode: Joi.string()
+        .allow(""),
+
+    zoneCode: Joi.string()
+        .allow(""),
+
+    woredaCode: Joi.string()
         .allow(""),
 
     kebele: Joi.string()

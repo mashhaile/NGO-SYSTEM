@@ -943,6 +943,12 @@ const updateBeneficiary = async (
 
         "woreda",
 
+        "regionCode",
+
+        "zoneCode",
+
+        "woredaCode",
+
         "kebele",
 
         "address",

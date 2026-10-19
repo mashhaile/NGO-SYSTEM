@@ -145,6 +145,27 @@ const beneficiarySchema = new mongoose.Schema(
             trim: true
         },
 
+        // Official P-codes (AdminArea) for the
+        // selected region / zone / woreda.
+
+        regionCode: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
+        zoneCode: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
+        woredaCode: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
         kebele: {
             type: String,
             default: "",

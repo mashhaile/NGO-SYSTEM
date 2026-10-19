@@ -28,6 +28,10 @@ import useBeneficiaryForm
     from "../hooks/useBeneficiaryForm";
 
 
+import LocationCascadeFields
+    from "../../locations/components/LocationCascadeFields";
+
+
 import useBeneficiaryCustomFields
     from "../hooks/useBeneficiaryCustomFields";
 
@@ -323,6 +327,7 @@ const {
     form,
     setForm,
     changeField,
+    changeFields,
     handleVulnerableGroupsChange,
     submitHandler
 } = useBeneficiaryForm({
@@ -859,45 +864,9 @@ const {
                         />
 
 
-                        <AppTextField
-                            label="Region"
-                            value={
-                                form?.region || ""
-                            }
-                            onChange={(e) =>
-                                changeField(
-                                    "region",
-                                    e.target.value
-                                )
-                            }
-                        />
-
-
-                        <AppTextField
-                            label="Zone"
-                            value={
-                                form?.zone || ""
-                            }
-                            onChange={(e) =>
-                                changeField(
-                                    "zone",
-                                    e.target.value
-                                )
-                            }
-                        />
-
-
-                        <AppTextField
-                            label="Woreda"
-                            value={
-                                form?.woreda || ""
-                            }
-                            onChange={(e) =>
-                                changeField(
-                                    "woreda",
-                                    e.target.value
-                                )
-                            }
+                        <LocationCascadeFields
+                            value={form || {}}
+                            onChange={changeFields}
                         />
 
 
