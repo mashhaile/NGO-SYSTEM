@@ -20,6 +20,9 @@ import {
     getCustomFieldsByModuleService
 } from "../../customfields/services/customFieldService";
 
+import useZoneLabel
+    from "../../locations/hooks/useZoneLabel";
+
 import {
     PageContainer,
     PageHeader,
@@ -322,6 +325,12 @@ const BeneficiaryDetailsPage = () => {
         customFields,
         setCustomFields
     ] = useState([]);
+
+
+    const zoneLabel =
+        useZoneLabel(
+            beneficiary?.regionCode
+        );
 
 
     // =====================================================
@@ -766,7 +775,7 @@ const BeneficiaryDetailsPage = () => {
                     />
 
                     <InfoRow
-                        label="Zone"
+                        label={zoneLabel}
                         value={
                             beneficiary.zone ||
                             "-"

@@ -6,6 +6,10 @@ const {
     createBeneficiary
 } = require("./beneficiaryService");
 
+const {
+    createLocationResolver
+} = require("./locationService");
+
 
 // =====================================================
 // CONSTANTS
@@ -1413,6 +1417,14 @@ const importBeneficiaries =
 
 
             // =================================================
+            // OFFICIAL LOCATION LIST
+            // =================================================
+
+            const locationResolver =
+                await createLocationResolver();
+
+
+            // =================================================
             // PROCESS ROWS
             // =================================================
 
@@ -1966,6 +1978,29 @@ const importBeneficiaries =
                         );
 
                     }
+
+
+                    // =================================================
+                    // LOCATION
+                    // =================================================
+                    //
+                    // Region / Zone / Woreda must match the
+                    // official list. Saves official spelling
+                    // and P-codes.
+                    //
+                    // =================================================
+
+                    Object.assign(
+                        value,
+                        locationResolver.resolve({
+                            region:
+                                value.region,
+                            zone:
+                                value.zone,
+                            woreda:
+                                value.woreda
+                        })
+                    );
 
 
                     // =================================================

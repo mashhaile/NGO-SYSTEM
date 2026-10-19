@@ -15,6 +15,10 @@ import {
 } from "../api/locationApi";
 
 
+import useZoneLabel
+    from "../hooks/useZoneLabel";
+
+
 
 // =====================================================
 // LOCATION CASCADE FIELDS
@@ -367,43 +371,16 @@ const LocationCascadeFields = ({
     required = false
 }) => {
 
-    // Regions carry childLabel ("Sub City").
-
-    const [regions, setRegions] =
-        useState([]);
-
-    useEffect(() => {
-
-        let cancelled = false;
-
-        getLocationsApi(1)
-
-            .then(items => {
-                if (!cancelled) {
-                    setRegions(items);
-                }
-            })
-
-            .catch(() => {});
-
-        return () => {
-            cancelled = true;
-        };
-
-    }, []);
-
-
-    const region =
-        regions.find(
-            item =>
-                item.pcode === value.regionCode
+    const zoneLabel =
+        useZoneLabel(
+            value.regionCode
         );
 
     const labels =
         LEVELS.map(
             (config, index) =>
-                index === 1 && region?.childLabel
-                    ? region.childLabel
+                index === 1
+                    ? zoneLabel
                     : config.label
         );
 
