@@ -81,6 +81,36 @@ exports.createActivitySchema = Joi.object({
         Joi.date()
             .required(),
 
+    region:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    regionCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    zone:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    zoneCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    woreda:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    woredaCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
     location:
         Joi.string()
             .allow("")
@@ -187,6 +217,36 @@ exports.updateActivitySchema = Joi.object({
 
     activityDate:
         Joi.date(),
+
+    region:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    regionCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    zone:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    zoneCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    woreda:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    woredaCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
 
     location:
         Joi.string()

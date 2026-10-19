@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useEffect,
     useState
 } from "react";
@@ -25,6 +26,10 @@ import {
     getProjectLookupService
 }
 from "../../projects/services/projectService";
+
+
+import LocationCascadeFields
+from "../../locations/components/LocationCascadeFields";
 
 
 
@@ -108,6 +113,13 @@ const initialState = {
     description:"",
 
     activityDate:"",
+
+    region:"",
+    regionCode:"",
+    zone:"",
+    zoneCode:"",
+    woreda:"",
+    woredaCode:"",
 
     location:"",
 
@@ -216,6 +228,25 @@ setFormData({
         "",
 
 
+    region:
+        initialData.region || "",
+
+    regionCode:
+        initialData.regionCode || "",
+
+    zone:
+        initialData.zone || "",
+
+    zoneCode:
+        initialData.zoneCode || "",
+
+    woreda:
+        initialData.woreda || "",
+
+    woredaCode:
+        initialData.woredaCode || "",
+
+
     location:
         initialData.location || "",
 
@@ -311,6 +342,22 @@ setFormData({
 
 
 
+// location cascade: several fields at once
+
+const changeFields=useCallback((patch)=>{
+
+setFormData(prev=>({
+
+    ...prev,
+
+    ...patch
+
+}));
+
+},[]);
+
+
+
 
 
 
@@ -354,6 +401,25 @@ onSubmit({
 
     activityDate:
         formData.activityDate,
+
+
+    region:
+        formData.region,
+
+    regionCode:
+        formData.regionCode,
+
+    zone:
+        formData.zone,
+
+    zoneCode:
+        formData.zoneCode,
+
+    woreda:
+        formData.woreda,
+
+    woredaCode:
+        formData.woredaCode,
 
 
     location:
@@ -768,6 +834,28 @@ e.target.value
 
 
 
+<LocationCascadeFields
+
+value={formData}
+
+onChange={changeFields}
+
+size="medium"
+
+renderItem={(field,key)=>(
+
+<Grid key={key} size={{xs:12,md:6}}>
+
+{field}
+
+</Grid>
+
+)}
+
+/>
+
+
+
 <Grid size={{xs:12,md:6}}>
 
 
@@ -775,7 +863,7 @@ e.target.value
 
 fullWidth
 
-label="Location"
+label="Venue / Site"
 
 value={formData.location}
 

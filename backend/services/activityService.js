@@ -185,6 +185,24 @@ const createActivity = async (
             activityDate:
                 data.activityDate,
 
+            region:
+                data.region || null,
+
+            regionCode:
+                data.regionCode || null,
+
+            zone:
+                data.zone || null,
+
+            zoneCode:
+                data.zoneCode || null,
+
+            woreda:
+                data.woreda || null,
+
+            woredaCode:
+                data.woredaCode || null,
+
             location:
                 data.location,
 
@@ -613,6 +631,25 @@ const updateActivity = async (
             data.location;
 
     }
+
+
+    [
+        "region",
+        "regionCode",
+        "zone",
+        "zoneCode",
+        "woreda",
+        "woredaCode"
+    ].forEach(field => {
+
+        if (data[field] !== undefined) {
+
+            activity[field] =
+                data[field] || null;
+
+        }
+
+    });
 
 
     if (data.facilitator !== undefined) {

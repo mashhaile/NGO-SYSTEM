@@ -45,6 +45,10 @@ import useZoneLabel
 // last level has no official list (Addis woredas)
 // it falls back to a free-text field.
 //
+// renderItem(field, key) wraps each field, e.g. in a
+// MUI <Grid>; by default fields render side by side
+// for use inside FormGrid.
+//
 // =====================================================
 
 const LEVELS = [
@@ -114,7 +118,8 @@ const LocationLevelField = ({
     value,
     onChange,
     disabled,
-    required
+    required,
+    size
 }) => {
 
     const parentCode =
@@ -312,6 +317,7 @@ const LocationLevelField = ({
                 label={label}
                 required={required}
                 disabled={disabled}
+                size={size}
                 value={currentName}
                 onChange={(e) =>
                     onChange({
@@ -341,6 +347,7 @@ const LocationLevelField = ({
                 (needsParent && !parentCode)
             }
             placeholder={`Select ${label}`}
+            size={size}
             getOptionLabel={
                 option =>
                     option?.name || ""
@@ -368,7 +375,9 @@ const LocationCascadeFields = ({
     value = {},
     onChange,
     disabled = false,
-    required = false
+    required = false,
+    size = "small",
+    renderItem = (field) => field
 }) => {
 
     const zoneLabel =
@@ -389,7 +398,7 @@ const LocationCascadeFields = ({
 
         <>
             {LEVELS.map(
-                (config, index) => (
+                (config, index) => renderItem(
 
                     <LocationLevelField
                         key={config.level}
@@ -401,7 +410,10 @@ const LocationCascadeFields = ({
                         onChange={onChange}
                         disabled={disabled}
                         required={required}
-                    />
+                        size={size}
+                    />,
+
+                    config.level
 
                 )
             )}

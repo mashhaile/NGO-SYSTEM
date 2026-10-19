@@ -143,6 +143,24 @@ const createActivityRun = async (
             endDate:
                 data.endDate || null,
 
+            region:
+                data.region || null,
+
+            regionCode:
+                data.regionCode || null,
+
+            zone:
+                data.zone || null,
+
+            zoneCode:
+                data.zoneCode || null,
+
+            woreda:
+                data.woreda || null,
+
+            woredaCode:
+                data.woredaCode || null,
+
             location:
                 data.location || null,
 
@@ -600,6 +618,25 @@ const updateActivityRun = async (
             data.location;
 
     }
+
+
+    [
+        "region",
+        "regionCode",
+        "zone",
+        "zoneCode",
+        "woreda",
+        "woredaCode"
+    ].forEach(field => {
+
+        if (data[field] !== undefined) {
+
+            activityRun[field] =
+                data[field] || null;
+
+        }
+
+    });
 
 
     if (

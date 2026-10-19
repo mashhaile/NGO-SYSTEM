@@ -239,6 +239,27 @@ const enterpriseSchema = new mongoose.Schema(
 
         },
 
+        // Official P-codes (AdminArea) for the
+        // selected region / zone / woreda.
+
+        regionCode: {
+            type: String,
+            default: null,
+            trim: true
+        },
+
+        zoneCode: {
+            type: String,
+            default: null,
+            trim: true
+        },
+
+        woredaCode: {
+            type: String,
+            default: null,
+            trim: true
+        },
+
         kebele: {
 
             type:

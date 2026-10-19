@@ -158,6 +158,46 @@ const activitySchema = new mongoose.Schema(
     },
 
 
+    // Region / Zone / Woreda with official P-codes
+    // (AdminArea). "location" holds the venue / site.
+
+    region:{
+        type:String,
+        default:null,
+        trim:true
+    },
+
+    regionCode:{
+        type:String,
+        default:null,
+        trim:true
+    },
+
+    zone:{
+        type:String,
+        default:null,
+        trim:true
+    },
+
+    zoneCode:{
+        type:String,
+        default:null,
+        trim:true
+    },
+
+    woreda:{
+        type:String,
+        default:null,
+        trim:true
+    },
+
+    woredaCode:{
+        type:String,
+        default:null,
+        trim:true
+    },
+
+
     location:{
 
         type:String,

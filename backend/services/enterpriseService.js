@@ -706,6 +706,12 @@ const updateEnterprise = async (
 
         "woreda",
 
+        "regionCode",
+
+        "zoneCode",
+
+        "woredaCode",
+
         "kebele",
 
         "address",

@@ -39,6 +39,42 @@ const createActivityRunSchema = Joi.object({
             .min(Joi.ref("startDate")),
 
 
+    region:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(null),
+
+    regionCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(null),
+
+    zone:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(null),
+
+    zoneCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(null),
+
+    woreda:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(null),
+
+    woredaCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(null),
+
     location:
         Joi.string()
             .trim()
@@ -132,6 +168,36 @@ const updateActivityRunSchema = Joi.object({
         Joi.date()
             .allow(null),
 
+
+    region:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    regionCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    zone:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    zoneCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    woreda:
+        Joi.string()
+            .trim()
+            .allow("", null),
+
+    woredaCode:
+        Joi.string()
+            .trim()
+            .allow("", null),
 
     location:
         Joi.string()

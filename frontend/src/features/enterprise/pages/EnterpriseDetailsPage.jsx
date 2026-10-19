@@ -38,6 +38,9 @@ import {
     StatusChip
 } from "../../../components/ui";
 
+import useZoneLabel
+    from "../../locations/hooks/useZoneLabel";
+
 
 import {
     getEnterpriseByIdThunk
@@ -322,6 +325,12 @@ const EnterpriseDetailsPage = () => {
             state =>
                 state.enterprises
                     ?.selectedEnterprise
+        );
+
+
+    const zoneLabel =
+        useZoneLabel(
+            enterprise?.regionCode
         );
 
 
@@ -693,7 +702,7 @@ const EnterpriseDetailsPage = () => {
 
 
                     <InfoRow
-                        label="Zone"
+                        label={zoneLabel}
                         value={
                             enterprise.zone
                         }

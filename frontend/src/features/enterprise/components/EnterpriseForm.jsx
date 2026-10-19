@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useEffect,
     useMemo,
     useState
@@ -20,6 +21,10 @@ import {
     AppDatePicker,
     AppButton
 } from "../../../components/ui";
+
+
+import LocationCascadeFields
+    from "../../locations/components/LocationCascadeFields";
 
 
 // =====================================================
@@ -51,6 +56,12 @@ const initialState = {
     zone: "",
 
     woreda: "",
+
+    regionCode: "",
+
+    zoneCode: "",
+
+    woredaCode: "",
 
     kebele: "",
 
@@ -406,6 +417,21 @@ const EnterpriseForm = ({
                 initialData.woreda ?? "",
 
 
+            regionCode:
+
+                initialData.regionCode ?? "",
+
+
+            zoneCode:
+
+                initialData.zoneCode ?? "",
+
+
+            woredaCode:
+
+                initialData.woredaCode ?? "",
+
+
             kebele:
 
                 initialData.kebele ?? "",
@@ -464,6 +490,29 @@ const EnterpriseForm = ({
         }));
 
     };
+
+
+    // =================================================
+    // CHANGE SEVERAL FIELDS (location cascade)
+    // =================================================
+
+    const changeFields = useCallback(
+
+        (patch) => {
+
+            setForm(previous => ({
+
+                ...previous,
+
+                ...patch
+
+            }));
+
+        },
+
+        []
+
+    );
 
 
     // =================================================
@@ -611,6 +660,18 @@ const EnterpriseForm = ({
 
             woreda:
                 form.woreda.trim() || null,
+
+
+            regionCode:
+                form.regionCode || null,
+
+
+            zoneCode:
+                form.zoneCode || null,
+
+
+            woredaCode:
+                form.woredaCode || null,
 
 
             kebele:
@@ -983,53 +1044,11 @@ const EnterpriseForm = ({
                         />
 
 
-                        <AppTextField
+                        <LocationCascadeFields
 
-                            label="Region"
+                            value={form}
 
-                            value={
-                                form.region
-                            }
-
-                            onChange={
-                                handleTextChange(
-                                    "region"
-                                )
-                            }
-
-                        />
-
-
-                        <AppTextField
-
-                            label="Zone"
-
-                            value={
-                                form.zone
-                            }
-
-                            onChange={
-                                handleTextChange(
-                                    "zone"
-                                )
-                            }
-
-                        />
-
-
-                        <AppTextField
-
-                            label="Woreda"
-
-                            value={
-                                form.woreda
-                            }
-
-                            onChange={
-                                handleTextChange(
-                                    "woreda"
-                                )
-                            }
+                            onChange={changeFields}
 
                         />
 

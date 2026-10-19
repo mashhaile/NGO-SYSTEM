@@ -53,6 +53,10 @@ import {
 from "../store";
 
 
+import useZoneLabel
+from "../../locations/hooks/useZoneLabel";
+
+
 
 
 
@@ -75,6 +79,9 @@ const dispatch = useDispatch();
 
 
 const [run,setRun]=useState(null);
+
+
+const zoneLabel=useZoneLabel(run?.regionCode);
 
 
 
@@ -366,7 +373,85 @@ new Date(run.endDate)
 
 <Typography variant="subtitle2">
 
-Location
+Region
+
+</Typography>
+
+
+<Typography>
+
+{run.region || "-"}
+
+</Typography>
+
+
+</Grid>
+
+
+
+
+
+
+
+
+<Grid size={{xs:12,md:6}}>
+
+
+<Typography variant="subtitle2">
+
+{zoneLabel}
+
+</Typography>
+
+
+<Typography>
+
+{run.zone || "-"}
+
+</Typography>
+
+
+</Grid>
+
+
+
+
+
+
+
+
+<Grid size={{xs:12,md:6}}>
+
+
+<Typography variant="subtitle2">
+
+Woreda
+
+</Typography>
+
+
+<Typography>
+
+{run.woreda || "-"}
+
+</Typography>
+
+
+</Grid>
+
+
+
+
+
+
+
+
+<Grid size={{xs:12,md:6}}>
+
+
+<Typography variant="subtitle2">
+
+Venue / Site
 
 </Typography>
 

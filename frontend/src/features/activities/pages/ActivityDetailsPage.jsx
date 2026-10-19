@@ -76,6 +76,10 @@ import {
 from "../../../components/ui";
 
 
+import useZoneLabel
+from "../../locations/hooks/useZoneLabel";
+
+
 
 
 
@@ -124,6 +128,9 @@ const [loading,setLoading]=useState(true);
 const [error,setError]=useState("");
 
 const [openDelete,setOpenDelete]=useState(false);
+
+
+const zoneLabel=useZoneLabel(activity?.regionCode);
 
 
 
@@ -622,7 +629,37 @@ new Date(activity.activityDate)
 
 <InfoRow
 
-label="Location"
+label="Region"
+
+value={activity.region}
+
+/>
+
+
+
+<InfoRow
+
+label={zoneLabel}
+
+value={activity.zone}
+
+/>
+
+
+
+<InfoRow
+
+label="Woreda"
+
+value={activity.woreda}
+
+/>
+
+
+
+<InfoRow
+
+label="Venue / Site"
 
 value={activity.location}
 
