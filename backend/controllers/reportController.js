@@ -313,7 +313,7 @@ const getReport = async (
             normalizedFormat === "excel"
         ) {
 
-            const file =
+            let file =
                 await reportExport.exportExcel({
 
                     reportType,
@@ -323,6 +323,21 @@ const getReport = async (
                     options
 
                 });
+
+
+            // The exporter can hand back an ExcelJS workbook object
+            // instead of file bytes. A workbook cannot be sent over
+            // HTTP (it refers to itself), so convert it to a buffer.
+            if (
+                file &&
+                file.xlsx &&
+                typeof file.xlsx.writeBuffer === "function"
+            ) {
+
+                file =
+                    await file.xlsx.writeBuffer();
+
+            }
 
 
             res.setHeader(
@@ -344,7 +359,9 @@ const getReport = async (
 
 
             return res.send(
-                file
+                Buffer.from(
+                    file
+                )
             );
 
         }
