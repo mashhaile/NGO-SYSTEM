@@ -40,6 +40,9 @@ import {
 import {
     PageContainer,
     PageHeader,
+    PageCard,
+    FormSection,
+    InfoRow,
     LoadingState,
     AppButton,
     StatusChip
@@ -812,7 +815,7 @@ const SummaryCard = ({
                 height: "100%",
                 border: "1px solid",
                 borderColor: "divider",
-                borderRadius: 2
+                borderRadius: 3
             }}
         >
 
@@ -896,112 +899,46 @@ const DetailSection = ({
     title,
     subtitle,
     children
-}) => {
+}) => (
 
-    return (
+    <PageCard>
 
-        <Paper
-            elevation={0}
+        <FormSection
+            title={title}
+            subtitle={subtitle}
             sx={{
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: 2,
-                overflow: "hidden"
+                mb: 0
             }}
         >
+            {children}
+        </FormSection>
 
-            <Box
-                sx={{
-                    px: 2.5,
-                    py: 2,
-                    bgcolor: "background.default"
-                }}
-            >
+    </PageCard>
 
-                <Typography
-                    variant="h6"
-                    fontWeight={700}
-                >
-                    {title}
-                </Typography>
-
-
-                {
-                    subtitle && (
-
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                                mt: 0.25
-                            }}
-                        >
-                            {subtitle}
-                        </Typography>
-
-                    )
-                }
-
-            </Box>
-
-
-            <Divider />
-
-
-            <Box
-                sx={{
-                    p: 2.5
-                }}
-            >
-
-                {children}
-
-            </Box>
-
-        </Paper>
-
-    );
-
-};
+);
 
 
 // =====================================================
 // INFO FIELD
 // =====================================================
+//
+// Same label / value style as InfoRow on the other
+// details pages, stacked so it fits grid columns.
+//
+// =====================================================
 
 const DetailField = ({
     label,
     value
-}) => {
+}) => (
 
-    return (
+    <InfoRow
+        label={label}
+        value={value}
+        direction="column"
+    />
 
-        <Box>
-
-            <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{
-                    display: "block",
-                    mb: 0.5
-                }}
-            >
-                {label}
-            </Typography>
-
-
-            <Typography
-                variant="body1"
-                fontWeight={600}
-            >
-                {value || "-"}
-            </Typography>
-
-        </Box>
-
-    );
-
-};
+);
 
 
 // =====================================================
@@ -2329,7 +2266,7 @@ const ServiceDeliveryDetailsPage = () => {
             <PageContainer>
 
                 <PageHeader
-                    title="Service Delivery"
+                    title="Service Delivery Details"
                     subtitle="Loading record..."
                 />
 
@@ -2357,7 +2294,7 @@ const ServiceDeliveryDetailsPage = () => {
             <PageContainer>
 
                 <PageHeader
-                    title="Service Delivery"
+                    title="Service Delivery Details"
                     subtitle="Record not found"
                 />
 
@@ -2769,68 +2706,102 @@ const ServiceDeliveryDetailsPage = () => {
             ================================================= */}
 
             <PageHeader
-                title={
+                title="Service Delivery Details"
+                subtitle={
                     delivery.deliveryNumber ||
-                    "Service Delivery"
-                }
-                subtitle="Service delivery record and beneficiary details"
-                action={() =>
-                    navigate(
-                        `/service-deliveries/${id}/edit`
-                    )
-                }
-                actionLabel="Edit"
-                actionIcon={
-                    <Edit />
+                    "Service delivery record"
                 }
             />
 
 
             {/* =================================================
-                STATUS
+                ACTIONS + STATUS
             ================================================= */}
 
-            <Stack
-                direction="row"
-                spacing={1}
-                alignItems="center"
+            <PageCard
                 sx={{
-                    mb: 3,
-                    flexWrap: "wrap"
+                    mb: 3
                 }}
             >
 
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
+                <FormSection
+                    sx={{
+                        mb: 0
+                    }}
                 >
-                    Status:
-                </Typography>
 
-                <StatusChip
-                    status={
-                        delivery.status ||
-                        "Delivered"
-                    }
-                />
+                    <Stack
+                        direction={{
+                            xs: "column",
+                            sm: "row"
+                        }}
+                        spacing={2}
+                        alignItems={{
+                            xs: "flex-start",
+                            sm: "center"
+                        }}
+                        justifyContent="space-between"
+                    >
 
-                <Chip
-                    size="small"
-                    label={
-                        `Recipient: ${recipientType}`
-                    }
-                    variant="outlined"
-                />
+                        <AppButton
+                            variant="contained"
+                            startIcon={<Edit />}
+                            onClick={() =>
+                                navigate(
+                                    `/service-deliveries/${id}/edit`
+                                )
+                            }
+                        >
+                            Edit Service Delivery
+                        </AppButton>
 
-                <Chip
-                    size="small"
-                    label={
-                        `Allocation: ${allocationMethod}`
-                    }
-                    variant="outlined"
-                />
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                            sx={{
+                                flexWrap: "wrap",
+                                rowGap: 1
+                            }}
+                        >
 
-            </Stack>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Status:
+                            </Typography>
+
+                            <StatusChip
+                                status={
+                                    delivery.status ||
+                                    "Delivered"
+                                }
+                            />
+
+                            <Chip
+                                size="small"
+                                label={
+                                    `Recipient: ${recipientType}`
+                                }
+                                variant="outlined"
+                            />
+
+                            <Chip
+                                size="small"
+                                label={
+                                    `Allocation: ${allocationMethod}`
+                                }
+                                variant="outlined"
+                            />
+
+                        </Stack>
+
+                    </Stack>
+
+                </FormSection>
+
+            </PageCard>
 
 
             {/* =================================================
@@ -2846,10 +2817,7 @@ const ServiceDeliveryDetailsPage = () => {
             >
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <SummaryCard
@@ -2867,10 +2835,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <SummaryCard
@@ -2888,10 +2853,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <SummaryCard
@@ -2909,10 +2871,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <SummaryCard
@@ -2948,10 +2907,7 @@ const ServiceDeliveryDetailsPage = () => {
                 >
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <DetailField
@@ -2968,10 +2924,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <DetailField
@@ -2988,10 +2941,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <DetailField
@@ -3008,10 +2958,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <DetailField
@@ -3030,10 +2977,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <Stack
@@ -3063,10 +3007,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <Stack
@@ -3100,10 +3041,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <DetailField
@@ -3119,10 +3057,7 @@ const ServiceDeliveryDetailsPage = () => {
                         showRecipientName && (
 
                             <Grid
-                                item
-                                xs={12}
-                                sm={6}
-                                md={3}
+                                size={{ xs: 12, sm: 6, md: 3 }}
                             >
 
                                 <DetailField
@@ -3144,10 +3079,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <DetailField
@@ -3161,10 +3093,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <DetailField
@@ -3225,8 +3154,7 @@ const ServiceDeliveryDetailsPage = () => {
 
                             return (
                                 <Grid
-                                    item
-                                    xs={12}
+                                    size={{ xs: 12 }}
                                     key={item._id || index}
                                 >
 
@@ -3241,10 +3169,7 @@ const ServiceDeliveryDetailsPage = () => {
                                         >
 
                                             <Grid
-                                                item
-                                                xs={12}
-                                                sm={6}
-                                                md={3}
+                                                size={{ xs: 12, sm: 6, md: 3 }}
                                             >
 
                                                 <DetailField
@@ -3258,10 +3183,7 @@ const ServiceDeliveryDetailsPage = () => {
                                             </Grid>
 
                                             <Grid
-                                                item
-                                                xs={12}
-                                                sm={6}
-                                                md={3}
+                                                size={{ xs: 12, sm: 6, md: 3 }}
                                             >
 
                                                 <DetailField
@@ -3275,10 +3197,7 @@ const ServiceDeliveryDetailsPage = () => {
                                             </Grid>
 
                                             <Grid
-                                                item
-                                                xs={12}
-                                                sm={6}
-                                                md={3}
+                                                size={{ xs: 12, sm: 6, md: 3 }}
                                             >
 
                                                 <DetailField
@@ -3292,10 +3211,7 @@ const ServiceDeliveryDetailsPage = () => {
                                             </Grid>
 
                                             <Grid
-                                                item
-                                                xs={12}
-                                                sm={6}
-                                                md={3}
+                                                size={{ xs: 12, sm: 6, md: 3 }}
                                             >
 
                                                 <DetailField
@@ -3331,8 +3247,7 @@ const ServiceDeliveryDetailsPage = () => {
                     ) && (
 
                         <Grid
-                            item
-                            xs={12}
+                            size={{ xs: 12 }}
                         >
 
                             <DetailField
@@ -3836,9 +3751,7 @@ const ServiceDeliveryDetailsPage = () => {
                                                     >
 
                                                         <Grid
-                                                            item
-                                                            xs={12}
-                                                            md={4}
+                                                            size={{ xs: 12, md: 4 }}
                                                         >
 
                                                             <Typography
@@ -3875,10 +3788,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                         <Grid
-                                                            item
-                                                            xs={12}
-                                                            sm={4}
-                                                            md={2}
+                                                            size={{ xs: 12, sm: 4, md: 2 }}
                                                         >
 
                                                             <DetailField
@@ -3903,10 +3813,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                         <Grid
-                                                            item
-                                                            xs={12}
-                                                            sm={4}
-                                                            md={2}
+                                                            size={{ xs: 12, sm: 4, md: 2 }}
                                                         >
 
                                                             <DetailField
@@ -3922,10 +3829,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                         <Grid
-                                                            item
-                                                            xs={12}
-                                                            sm={4}
-                                                            md={2}
+                                                            size={{ xs: 12, sm: 4, md: 2 }}
                                                         >
 
                                                             <DetailField
@@ -3941,10 +3845,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                         <Grid
-                                                            item
-                                                            xs={12}
-                                                            sm={4}
-                                                            md={2}
+                                                            size={{ xs: 12, sm: 4, md: 2 }}
                                                         >
 
                                                             <DetailField
@@ -4039,9 +3940,7 @@ const ServiceDeliveryDetailsPage = () => {
                                                                                         >
 
                                                                                             <Grid
-                                                                                                item
-                                                                                                xs={12}
-                                                                                                sm={3}
+                                                                                                size={{ xs: 12, sm: 3 }}
                                                                                             >
 
                                                                                                 <Typography
@@ -4059,9 +3958,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                             <Grid
-                                                                                                item
-                                                                                                xs={6}
-                                                                                                sm={2}
+                                                                                                size={{ xs: 6, sm: 2 }}
                                                                                             >
 
                                                                                                 <DetailField
@@ -4080,9 +3977,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                             <Grid
-                                                                                                item
-                                                                                                xs={6}
-                                                                                                sm={2}
+                                                                                                size={{ xs: 6, sm: 2 }}
                                                                                             >
 
                                                                                                 <DetailField
@@ -4101,9 +3996,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                             <Grid
-                                                                                                item
-                                                                                                xs={6}
-                                                                                                sm={2}
+                                                                                                size={{ xs: 6, sm: 2 }}
                                                                                             >
 
                                                                                                 <DetailField
@@ -4126,9 +4019,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                             <Grid
-                                                                                                item
-                                                                                                xs={6}
-                                                                                                sm={2}
+                                                                                                size={{ xs: 6, sm: 2 }}
                                                                                             >
 
                                                                                                 <DetailField
@@ -4144,9 +4035,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                             <Grid
-                                                                                                item
-                                                                                                xs={12}
-                                                                                                sm={1}
+                                                                                                size={{ xs: 12, sm: 1 }}
                                                                                             >
 
                                                                                                 <DetailField
@@ -4405,10 +4294,7 @@ const ServiceDeliveryDetailsPage = () => {
         >
 
             <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
+                size={{ xs: 12, sm: 6, md: 3 }}
             >
 
                 <DetailField
@@ -4424,10 +4310,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
             <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
+                size={{ xs: 12, sm: 6, md: 3 }}
             >
 
                 <DetailField
@@ -4443,10 +4326,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
             <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
+                size={{ xs: 12, sm: 6, md: 3 }}
             >
 
                 <DetailField
@@ -4460,10 +4340,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
             <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
+                size={{ xs: 12, sm: 6, md: 3 }}
             >
 
                 <DetailField
@@ -4477,10 +4354,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
             <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
+                size={{ xs: 12, sm: 6, md: 3 }}
             >
 
                 <DetailField
@@ -4496,10 +4370,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
             <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
+                size={{ xs: 12, sm: 6, md: 3 }}
             >
 
                 <DetailField
@@ -4561,10 +4432,7 @@ const ServiceDeliveryDetailsPage = () => {
                     >
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={4}
+                            size={{ xs: 12, sm: 6, md: 4 }}
                         >
 
                             <DetailField
@@ -4580,10 +4448,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={4}
+                            size={{ xs: 12, sm: 6, md: 4 }}
                         >
 
                             <DetailField
@@ -4599,10 +4464,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={4}
+                            size={{ xs: 12, sm: 6, md: 4 }}
                         >
 
                             <DetailField
@@ -4644,10 +4506,7 @@ const ServiceDeliveryDetailsPage = () => {
                     >
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={4}
+                            size={{ xs: 12, sm: 6, md: 4 }}
                         >
 
                             <DetailField
@@ -4663,10 +4522,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={4}
+                            size={{ xs: 12, sm: 6, md: 4 }}
                         >
 
                             <DetailField
@@ -4682,10 +4538,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={4}
+                            size={{ xs: 12, sm: 6, md: 4 }}
                         >
 
                             <DetailField
@@ -4712,7 +4565,8 @@ const ServiceDeliveryDetailsPage = () => {
                 direction="row"
                 justifyContent="flex-start"
                 sx={{
-                    mt: 3
+                    mt: 3,
+                    mb: 5
                 }}
             >
 
