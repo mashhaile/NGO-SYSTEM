@@ -29,6 +29,9 @@ import {
 import DonorTraceSection
     from "../../donations/components/DonorTraceSection";
 
+import DonorShareLinksSection
+    from "../../donations/components/DonorShareLinksSection";
+
 
 // =====================================================
 // PAGE
@@ -469,6 +472,13 @@ const DonorDetailsPage = () => {
 
             <DonorTraceSection
                 donorId={id}
+            />
+
+            <DonorShareLinksSection
+                donorId={id}
+                shareBeneficiaryNames={
+                    Boolean(donor.shareBeneficiaryNames)
+                }
             />
 
 

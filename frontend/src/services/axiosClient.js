@@ -135,4 +135,10 @@ axiosClient.interceptors.request.use(
 );
 
 
+// Base URL for calls that must not carry the staff
+// session (e.g. public donor share pages).
+
+export { API_URL };
+
+
 export default axiosClient;

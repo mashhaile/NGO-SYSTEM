@@ -292,6 +292,9 @@ import DonationTracePage
 import UntracedSpendingPage
     from "../features/donations/pages/UntracedSpendingPage";
 
+import DonorSharePage
+    from "../features/donations/pages/DonorSharePage";
+
 
 
     // ==========================================================
@@ -319,6 +322,15 @@ const AppRoutes = () => {
                 path="/login"
                 element={
                     <LoginPage />
+                }
+            />
+
+            {/* Donor share link: no login, read-only */}
+
+            <Route
+                path="/share/donor/:token"
+                element={
+                    <DonorSharePage />
                 }
             />
 

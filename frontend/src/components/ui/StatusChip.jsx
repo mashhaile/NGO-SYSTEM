@@ -34,6 +34,14 @@ const STATUS_STYLES = {
         bgcolor: "warning.light",
         color: "warning.dark"
     },
+    revoked: {
+        bgcolor: "error.light",
+        color: "error.dark"
+    },
+    expired: {
+        bgcolor: "action.hover",
+        color: "text.secondary"
+    },
     draft: {
         bgcolor: "action.hover",
         color: "text.secondary"
