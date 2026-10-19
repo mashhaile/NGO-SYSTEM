@@ -345,11 +345,22 @@ const AppSelect = ({
 
         >
 
+            {/*
+              * Placeholder row. Optional selects can pick it
+              * again to clear the selection; required selects
+              * keep it disabled.
+              */}
             {!multiple && (
 
                 <MenuItem
                     value=""
-                    disabled
+                    disabled={required}
+                    sx={{
+                        color:
+                            "text.secondary",
+                        fontStyle:
+                            "italic"
+                    }}
                 >
                     {selectPlaceholder}
                 </MenuItem>
