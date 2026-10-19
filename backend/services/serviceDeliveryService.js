@@ -44,6 +44,44 @@ const {
     DEFAULT_SERVICE_DELIVERY_STATUS
 } = require("../constants/serviceDeliveryStatus");
 
+const {
+    runInTransaction
+} = require("../utils/transaction");
+
+
+// ======================================================
+// DUPLICATE KEY ERRORS
+// ======================================================
+//
+// Turns MongoDB duplicate key errors (11000) from a
+// delivery save into readable messages.
+//
+// ======================================================
+
+const toDuplicateKeyError = (error) => {
+
+    if (error?.code !== 11000) {
+        return error;
+    }
+
+    if (error.keyPattern?.deliveryNumber) {
+        return new Error(
+            "Service delivery number already exists."
+        );
+    }
+
+    if (error.keyPattern?.beneficiary) {
+        return new Error(
+            "A beneficiary is listed more than once in this service delivery."
+        );
+    }
+
+    return new Error(
+        "This service delivery conflicts with an existing record."
+    );
+
+};
+
 
 // ======================================================
 // VALIDATE OBJECT ID
@@ -3138,10 +3176,16 @@ const validateBeneficiaryAllocations = async (
 
 
 // ======================================================
-// CREATE BENEFICIARY ASSOCIATIONS
+// BUILD BENEFICIARY ASSOCIATION RECORDS
+// ======================================================
+//
+// Validates and builds the ServiceDeliveryBeneficiary
+// rows for a delivery WITHOUT writing them, so every
+// check passes before anything is saved.
+//
 // ======================================================
 
-const createBeneficiaryAssociations = async (
+const buildBeneficiaryAssociationRecords = async (
     serviceDelivery,
     beneficiaryRecords,
     organizationId,
@@ -3364,9 +3408,7 @@ const createBeneficiaryAssociations = async (
             }
         );
 
-    return await ServiceDeliveryBeneficiary.insertMany(
-        records
-    );
+    return records;
 
 };
 
@@ -3541,15 +3583,70 @@ const createServiceDelivery = async (
             serviceData
         );
 
-    try {
+    // ==================================================
+    // BUILD BENEFICIARY ROWS BEFORE WRITING ANYTHING
+    // ==================================================
 
-        await service.save();
-
-        await createBeneficiaryAssociations(
+    const associationRecords =
+        await buildBeneficiaryAssociationRecords(
             service,
             beneficiaryRecords,
             organizationId,
             userId
+        );
+
+    // ==================================================
+    // SAVE DELIVERY + BENEFICIARY ROWS TOGETHER
+    // ==================================================
+
+    try {
+
+        await runInTransaction(
+            async (session) => {
+
+                await service.save({
+                    session
+                });
+
+                try {
+
+                    if (associationRecords.length) {
+                        await ServiceDeliveryBeneficiary.insertMany(
+                            associationRecords,
+                            {
+                                session
+                            }
+                        );
+                    }
+
+                }
+                catch (error) {
+
+                    // Without a transaction, remove the
+                    // half-created delivery and any rows
+                    // inserted before the failure.
+
+                    if (!session) {
+
+                        await ServiceDeliveryBeneficiary.deleteMany({
+                            organization:
+                                organizationId,
+                            serviceDelivery:
+                                service._id
+                        });
+
+                        await ServiceDelivery.deleteOne({
+                            _id:
+                                service._id
+                        });
+
+                    }
+
+                    throw error;
+
+                }
+
+            }
         );
 
         return service;
@@ -3559,16 +3656,7 @@ const createServiceDelivery = async (
         error
     ) {
 
-        if (
-            error.code ===
-            11000
-        ) {
-            throw new Error(
-                "Service delivery number already exists."
-            );
-        }
-
-        throw error;
+        throw toDuplicateKeyError(error);
 
     }
 
@@ -5006,7 +5094,15 @@ const updateServiceDelivery = async (
 
     // ==================================================
     // APPLY UPDATE
+    //
+    // Snapshot first so a failed save without a
+    // transaction can be rolled back.
     // ==================================================
+
+    const originalDelivery =
+        service.toObject({
+            depopulate: true
+        });
 
     Object.assign(
         service,
@@ -5017,57 +5113,115 @@ const updateServiceDelivery = async (
         userId;
 
     // ==================================================
-    // SAVE SERVICE DELIVERY
+    // BUILD BENEFICIARY ROWS BEFORE WRITING ANYTHING
+    //
+    // Associations are replaced ONLY when `beneficiaries`
+    // was explicitly supplied.
+    // ==================================================
+
+    const associationRecords =
+        beneficiariesWereProvided
+            ? await buildBeneficiaryAssociationRecords(
+                service,
+                beneficiaryRecords,
+                organizationId,
+                userId
+            )
+            : [];
+
+    const associationFilter = {
+
+        organization:
+            organizationId,
+
+        serviceDelivery:
+            service._id
+
+    };
+
+    // ==================================================
+    // SAVE DELIVERY + REPLACE BENEFICIARY ROWS TOGETHER
     // ==================================================
 
     try {
 
-        await service.save();
+        await runInTransaction(
+            async (session) => {
+
+                // Without a transaction, keep the current
+                // rows so they can be restored on failure.
+
+                const previousRows =
+                    !session && beneficiariesWereProvided
+                        ? await ServiceDeliveryBeneficiary
+                            .find(associationFilter)
+                            .lean()
+                        : [];
+
+                await service.save({
+                    session
+                });
+
+                if (!beneficiariesWereProvided) {
+                    return;
+                }
+
+                try {
+
+                    await ServiceDeliveryBeneficiary.deleteMany(
+                        associationFilter,
+                        {
+                            session
+                        }
+                    );
+
+                    if (associationRecords.length) {
+                        await ServiceDeliveryBeneficiary.insertMany(
+                            associationRecords,
+                            {
+                                session
+                            }
+                        );
+                    }
+
+                }
+                catch (error) {
+
+                    if (!session) {
+
+                        await ServiceDeliveryBeneficiary.deleteMany(
+                            associationFilter
+                        );
+
+                        if (previousRows.length) {
+                            await ServiceDeliveryBeneficiary.insertMany(
+                                previousRows
+                            );
+                        }
+
+                        await ServiceDelivery.replaceOne(
+                            {
+                                _id:
+                                    service._id
+                            },
+                            originalDelivery
+                        );
+
+                    }
+
+                    throw error;
+
+                }
+
+            }
+        );
 
     }
     catch (
         error
     ) {
 
-        if (
-            error.code ===
-            11000
-        ) {
-            throw new Error(
-                "Service delivery number already exists."
-            );
-        }
-
-        throw error;
-
-    }
-
-    // ==================================================
-    // REPLACE BENEFICIARY ASSOCIATIONS
-    //
-    // ONLY when `beneficiaries` was explicitly supplied.
-    // ==================================================
-
-    if (
-        beneficiariesWereProvided
-    ) {
-
-        await ServiceDeliveryBeneficiary.deleteMany({
-
-            organization:
-                organizationId,
-
-            serviceDelivery:
-                service._id
-
-        });
-
-        await createBeneficiaryAssociations(
-            service,
-            beneficiaryRecords,
-            organizationId,
-            userId
-        );
+        throw toDuplicateKeyError(error);
 
     }
 
