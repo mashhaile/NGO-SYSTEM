@@ -257,6 +257,12 @@ const PERMISSIONS = {
     TOR_CREATE_ACTIVITY:
         "tor.create_activity",
 
+    // Create / revoke donor share links (data leaves
+    // the organization: admin only).
+
+    DONOR_SHARE:
+        "donor.share",
+
     // Rename / retype the activity linked to a TOR.
     // Narrower than activity.update: only name and type,
     // only for activities linked to a TOR.

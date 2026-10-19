@@ -330,6 +330,18 @@ app.use(
     require("./routes/donationTraceRoutes")
 );
 
+app.use(
+    "/api/v1/donor-share-links",
+    require("./routes/donorShareRoutes").staffRouter
+);
+
+// Public (no login): donor share links
+
+app.use(
+    "/api/v1/public/donor-share",
+    require("./routes/donorShareRoutes").publicRouter
+);
+
 
 // ================= Test / Health Routes =================
 

@@ -137,6 +137,10 @@ const rolePermissions = {
         PERMISSIONS.TOR_CREATE_ACTIVITY,
         PERMISSIONS.TOR_UPDATE_ACTIVITY,
 
+        // Donor share links
+
+        PERMISSIONS.DONOR_SHARE,
+
 
         // Attendance Sessions
 
