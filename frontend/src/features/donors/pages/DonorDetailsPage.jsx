@@ -26,6 +26,9 @@ import {
     StatusChip
 } from "../../../components/ui";
 
+import DonorTraceSection
+    from "../../donations/components/DonorTraceSection";
+
 
 // =====================================================
 // PAGE
@@ -458,6 +461,15 @@ const DonorDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
+
+
+            {/* =================================================
+                DONATION TRACE
+            ================================================= */}
+
+            <DonorTraceSection
+                donorId={id}
+            />
 
 
             {/* =================================================

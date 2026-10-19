@@ -6,6 +6,7 @@ import {
 
 
 import {
+    Alert,
     Box,
     Divider,
     Typography
@@ -3473,6 +3474,23 @@ const ServiceDeliveryItemRow = ({
                 />
 
             </Box>
+
+
+            {/* Donation trace: unlinked costs reach no donor. */}
+
+            {!donationValue && (
+
+                <Alert
+                    severity="warning"
+                    variant="outlined"
+                    sx={{
+                        mt: 1.5
+                    }}
+                >
+                    Not linked to a donation. This cost will not appear in any donor&apos;s &quot;Where did it go?&quot; trace. Choose the donor and the donation that paid for it.
+                </Alert>
+
+            )}
 
 
             <Box

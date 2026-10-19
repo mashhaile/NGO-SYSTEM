@@ -10,7 +10,8 @@ import {
 
 import {
     Add,
-    Refresh
+    Refresh,
+    WarningAmber
 } from "@mui/icons-material";
 
 import {
@@ -306,6 +307,21 @@ const DonationListPage = () => {
                         }
                     >
                         Refresh
+                    </AppButton>
+
+                    <AppButton
+                        variant="outlined"
+                        color="warning"
+                        startIcon={
+                            <WarningAmber />
+                        }
+                        onClick={() =>
+                            navigate(
+                                "/donations/untraced"
+                            )
+                        }
+                    >
+                        Untraced Spending
                     </AppButton>
 
                 </ActionToolbar>

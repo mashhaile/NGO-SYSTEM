@@ -286,6 +286,12 @@ import DonationDetailsPage
 import DonationEditPage
     from "../features/donations/pages/DonationEditPage";
 
+import DonationTracePage
+    from "../features/donations/pages/DonationTracePage";
+
+import UntracedSpendingPage
+    from "../features/donations/pages/UntracedSpendingPage";
+
 
 
     // ==========================================================
@@ -1016,9 +1022,23 @@ const AppRoutes = () => {
                 />
 
                 <Route
+                    path="/donations/untraced"
+                    element={
+                        <UntracedSpendingPage />
+                    }
+                />
+
+                <Route
                     path="/donations/:id"
                     element={
                         <DonationDetailsPage />
+                    }
+                />
+
+                <Route
+                    path="/donations/:id/trace"
+                    element={
+                        <DonationTracePage />
                     }
                 />
 

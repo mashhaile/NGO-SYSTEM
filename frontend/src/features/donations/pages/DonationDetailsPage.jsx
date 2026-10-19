@@ -4,7 +4,12 @@ import {
 } from "react-router-dom";
 
 import {
-    Edit
+    Stack
+} from "@mui/material";
+
+import {
+    Edit,
+    Timeline
 } from "@mui/icons-material";
 
 import {
@@ -290,19 +295,43 @@ const DonationDetailsPage = () => {
 
                 <FormSection>
 
-                    <AppButton
-                        variant="contained"
-                        startIcon={
-                            <Edit />
-                        }
-                        onClick={() =>
-                            navigate(
-                                `/donations/${id}/edit`
-                            )
-                        }
+                    <Stack
+                        direction={{
+                            xs: "column",
+                            sm: "row"
+                        }}
+                        spacing={1.5}
                     >
-                        Edit Donation
-                    </AppButton>
+
+                        <AppButton
+                            variant="contained"
+                            startIcon={
+                                <Edit />
+                            }
+                            onClick={() =>
+                                navigate(
+                                    `/donations/${id}/edit`
+                                )
+                            }
+                        >
+                            Edit Donation
+                        </AppButton>
+
+                        <AppButton
+                            variant="outlined"
+                            startIcon={
+                                <Timeline />
+                            }
+                            onClick={() =>
+                                navigate(
+                                    `/donations/${id}/trace`
+                                )
+                            }
+                        >
+                            Where Did It Go?
+                        </AppButton>
+
+                    </Stack>
 
                 </FormSection>
 
