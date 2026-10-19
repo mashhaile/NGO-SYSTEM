@@ -1,6 +1,5 @@
 import {
     useEffect,
-    useMemo,
     useState
 } from "react";
 
@@ -17,7 +16,11 @@ import {
 
 
 import {
-    Add
+    Add,
+    Delete,
+    Edit,
+    PictureAsPdf,
+    Visibility
 } from "@mui/icons-material";
 
 
@@ -27,7 +30,9 @@ import {
     PageCard,
     SearchToolbar,
     DataTable,
-    StatusChip
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
 } from "../../../components/ui";
 
 
@@ -37,12 +42,15 @@ import useAuth
 
 import {
     getTorsApi,
+    deleteTorApi,
+    downloadTorPdfApi,
     getApiErrorMessage
 } from "../api/torApi";
 
 
 import {
     hasPermission,
+    getTorActions,
     TOR_STATUS
 } from "../utils/torPermissions";
 
@@ -96,6 +104,17 @@ const TorListPage = () => {
             page: 0,
             pageSize: 10
         });
+
+    const [deleteTarget, setDeleteTarget] =
+        useState(null);
+
+    const [deleting, setDeleting] =
+        useState(false);
+
+    // Bumped to reload the list after a delete.
+
+    const [reloadKey, setReloadKey] =
+        useState(0);
 
     const [result, setResult] =
         useState({
@@ -159,10 +178,84 @@ const TorListPage = () => {
             clearTimeout(timer);
         };
 
-    }, [search, status, paginationModel]);
+    }, [search, status, paginationModel, reloadKey]);
 
 
-    const columns = useMemo(() => [
+    // =================================================
+    // ROW ACTIONS
+    // =================================================
+
+    const handleDelete = async () => {
+
+        setDeleting(true);
+
+        try {
+
+            await deleteTorApi(deleteTarget._id);
+
+            setDeleteTarget(null);
+
+            setReloadKey(key => key + 1);
+
+        }
+        catch (error) {
+
+            setDeleteTarget(null);
+
+            setResult(prev => ({
+                ...prev,
+                error: getApiErrorMessage(
+                    error,
+                    "Failed to delete the TOR."
+                )
+            }));
+
+        }
+        finally {
+
+            setDeleting(false);
+
+        }
+
+    };
+
+
+    const handlePdf = async (row) => {
+
+        try {
+
+            await downloadTorPdfApi(
+                row._id,
+                `${row.torNumber}.pdf`
+            );
+
+        }
+        catch (error) {
+
+            setResult(prev => ({
+                ...prev,
+                error: getApiErrorMessage(
+                    error,
+                    "Failed to download the PDF."
+                )
+            }));
+
+        }
+
+    };
+
+
+    // Why Edit / Delete are unavailable for a row.
+
+    const lockedReason = (row, permission) =>
+        !hasPermission(user, permission)
+            ? "You do not have permission"
+            : row.status === TOR_STATUS.SUBMITTED
+                ? "Locked: submitted for approval"
+                : "Locked: approved";
+
+
+    const columns = [
 
         {
             field: "torNumber",
@@ -247,9 +340,81 @@ const TorListPage = () => {
                     status={params.value}
                 />
             )
+        },
+
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 170,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => {
+
+                const row =
+                    params.row;
+
+                const rowActions =
+                    getTorActions(
+                        user,
+                        row
+                    );
+
+                return (
+
+                    <>
+
+                        <AppIconButton
+                            icon={<Visibility fontSize="small" />}
+                            tooltip="View TOR"
+                            onClick={() =>
+                                navigate(`/tors/${row._id}`)
+                            }
+                        />
+
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip={
+                                rowActions.canEdit
+                                    ? "Edit TOR"
+                                    : lockedReason(row, "tor.update")
+                            }
+                            disabled={!rowActions.canEdit}
+                            onClick={() =>
+                                navigate(`/tors/${row._id}/edit`)
+                            }
+                        />
+
+                        <AppIconButton
+                            icon={<PictureAsPdf fontSize="small" />}
+                            tooltip="Download PDF"
+                            onClick={() =>
+                                handlePdf(row)
+                            }
+                        />
+
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip={
+                                rowActions.canDelete
+                                    ? "Delete TOR"
+                                    : lockedReason(row, "tor.delete")
+                            }
+                            color="error"
+                            disabled={!rowActions.canDelete}
+                            onClick={() =>
+                                setDeleteTarget(row)
+                            }
+                        />
+
+                    </>
+
+                );
+
+            }
         }
 
-    ], [navigate]);
+    ];
 
 
     const changeSearch = (value) => {
@@ -337,6 +502,22 @@ const TorListPage = () => {
                 />
 
             </PageCard>
+
+
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Delete TOR"
+                message={
+                    deleteTarget
+                        ? `Delete ${deleteTarget.torNumber} "${deleteTarget.title}"? This cannot be undone.`
+                        : ""
+                }
+                loading={deleting}
+                onClose={() =>
+                    !deleting && setDeleteTarget(null)
+                }
+                onConfirm={handleDelete}
+            />
 
         </PageContainer>
 
