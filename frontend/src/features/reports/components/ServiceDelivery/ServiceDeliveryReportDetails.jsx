@@ -1176,10 +1176,7 @@ const ServiceItemCard = ({
                     {!isMonetaryUnit(unit) ? (
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={3}
+                            size={{ xs: 12, sm: 6, md: 3 }}
                         >
 
                             <MetricCard
@@ -1196,10 +1193,7 @@ const ServiceItemCard = ({
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <MetricCard
@@ -1214,10 +1208,7 @@ const ServiceItemCard = ({
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <MetricCard
@@ -1231,10 +1222,7 @@ const ServiceItemCard = ({
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <MetricCard
@@ -1250,10 +1238,7 @@ const ServiceItemCard = ({
                     {overAllocated > 0 ? (
 
                         <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            md={3}
+                            size={{ xs: 12, sm: 6, md: 3 }}
                         >
 
                             <MetricCard
@@ -1269,10 +1254,7 @@ const ServiceItemCard = ({
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <MetricCard
@@ -1458,7 +1440,8 @@ const ServiceDeliveryCard = ({
                     spacing={2}
                 >
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Delivery No."
                             value={
@@ -1468,7 +1451,8 @@ const ServiceDeliveryCard = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Delivery Date"
                             value={formatDate(
@@ -1478,7 +1462,8 @@ const ServiceDeliveryCard = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem label="Program">
                             <ProgramDisplay
                                 program={
@@ -1489,7 +1474,8 @@ const ServiceDeliveryCard = ({
                         </InfoItem>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem label="Project">
                             <ProjectDisplay
                                 project={
@@ -1500,7 +1486,8 @@ const ServiceDeliveryCard = ({
                         </InfoItem>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem label="Activity">
                             <ActivityDisplay
                                 activity={
@@ -1511,7 +1498,8 @@ const ServiceDeliveryCard = ({
                         </InfoItem>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem label="Activity Run">
                             <ActivityRunDisplay
                                 activityRun={
@@ -1522,7 +1510,8 @@ const ServiceDeliveryCard = ({
                         </InfoItem>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Funding Source"
                             value={
@@ -1534,7 +1523,8 @@ const ServiceDeliveryCard = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Location"
                             value={
@@ -1544,7 +1534,8 @@ const ServiceDeliveryCard = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Recipient Type"
                             value={
@@ -1555,7 +1546,8 @@ const ServiceDeliveryCard = ({
                     </Grid>
 
                     {delivery?.recipientName ? (
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 3 }}>
                             <InfoItem
                                 label="Recipient Name"
                                 value={
@@ -1566,7 +1558,8 @@ const ServiceDeliveryCard = ({
                         </Grid>
                     ) : null}
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Allocation Method"
                             value={
@@ -1576,7 +1569,8 @@ const ServiceDeliveryCard = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Beneficiaries"
                             value={
@@ -1585,7 +1579,8 @@ const ServiceDeliveryCard = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <InfoItem
                             label="Service Items"
                             value={
@@ -1985,7 +1980,8 @@ const ServiceDeliveryReportDetails = ({
                     spacing={1.5}
                 >
 
-                    <Grid item xs={6} sm={3}>
+                    <Grid
+                        size={{ xs: 6, sm: 3 }}>
                         <MetricCard
                             label="Deliveries"
                             value={
@@ -1996,7 +1992,8 @@ const ServiceDeliveryReportDetails = ({
                         />
                     </Grid>
 
-                    <Grid item xs={6} sm={3}>
+                    <Grid
+                        size={{ xs: 6, sm: 3 }}>
                         <MetricCard
                             label="Beneficiaries"
                             value={
@@ -2007,7 +2004,8 @@ const ServiceDeliveryReportDetails = ({
                         />
                     </Grid>
 
-                    <Grid item xs={6} sm={3}>
+                    <Grid
+                        size={{ xs: 6, sm: 3 }}>
                         <MetricCard
                             label="Delivery Records"
                             value={
@@ -2016,7 +2014,8 @@ const ServiceDeliveryReportDetails = ({
                         />
                     </Grid>
 
-                    <Grid item xs={6} sm={3}>
+                    <Grid
+                        size={{ xs: 6, sm: 3 }}>
                         <MetricCard
                             label="Service Items"
                             value={
@@ -2027,7 +2026,8 @@ const ServiceDeliveryReportDetails = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <MetricCard
                             label="Actual Support Value"
                             value={formatCurrency(
@@ -2038,7 +2038,8 @@ const ServiceDeliveryReportDetails = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <MetricCard
                             label="Allocated Value"
                             value={formatCurrency(
@@ -2048,7 +2049,8 @@ const ServiceDeliveryReportDetails = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <MetricCard
                             label="Unallocated Value"
                             value={formatCurrency(
@@ -2058,7 +2060,8 @@ const ServiceDeliveryReportDetails = ({
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid
+                        size={{ xs: 12, sm: 6, md: 3 }}>
                         <MetricCard
                             label="Allocation Rate"
                             value={
