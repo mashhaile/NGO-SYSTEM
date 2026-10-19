@@ -84,7 +84,11 @@ const createDonorSchema = Joi.object({
 
     notes:
         Joi.string()
-            .allow("", null)
+            .allow("", null),
+
+    shareBeneficiaryNames:
+        Joi.boolean()
+            .default(false)
 
 });
 
@@ -169,7 +173,10 @@ const updateDonorSchema = Joi.object({
 
     notes:
         Joi.string()
-            .allow("", null)
+            .allow("", null),
+
+    shareBeneficiaryNames:
+        Joi.boolean()
 
 })
 .min(1);

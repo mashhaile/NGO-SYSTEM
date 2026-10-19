@@ -325,6 +325,11 @@ app.use(
     require("./routes/torRoutes")
 );
 
+app.use(
+    "/api/v1/donation-trace",
+    require("./routes/donationTraceRoutes")
+);
+
 
 // ================= Test / Health Routes =================
 

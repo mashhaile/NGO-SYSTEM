@@ -252,6 +252,21 @@ const donorSchema = new mongoose.Schema(
         },
 
 
+        // Donation trace: include beneficiary names in
+        // statements / share links for this donor.
+        // Off by default (aggregated numbers only).
+
+        shareBeneficiaryNames: {
+
+            type:
+                Boolean,
+
+            default:
+                false
+
+        },
+
+
 
         // =====================================
         // Audit

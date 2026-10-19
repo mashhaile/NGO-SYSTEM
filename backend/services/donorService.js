@@ -479,6 +479,10 @@ const updateDonor = async (
         donor.notes =
             data.notes || null;
 
+    if (data.shareBeneficiaryNames !== undefined)
+        donor.shareBeneficiaryNames =
+            Boolean(data.shareBeneficiaryNames);
+
 
     // ==========================================
     // AUDIT

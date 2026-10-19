@@ -149,7 +149,13 @@ const buildForm = (
 
         notes:
             data?.notes ||
-            ""
+            "",
+
+
+        shareBeneficiaryNames:
+            Boolean(
+                data?.shareBeneficiaryNames
+            )
 
     };
 
@@ -615,6 +621,60 @@ const DonorForm = ({
                                     changeField(
                                         "status",
                                         e.target.value
+                                    )
+                            }
+                        />
+
+                    </FormGrid>
+
+                </FormSection>
+
+            </PageCard>
+
+
+            {/* =================================================
+                REPORTING AND PRIVACY
+            ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Reporting and Privacy"
+                    subtitle="Controls what this donor sees in donation statements and share links."
+                >
+
+                    <FormGrid
+                        columns={1}
+                    >
+
+                        <AppSelect
+                            label="Share beneficiary names with this donor"
+                            required
+                            value={
+                                form.shareBeneficiaryNames
+                                    ? "yes"
+                                    : "no"
+                            }
+                            options={[
+                                {
+                                    value: "no",
+                                    label: "No — numbers only (recommended)"
+                                },
+                                {
+                                    value: "yes",
+                                    label: "Yes — include names (e.g. sponsorship donors)"
+                                }
+                            ]}
+                            helperText={
+                                form.shareBeneficiaryNames
+                                    ? "Names, beneficiary numbers and kebele will be included. Make sure beneficiaries consented to this."
+                                    : "The donor sees counts by gender, age and location only."
+                            }
+                            onChange={
+                                e =>
+                                    changeField(
+                                        "shareBeneficiaryNames",
+                                        e.target.value === "yes"
                                     )
                             }
                         />
