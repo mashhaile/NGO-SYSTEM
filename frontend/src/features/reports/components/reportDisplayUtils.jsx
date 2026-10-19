@@ -304,10 +304,7 @@ export const DetailField = ({
 
     return (
         <Grid
-            item
-            xs={xs}
-            sm={sm}
-            md={md}
+            size={{ xs: xs, sm: sm, md: md }}
         >
             <Box>
                 <Typography

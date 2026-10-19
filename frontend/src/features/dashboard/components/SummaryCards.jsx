@@ -125,11 +125,7 @@ const SummaryCards = ({
                         return (
 
                             <Grid
-                                item
-                                xs={12}
-                                sm={6}
-                                md={4}
-                                lg={2}
+                                size={{ xs: 12, sm: 6, md: 4, lg: 2 }}
                                 key={
                                     card.title
                                 }

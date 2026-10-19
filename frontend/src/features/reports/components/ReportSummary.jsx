@@ -1105,16 +1105,11 @@ const ReportSummary = ({
                         ) => (
 
                             <Grid
-                                item
-                                xs={12}
-                                sm={6}
-                                md={
-                                    typeof value ===
+                                size={{ xs: 12, sm: 6, md: typeof value ===
                                     "object" &&
                                     value !== null
                                         ? 6
-                                        : 3
-                                }
+                                        : 3 }}
                                 key={
                                     key
                                 }

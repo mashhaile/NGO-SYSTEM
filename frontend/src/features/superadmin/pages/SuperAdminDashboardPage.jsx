@@ -639,10 +639,7 @@ const SuperAdminDashboardPage = () => {
                 >
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -661,10 +658,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -682,10 +676,7 @@ const SuperAdminDashboardPage = () => {
                     </Grid>
                     
 <Grid
-    item
-    xs={12}
-    sm={6}
-    md={3}
+    size={{ xs: 12, sm: 6, md: 3 }}
 >
 
     <StatCard
@@ -705,10 +696,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -727,10 +715,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -774,10 +759,7 @@ const SuperAdminDashboardPage = () => {
                 >
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -796,10 +778,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -818,10 +797,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -840,10 +816,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -892,10 +865,7 @@ const SuperAdminDashboardPage = () => {
                 >
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -914,10 +884,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -936,10 +903,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -958,10 +922,7 @@ const SuperAdminDashboardPage = () => {
 
 
                     <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
                         <StatCard
@@ -998,9 +959,7 @@ const SuperAdminDashboardPage = () => {
                 ===================================== */}
 
                 <Grid
-                    item
-                    xs={12}
-                    lg={8}
+                    size={{ xs: 12, lg: 8 }}
                 >
 
                     <Paper
@@ -1204,9 +1163,7 @@ const SuperAdminDashboardPage = () => {
                 ===================================== */}
 
                 <Grid
-                    item
-                    xs={12}
-                    lg={4}
+                    size={{ xs: 12, lg: 4 }}
                 >
 
                     <Paper
@@ -1396,8 +1353,7 @@ const SuperAdminDashboardPage = () => {
                 ===================================== */}
 
                 <Grid
-                    item
-                    xs={12}
+                    size={{ xs: 12 }}
                 >
 
                     <Paper

@@ -248,10 +248,7 @@ const SubscriptionDetails = ({
             >
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <Typography
@@ -274,10 +271,7 @@ const SubscriptionDetails = ({
 
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <Typography
@@ -302,10 +296,7 @@ const SubscriptionDetails = ({
 
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <Typography
@@ -332,10 +323,7 @@ const SubscriptionDetails = ({
 
 
                 <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={3}
+                    size={{ xs: 12, sm: 6, md: 3 }}
                 >
 
                     <Typography
@@ -407,11 +395,7 @@ const SubscriptionDetails = ({
                                     ([key, value]) => (
 
                                         <Grid
-                                            item
-                                            xs={12}
-                                            sm={6}
-                                            md={4}
-                                            lg={3}
+                                            size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
                                             key={key}
                                         >
 
@@ -504,11 +488,7 @@ const SubscriptionDetails = ({
                                     ([key, item]) => (
 
                                         <Grid
-                                            item
-                                            xs={12}
-                                            sm={6}
-                                            md={4}
-                                            lg={3}
+                                            size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
                                             key={key}
                                         >
 

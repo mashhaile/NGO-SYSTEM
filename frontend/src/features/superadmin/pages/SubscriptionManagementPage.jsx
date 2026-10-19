@@ -844,9 +844,7 @@ const SubscriptionManagementPage = () => {
                         >
 
                             <Grid
-                                item
-                                xs={12}
-                                md={8}
+                                size={{ xs: 12, md: 8 }}
                             >
 
                                 <TextField
@@ -900,9 +898,7 @@ const SubscriptionManagementPage = () => {
 
 
                             <Grid
-                                item
-                                xs={12}
-                                md={4}
+                                size={{ xs: 12, md: 4 }}
                             >
 
                                 <Button

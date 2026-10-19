@@ -1166,9 +1166,7 @@ const ReportCharts = ({
                         ) => (
 
                             <Grid
-                                item
-                                xs={12}
-                                md={6}
+                                size={{ xs: 12, md: 6 }}
                                 key={chartKey}
                             >
 

@@ -480,9 +480,7 @@ const OrganizationCreatePage = () => {
                     >
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -498,9 +496,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -517,9 +513,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -534,9 +528,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -551,8 +543,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
+                            size={{ xs: 12 }}
                         >
 
                             <AppTextField
@@ -569,9 +560,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -586,9 +575,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -648,9 +635,7 @@ const OrganizationCreatePage = () => {
                     >
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <AppTextField
@@ -666,9 +651,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <AppTextField
@@ -685,9 +668,7 @@ const OrganizationCreatePage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <AppTextField

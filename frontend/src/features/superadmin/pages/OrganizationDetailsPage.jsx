@@ -1420,9 +1420,7 @@ const isTrialing =
                 >
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1436,9 +1434,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1452,9 +1448,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1481,9 +1475,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1515,9 +1507,7 @@ const isTrialing =
                 >
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1531,9 +1521,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1547,9 +1535,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1563,9 +1549,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={6}
+                        size={{ xs: 12, md: 6 }}
                     >
 
                         <Field
@@ -1693,9 +1677,7 @@ const isTrialing =
                             >
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={4}
+                                    size={{ xs: 12, md: 4 }}
                                 >
 
                                     <Field
@@ -1711,9 +1693,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={4}
+                                    size={{ xs: 12, md: 4 }}
                                 >
 
                                     <Field
@@ -1729,9 +1709,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={4}
+                                    size={{ xs: 12, md: 4 }}
                                 >
 
                                     <Field
@@ -1758,9 +1736,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={4}
+                                    size={{ xs: 12, md: 4 }}
                                 >
 
                                     <Field
@@ -1776,9 +1752,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={4}
+                                    size={{ xs: 12, md: 4 }}
                                 >
 
                                   <Field
@@ -1795,9 +1769,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={4}
+                                    size={{ xs: 12, md: 4 }}
                                 >
 
                                     <Field
@@ -1855,9 +1827,7 @@ const isTrialing =
                             >
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={6}
+                                    size={{ xs: 12, md: 6 }}
                                 >
 
                                     <FormControl
@@ -1950,8 +1920,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
+                                    size={{ xs: 12 }}
                                     md="auto"
                                 >
 
@@ -1978,8 +1947,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
+                                    size={{ xs: 12 }}
                                     md="auto"
                                 >
 
@@ -2009,8 +1977,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
+                                    size={{ xs: 12 }}
                                     md="auto"
                                 >
 
@@ -2082,9 +2049,7 @@ const isTrialing =
                             >
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    md={7}
+                                    size={{ xs: 12, md: 7 }}
                                 >
 
                                     <FormControl
@@ -2177,8 +2142,7 @@ const isTrialing =
 
 
                                 <Grid
-                                    item
-                                    xs={12}
+                                    size={{ xs: 12 }}
                                     md="auto"
                                 >
 
@@ -2345,10 +2309,7 @@ const isTrialing =
                                         return (
 
                                             <Grid
-                                                item
-                                                xs={12}
-                                                sm={6}
-                                                md={4}
+                                                size={{ xs: 12, sm: 6, md: 4 }}
                                                 key={
                                                     resource
                                                 }
@@ -2507,10 +2468,7 @@ const isTrialing =
                                     ) => (
 
                                         <Grid
-                                            item
-                                            xs={12}
-                                            sm={6}
-                                            md={4}
+                                            size={{ xs: 12, sm: 6, md: 4 }}
                                             key={
                                                 resource
                                             }
@@ -2584,9 +2542,7 @@ const isTrialing =
                 >
 
                     <Grid
-                        item
-                        xs={12}
-                        md={4}
+                        size={{ xs: 12, md: 4 }}
                     >
 
                         <Field
@@ -2602,9 +2558,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={4}
+                        size={{ xs: 12, md: 4 }}
                     >
 
                         <Field
@@ -2620,9 +2574,7 @@ const isTrialing =
 
 
                     <Grid
-                        item
-                        xs={12}
-                        md={4}
+                        size={{ xs: 12, md: 4 }}
                     >
 
                         <Field
@@ -2652,9 +2604,7 @@ const isTrialing =
                         organizationData?.isDeleted && (
 
                             <Grid
-                                item
-                                xs={12}
-                                md={4}
+                                size={{ xs: 12, md: 4 }}
                             >
 
                                 <Field

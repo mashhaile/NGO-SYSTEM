@@ -237,9 +237,7 @@ const AttendanceForm = ({
                 </Grid>
 
                 <Grid
-                    item
-                    xs={12}
-                    md={6}
+                    size={{ xs: 12, md: 6 }}
                 >
 
                     <TextField
@@ -266,9 +264,7 @@ const AttendanceForm = ({
                 </Grid>
 
                 <Grid
-                    item
-                    xs={12}
-                    md={6}
+                    size={{ xs: 12, md: 6 }}
                 >
 
                     <TextField
@@ -295,9 +291,7 @@ const AttendanceForm = ({
                 </Grid>
 
                 <Grid
-                    item
-                    xs={12}
-                    md={6}
+                    size={{ xs: 12, md: 6 }}
                 >
 
                     <TextField
@@ -330,8 +324,7 @@ const AttendanceForm = ({
                 </Grid>
 
                 <Grid
-                    item
-                    xs={12}
+                    size={{ xs: 12 }}
                 >
 
                     <TextField

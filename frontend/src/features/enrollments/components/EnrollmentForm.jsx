@@ -235,7 +235,8 @@ const EnrollmentForm = ({
 
 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid
+                    size={{ xs: 12, md: 6 }}>
 
                     <TextField
                         fullWidth
@@ -255,7 +256,8 @@ const EnrollmentForm = ({
 
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid
+                    size={{ xs: 12, md: 6 }}>
 
                     <TextField
                         select
@@ -290,7 +292,8 @@ const EnrollmentForm = ({
 
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid
+                    size={{ xs: 12 }}>
 
                     <TextField
                         fullWidth

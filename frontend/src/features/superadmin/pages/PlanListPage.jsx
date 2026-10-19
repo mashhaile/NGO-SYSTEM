@@ -647,10 +647,7 @@ const PlanListPage = () => {
                         plan => (
 
                             <Grid
-                                item
-                                xs={12}
-                                md={6}
-                                lg={4}
+                                size={{ xs: 12, md: 6, lg: 4 }}
                                 key={plan._id}
                             >
 
@@ -941,9 +938,7 @@ const PlanListPage = () => {
                         {/* BASIC */}
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <TextField
@@ -962,9 +957,7 @@ const PlanListPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <TextField
@@ -983,8 +976,7 @@ const PlanListPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
+                            size={{ xs: 12 }}
                         >
 
                             <TextField
@@ -1007,9 +999,7 @@ const PlanListPage = () => {
                         {/* PRICE */}
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <TextField
@@ -1029,9 +1019,7 @@ const PlanListPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <TextField
@@ -1050,9 +1038,7 @@ const PlanListPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <TextField
@@ -1084,9 +1070,7 @@ const PlanListPage = () => {
                         {/* TRIAL */}
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <TextField
@@ -1114,9 +1098,7 @@ const PlanListPage = () => {
                         {/* SORT ORDER */}
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <TextField
@@ -1138,9 +1120,7 @@ const PlanListPage = () => {
                         {/* STATUS */}
 
                         <Grid
-                            item
-                            xs={12}
-                            md={4}
+                            size={{ xs: 12, md: 4 }}
                         >
 
                             <TextField
@@ -1177,8 +1157,7 @@ const PlanListPage = () => {
                         {/* LIMITS */}
 
                         <Grid
-                            item
-                            xs={12}
+                            size={{ xs: 12 }}
                         >
 
                             <Typography
@@ -1200,10 +1179,7 @@ const PlanListPage = () => {
                             field => (
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    sm={6}
-                                    md={3}
+                                    size={{ xs: 12, sm: 6, md: 3 }}
                                     key={field}
                                 >
 
@@ -1232,8 +1208,7 @@ const PlanListPage = () => {
                         {/* FEATURES */}
 
                         <Grid
-                            item
-                            xs={12}
+                            size={{ xs: 12 }}
                         >
 
                             <Typography
@@ -1260,10 +1235,7 @@ const PlanListPage = () => {
                                 field => (
 
                                     <Grid
-                                        item
-                                        xs={12}
-                                        sm={6}
-                                        md={3}
+                                        size={{ xs: 12, sm: 6, md: 3 }}
                                         key={field}
                                     >
 
@@ -1304,8 +1276,7 @@ const PlanListPage = () => {
                         {/* EXPORTS */}
 
                         <Grid
-                            item
-                            xs={12}
+                            size={{ xs: 12 }}
                         >
 
                             <Typography
@@ -1328,10 +1299,7 @@ const PlanListPage = () => {
                             field => (
 
                                 <Grid
-                                    item
-                                    xs={12}
-                                    sm={6}
-                                    md={3}
+                                    size={{ xs: 12, sm: 6, md: 3 }}
                                     key={field}
                                 >
 

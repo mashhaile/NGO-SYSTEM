@@ -569,9 +569,7 @@ const OrganizationEditPage = () => {
                     >
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -587,9 +585,7 @@ const OrganizationEditPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -606,9 +602,7 @@ const OrganizationEditPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -623,9 +617,7 @@ const OrganizationEditPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -640,8 +632,7 @@ const OrganizationEditPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
+                            size={{ xs: 12 }}
                         >
 
                             <AppTextField
@@ -658,9 +649,7 @@ const OrganizationEditPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
@@ -675,9 +664,7 @@ const OrganizationEditPage = () => {
 
 
                         <Grid
-                            item
-                            xs={12}
-                            md={6}
+                            size={{ xs: 12, md: 6 }}
                         >
 
                             <AppTextField
