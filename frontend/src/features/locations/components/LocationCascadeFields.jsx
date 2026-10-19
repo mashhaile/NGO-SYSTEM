@@ -5,6 +5,11 @@ import {
 
 
 import {
+    Grid
+} from "@mui/material";
+
+
+import {
     AppAutoComplete,
     AppTextField
 } from "../../../components/ui";
@@ -45,9 +50,9 @@ import useZoneLabel
 // last level has no official list (Addis woredas)
 // it falls back to a free-text field.
 //
-// renderItem(field, key) wraps each field, e.g. in a
-// MUI <Grid>; by default fields render side by side
-// for use inside FormGrid.
+// Inside FormGrid each level gets its own cell
+// (FormGrid passes gridSize). renderItem(field, key)
+// can wrap fields for other layouts.
 //
 // =====================================================
 
@@ -377,8 +382,32 @@ const LocationCascadeFields = ({
     disabled = false,
     required = false,
     size = "small",
-    renderItem = (field) => field
+    gridSize,
+    renderItem
 }) => {
+
+    const wrapField =
+        renderItem ||
+        (
+            gridSize
+                ? (field, key) => (
+                    <Grid
+                        key={key}
+                        size={gridSize}
+                        sx={{
+                            minWidth: 0,
+                            "& > *": {
+                                width: "100%",
+                                minWidth: 0
+                            }
+                        }}
+                    >
+                        {field}
+                    </Grid>
+                )
+                : (field) => field
+        );
+
 
     const zoneLabel =
         useZoneLabel(
@@ -398,7 +427,7 @@ const LocationCascadeFields = ({
 
         <>
             {LEVELS.map(
-                (config, index) => renderItem(
+                (config, index) => wrapField(
 
                     <LocationLevelField
                         key={config.level}
@@ -422,6 +451,12 @@ const LocationCascadeFields = ({
     );
 
 };
+
+
+// Tells FormGrid to let this component lay out its
+// own cells instead of wrapping it in one.
+
+LocationCascadeFields.formGridItems = true;
 
 
 export default LocationCascadeFields;

@@ -1,5 +1,6 @@
 import {
-    Children
+    Children,
+    cloneElement
 } from "react";
 
 import {
@@ -40,6 +41,28 @@ const FormGrid = ({
 
                 if (!child) {
                     return null;
+                }
+
+
+                // Components that render several fields
+                // (e.g. LocationCascadeFields) set
+                // formGridItems and lay out their own cells.
+
+                if (child.type?.formGridItems) {
+
+                    return cloneElement(
+                        child,
+                        {
+                            key:
+                                child.key ??
+                                index,
+                            gridSize: {
+                                xs: 12,
+                                md: mdSize
+                            }
+                        }
+                    );
+
                 }
 
 

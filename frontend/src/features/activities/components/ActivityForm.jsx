@@ -6,13 +6,7 @@ import {
 
 
 import {
-    Box,
-    Grid,
-    TextField,
-    MenuItem,
-    Button,
-    Stack,
-    Autocomplete
+    Box
 } from "@mui/material";
 
 
@@ -21,20 +15,43 @@ import {
 } from "@mui/icons-material";
 
 
+import {
+    PageCard,
+    FormSection,
+    FormGrid,
+    FormActions,
+    AppTextField,
+    AppSelect,
+    AppDatePicker,
+    AppAutoComplete,
+    AppButton
+} from "../../../components/ui";
+
 
 import {
     getProjectLookupService
-}
-from "../../projects/services/projectService";
+} from "../../projects/services/projectService";
 
 
 import LocationCascadeFields
-from "../../locations/components/LocationCascadeFields";
+    from "../../locations/components/LocationCascadeFields";
 
 
 
-const ACTIVITY_TYPES = [
+// =====================================================
+// OPTIONS
+// =====================================================
 
+const toOptions = (items) =>
+    items.map(
+        item => ({
+            value: item,
+            label: item
+        })
+    );
+
+
+const ACTIVITY_TYPES = toOptions([
     "Training",
     "Workshop",
     "Seminar",
@@ -47,15 +64,10 @@ const ACTIVITY_TYPES = [
     "Distribution",
     "Community Dialogue",
     "Other"
-
-];
-
+]);
 
 
-
-
-const PARTICIPANT_SOURCES = [
-
+const PARTICIPANT_SOURCES = toOptions([
     "Enrolled Beneficiaries",
     "Staff",
     "Board Members",
@@ -63,15 +75,10 @@ const PARTICIPANT_SOURCES = [
     "Partners",
     "External Participants",
     "Mixed"
-
-];
-
-
-
+]);
 
 
 const TARGET_GROUPS = [
-
     "Women",
     "Men",
     "Youth",
@@ -88,1105 +95,626 @@ const TARGET_GROUPS = [
     "Partners",
     "Government Officials",
     "General Public"
-
 ];
 
 
+const STATUSES = toOptions([
+    "Planned",
+    "Ongoing",
+    "Completed",
+    "Cancelled"
+]);
 
 
 
-
+// =====================================================
+// INITIAL STATE
+// =====================================================
 
 const initialState = {
 
+    project: null,
 
-    project:null,
+    name: "",
 
-    name:"",
+    activityType: "Training",
 
-    activityType:"Training",
+    participantSource: "Enrolled Beneficiaries",
 
-    participantSource:"Enrolled Beneficiaries",
+    targetGroups: [],
 
-    targetGroups:[],
+    description: "",
 
-    description:"",
+    activityDate: "",
 
-    activityDate:"",
+    region: "",
+    regionCode: "",
+    zone: "",
+    zoneCode: "",
+    woreda: "",
+    woredaCode: "",
 
-    region:"",
-    regionCode:"",
-    zone:"",
-    zoneCode:"",
-    woreda:"",
-    woredaCode:"",
+    location: "",
 
-    location:"",
+    facilitator: "",
 
-    facilitator:"",
+    targetParticipants: 0,
 
-    targetParticipants:0,
+    status: "Planned",
 
-    status:"Planned",
+    remarks: ""
 
-    remarks:""
+};
 
+
+// Dates are kept as "YYYY-MM-DD" strings.
+
+const toDateString = (value) =>
+    value
+        ? String(value).substring(0, 10)
+        : "";
+
+
+
+// =====================================================
+// FORM STATE FROM EXISTING RECORD (edit mode)
+// =====================================================
+//
+// The edit page mounts the form once the record has
+// loaded (keyed by id), so this runs once per record.
+//
+// =====================================================
+
+const buildFormState = (initialData) => {
+
+    if (
+        !initialData ||
+        !Object.keys(initialData).length
+    ) {
+        return initialState;
+    }
+
+    return {
+
+        project:
+            initialData.project || null,
+
+        name:
+            initialData.name || "",
+
+        activityType:
+            initialData.activityType || "Training",
+
+        participantSource:
+            initialData.participantSource ||
+            "Enrolled Beneficiaries",
+
+        targetGroups:
+            initialData.targetGroups || [],
+
+        description:
+            initialData.description || "",
+
+        activityDate:
+            toDateString(
+                initialData.activityDate
+            ),
+
+        region:
+            initialData.region || "",
+
+        regionCode:
+            initialData.regionCode || "",
+
+        zone:
+            initialData.zone || "",
+
+        zoneCode:
+            initialData.zoneCode || "",
+
+        woreda:
+            initialData.woreda || "",
+
+        woredaCode:
+            initialData.woredaCode || "",
+
+        location:
+            initialData.location || "",
+
+        facilitator:
+            initialData.facilitator || "",
+
+        targetParticipants:
+            initialData.targetParticipants ?? 0,
+
+        status:
+            initialData.status || "Planned",
+
+        remarks:
+            initialData.remarks || ""
+
+    };
 
 };
 
 
 
-
-
-
-
+// =====================================================
+// ACTIVITY FORM
+// =====================================================
 
 const ActivityForm = ({
-
-    initialData={},
-
+    initialData = {},
     onSubmit,
+    loading = false
+}) => {
 
-    loading=false
+    const [formData, setFormData] =
+        useState(
+            () => buildFormState(initialData)
+        );
 
-})=>{
+    const [projects, setProjects] =
+        useState([]);
 
+    const [dateError, setDateError] =
+        useState("");
 
 
+    // =================================================
+    // LOAD PROJECTS
+    // =================================================
 
+    useEffect(() => {
 
-const [formData,setFormData] = useState(initialState);
+        getProjectLookupService()
 
+            .then(response =>
+                setProjects(
+                    response.data.data || []
+                )
+            )
 
-const [projects,setProjects] = useState([]);
+            .catch(error =>
+                console.error(
+                    "PROJECT LOOKUP ERROR",
+                    error
+                )
+            );
 
+    }, []);
 
 
 
 
+    // =================================================
+    // CHANGE FIELD
+    // =================================================
 
+    const changeField = (field, value) => {
 
-useEffect(()=>{
+        if (field === "activityDate") {
+            setDateError("");
+        }
 
-    loadProjects();
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
 
-},[]);
+    };
 
 
+    // Location cascade: several fields at once.
 
+    const changeFields = useCallback(
+        (patch) => {
 
+            setFormData(prev => ({
+                ...prev,
+                ...patch
+            }));
 
+        },
+        []
+    );
 
 
+    // =================================================
+    // SUBMIT
+    // =================================================
 
+    const handleSubmit = (e) => {
 
+        e.preventDefault();
 
-useEffect(()=>{
+        if (!formData.activityDate) {
+            setDateError("Activity date is required");
+            return;
+        }
 
+        onSubmit({
 
-if(initialData && Object.keys(initialData).length){
+            project:
+                formData.project?._id || null,
 
+            name:
+                formData.name,
 
-setFormData({
+            activityType:
+                formData.activityType,
 
+            participantSource:
+                formData.participantSource,
 
-    project:
-        initialData.project || null,
+            targetGroups:
+                formData.targetGroups,
 
+            description:
+                formData.description,
 
-    name:
-        initialData.name || "",
+            activityDate:
+                formData.activityDate,
 
+            region:
+                formData.region,
 
-    activityType:
-        initialData.activityType || "Training",
+            regionCode:
+                formData.regionCode,
 
+            zone:
+                formData.zone,
 
-    participantSource:
-        initialData.participantSource ||
-        "Enrolled Beneficiaries",
+            zoneCode:
+                formData.zoneCode,
 
+            woreda:
+                formData.woreda,
 
-    targetGroups:
-        initialData.targetGroups || [],
+            woredaCode:
+                formData.woredaCode,
 
+            location:
+                formData.location,
 
-    description:
-        initialData.description || "",
+            facilitator:
+                formData.facilitator,
 
+            targetParticipants:
+                Number(formData.targetParticipants),
 
-    activityDate:
+            status:
+                formData.status,
 
-        initialData.activityDate
+            remarks:
+                formData.remarks
+
+        });
+
+    };
+
 
-        ?
-
-        initialData.activityDate.substring(0,10)
-
-        :
-
-        "",
-
-
-    region:
-        initialData.region || "",
-
-    regionCode:
-        initialData.regionCode || "",
-
-    zone:
-        initialData.zone || "",
-
-    zoneCode:
-        initialData.zoneCode || "",
-
-    woreda:
-        initialData.woreda || "",
-
-    woredaCode:
-        initialData.woredaCode || "",
-
-
-    location:
-        initialData.location || "",
-
-
-    facilitator:
-        initialData.facilitator || "",
-
-
-    targetParticipants:
-        initialData.targetParticipants ?? 0,
-
-
-    status:
-        initialData.status || "Planned",
-
-
-    remarks:
-        initialData.remarks || ""
-
-});
-
-
-}
-
-
-},[initialData]);
-
-
-
-
-
-
-
-
-
-const loadProjects = async()=>{
-
-
-try{
-
-
-const response = await getProjectLookupService();
-
-
-setProjects(
-
-    response.data.data || []
-
-);
-
-
-}
-
-catch(error){
-
-console.error(
-
-    "PROJECT LOOKUP ERROR",
-
-    error
-
-);
-
-}
-
+    const selectedProject =
+        projects.find(
+            item =>
+                item._id === formData.project?._id
+        ) || null;
+
+
+
+    // =================================================
+    // RENDER
+    // =================================================
+
+    return (
+
+        <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+                width: "100%"
+            }}
+        >
+
+
+            {/* =================================================
+                ACTIVITY INFORMATION
+            ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Activity Information"
+                >
+
+                    <FormGrid>
+
+                        <AppAutoComplete
+                            label="Project"
+                            required
+                            options={projects}
+                            value={selectedProject}
+                            placeholder="Select Project"
+                            getOptionLabel={(option) =>
+                                option
+                                    ? `${option.projectCode} - ${option.name}`
+                                    : ""
+                            }
+                            isOptionEqualToValue={(a, b) =>
+                                a._id === b._id
+                            }
+                            onChange={(value) =>
+                                changeField(
+                                    "project",
+                                    value
+                                )
+                            }
+                        />
+
+
+                        <AppTextField
+                            label="Activity Name"
+                            required
+                            value={formData.name}
+                            onChange={(e) =>
+                                changeField(
+                                    "name",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+
+                        <AppSelect
+                            label="Activity Type"
+                            required
+                            value={formData.activityType}
+                            options={ACTIVITY_TYPES}
+                            onChange={(e) =>
+                                changeField(
+                                    "activityType",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+
+                        <AppSelect
+                            label="Participant Source"
+                            required
+                            value={formData.participantSource}
+                            options={PARTICIPANT_SOURCES}
+                            onChange={(e) =>
+                                changeField(
+                                    "participantSource",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+
+                        <AppTextField
+                            label="Facilitator"
+                            value={formData.facilitator}
+                            onChange={(e) =>
+                                changeField(
+                                    "facilitator",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+
+                        <AppTextField
+                            label="Target Participants"
+                            type="number"
+                            inputProps={{
+                                min: 0
+                            }}
+                            value={formData.targetParticipants}
+                            onChange={(e) =>
+                                changeField(
+                                    "targetParticipants",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </FormGrid>
+
+
+                    <Box
+                        sx={{
+                            mt: 2
+                        }}
+                    >
+
+                        <AppAutoComplete
+                            label="Target Groups"
+                            multiple
+                            options={TARGET_GROUPS}
+                            value={formData.targetGroups}
+                            placeholder="Select Target Groups"
+                            getOptionLabel={(option) =>
+                                option || ""
+                            }
+                            isOptionEqualToValue={(a, b) =>
+                                a === b
+                            }
+                            onChange={(value) =>
+                                changeField(
+                                    "targetGroups",
+                                    value || []
+                                )
+                            }
+                        />
+
+                    </Box>
+
+
+                    <Box
+                        sx={{
+                            mt: 2
+                        }}
+                    >
+
+                        <AppTextField
+                            label="Description"
+                            multiline
+                            rows={3}
+                            value={formData.description}
+                            onChange={(e) =>
+                                changeField(
+                                    "description",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </Box>
+
+                </FormSection>
+
+            </PageCard>
+
+
+
+            {/* =================================================
+                DATE AND LOCATION
+            ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Date and Location"
+                >
+
+                    <FormGrid>
+
+                        <AppDatePicker
+                            label="Activity Date"
+                            required
+                            error={Boolean(dateError)}
+                            helperText={dateError}
+                            value={
+                                formData.activityDate || null
+                            }
+                            onChange={(date) =>
+                                changeField(
+                                    "activityDate",
+                                    date
+                                        ? date.format("YYYY-MM-DD")
+                                        : ""
+                                )
+                            }
+                        />
+
+
+                        <LocationCascadeFields
+                            value={formData}
+                            onChange={changeFields}
+                        />
+
+
+                        <AppTextField
+                            label="Venue / Site"
+                            placeholder="e.g. Kebele 05 community hall"
+                            value={formData.location}
+                            onChange={(e) =>
+                                changeField(
+                                    "location",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </FormGrid>
+
+                </FormSection>
+
+            </PageCard>
+
+
+
+            {/* =================================================
+                STATUS
+            ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Status"
+                >
+
+                    <FormGrid>
+
+                        <AppSelect
+                            label="Status"
+                            required
+                            value={formData.status}
+                            options={STATUSES}
+                            onChange={(e) =>
+                                changeField(
+                                    "status",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </FormGrid>
+
+
+                    <Box
+                        sx={{
+                            mt: 2
+                        }}
+                    >
+
+                        <AppTextField
+                            label="Remarks"
+                            multiline
+                            rows={3}
+                            value={formData.remarks}
+                            onChange={(e) =>
+                                changeField(
+                                    "remarks",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </Box>
+
+                </FormSection>
+
+            </PageCard>
+
+
+
+            {/* =================================================
+                ACTIONS
+            ================================================= */}
+
+            <FormActions>
+
+                <AppButton
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    startIcon={<Save />}
+                    loading={loading}
+                    loadingText="Saving..."
+                >
+                    Save Activity
+                </AppButton>
+
+            </FormActions>
+
+        </Box>
+
+    );
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-const handleChange=(field,value)=>{
-
-
-setFormData({
-
-    ...formData,
-
-    [field]:value
-
-});
-
-
-};
-
-
-
-// location cascade: several fields at once
-
-const changeFields=useCallback((patch)=>{
-
-setFormData(prev=>({
-
-    ...prev,
-
-    ...patch
-
-}));
-
-},[]);
-
-
-
-
-
-
-
-
-
-const handleSubmit=(e)=>{
-
-
-e.preventDefault();
-
-
-
-onSubmit({
-
-
-    project:
-
-        formData.project?._id || null,
-
-
-    name:
-        formData.name,
-
-
-    activityType:
-        formData.activityType,
-
-
-    participantSource:
-        formData.participantSource,
-
-
-    targetGroups:
-        formData.targetGroups,
-
-
-    description:
-        formData.description,
-
-
-    activityDate:
-        formData.activityDate,
-
-
-    region:
-        formData.region,
-
-    regionCode:
-        formData.regionCode,
-
-    zone:
-        formData.zone,
-
-    zoneCode:
-        formData.zoneCode,
-
-    woreda:
-        formData.woreda,
-
-    woredaCode:
-        formData.woredaCode,
-
-
-    location:
-        formData.location,
-
-
-    facilitator:
-        formData.facilitator,
-
-
-    targetParticipants:
-        Number(formData.targetParticipants),
-
-
-    status:
-        formData.status,
-
-
-    remarks:
-        formData.remarks
-
-
-});
-
-
-};
-
-
-
-
-
-
-
-
-
-return (
-
-<Box
-
-component="form"
-
-onSubmit={handleSubmit}
-
->
-
-
-<Grid
-
-container
-
-spacing={3}
-
->
-
-
-
-
-
-
-<Grid size={12}>
-
-
-<Autocomplete
-
-
-
-options={projects}
-
-
-
-value={
-
-projects.find(
-
-(item)=>
-
-item._id === formData.project?._id
-
-)
-
-||
-
-null
-
-}
-
-
-
-getOptionLabel={(option)=>
-
-option
-
-?
-
-`${option.projectCode} - ${option.name}`
-
-:
-
-""
-
-}
-
-
-
-isOptionEqualToValue={(a,b)=>
-
-a._id===b._id
-
-}
-
-
-
-onChange={(e,value)=>
-
-handleChange(
-
-"project",
-
-value
-
-)
-
-}
-
-
-
-renderInput={(params)=>(
-
-<TextField
-
-{...params}
-
-label="Project"
-
-required
-
-/>
-
-)}
-
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-label="Activity Name"
-
-required
-
-value={formData.name}
-
-onChange={(e)=>
-
-handleChange(
-
-"name",
-
-e.target.value
-
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-select
-
-fullWidth
-
-label="Activity Type"
-
-value={formData.activityType}
-
-onChange={(e)=>
-
-handleChange(
-
-"activityType",
-
-e.target.value
-
-)
-
-}
-
->
-
-
-{
-
-ACTIVITY_TYPES.map(item=>(
-
-<MenuItem
-
-key={item}
-
-value={item}
-
->
-
-{item}
-
-</MenuItem>
-
-))
-
-}
-
-
-</TextField>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-select
-
-fullWidth
-
-label="Participant Source"
-
-value={formData.participantSource}
-
-onChange={(e)=>
-
-handleChange(
-
-"participantSource",
-
-e.target.value
-
-)
-
-}
-
->
-
-
-{
-
-PARTICIPANT_SOURCES.map(item=>(
-
-<MenuItem
-
-key={item}
-
-value={item}
-
->
-
-{item}
-
-</MenuItem>
-
-))
-
-}
-
-
-</TextField>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12}}>
-
-
-<Autocomplete
-
-
-multiple
-
-
-options={TARGET_GROUPS}
-
-
-value={formData.targetGroups}
-
-
-onChange={(e,value)=>
-
-handleChange(
-
-"targetGroups",
-
-value
-
-)
-
-}
-
-
-renderInput={(params)=>(
-
-<TextField
-
-{...params}
-
-label="Target Groups"
-
-/>
-
-)}
-
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-type="date"
-
-label="Activity Date"
-
-InputLabelProps={{
-
-shrink:true
-
-}}
-
-value={formData.activityDate}
-
-onChange={(e)=>
-
-handleChange(
-
-"activityDate",
-
-e.target.value
-
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<LocationCascadeFields
-
-value={formData}
-
-onChange={changeFields}
-
-size="medium"
-
-renderItem={(field,key)=>(
-
-<Grid key={key} size={{xs:12,md:6}}>
-
-{field}
-
-</Grid>
-
-)}
-
-/>
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-label="Venue / Site"
-
-value={formData.location}
-
-onChange={(e)=>
-
-handleChange(
-
-"location",
-
-e.target.value
-
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-label="Facilitator"
-
-value={formData.facilitator}
-
-onChange={(e)=>
-
-handleChange(
-
-"facilitator",
-
-e.target.value
-
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-type="number"
-
-label="Target Participants"
-
-inputProps={{
-
-min:0
-
-}}
-
-value={formData.targetParticipants}
-
-onChange={(e)=>
-
-handleChange(
-
-"targetParticipants",
-
-e.target.value
-
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-select
-
-fullWidth
-
-label="Status"
-
-value={formData.status}
-
-onChange={(e)=>
-
-handleChange(
-
-"status",
-
-e.target.value
-
-)
-
-}
-
->
-
-
-<MenuItem value="Planned">
-
-Planned
-
-</MenuItem>
-
-
-<MenuItem value="Ongoing">
-
-Ongoing
-
-</MenuItem>
-
-
-<MenuItem value="Completed">
-
-Completed
-
-</MenuItem>
-
-
-<MenuItem value="Cancelled">
-
-Cancelled
-
-</MenuItem>
-
-
-</TextField>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={12}>
-
-
-<TextField
-
-fullWidth
-
-multiline
-
-rows={3}
-
-label="Description"
-
-value={formData.description}
-
-onChange={(e)=>
-
-handleChange(
-
-"description",
-
-e.target.value
-
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Grid size={12}>
-
-
-<TextField
-
-fullWidth
-
-multiline
-
-rows={3}
-
-label="Remarks"
-
-value={formData.remarks}
-
-onChange={(e)=>
-
-handleChange(
-
-"remarks",
-
-e.target.value
-
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-</Grid>
-
-
-
-
-
-
-
-
-
-<Stack
-
-mt={4}
-
-direction="row"
-
-justifyContent="flex-end"
-
->
-
-
-<Button
-
-type="submit"
-
-variant="contained"
-
-startIcon={<Save/>}
-
-disabled={loading}
-
->
-
-
-{
-
-loading
-
-?
-
-"Saving..."
-
-:
-
-"Save Activity"
-
-}
-
-
-</Button>
-
-
-</Stack>
-
-
-
-
-
-
-
-</Box>
-
-);
-
-
-};
-
-
-
 
 
 export default ActivityForm;

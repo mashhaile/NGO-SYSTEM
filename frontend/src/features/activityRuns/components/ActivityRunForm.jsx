@@ -2,772 +2,554 @@ import {
     useCallback,
     useEffect,
     useState
-}
-from "react";
+} from "react";
 
 
 import {
-
-    Box,
-    Grid,
-    TextField,
-    MenuItem,
-    Button,
-    Stack
-
-}
-from "@mui/material";
+    Box
+} from "@mui/material";
 
 
 import {
     Save
-}
-from "@mui/icons-material";
+} from "@mui/icons-material";
+
+
+import {
+    PageCard,
+    FormSection,
+    FormGrid,
+    FormActions,
+    AppTextField,
+    AppSelect,
+    AppDatePicker,
+    AppAutoComplete,
+    AppButton
+} from "../../../components/ui";
 
 
 import {
     getActivityLookupService
-}
-from "../../activities/services/lookupService";
+} from "../../activities/services/lookupService";
 
 
 import LocationCascadeFields
-from "../../locations/components/LocationCascadeFields";
+    from "../../locations/components/LocationCascadeFields";
 
 
 
+// =====================================================
+// OPTIONS
+// =====================================================
+
+const STATUSES = [
+    "Planned",
+    "Active",
+    "Completed",
+    "Cancelled"
+].map(
+    item => ({
+        value: item,
+        label: item
+    })
+);
+
+
+
+// =====================================================
+// INITIAL STATE
+// =====================================================
 
 const initialState = {
 
-    activity:null,
+    activity: null,
 
-    name:"",
+    name: "",
 
-    startDate:"",
+    startDate: "",
 
-    endDate:"",
+    endDate: "",
 
-    region:"",
-    regionCode:"",
-    zone:"",
-    zoneCode:"",
-    woreda:"",
-    woredaCode:"",
+    region: "",
+    regionCode: "",
+    zone: "",
+    zoneCode: "",
+    woreda: "",
+    woredaCode: "",
 
-    location:"",
+    location: "",
 
-    status:"Planned",
+    status: "Planned",
 
-    notes:""
+    notes: ""
+
+};
+
+
+// Dates are kept as "YYYY-MM-DD" strings.
+
+const toDateString = (value) =>
+    value
+        ? new Date(value)
+            .toISOString()
+            .substring(0, 10)
+        : "";
+
+
+const getId = (value) =>
+    value && typeof value === "object"
+        ? value._id
+        : value || null;
+
+
+
+// =====================================================
+// FORM STATE FROM EXISTING RECORD (edit mode)
+// =====================================================
+//
+// The edit page mounts the form once the record has
+// loaded (keyed by id), so this runs once per record.
+//
+// =====================================================
+
+const buildFormState = (initialData) => {
+
+    if (
+        !initialData ||
+        !Object.keys(initialData).length
+    ) {
+        return initialState;
+    }
+
+    return {
+
+        activity:
+            initialData.activity || null,
+
+        name:
+            initialData.name || "",
+
+        startDate:
+            toDateString(
+                initialData.startDate
+            ),
+
+        endDate:
+            toDateString(
+                initialData.endDate
+            ),
+
+        region:
+            initialData.region || "",
+
+        regionCode:
+            initialData.regionCode || "",
+
+        zone:
+            initialData.zone || "",
+
+        zoneCode:
+            initialData.zoneCode || "",
+
+        woreda:
+            initialData.woreda || "",
+
+        woredaCode:
+            initialData.woredaCode || "",
+
+        location:
+            initialData.location || "",
+
+        status:
+            initialData.status || "Planned",
+
+        notes:
+            initialData.notes || ""
+
+    };
 
 };
 
 
 
-
+// =====================================================
+// ACTIVITY RUN FORM
+// =====================================================
 
 const ActivityRunForm = ({
-
     initialData = {},
-
     onSubmit,
-
     loading = false
+}) => {
 
-})=>{
+    const [formData, setFormData] =
+        useState(
+            () => buildFormState(initialData)
+        );
 
+    const [activities, setActivities] =
+        useState([]);
 
-const [formData,setFormData] = useState(initialState);
+    const [errors, setErrors] =
+        useState({});
 
 
-const [activities,setActivities] = useState([]);
+    // =================================================
+    // LOAD ACTIVITIES
+    // =================================================
 
+    useEffect(() => {
 
+        getActivityLookupService()
 
+            .then(response =>
+                setActivities(
+                    response.data.data || []
+                )
+            )
 
+            .catch(error =>
+                console.error(
+                    "Activity lookup error",
+                    error
+                )
+            );
 
-useEffect(()=>{
+    }, []);
 
-    loadActivities();
 
-},[]);
 
 
+    // =================================================
+    // CHANGE FIELD
+    // =================================================
 
+    const changeField = (field, value) => {
 
+        setErrors(prev => ({
+            ...prev,
+            [field]: ""
+        }));
 
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
 
-useEffect(()=>{
+    };
 
 
-if(initialData && Object.keys(initialData).length){
+    // Location cascade: several fields at once.
 
+    const changeFields = useCallback(
+        (patch) => {
 
-setFormData({
+            setFormData(prev => ({
+                ...prev,
+                ...patch
+            }));
 
-    activity:
-        initialData.activity || null,
+        },
+        []
+    );
 
-    name:
-        initialData.name || "",
 
+    const changeDate = (field) => (date) =>
+        changeField(
+            field,
+            date
+                ? date.format("YYYY-MM-DD")
+                : ""
+        );
 
-    startDate:
-        initialData.startDate
-        ?
-        new Date(initialData.startDate)
-        .toISOString()
-        .substring(0,10)
-        :
-        "",
 
+    // =================================================
+    // SUBMIT
+    // =================================================
 
-    endDate:
-        initialData.endDate
-        ?
-        new Date(initialData.endDate)
-        .toISOString()
-        .substring(0,10)
-        :
-        "",
+    const submit = (e) => {
 
+        e.preventDefault();
 
-    region:
-        initialData.region || "",
+        const nextErrors = {};
 
-    regionCode:
-        initialData.regionCode || "",
+        if (!formData.startDate) {
+            nextErrors.startDate =
+                "Start date is required";
+        }
 
-    zone:
-        initialData.zone || "",
+        if (
+            formData.startDate &&
+            formData.endDate &&
+            formData.endDate < formData.startDate
+        ) {
+            nextErrors.endDate =
+                "End date cannot be before start date";
+        }
 
-    zoneCode:
-        initialData.zoneCode || "",
+        if (Object.keys(nextErrors).length) {
+            setErrors(nextErrors);
+            return;
+        }
 
-    woreda:
-        initialData.woreda || "",
+        onSubmit({
 
-    woredaCode:
-        initialData.woredaCode || "",
+            activity:
+                getId(formData.activity),
 
+            name:
+                formData.name.trim(),
 
-    location:
-        initialData.location || "",
+            startDate:
+                formData.startDate,
 
+            endDate:
+                formData.endDate || null,
 
-    status:
-        initialData.status || "Planned",
+            region:
+                formData.region,
 
+            regionCode:
+                formData.regionCode,
 
-    notes:
-        initialData.notes || ""
+            zone:
+                formData.zone,
 
-});
+            zoneCode:
+                formData.zoneCode,
+
+            woreda:
+                formData.woreda,
+
+            woredaCode:
+                formData.woredaCode,
+
+            location:
+                formData.location || null,
 
+            status:
+                formData.status,
 
-}
+            notes:
+                formData.notes || null
 
+        });
 
-},[initialData]);
+    };
 
 
+    const selectedActivity =
+        activities.find(
+            item =>
+                item._id === getId(formData.activity)
+        ) || null;
 
 
 
+    // =================================================
+    // RENDER
+    // =================================================
 
+    return (
 
-const loadActivities = async()=>{
+        <Box
+            component="form"
+            onSubmit={submit}
+            sx={{
+                width: "100%"
+            }}
+        >
 
-try{
 
+            {/* =================================================
+                RUN INFORMATION
+            ================================================= */}
 
-const response = await getActivityLookupService();
+            <PageCard>
+
+                <FormSection
+                    title="Run Information"
+                >
+
+                    <FormGrid>
 
+                        <AppAutoComplete
+                            label="Activity"
+                            required
+                            options={activities}
+                            value={selectedActivity}
+                            placeholder="Select Activity"
+                            getOptionLabel={(option) =>
+                                option
+                                    ? `${option.activityCode} - ${option.name}`
+                                    : ""
+                            }
+                            isOptionEqualToValue={(a, b) =>
+                                a._id === b._id
+                            }
+                            onChange={(value) =>
+                                changeField(
+                                    "activity",
+                                    value
+                                )
+                            }
+                        />
+
 
-setActivities(
+                        <AppTextField
+                            label="Run Name"
+                            required
+                            value={formData.name}
+                            onChange={(e) =>
+                                changeField(
+                                    "name",
+                                    e.target.value
+                                )
+                            }
+                        />
 
-response.data.data || []
 
-);
+                        <AppSelect
+                            label="Status"
+                            required
+                            value={formData.status}
+                            options={STATUSES}
+                            onChange={(e) =>
+                                changeField(
+                                    "status",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </FormGrid>
 
+                </FormSection>
 
-}
-catch(error){
+            </PageCard>
 
-console.error(
-"Activity lookup error",
-error
-);
 
-}
 
+            {/* =================================================
+                SCHEDULE AND LOCATION
+            ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Schedule and Location"
+                >
+
+                    <FormGrid>
+
+                        <AppDatePicker
+                            label="Start Date"
+                            required
+                            value={
+                                formData.startDate || null
+                            }
+                            maxDate={
+                                formData.endDate || undefined
+                            }
+                            error={Boolean(errors.startDate)}
+                            helperText={errors.startDate}
+                            onChange={changeDate("startDate")}
+                        />
+
+
+                        <AppDatePicker
+                            label="End Date"
+                            value={
+                                formData.endDate || null
+                            }
+                            minDate={
+                                formData.startDate || undefined
+                            }
+                            error={Boolean(errors.endDate)}
+                            helperText={errors.endDate}
+                            onChange={changeDate("endDate")}
+                        />
+
+
+                        <AppTextField
+                            label="Venue / Site"
+                            placeholder="e.g. Kebele 05 community hall"
+                            value={formData.location}
+                            onChange={(e) =>
+                                changeField(
+                                    "location",
+                                    e.target.value
+                                )
+                            }
+                        />
+
+
+                        <LocationCascadeFields
+                            value={formData}
+                            onChange={changeFields}
+                        />
+
+                    </FormGrid>
+
+                </FormSection>
+
+            </PageCard>
+
+
+
+            {/* =================================================
+                NOTES
+            ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Notes"
+                >
+
+                    <AppTextField
+                        label="Notes"
+                        multiline
+                        rows={3}
+                        value={formData.notes}
+                        onChange={(e) =>
+                            changeField(
+                                "notes",
+                                e.target.value
+                            )
+                        }
+                    />
+
+                </FormSection>
+
+            </PageCard>
+
+
+
+            {/* =================================================
+                ACTIONS
+            ================================================= */}
+
+            <FormActions>
+
+                <AppButton
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    startIcon={<Save />}
+                    loading={loading}
+                    loadingText="Saving..."
+                >
+                    Save Activity Run
+                </AppButton>
+
+            </FormActions>
+
+        </Box>
+
+    );
 
 };
-
-
-
-
-
-
-
-
-const change=(field,value)=>{
-
-
-setFormData(prev=>({
-
-...prev,
-
-[field]:value
-
-}));
-
-
-};
-
-
-
-// location cascade: several fields at once
-
-const changeFields=useCallback((patch)=>{
-
-setFormData(prev=>({
-
-...prev,
-
-...patch
-
-}));
-
-},[]);
-
-
-
-
-
-
-
-
-
-const submit=(e)=>{
-
-
-e.preventDefault();
-
-
-
-// prevent empty date
-
-if(!formData.startDate){
-
-alert("Start date is required");
-
-return;
-
-}
-
-
-
-const payload = {
-
-
-activity:
-formData.activity?._id || null,
-
-
-name:
-formData.name.trim(),
-
-
-startDate:
-formData.startDate,
-
-
-endDate:
-formData.endDate || null,
-
-
-region:
-formData.region,
-
-regionCode:
-formData.regionCode,
-
-zone:
-formData.zone,
-
-zoneCode:
-formData.zoneCode,
-
-woreda:
-formData.woreda,
-
-woredaCode:
-formData.woredaCode,
-
-
-location:
-formData.location || null,
-
-
-status:
-formData.status,
-
-
-notes:
-formData.notes || null
-
-
-};
-
-
-
-
-console.log(
-"ACTIVITY RUN PAYLOAD",
-payload
-);
-
-
-
-onSubmit(payload);
-
-
-
-};
-
-
-
-
-
-
-
-
-return (
-
-<Box
-
-component="form"
-
-onSubmit={submit}
-
->
-
-
-<Grid
-
-container
-
-spacing={3}
-
->
-
-
-
-
-<Grid size={12}>
-
-
-<TextField
-
-select
-
-fullWidth
-
-label="Activity"
-
-value={
-formData.activity?._id || ""
-}
-
-onChange={(e)=>{
-
-
-const selected = activities.find(
-
-item=>item._id === e.target.value
-
-);
-
-
-change(
-
-"activity",
-
-selected
-
-);
-
-
-}}
-
-required
-
->
-
-
-{
-
-activities.map(item=>(
-
-
-<MenuItem
-
-key={item._id}
-
-value={item._id}
-
->
-
-{item.activityCode} - {item.name}
-
-</MenuItem>
-
-
-))
-
-
-}
-
-
-
-</TextField>
-
-
-</Grid>
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-label="Run Name"
-
-required
-
-value={formData.name}
-
-onChange={(e)=>
-
-change(
-"name",
-e.target.value
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-type="date"
-
-label="Start Date"
-
-required
-
-InputLabelProps={{
-
-shrink:true
-
-}}
-
-value={formData.startDate}
-
-onChange={(e)=>
-
-change(
-"startDate",
-e.target.value
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-type="date"
-
-label="End Date"
-
-InputLabelProps={{
-
-shrink:true
-
-}}
-
-value={formData.endDate}
-
-onChange={(e)=>
-
-change(
-"endDate",
-e.target.value
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<LocationCascadeFields
-
-value={formData}
-
-onChange={changeFields}
-
-size="medium"
-
-renderItem={(field,key)=>(
-
-<Grid key={key} size={{xs:12,md:6}}>
-
-{field}
-
-</Grid>
-
-)}
-
-/>
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-fullWidth
-
-label="Venue / Site"
-
-value={formData.location}
-
-onChange={(e)=>
-
-change(
-"location",
-e.target.value
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={{xs:12,md:6}}>
-
-
-<TextField
-
-select
-
-fullWidth
-
-label="Status"
-
-value={formData.status}
-
-onChange={(e)=>
-
-change(
-"status",
-e.target.value
-)
-
-}
-
->
-
-
-<MenuItem value="Planned">
-Planned
-</MenuItem>
-
-
-<MenuItem value="Active">
-Active
-</MenuItem>
-
-
-<MenuItem value="Completed">
-Completed
-</MenuItem>
-
-
-<MenuItem value="Cancelled">
-Cancelled
-</MenuItem>
-
-
-</TextField>
-
-
-</Grid>
-
-
-
-
-
-
-
-
-<Grid size={12}>
-
-
-<TextField
-
-fullWidth
-
-multiline
-
-rows={3}
-
-label="Notes"
-
-value={formData.notes}
-
-onChange={(e)=>
-
-change(
-"notes",
-e.target.value
-)
-
-}
-
-/>
-
-
-</Grid>
-
-
-
-
-
-</Grid>
-
-
-
-
-
-
-
-<Stack
-
-mt={3}
-
-direction="row"
-
-justifyContent="flex-end"
-
->
-
-
-<Button
-
-type="submit"
-
-variant="contained"
-
-startIcon={<Save/>}
-
-disabled={loading}
-
->
-
-
-{
-
-loading
-
-?
-
-"Saving..."
-
-:
-
-"Save Activity Run"
-
-}
-
-
-</Button>
-
-
-</Stack>
-
-
-
-
-
-</Box>
-
-
-);
-
-
-};
-
-
-
 
 
 export default ActivityRunForm;

@@ -17,380 +17,207 @@ import {
 
 
 import {
-    Box,
-    Card,
-    CardContent,
-    Typography,
-    Button,
-    Stack
-} from "@mui/material";
-
-
-import {
     ArrowBack
 } from "@mui/icons-material";
 
 
+import {
+    PageContainer,
+    PageHeader,
+    LoadingState,
+    ErrorState
+} from "../../../components/ui";
+
+
 import ActivityForm
-from "../components/ActivityForm";
+    from "../components/ActivityForm";
 
 
 import {
     updateActivityThunk
-}
-from "../store";
+} from "../store";
 
 
 import {
     getActivityByIdService
-}
-from "../services/activityService";
+} from "../services/activityService";
 
 
 
+// =====================================================
+// ACTIVITY EDIT PAGE
+// =====================================================
 
+const ActivityEditPage = () => {
 
+    const {
+        id
+    } = useParams();
 
+    const navigate =
+        useNavigate();
 
-const ActivityEditPage = ()=>{
+    const dispatch =
+        useDispatch();
 
+    const {
+        loading
+    } = useSelector(
+        state => state.activities
+    );
 
-const {
-    id
-}
-=
-useParams();
+    const [activity, setActivity] =
+        useState(null);
 
+    const [error, setError] =
+        useState("");
 
 
-const navigate = useNavigate();
+    // =================================================
+    // LOAD
+    // =================================================
 
+    useEffect(() => {
 
+        let cancelled = false;
 
-const dispatch = useDispatch();
+        getActivityByIdService(id)
 
+            .then(response => {
 
+                if (!cancelled) {
+                    setActivity(
+                        response.data?.data ||
+                        response.data ||
+                        response
+                    );
+                }
 
+            })
 
-const {
-    loading
-}
-=
-useSelector(
-    state=>state.activities
-);
+            .catch(loadError => {
 
+                console.error(loadError);
 
+                if (!cancelled) {
+                    setError(
+                        loadError.response?.data?.message ||
+                        loadError.message
+                    );
+                }
 
+            });
 
+        return () => {
+            cancelled = true;
+        };
 
-const [activity,setActivity] = useState(null);
+    }, [id]);
 
 
-const [error,setError] = useState("");
+    // =================================================
+    // SUBMIT
+    // =================================================
 
+    const handleSubmit = async (data) => {
 
+        try {
 
+            await dispatch(
+                updateActivityThunk({
+                    id,
+                    data
+                })
+            ).unwrap();
 
+            navigate("/activities");
 
+        }
+        catch (updateError) {
 
+            console.error(
+                "Update activity error:",
+                updateError
+            );
 
+        }
 
-useEffect(()=>{
+    };
 
-    loadActivity();
 
-},[id]);
+    const header = (
 
+        <PageHeader
+            title="Edit Activity"
+            subtitle="Update activity information."
+            action={() =>
+                navigate("/activities")
+            }
+            actionLabel="Back"
+            actionIcon={
+                <ArrowBack />
+            }
+        />
 
+    );
 
 
+    if (error) {
 
+        return (
 
+            <PageContainer>
 
+                {header}
 
+                <ErrorState
+                    message={error}
+                />
 
-const loadActivity = async()=>{
+            </PageContainer>
 
+        );
 
-try{
+    }
 
 
-const response = await getActivityByIdService(id);
+    if (!activity) {
 
+        return (
 
+            <PageContainer>
 
-const data =
+                {header}
 
-    response.data?.data
+                <LoadingState
+                    message="Loading activity..."
+                />
 
-    ||
+            </PageContainer>
 
-    response.data
+        );
 
-    ||
+    }
 
-    response;
 
+    return (
 
+        <PageContainer>
 
-setActivity(data);
+            {header}
 
+            <ActivityForm
+                key={activity._id}
+                initialData={activity}
+                onSubmit={handleSubmit}
+                loading={loading}
+            />
 
+        </PageContainer>
 
-}
-catch(error){
-
-
-console.error(error);
-
-
-setError(
-
-    error.response?.data?.message
-
-    ||
-
-    error.message
-
-);
-
-
-}
-
-
+    );
 
 };
-
-
-
-
-
-
-
-
-
-const handleSubmit = async(data)=>{
-
-
-try{
-
-
-await dispatch(
-
-    updateActivityThunk({
-
-        id,
-
-        data
-
-    })
-
-).unwrap();
-
-
-
-navigate("/activities");
-
-
-
-}
-catch(error){
-
-
-console.error(
-
-    "Update activity error:",
-
-    error
-
-);
-
-
-}
-
-
-
-};
-
-
-
-
-
-
-
-
-
-if(error)
-
-return (
-
-<Typography color="error">
-
-{error}
-
-</Typography>
-
-);
-
-
-
-
-
-
-
-
-if(!activity)
-
-return (
-
-<Typography>
-
-Loading...
-
-</Typography>
-
-);
-
-
-
-
-
-
-
-
-
-return (
-
-<Box>
-
-
-
-
-
-
-<Stack
-
-direction="row"
-
-justifyContent="space-between"
-
-alignItems="center"
-
-mb={3}
-
->
-
-
-
-
-
-<Box>
-
-
-<Typography
-
-variant="h4"
-
-fontWeight="700"
-
->
-
-Edit Activity
-
-</Typography>
-
-
-
-<Typography
-
-color="text.secondary"
-
->
-
-Update activity information
-
-</Typography>
-
-
-</Box>
-
-
-
-
-
-
-
-<Button
-
-variant="outlined"
-
-startIcon={<ArrowBack/>}
-
-onClick={()=>navigate("/activities")}
-
->
-
-Back
-
-</Button>
-
-
-
-
-
-</Stack>
-
-
-
-
-
-
-
-
-
-<Card>
-
-
-<CardContent>
-
-
-<ActivityForm
-
-
-initialData={activity}
-
-
-onSubmit={handleSubmit}
-
-
-loading={loading}
-
-
-/>
-
-
-
-</CardContent>
-
-
-</Card>
-
-
-
-
-
-
-
-
-</Box>
-
-);
-
-
-};
-
-
 
 
 export default ActivityEditPage;

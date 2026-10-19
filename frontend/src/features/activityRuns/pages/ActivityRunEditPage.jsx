@@ -1,94 +1,168 @@
-import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import {
+    useEffect,
+    useState
+} from "react";
+
 
 import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Stack,
-  Button
-} from "@mui/material";
+    useNavigate,
+    useParams
+} from "react-router-dom";
 
-import { ArrowBack } from "@mui/icons-material";
-
-import ActivityRunForm from "../components/ActivityRunForm";
 
 import {
-  getActivityRunByIdThunk,
-  updateActivityRunThunk
+    useDispatch,
+    useSelector
+} from "react-redux";
+
+
+import {
+    ArrowBack
+} from "@mui/icons-material";
+
+
+import {
+    PageContainer,
+    PageHeader,
+    LoadingState,
+    ErrorState
+} from "../../../components/ui";
+
+
+import ActivityRunForm
+    from "../components/ActivityRunForm";
+
+
+import {
+    getActivityRunByIdThunk,
+    updateActivityRunThunk
 } from "../store";
 
+
+
+// =====================================================
+// ACTIVITY RUN EDIT PAGE
+// =====================================================
+
 const ActivityRunEditPage = () => {
-  const { id } = useParams();
 
-  const navigate = useNavigate();
+    const {
+        id
+    } = useParams();
 
-  const dispatch = useDispatch();
+    const navigate =
+        useNavigate();
 
-  const {
-    current,
-    loading
-  } = useSelector((state) => state.activityRuns);
+    const dispatch =
+        useDispatch();
 
-  useEffect(() => {
-    dispatch(getActivityRunByIdThunk(id));
-  }, [dispatch, id]);
+    const {
+        current,
+        loading
+    } = useSelector(
+        state => state.activityRuns
+    );
 
-  const handleSubmit = async (data) => {
-    try {
-      await dispatch(
-        updateActivityRunThunk({
-          id,
-          data
-        })
-      ).unwrap();
 
-      navigate("/activity-runs");
-    } catch (error) {
-      console.error("Update Activity Run Error:", error);
-    }
-  };
+    const [loadError, setLoadError] =
+        useState("");
 
-  if (loading && !current) {
-    return <Typography>Loading...</Typography>;
-  }
 
-  return (
-    <Box>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        mb={3}
-      >
-        <Typography
-          variant="h4"
-          fontWeight={700}
-        >
-          Edit Activity Run
-        </Typography>
+    useEffect(() => {
 
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBack />}
-          onClick={() => navigate("/activity-runs")}
-        >
-          Back
-        </Button>
-      </Stack>
+        dispatch(
+            getActivityRunByIdThunk(id)
+        )
+            .unwrap()
+            .catch(error =>
+                setLoadError(
+                    error?.message ||
+                    (typeof error === "string" ? error : "") ||
+                    "Could not load activity run."
+                )
+            );
 
-      <Card>
-        <CardContent>
-          <ActivityRunForm
-            initialData={current}
-            onSubmit={handleSubmit}
-            loading={loading}
-          />
-        </CardContent>
-      </Card>
-    </Box>
-  );
+    }, [dispatch, id]);
+
+
+    // The store may still hold a previously viewed run.
+
+    const run =
+        current?._id === id
+            ? current
+            : null;
+
+
+    const handleSubmit = async (data) => {
+
+        try {
+
+            await dispatch(
+                updateActivityRunThunk({
+                    id,
+                    data
+                })
+            ).unwrap();
+
+            navigate("/activity-runs");
+
+        }
+        catch (error) {
+
+            console.error(
+                "Update activity run error:",
+                error
+            );
+
+        }
+
+    };
+
+
+    return (
+
+        <PageContainer>
+
+            <PageHeader
+                title="Edit Activity Run"
+                subtitle="Update activity run information."
+                action={() =>
+                    navigate("/activity-runs")
+                }
+                actionLabel="Back"
+                actionIcon={
+                    <ArrowBack />
+                }
+            />
+
+            {
+                loadError && !run
+                    ? (
+                        <ErrorState
+                            message={loadError}
+                        />
+                    )
+                    : !run
+                    ? (
+                        <LoadingState
+                            message="Loading activity run..."
+                        />
+                    )
+                    : (
+                        <ActivityRunForm
+                            key={run._id}
+                            initialData={run}
+                            onSubmit={handleSubmit}
+                            loading={loading}
+                        />
+                    )
+            }
+
+        </PageContainer>
+
+    );
+
 };
+
 
 export default ActivityRunEditPage;
