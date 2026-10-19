@@ -1,6 +1,10 @@
 const ServiceDelivery = require("../../models/ServiceDelivery");
 
 const {
+    COUNTED_DELIVERY_FILTER
+} = require("../../constants/serviceDeliveryStatus");
+
+const {
     buildDateFilter
 } = require("./reportFilters");
 
@@ -35,6 +39,7 @@ const generate = async (
 
                     isDeleted:
                         false,
+                    ...COUNTED_DELIVERY_FILTER,
 
 
                     ...buildDateFilter(

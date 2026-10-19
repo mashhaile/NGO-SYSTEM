@@ -3,6 +3,10 @@ const Donation = require("../../models/donation");
 const ServiceDelivery = require("../../models/ServiceDelivery");
 
 const {
+    COUNTED_DELIVERY_FILTER
+} = require("../../constants/serviceDeliveryStatus");
+
+const {
     buildCommonFilters
 } = require("./reportFilters");
 
@@ -82,7 +86,8 @@ const generate = async (
                     $in: donationIds
                 },
 
-                isDeleted: false
+                isDeleted: false,
+                ...COUNTED_DELIVERY_FILTER
 
             });
 

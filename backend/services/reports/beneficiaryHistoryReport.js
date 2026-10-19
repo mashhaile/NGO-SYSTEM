@@ -5,6 +5,10 @@ const ServiceDelivery = require("../../models/ServiceDelivery");
 const ServiceDeliveryBeneficiary = require("../../models/ServiceDeliveryBeneficiary");
 
 const {
+    COUNTED_DELIVERY_FILTER
+} = require("../../constants/serviceDeliveryStatus");
+
+const {
     buildCommonFilters,
     buildDateFilter
 } = require("./reportFilters");
@@ -437,7 +441,8 @@ const generate = async (
                 },
 
                 isDeleted:
-                    false
+                    false,
+                ...COUNTED_DELIVERY_FILTER
 
             };
 

@@ -5,6 +5,10 @@ const Donation = require("../../models/donation");
 const ServiceDelivery = require("../../models/ServiceDelivery");
 const Enrollment = require("../../models/enrollment");
 
+const {
+    COUNTED_DELIVERY_FILTER
+} = require("../../constants/serviceDeliveryStatus");
+
 
 
 const generate = async (
@@ -153,7 +157,8 @@ const generate = async (
 
             organization: organizationId,
 
-            isDeleted: false
+            isDeleted: false,
+            ...COUNTED_DELIVERY_FILTER
 
         }),
 
@@ -384,7 +389,8 @@ const generate = async (
 
                     organization: organizationId,
 
-                    isDeleted: false
+                    isDeleted: false,
+                    ...COUNTED_DELIVERY_FILTER
 
                 }
 
@@ -1360,6 +1366,7 @@ const generate = async (
                     organization: organizationId,
 
                     isDeleted: false,
+                    ...COUNTED_DELIVERY_FILTER,
 
                     deliveryDate: {
 

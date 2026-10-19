@@ -1,6 +1,10 @@
 const Enterprise =
     require("../../models/Enterprise");
 
+const {
+    COUNTED_DELIVERY_FILTER
+} = require("../../constants/serviceDeliveryStatus");
+
 const EnterpriseMember =
     require("../../models/EnterpriseMember");
 
@@ -640,7 +644,8 @@ const generate = async (
             },
 
             isDeleted:
-                false
+                false,
+            ...COUNTED_DELIVERY_FILTER
 
         };
 

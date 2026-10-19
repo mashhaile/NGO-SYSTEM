@@ -5,6 +5,10 @@ const Donation = require("../models/donation");
 const Enrollment = require("../models/enrollment");
 const ServiceDelivery = require("../models/ServiceDelivery");
 
+const {
+    COUNTED_DELIVERY_FILTER
+} = require("../constants/serviceDeliveryStatus");
+
 
 const getDashboard = async (organizationId) => {
 
@@ -172,9 +176,10 @@ const getDashboard = async (organizationId) => {
         // SERVICES
         // =================================================
 
-        ServiceDelivery.countDocuments(
-            organizationFilter
-        ),
+        ServiceDelivery.countDocuments({
+            ...organizationFilter,
+            ...COUNTED_DELIVERY_FILTER
+        }),
 
 
         // =================================================
