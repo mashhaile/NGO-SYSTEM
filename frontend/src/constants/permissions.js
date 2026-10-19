@@ -107,6 +107,7 @@ const PERMISSIONS = {
     TOR_UPDATE: "tor.update",
     TOR_DELETE: "tor.delete",
     TOR_APPROVE: "tor.approve",
+    TOR_CREATE_ACTIVITY: "tor.create_activity",
 
 
     // ================================

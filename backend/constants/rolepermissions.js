@@ -134,6 +134,7 @@ const rolePermissions = {
         PERMISSIONS.TOR_UPDATE,
         PERMISSIONS.TOR_DELETE,
         PERMISSIONS.TOR_APPROVE,
+        PERMISSIONS.TOR_CREATE_ACTIVITY,
 
 
         // Attendance Sessions
@@ -242,11 +243,13 @@ const rolePermissions = {
         PERMISSIONS.ACTIVITY_RUN_UPDATE,
 
 
-        // Terms of Reference (write + submit, no approval)
+        // Terms of Reference (write + submit, no approval;
+        // may create the activity once a TOR is approved)
 
         PERMISSIONS.TOR_CREATE,
         PERMISSIONS.TOR_READ,
         PERMISSIONS.TOR_UPDATE,
+        PERMISSIONS.TOR_CREATE_ACTIVITY,
 
 
         // Attendance

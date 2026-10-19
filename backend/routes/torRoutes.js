@@ -55,7 +55,7 @@ const {
 // POST   /tors/:id/submit     Draft / Returned -> Submitted
 // POST   /tors/:id/approve    Submitted -> Approved   (tor.approve)
 // POST   /tors/:id/return     Submitted -> Returned   (tor.approve, comment required)
-// POST   /tors/:id/create-activity  Approved TOR -> new Activity (activity.create)
+// POST   /tors/:id/create-activity  Approved TOR -> new Activity (tor.create_activity)
 // POST   /tors/:id/link-activity    link an existing activity of the same project
 // GET    /tors/:id/pdf        download PDF
 //
@@ -138,7 +138,7 @@ router.post(
 router.post(
     "/:id/create-activity",
     ...base,
-    authorize("activity.create"),
+    authorize("tor.create_activity"),
     createActivityFromTor
 );
 

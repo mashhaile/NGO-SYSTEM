@@ -250,6 +250,13 @@ const PERMISSIONS = {
     TOR_APPROVE:
         "tor.approve",
 
+    // Create the activity from an APPROVED TOR only.
+    // Narrower than activity.create: it does not allow
+    // creating activities directly.
+
+    TOR_CREATE_ACTIVITY:
+        "tor.create_activity",
+
 
     // =====================================================
     // ATTENDANCE
