@@ -254,8 +254,49 @@ const createLocationResolver =
         };
 
 
+        // -------------------------------------------------
+        // LENIENT MATCH
+        // -------------------------------------------------
+        //
+        // Matches as many levels as possible, top down,
+        // without throwing. Used to add codes to records
+        // saved before the official list existed.
+        //
+        // -------------------------------------------------
+
+        const matchPartial = ({
+            region = "",
+            zone = "",
+            woreda = ""
+        } = {}) => {
+
+            const regionArea =
+                region
+                    ? findChild(null, 1, region)
+                    : null;
+
+            const zoneArea =
+                regionArea && zone
+                    ? findChild(regionArea.pcode, 2, zone)
+                    : null;
+
+            const woredaArea =
+                zoneArea && woreda
+                    ? findChild(zoneArea.pcode, 3, woreda)
+                    : null;
+
+            return {
+                regionArea: regionArea || null,
+                zoneArea: zoneArea || null,
+                woredaArea: woredaArea || null
+            };
+
+        };
+
+
         return {
-            resolve
+            resolve,
+            matchPartial
         };
 
     };

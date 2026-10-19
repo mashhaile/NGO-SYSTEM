@@ -226,56 +226,27 @@ const getAttendanceById = async (
 
 
 // ==========================================
-// SAVE ATTENDANCE RECORDS
+// ATTENDANCE LOCATION RESOLVER
+// ==========================================
+//
+// Builds the location snapshot for attendance
+// records, in order of preference:
+//
+// 1. Beneficiary: registered location
+// 2. External: location entered on the sheet
+// 3. Otherwise: activity run location
+//
+// Site is always the activity run venue.
+//
+// Also used by scripts/backfillAttendanceLocations.js
+//
 // ==========================================
 
-const saveAttendanceRecords = async (
-    attendanceId,
-    records,
+const createAttendanceLocationResolver = async ({
     organizationId,
-    userId
-) => {
-
-    const attendance =
-        await Attendance.findOne({
-
-            _id: attendanceId,
-
-            organization: organizationId,
-
-            isDeleted: false
-
-        });
-
-    if (!attendance) {
-
-        throw new Error(
-            "Attendance session not found."
-        );
-
-    }
-
-    // ==========================================
-    // Remove existing records
-    // ==========================================
-
-    await AttendanceRecord.deleteMany({
-
-        attendance: attendanceId,
-
-        organization: organizationId
-
-    });
-
-    // ==========================================
-    // Location snapshot sources
-    // ==========================================
-    //
-    // 1. Beneficiary: registered location
-    // 2. External: location entered on the sheet
-    // 3. Otherwise: activity run location
-    //
-    // ==========================================
+    activityRunId,
+    participants = []
+}) => {
 
     const LOCATION_FIELDS = [
         "region",
@@ -317,7 +288,7 @@ const saveAttendanceRecords = async (
 
 
     const beneficiaryIds =
-        records
+        participants
             .filter(
                 item =>
                     item.participantType ===
@@ -350,9 +321,9 @@ const saveAttendanceRecords = async (
         );
 
     const activityRun =
-        attendance.activityRun
+        activityRunId
             ? await ActivityRun.findById(
-                attendance.activityRun
+                activityRunId
             )
                 .select("region regionCode zone zoneCode woreda woredaCode location")
                 .lean()
@@ -397,6 +368,67 @@ const saveAttendanceRecords = async (
             : null;
 
     };
+
+
+    return resolveLocation;
+
+};
+
+
+// ==========================================
+// SAVE ATTENDANCE RECORDS
+// ==========================================
+
+const saveAttendanceRecords = async (
+    attendanceId,
+    records,
+    organizationId,
+    userId
+) => {
+
+    const attendance =
+        await Attendance.findOne({
+
+            _id: attendanceId,
+
+            organization: organizationId,
+
+            isDeleted: false
+
+        });
+
+    if (!attendance) {
+
+        throw new Error(
+            "Attendance session not found."
+        );
+
+    }
+
+    // ==========================================
+    // Remove existing records
+    // ==========================================
+
+    await AttendanceRecord.deleteMany({
+
+        attendance: attendanceId,
+
+        organization: organizationId
+
+    });
+
+    // ==========================================
+    // Location snapshot
+    // ==========================================
+
+    const resolveLocation =
+        await createAttendanceLocationResolver({
+            organizationId,
+            activityRunId:
+                attendance.activityRun,
+            participants:
+                records
+        });
 
 
     // ==========================================
@@ -684,6 +716,8 @@ const deleteAttendance = async (
 
 
 module.exports = {
+
+    createAttendanceLocationResolver,
 
     createAttendance,
 
