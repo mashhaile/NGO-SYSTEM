@@ -4,10 +4,92 @@ const Donor = require("../models/donor");
 const Donation = require("../models/donation");
 const Enrollment = require("../models/enrollment");
 const ServiceDelivery = require("../models/ServiceDelivery");
+const Lookup = require("../models/Lookup");
 
 const {
     COUNTED_DELIVERY_FILTER
 } = require("../constants/serviceDeliveryStatus");
+
+
+// =====================================================
+// GENDER LOOKUPS
+// =====================================================
+//
+// Beneficiary.gender stores a Lookup id
+// (Beneficiary / Gender). Classify each of the
+// organization's gender lookups as male / female by
+// code or value so counts can match by id.
+//
+// =====================================================
+
+const classifyGender = (value) => {
+
+    const normalized =
+        String(value || "")
+            .trim()
+            .toLowerCase();
+
+    if (["male", "m"].includes(normalized)) {
+        return "male";
+    }
+
+    if (["female", "f"].includes(normalized)) {
+        return "female";
+    }
+
+    return "other";
+
+};
+
+
+const getGenderIds = async (organizationId) => {
+
+    const lookups =
+        await Lookup.find({
+            organization:
+                organizationId,
+            module:
+                "Beneficiary",
+            category:
+                "Gender"
+        })
+            .select("_id code value")
+            .lean();
+
+    const ids = {
+        male: [],
+        female: []
+    };
+
+    const classById =
+        new Map();
+
+    lookups.forEach(lookup => {
+
+        const genderClass =
+            classifyGender(lookup.code) !== "other"
+                ? classifyGender(lookup.code)
+                : classifyGender(lookup.value);
+
+        classById.set(
+            String(lookup._id),
+            genderClass
+        );
+
+        if (ids[genderClass]) {
+            ids[genderClass].push(lookup._id);
+        }
+
+    });
+
+    return {
+        ...ids,
+        classify: (genderValue) =>
+            classById.get(String(genderValue)) ||
+            classifyGender(genderValue)
+    };
+
+};
 
 
 const getDashboard = async (organizationId) => {
@@ -29,6 +111,11 @@ const getDashboard = async (organizationId) => {
         organization: organizationId,
         isDeleted: false
     };
+
+    const genderIds =
+        await getGenderIds(
+            organizationId
+        );
 
 
     // =====================================================
@@ -85,13 +172,17 @@ const getDashboard = async (organizationId) => {
 
         Beneficiary.countDocuments({
             ...organizationFilter,
-            gender: "Male"
+            gender: {
+                $in: genderIds.male
+            }
         }),
 
 
         Beneficiary.countDocuments({
             ...organizationFilter,
-            gender: "Female"
+            gender: {
+                $in: genderIds.female
+            }
         }),
 
 
@@ -100,8 +191,8 @@ const getDashboard = async (organizationId) => {
 
             gender: {
                 $nin: [
-                    "Male",
-                    "Female"
+                    ...genderIds.male,
+                    ...genderIds.female
                 ]
             }
         }),
@@ -441,24 +532,11 @@ const getDashboard = async (organizationId) => {
 
                             cond: {
 
-                                $eq: [
+                                $in: [
 
-                                    {
-                                        $toLower: {
+                                    "$$beneficiary.gender",
 
-                                            $ifNull: [
-
-                                                "$$beneficiary.gender",
-
-                                                ""
-
-                                            ]
-
-                                        }
-
-                                    },
-
-                                    "male"
+                                    genderIds.male
 
                                 ]
 
@@ -492,24 +570,11 @@ const getDashboard = async (organizationId) => {
 
                             cond: {
 
-                                $eq: [
+                                $in: [
 
-                                    {
-                                        $toLower: {
+                                    "$$beneficiary.gender",
 
-                                            $ifNull: [
-
-                                                "$$beneficiary.gender",
-
-                                                ""
-
-                                            ]
-
-                                        }
-
-                                    },
-
-                                    "female"
+                                    genderIds.female
 
                                 ]
 
@@ -634,12 +699,12 @@ const getDashboard = async (organizationId) => {
 
     genderDistribution.forEach(item => {
 
+        // _id is a Gender lookup id (or legacy text)
+
         const value =
-            String(
-                item._id || ""
-            )
-                .trim()
-                .toLowerCase();
+            genderIds.classify(
+                item._id
+            );
 
 
         if (value === "male") {
