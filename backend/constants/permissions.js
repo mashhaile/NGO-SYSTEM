@@ -230,6 +230,28 @@ const PERMISSIONS = {
 
 
     // =====================================================
+    // TERMS OF REFERENCE (TOR)
+    // =====================================================
+
+    TOR_CREATE:
+        "tor.create",
+
+    TOR_READ:
+        "tor.read",
+
+    TOR_UPDATE:
+        "tor.update",
+
+    TOR_DELETE:
+        "tor.delete",
+
+    // Approve or return submitted TORs
+
+    TOR_APPROVE:
+        "tor.approve",
+
+
+    // =====================================================
     // ATTENDANCE
     // =====================================================
 

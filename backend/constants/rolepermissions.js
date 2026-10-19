@@ -127,6 +127,15 @@ const rolePermissions = {
         PERMISSIONS.ACTIVITY_RUN_DELETE,
 
 
+        // Terms of Reference
+
+        PERMISSIONS.TOR_CREATE,
+        PERMISSIONS.TOR_READ,
+        PERMISSIONS.TOR_UPDATE,
+        PERMISSIONS.TOR_DELETE,
+        PERMISSIONS.TOR_APPROVE,
+
+
         // Attendance Sessions
 
         PERMISSIONS.ATTENDANCE_CREATE,
@@ -233,6 +242,13 @@ const rolePermissions = {
         PERMISSIONS.ACTIVITY_RUN_UPDATE,
 
 
+        // Terms of Reference (write + submit, no approval)
+
+        PERMISSIONS.TOR_CREATE,
+        PERMISSIONS.TOR_READ,
+        PERMISSIONS.TOR_UPDATE,
+
+
         // Attendance
 
         PERMISSIONS.ATTENDANCE_CREATE,
@@ -294,6 +310,8 @@ const rolePermissions = {
         PERMISSIONS.ACTIVITY_READ,
 
         PERMISSIONS.ACTIVITY_RUN_READ,
+
+        PERMISSIONS.TOR_READ,
 
         PERMISSIONS.ATTENDANCE_READ,
 

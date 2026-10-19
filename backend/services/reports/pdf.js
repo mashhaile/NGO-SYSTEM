@@ -1157,7 +1157,19 @@ const addPageFooters = (
 
 
         const rightText =
-            `Page ${index + 1}`;
+            `Page ${index + 1} of ${range.count}`;
+
+
+        /*
+         * The footer sits below the bottom margin.
+         * Without lifting the margin PDFKit treats the
+         * text as overflow and adds a new blank page
+         * for every footer line.
+         */
+        const bottomMargin =
+            doc.page.margins.bottom;
+
+        doc.page.margins.bottom = 0;
 
 
         /*
@@ -1175,7 +1187,8 @@ const addPageFooters = (
                         doc.page.width -
                         doc.page.margins.left -
                         doc.page.margins.right -
-                        60
+                        90,
+                    lineBreak: false
                 }
             );
 
@@ -1190,15 +1203,21 @@ const addPageFooters = (
                 rightText,
                 doc.page.width -
                     doc.page.margins.right -
-                    45,
+                    80,
                 footerY,
                 {
-                    width: 45,
+                    width: 80,
 
                     align:
-                        "right"
+                        "right",
+
+                    lineBreak: false
                 }
             );
+
+
+        doc.page.margins.bottom =
+            bottomMargin;
     }
 };
 

@@ -320,6 +320,11 @@ app.use(
     require("./routes/locationRoutes")
 );
 
+app.use(
+    "/api/v1/tors",
+    require("./routes/torRoutes")
+);
+
 
 // ================= Test / Health Routes =================
 
