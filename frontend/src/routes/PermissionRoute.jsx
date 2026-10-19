@@ -81,8 +81,11 @@ const PermissionRoute = ({
     // PERMISSION CHECK
     // ==========================================================
 
+    // "*" = super admin (all permissions)
+
     if (
         permission &&
+        !permissions.includes("*") &&
         !permissions.includes(permission)
     ) {
 

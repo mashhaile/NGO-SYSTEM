@@ -173,6 +173,18 @@ import {
 
 
 // ==========================================================
+// TERMS OF REFERENCE
+// ==========================================================
+
+import {
+    TorListPage,
+    TorCreatePage,
+    TorDetailsPage,
+    TorEditPage
+} from "../features/tor";
+
+
+// ==========================================================
 // ATTENDANCE
 // ==========================================================
 
@@ -762,6 +774,55 @@ const AppRoutes = () => {
                     path="/activity-runs/:id/edit"
                     element={
                         <ActivityRunEditPage />
+                    }
+                />
+
+
+                {/* ==================================================
+                    TERMS OF REFERENCE
+                ================================================== */}
+
+                <Route
+                    path="/tors"
+                    element={
+                        <PermissionRoute
+                            permission="tor.read"
+                        >
+                            <TorListPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/tors/create"
+                    element={
+                        <PermissionRoute
+                            permission="tor.create"
+                        >
+                            <TorCreatePage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/tors/:id"
+                    element={
+                        <PermissionRoute
+                            permission="tor.read"
+                        >
+                            <TorDetailsPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/tors/:id/edit"
+                    element={
+                        <PermissionRoute
+                            permission="tor.update"
+                        >
+                            <TorEditPage />
+                        </PermissionRoute>
                     }
                 />
 

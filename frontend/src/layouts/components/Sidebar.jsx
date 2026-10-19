@@ -23,6 +23,7 @@ import {
     Assessment,
     EventNote,
     EventAvailable,
+    Description,
     FactCheck,
     VolunteerActivism,
     AccountBalance,
@@ -140,6 +141,12 @@ const menuItems = [
         label: "Activity Runs",
         path: "/activity-runs",
         icon: <EventAvailable />
+    },
+
+    {
+        label: "Terms of Reference",
+        path: "/tors",
+        icon: <Description />
     },
 
     {

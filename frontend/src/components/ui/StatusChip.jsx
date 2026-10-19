@@ -22,6 +22,22 @@ const STATUS_STYLES = {
         bgcolor: "warning.light",
         color: "warning.dark"
     },
+    submitted: {
+        bgcolor: "info.light",
+        color: "info.dark"
+    },
+    approved: {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+    returned: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+    draft: {
+        bgcolor: "action.hover",
+        color: "text.secondary"
+    },
     ongoing: {
         bgcolor: "info.light",
         color: "info.dark"

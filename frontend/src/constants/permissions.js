@@ -101,6 +101,13 @@ const PERMISSIONS = {
     ACTIVITY_RUN_UPDATE: "activity_run.update",
     ACTIVITY_RUN_DELETE: "activity_run.delete",
 
+    // Terms of Reference
+    TOR_CREATE: "tor.create",
+    TOR_READ: "tor.read",
+    TOR_UPDATE: "tor.update",
+    TOR_DELETE: "tor.delete",
+    TOR_APPROVE: "tor.approve",
+
 
     // ================================
     // Attendance
