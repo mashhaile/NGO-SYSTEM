@@ -2,6 +2,10 @@ const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
 const { Parser } = require("json2csv");
 
+const {
+    formatDeliveryLocation
+} = require("./helpers");
+
 // =====================================================
 // CONSTANTS
 // =====================================================
@@ -1893,10 +1897,8 @@ const normalizeServiceRows = (
 
                                     "Location":
                                         normalizeTextValue(
-                                            service.deliveryLocation ||
-                                            service.location ||
-                                            serviceEntry.deliveryLocation ||
-                                            serviceEntry.location
+                                            formatDeliveryLocation(service) ||
+                                            formatDeliveryLocation(serviceEntry)
                                         ),
 
                                     "Status":
@@ -2029,10 +2031,8 @@ const normalizeServiceRows = (
 
                             "Location":
                                 normalizeTextValue(
-                                    service.deliveryLocation ||
-                                    service.location ||
-                                    serviceEntry.deliveryLocation ||
-                                    serviceEntry.location
+                                    formatDeliveryLocation(service) ||
+                                    formatDeliveryLocation(serviceEntry)
                                 ),
 
                             "Status":
@@ -4104,10 +4104,8 @@ const renderBeneficiaryServicePdf = (
                 );
 
             const location =
-                service.deliveryLocation ||
-                service.location ||
-                serviceEntry?.deliveryLocation ||
-                serviceEntry?.location;
+                formatDeliveryLocation(service) ||
+                formatDeliveryLocation(serviceEntry);
 
             const status =
                 service.status ||
@@ -5141,8 +5139,7 @@ const renderServiceDeliveryPdf = (
                     );
 
                 const location =
-                    delivery?.deliveryLocation ||
-                    delivery?.location ||
+                    formatDeliveryLocation(delivery) ||
                     "—";
 
                 const recipientType =

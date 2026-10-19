@@ -3065,6 +3065,30 @@ const ServiceDeliveryEditPage = () => {
                 );
 
 
+            normalizedDelivery.region =
+                delivery?.region ||
+                "";
+
+            normalizedDelivery.regionCode =
+                delivery?.regionCode ||
+                "";
+
+            normalizedDelivery.zone =
+                delivery?.zone ||
+                "";
+
+            normalizedDelivery.zoneCode =
+                delivery?.zoneCode ||
+                "";
+
+            normalizedDelivery.woreda =
+                delivery?.woreda ||
+                "";
+
+            normalizedDelivery.woredaCode =
+                delivery?.woredaCode ||
+                "";
+
             normalizedDelivery.deliveryLocation =
                 delivery?.deliveryLocation ||
                 "";
@@ -3831,6 +3855,30 @@ if (allocationConflicts.length > 0) {
                 deliveryDate:
                     data?.deliveryDate ||
                     null,
+
+                region:
+                    data?.region ||
+                    "",
+
+                regionCode:
+                    data?.regionCode ||
+                    "",
+
+                zone:
+                    data?.zone ||
+                    "",
+
+                zoneCode:
+                    data?.zoneCode ||
+                    "",
+
+                woreda:
+                    data?.woreda ||
+                    "",
+
+                woredaCode:
+                    data?.woredaCode ||
+                    "",
 
                 deliveryLocation:
                     data?.deliveryLocation ||

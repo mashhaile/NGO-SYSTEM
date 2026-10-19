@@ -3083,7 +3083,14 @@ const ServiceDeliveryDetailsPage = () => {
                             <DetailField
                                 label="Location"
                                 value={
-                                    delivery.deliveryLocation
+                                    [
+                                        delivery.deliveryLocation,
+                                        delivery.woreda,
+                                        delivery.zone,
+                                        delivery.region
+                                    ]
+                                        .filter(Boolean)
+                                        .join(", ")
                                 }
                             />
 

@@ -772,6 +772,72 @@ const serviceDeliverySchema = new mongoose.Schema(
     // ======================================
     // Delivery Location
     // ======================================
+    //
+    // region / zone / woreda come from the official
+    // AdminArea list (with P-codes).
+    // deliveryLocation is the venue / site text.
+    //
+    // ======================================
+
+    region: {
+
+        type: String,
+
+        default: "",
+
+        trim: true
+
+    },
+
+    regionCode: {
+
+        type: String,
+
+        default: "",
+
+        trim: true
+
+    },
+
+    zone: {
+
+        type: String,
+
+        default: "",
+
+        trim: true
+
+    },
+
+    zoneCode: {
+
+        type: String,
+
+        default: "",
+
+        trim: true
+
+    },
+
+    woreda: {
+
+        type: String,
+
+        default: "",
+
+        trim: true
+
+    },
+
+    woredaCode: {
+
+        type: String,
+
+        default: "",
+
+        trim: true
+
+    },
 
     deliveryLocation: {
 

@@ -702,6 +702,15 @@ const generate = async (
                 deliveryLocation:
                     service.deliveryLocation,
 
+                region:
+                    service.region || null,
+
+                zone:
+                    service.zone || null,
+
+                woreda:
+                    service.woreda || null,
+
                 status:
                     serviceLink.status,
 

@@ -975,6 +975,43 @@ const createFields = {
             }),
 
 
+    region:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(""),
+
+    regionCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(""),
+
+    zone:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(""),
+
+    zoneCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(""),
+
+    woreda:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(""),
+
+    woredaCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .default(""),
+
+
     deliveryLocation:
         Joi.string()
             .trim()
@@ -1486,6 +1523,43 @@ const updateFields = {
                     "Delivery date must be a valid date."
 
             }),
+
+
+    region:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .optional(),
+
+    regionCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .optional(),
+
+    zone:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .optional(),
+
+    zoneCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .optional(),
+
+    woreda:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .optional(),
+
+    woredaCode:
+        Joi.string()
+            .trim()
+            .allow("", null)
+            .optional(),
 
 
     deliveryLocation:

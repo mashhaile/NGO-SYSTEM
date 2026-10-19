@@ -4,6 +4,11 @@ const ServiceDelivery =
 const ServiceDeliveryBeneficiary =
     require("../../models/ServiceDeliveryBeneficiary");
 
+const {
+    applyLocationFilter,
+    getLocationFilterSummary
+} = require("./reportFilters");
+
 
 // =====================================================
 // HELPERS
@@ -1202,6 +1207,16 @@ const generate = async (
             "Delivered";
 
     }
+
+
+    // =================================================
+    // LOCATION (Region / Zone / Woreda codes)
+    // =================================================
+
+    applyLocationFilter(
+        serviceQuery,
+        filters
+    );
 
 
     // =================================================
@@ -3509,6 +3524,15 @@ const generate = async (
             deliveryLocation:
                 delivery.deliveryLocation,
 
+            region:
+                delivery.region || null,
+
+            zone:
+                delivery.zone || null,
+
+            woreda:
+                delivery.woreda || null,
+
 
             items,
 
@@ -3990,7 +4014,11 @@ const generate = async (
 
             status:
                 filters.status ||
-                "Delivered"
+                "Delivered",
+
+            ...getLocationFilterSummary(
+                filters
+            )
 
         },
 

@@ -504,7 +504,52 @@ const firstDefined = (
    EXPORTS
 ========================================================= */
 
+// =====================================================
+// DELIVERY LOCATION
+// =====================================================
+//
+// "Venue, Woreda, Zone, Region" from a delivery (or
+// any record with those fields). Falls back to legacy
+// location text.
+//
+// =====================================================
+
+const formatDeliveryLocation = (record) => {
+
+    if (!record || typeof record !== "object") {
+        return "";
+    }
+
+    const site =
+        record.deliveryLocation ||
+        record.location ||
+        record.site ||
+        "";
+
+    return [
+        site,
+        record.woreda,
+        record.zone,
+        record.region
+    ]
+        .map(part =>
+            typeof part === "string"
+                ? part.trim()
+                : ""
+        )
+        .filter(Boolean)
+        .filter(
+            (part, index, parts) =>
+                parts.indexOf(part) === index
+        )
+        .join(", ");
+
+};
+
+
 module.exports = {
+    formatDeliveryLocation,
+
     isNil,
     isObjectId,
 

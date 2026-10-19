@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useMemo
 } from "react";
 
@@ -24,6 +25,10 @@ import {
 
 import ServiceDeliveryItems
     from "./serviceDeliveryItems";
+
+
+import LocationCascadeFields
+    from "../../locations/components/LocationCascadeFields";
 
 
 import ServiceDeliveryAllocations
@@ -1804,6 +1809,23 @@ const ServiceDeliveryForm = ({
     };
 
 
+    // Location cascade: several fields at once.
+
+    const handleLocationChange = useCallback(
+        (patch) => {
+
+            setFormData(
+                (prev) => ({
+                    ...prev,
+                    ...patch
+                })
+            );
+
+        },
+        [setFormData]
+    );
+
+
     // =====================================================
     // RECIPIENT TYPE CHANGE
     // =====================================================
@@ -2863,6 +2885,30 @@ const ServiceDeliveryForm = ({
                 formData?.deliveryDate ||
                 null,
 
+            region:
+                formData?.region ||
+                "",
+
+            regionCode:
+                formData?.regionCode ||
+                "",
+
+            zone:
+                formData?.zone ||
+                "",
+
+            zoneCode:
+                formData?.zoneCode ||
+                "",
+
+            woreda:
+                formData?.woreda ||
+                "",
+
+            woredaCode:
+                formData?.woredaCode ||
+                "",
+
             deliveryLocation:
                 formData?.deliveryLocation ||
                 "",
@@ -3350,23 +3396,36 @@ const ServiceDeliveryForm = ({
                     </FormGrid>
 
 
-                    <Box
-                        sx={{
-                            mt: 2
-                        }}
-                    >
+                </FormSection>
+
+            </PageCard>
+
+
+
+            {/* =================================================
+                DELIVERY LOCATION
+                ================================================= */}
+
+            <PageCard>
+
+                <FormSection
+                    title="Delivery Location"
+                >
+
+                    <FormGrid>
+
+                        <LocationCascadeFields
+                            value={formData || {}}
+                            onChange={handleLocationChange}
+                        />
 
                         <AppTextField
-
-                            fullWidth
-
-                            label="Delivery Location"
-
+                            label="Venue / Site"
+                            placeholder="e.g. Kebele 05 health post"
                             value={
                                 formData?.deliveryLocation ||
                                 ""
                             }
-
                             onChange={
                                 (e) =>
                                     handleChange(
@@ -3374,10 +3433,9 @@ const ServiceDeliveryForm = ({
                                         e.target.value
                                     )
                             }
-
                         />
 
-                    </Box>
+                    </FormGrid>
 
                 </FormSection>
 

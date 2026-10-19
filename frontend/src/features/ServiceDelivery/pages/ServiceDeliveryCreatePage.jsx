@@ -157,6 +157,24 @@ const ServiceDeliveryCreatePage = () => {
         deliveryDate:
             null,
 
+        region:
+            "",
+
+        regionCode:
+            "",
+
+        zone:
+            "",
+
+        zoneCode:
+            "",
+
+        woreda:
+            "",
+
+        woredaCode:
+            "",
+
         deliveryLocation:
             "",
 

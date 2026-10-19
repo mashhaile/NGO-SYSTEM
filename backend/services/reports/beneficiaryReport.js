@@ -1388,7 +1388,7 @@ const generate = async (
             },
 
             select:
-                "deliveryNumber recipientType program project activity activityRun fundingSource donation items totalAmount deliveryDate deliveryLocation status",
+                "deliveryNumber recipientType program project activity activityRun fundingSource donation items totalAmount deliveryDate region zone woreda deliveryLocation status",
 
             populate: [
 
@@ -2407,6 +2407,18 @@ const generate = async (
 
                             deliveryLocation:
                                 service?.deliveryLocation ||
+                                null,
+
+                            region:
+                                service?.region ||
+                                null,
+
+                            zone:
+                                service?.zone ||
+                                null,
+
+                            woreda:
+                                service?.woreda ||
                                 null,
 
                             status:

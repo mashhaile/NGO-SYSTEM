@@ -3551,6 +3551,30 @@ const createServiceDelivery = async (
             data.deliveryDate ||
             new Date(),
 
+        region:
+            data.region ||
+            "",
+
+        regionCode:
+            data.regionCode ||
+            "",
+
+        zone:
+            data.zone ||
+            "",
+
+        zoneCode:
+            data.zoneCode ||
+            "",
+
+        woreda:
+            data.woreda ||
+            "",
+
+        woredaCode:
+            data.woredaCode ||
+            "",
+
         deliveryLocation:
             data.deliveryLocation ||
             "",
@@ -4980,6 +5004,12 @@ const updateServiceDelivery = async (
         "donation",
         "items",
         "deliveryDate",
+        "region",
+        "regionCode",
+        "zone",
+        "zoneCode",
+        "woreda",
+        "woredaCode",
         "deliveryLocation",
         "status",
         "deliveredBy",

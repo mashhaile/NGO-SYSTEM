@@ -12,7 +12,8 @@ const {
     normalizeAllocationBehavior,
     isMonetaryUnit,
     asArray,
-    firstDefined
+    firstDefined,
+    formatDeliveryLocation
 } = require("../helpers");
 
 const {
@@ -2020,11 +2021,7 @@ const buildServiceDeliveryModel = (
 
         location:
             normalizeText(
-                firstDefined(
-                    delivery?.deliveryLocation,
-                    delivery?.location,
-                    delivery?.site
-                ),
+                formatDeliveryLocation(delivery),
                 "—"
             ),
 
