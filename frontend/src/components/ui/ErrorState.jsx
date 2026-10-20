@@ -5,7 +5,7 @@ import {
 } from "@mui/material";
 
 import {
-    Error
+    ErrorOutlined
 } from "@mui/icons-material";
 
 
@@ -51,7 +51,7 @@ const ErrorState = ({
                     color: "error.main"
                 }}
             >
-                <ErrorOutline />
+                <ErrorOutlined />
             </Box>
 
 

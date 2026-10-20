@@ -189,10 +189,6 @@ export const createProjectThunk = createAsyncThunk(
             }
 
 
-            console.log(
-                "CREATE PROJECT PAYLOAD:",
-                data
-            );
 
 
             const response =
@@ -201,10 +197,6 @@ export const createProjectThunk = createAsyncThunk(
                 );
 
 
-            console.log(
-                "CREATE PROJECT RESPONSE:",
-                response?.data
-            );
 
 
             /*
@@ -295,13 +287,6 @@ export const updateProjectThunk = createAsyncThunk(
             }
 
 
-            console.log(
-                "UPDATE PROJECT PAYLOAD:",
-                {
-                    id,
-                    data
-                }
-            );
 
 
             const response =
@@ -311,10 +296,6 @@ export const updateProjectThunk = createAsyncThunk(
                 );
 
 
-            console.log(
-                "UPDATE PROJECT RESPONSE:",
-                response
-            );
 
 
             /*
@@ -416,10 +397,6 @@ export const deleteProjectThunk = createAsyncThunk(
             }
 
 
-            console.log(
-                "DELETE PROJECT:",
-                id
-            );
 
 
             await deleteProjectService(
@@ -472,10 +449,6 @@ export const getProjectLookupThunk = createAsyncThunk(
                 await getProjectLookupService();
 
 
-            console.log(
-                "PROJECT LOOKUP RESPONSE:",
-                response?.data
-            );
 
 
             return (

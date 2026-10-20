@@ -27,27 +27,10 @@ const CustomFieldRenderer = ({
     // DEBUG
     // ------------------------------------------------------
 
-    console.log(
-        "================================"
-    );
 
-    console.log(
-        "CUSTOM FIELD RENDERER"
-    );
 
-    console.log(
-        "FIELDS:",
-        safeFields
-    );
 
-    console.log(
-        "VALUES:",
-        safeValues
-    );
 
-    console.log(
-        "================================"
-    );
 
 
     // ------------------------------------------------------

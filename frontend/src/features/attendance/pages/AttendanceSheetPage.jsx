@@ -415,10 +415,6 @@ const AttendanceSheetPage = () => {
 
                 });
 
-            console.log(
-                "Attendance Payload",
-                data
-            );
 
             await dispatch(
 

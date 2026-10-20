@@ -85,8 +85,6 @@ const EnrollmentForm = ({
                 getBeneficiariesLookupService()
             ]);
 
-            console.log("PROGRAM LOOKUP:", programData);
-            console.log("BENEFICIARY LOOKUP:", beneficiaryData);
 
             setPrograms(programData || []);
             setBeneficiaries(beneficiaryData || []);
@@ -130,7 +128,6 @@ const EnrollmentForm = ({
 
         };
 
-        console.log("ENROLLMENT PAYLOAD:", payload);
 
         onSubmit(payload);
 

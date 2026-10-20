@@ -470,10 +470,6 @@ const CustomFieldCreatePage = () => {
             setLoading(true);
 
 
-            console.log(
-                "Creating custom field:",
-                submitData
-            );
 
 
             const response =
@@ -482,10 +478,6 @@ const CustomFieldCreatePage = () => {
                 );
 
 
-            console.log(
-                "Create custom field response:",
-                response
-            );
 
 
             if (response?.success) {

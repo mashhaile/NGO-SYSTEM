@@ -28,10 +28,6 @@ const generateReport = async (
     }
 
 
-console.log(
-    "ENGINE CONTEXT =",
-    context
-);
 
 
 return await report.generate(

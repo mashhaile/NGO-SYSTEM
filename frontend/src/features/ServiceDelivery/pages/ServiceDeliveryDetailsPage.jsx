@@ -2189,25 +2189,13 @@ const ServiceDeliveryDetailsPage = () => {
                                 id
                             );
 
-                        console.log(
-                            "Service Delivery Details Response:",
-                            response
-                        );
 
                         const normalizedDelivery =
                             getResponseData(
                                 response
                             );
 
-                        console.log(
-                            "Service Delivery Details Data:",
-                            normalizedDelivery
-                        );
 
-                        console.log(
-                            "Service Delivery Items:",
-                            normalizedDelivery?.items
-                        );
 
                         setDelivery(
                             normalizedDelivery

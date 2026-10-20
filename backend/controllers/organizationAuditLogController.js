@@ -92,7 +92,10 @@ return res.status(404).json({
 // Extra tenant protection
 
 if(
-String(log.organizationId)
+String(
+    log.organizationId?._id ||
+    log.organizationId
+)
 !== 
 String(req.user.organizationId)
 ){

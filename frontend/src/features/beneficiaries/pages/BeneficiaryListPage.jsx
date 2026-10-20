@@ -176,9 +176,6 @@ const BeneficiaryListPage = () => {
 
     const handleExport = () => {
 
-        console.log(
-            "Export beneficiaries"
-        );
 
         // Connect export service later.
 

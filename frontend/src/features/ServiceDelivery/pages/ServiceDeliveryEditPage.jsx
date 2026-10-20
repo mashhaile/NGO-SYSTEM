@@ -2821,22 +2821,10 @@ const ServiceDeliveryEditPage = () => {
             }
 
 
-            console.log(
-                "RAW SERVICE DELIVERY:",
-                delivery
-            );
 
 
-            console.log(
-                "RAW SERVICE CATEGORY RESPONSE:",
-                categoryResponse
-            );
 
 
-            console.log(
-                "RAW SERVICE UNIT RESPONSE:",
-                unitResponse
-            );
 
 
             // =============================================
@@ -2909,16 +2897,8 @@ const ServiceDeliveryEditPage = () => {
                 );
 
 
-            console.log(
-                "RAW EDIT ITEMS:",
-                rawItems
-            );
 
 
-            console.log(
-                "NORMALIZED EDIT ITEMS:",
-                normalizedItems
-            );
 
 
             // =============================================
@@ -2965,16 +2945,8 @@ const ServiceDeliveryEditPage = () => {
                 );
 
 
-            console.log(
-                "FINAL EDIT CATEGORY OPTIONS:",
-                normalizedCategories
-            );
 
 
-            console.log(
-                "FINAL EDIT UNIT OPTIONS:",
-                normalizedUnits
-            );
 
 
             // =============================================
@@ -3400,16 +3372,8 @@ const ServiceDeliveryEditPage = () => {
                 );
 
 
-            console.log(
-                "EDIT SUBMIT ITEM COUNT:",
-                items.length
-            );
 
 
-            console.log(
-                "EDIT SUBMIT ITEMS:",
-                items
-            );
 
 
             if (
@@ -3679,10 +3643,6 @@ const ServiceDeliveryEditPage = () => {
                 canonicalizedAllocationResult.beneficiaries;
 
 
-            console.log(
-                "CANONICALIZED BENEFICIARY ALLOCATIONS:",
-                beneficiaryAssociations
-            );
 
 
 // =============================================
@@ -3906,14 +3866,6 @@ if (allocationConflicts.length > 0) {
             };
 
 
-            console.log(
-                "SERVICE DELIVERY UPDATE PAYLOAD:",
-                JSON.stringify(
-                    payload,
-                    null,
-                    2
-                )
-            );
 
 
             // =============================================

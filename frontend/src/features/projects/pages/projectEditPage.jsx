@@ -236,10 +236,6 @@ const ProjectEditPage = () => {
 
         try {
 
-            console.log(
-                "UPDATE PROJECT PAYLOAD:",
-                data
-            );
 
 
             await dispatch(

@@ -425,10 +425,6 @@ const BeneficiaryCreatePage = () => {
 
         try {
 
-            console.log(
-                "BENEFICIARY CREATE FORM DATA:",
-                data
-            );
 
 
             const isPWD =
@@ -583,10 +579,6 @@ const BeneficiaryCreatePage = () => {
             };
 
 
-            console.log(
-                "BENEFICIARY CREATE PAYLOAD:",
-                createPayload
-            );
 
 
             await createBeneficiaryService(

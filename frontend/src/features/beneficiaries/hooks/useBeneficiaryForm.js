@@ -1059,10 +1059,6 @@ const useBeneficiaryForm = ({
             );
 
 
-        console.log(
-            "BENEFICIARY PAYLOAD:",
-            payload
-        );
 
 
         try {

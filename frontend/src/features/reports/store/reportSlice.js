@@ -405,20 +405,12 @@ const reportSlice =
                     action
                 ) => {
 
-                    console.log(
-                        "REPORTS THUNK PAYLOAD =",
-                        action.payload
-                    );
 
 
                     const result =
                         action.payload?.data;
 
 
-                    console.log(
-                        "REPORTS RESULT =",
-                        result
-                    );
 
 
                     state.loading =

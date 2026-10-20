@@ -2967,14 +2967,6 @@ const ServiceDeliveryForm = ({
         // DEBUG
         // =====================================================
 
-        console.log(
-            "SERVICE DELIVERY PAYLOAD:",
-            JSON.stringify(
-                payload,
-                null,
-                2
-            )
-        );
 
 
         // =====================================================

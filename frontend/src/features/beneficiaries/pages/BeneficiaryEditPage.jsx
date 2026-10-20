@@ -732,10 +732,6 @@ const BeneficiaryEditPage = () => {
 
         try {
 
-            console.log(
-                "BENEFICIARY EDIT FORM DATA:",
-                data
-            );
 
 
             const isPWD =
@@ -892,10 +888,6 @@ const BeneficiaryEditPage = () => {
             };
 
 
-            console.log(
-                "BENEFICIARY UPDATE PAYLOAD:",
-                updatePayload
-            );
 
 
             await updateBeneficiaryService(

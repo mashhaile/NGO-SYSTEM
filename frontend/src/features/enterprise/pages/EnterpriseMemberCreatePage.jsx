@@ -289,10 +289,6 @@ const EnterpriseMemberCreatePage = () => {
         // DEBUG
         // =================================================
 
-        console.log(
-            "CREATE ENTERPRISE MEMBER PAYLOAD:",
-            payload
-        );
 
 
         // =================================================

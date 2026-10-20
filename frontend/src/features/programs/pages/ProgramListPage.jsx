@@ -196,9 +196,6 @@ const ProgramListPage = () => {
 
     const handleExport = () => {
 
-        console.log(
-            "Export programs"
-        );
 
         // Connect export service later.
 

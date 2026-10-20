@@ -288,25 +288,6 @@ const ProjectForm = ({
             );
 
 
-        console.log(
-            "PROJECT EDIT INITIAL DATA:",
-            {
-                projectManager:
-                    initialData.projectManager,
-
-                projectManagerId,
-
-                donor:
-                    initialData.donor,
-
-                donorId,
-
-                program:
-                    initialData.program,
-
-                programId
-            }
-        );
 
 
         setForm({
@@ -626,10 +607,6 @@ const ProjectForm = ({
         // DEBUG
         // -------------------------------------------------
 
-        console.log(
-            "PROJECT SUBMIT PAYLOAD:",
-            payload
-        );
 
 
         // -------------------------------------------------

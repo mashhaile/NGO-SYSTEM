@@ -116,15 +116,7 @@ const seedOrganizationServiceDeliveryUnits = async (
 
 
  
-console.log(
-    "[SERVICE DELIVERY UNITS] START:",
-    organizationId
-);
 
-console.log(
-    "[SERVICE DELIVERY UNITS] DEFINITIONS:",
-    SERVICE_DELIVERY_UNIT_DEFINITIONS.length
-);
 
     validateOrganizationId(
         organizationId
@@ -220,39 +212,15 @@ console.log(
 
    if (operations.length > 0) {
 
-    const result =
-        await Lookup.bulkWrite(
-            operations,
-            {
-                ordered: true
-            }
-        );
-
-    console.log(
-        "[SERVICE DELIVERY UNITS] BULK WRITE RESULT:",
+    await Lookup.bulkWrite(
+        operations,
         {
-            insertedCount: result.insertedCount,
-            matchedCount: result.matchedCount,
-            modifiedCount: result.modifiedCount,
-            upsertedCount: result.upsertedCount
+            ordered: true
         }
     );
-}
-const debugUnits =
-    await Lookup.find({
-        organization: organizationId,
-        module: "ServiceDelivery",
-        category: "Unit"
-    })
-    .select(
-        "_id organization module category value code semanticType isSystemDefault active"
-    )
-    .lean();
 
-console.log(
-    "[SERVICE DELIVERY UNITS] ACTUAL DB RECORDS:",
-    debugUnits
-);
+}
+
     // =================================================
     // REPAIR EXISTING SYSTEM DEFAULTS
     // =================================================

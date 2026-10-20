@@ -1,6 +1,5 @@
 import {
-    Navigate,
-    useLocation
+    Navigate
 } from "react-router-dom";
 
 import useAuth
@@ -18,9 +17,6 @@ const PermissionRoute = ({
         loading,
         initialized
     } = useAuth();
-
-    const location = useLocation();
-
 
     // ==========================================================
     // WAIT FOR AUTH INITIALIZATION
@@ -65,16 +61,6 @@ const PermissionRoute = ({
             : [];
 
 
-    console.log(
-        "========== PermissionRoute ==========",
-        {
-            path: location.pathname,
-            requiredPermission: permission,
-            permissions: permissions,
-            allowed:
-                permissions.includes(permission)
-        }
-    );
 
 
     // ==========================================================
@@ -108,10 +94,6 @@ const PermissionRoute = ({
     // ALLOWED
     // ==========================================================
 
-    console.log(
-        "Permission allowed:",
-        permission
-    );
 
 
     return children;

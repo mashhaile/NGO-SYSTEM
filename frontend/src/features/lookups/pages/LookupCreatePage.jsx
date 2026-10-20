@@ -1619,10 +1619,6 @@ const LookupCreatePage = () => {
                 };
 
 
-                console.log(
-                    "CREATE LOOKUP PAYLOAD:",
-                    payload
-                );
 
 
                 await createLookupsBulkService(

@@ -272,16 +272,6 @@ const DonationCreatePage = () => {
                     );
 
 
-                console.log(
-                    "Donation lookup data:",
-                    {
-                        donors: donorList,
-                        programs: programList,
-                        projects: projectList,
-                        activities: activityList,
-                        activityRuns: activityRunList
-                    }
-                );
 
 
                 // ======================================
