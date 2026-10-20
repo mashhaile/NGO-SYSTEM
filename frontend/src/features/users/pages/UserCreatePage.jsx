@@ -197,7 +197,6 @@ const UserCreatePage = () => {
     // ==========================================
 
     return (
-
         <Box>
 
             {/* ==================================
@@ -227,7 +226,9 @@ const UserCreatePage = () => {
 
                     <Typography
                         variant="h5"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Create User
                     </Typography>
@@ -235,7 +236,9 @@ const UserCreatePage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Add a new organization user.
                     </Typography>
@@ -243,7 +246,6 @@ const UserCreatePage = () => {
                 </Box>
 
             </Box>
-
 
             {/* ==================================
                 FORM
@@ -386,7 +388,6 @@ const UserCreatePage = () => {
             </Card>
 
         </Box>
-
     );
 
 };

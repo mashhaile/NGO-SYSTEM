@@ -37,12 +37,13 @@ const AppPagination = ({
             {showSummary && (
                 <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     Page {page} of {totalPages}
                 </Typography>
             )}
-
 
             <Pagination
                 page={page}

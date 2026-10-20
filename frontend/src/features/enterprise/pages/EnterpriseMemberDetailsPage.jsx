@@ -500,7 +500,6 @@ const EnterpriseMemberDetailsPage = () => {
     // =================================================
 
     return (
-
         <PageContainer>
 
             {/* =================================================
@@ -514,7 +513,6 @@ const EnterpriseMemberDetailsPage = () => {
                 subtitle="View beneficiary participation in this enterprise"
 
             />
-
 
             {/* =================================================
                 ERROR
@@ -546,7 +544,6 @@ const EnterpriseMemberDetailsPage = () => {
                 )
             }
 
-
             {/* =================================================
                 MEMBER INFORMATION
             ================================================= */}
@@ -572,7 +569,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Enterprise
@@ -602,7 +601,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Enterprise Number
@@ -636,7 +637,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Beneficiary
@@ -666,7 +669,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Beneficiary Number
@@ -700,7 +705,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Member Role
@@ -733,7 +740,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Joined Date
@@ -765,7 +774,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Left Date
@@ -797,7 +808,9 @@ const EnterpriseMemberDetailsPage = () => {
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
 
                                 Status
@@ -823,7 +836,6 @@ const EnterpriseMemberDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* =================================================
                 ACTIONS
@@ -905,7 +917,6 @@ const EnterpriseMemberDetailsPage = () => {
             </FormActions>
 
         </PageContainer>
-
     );
 
 };

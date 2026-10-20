@@ -915,7 +915,6 @@ const StatisticRowCard = ({
     ) {
 
         return (
-
             <Card
                 variant="outlined"
                 sx={{
@@ -937,10 +936,11 @@ const StatisticRowCard = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
-                        fontWeight={600}
                         gutterBottom
-                    >
+                        sx={{
+                            color: "text.secondary",
+                            fontWeight: 600
+                        }}>
                         {
                             label
                         }
@@ -985,7 +985,9 @@ const StatisticRowCard = ({
 
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
+                                                sx={{
+                                                    color: "text.secondary"
+                                                }}
                                             >
                                                 {
                                                     formatLabel(
@@ -996,9 +998,10 @@ const StatisticRowCard = ({
 
                                             <Typography
                                                 variant="body2"
-                                                fontWeight={600}
-                                                textAlign="right"
-                                            >
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    textAlign: "right"
+                                                }}>
                                                 {
                                                     formatValue(
                                                         column,
@@ -1018,14 +1021,12 @@ const StatisticRowCard = ({
                 </CardContent>
 
             </Card>
-
         );
 
     }
 
 
     return (
-
         <Card
             variant="outlined"
             sx={{
@@ -1053,12 +1054,11 @@ const StatisticRowCard = ({
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    fontWeight={600}
                     sx={{
+                        color: "text.secondary",
+                        fontWeight: 600,
                         mb: 1
-                    }}
-                >
+                    }}>
                     {
                         label
                     }
@@ -1067,12 +1067,12 @@ const StatisticRowCard = ({
 
                 <Typography
                     variant="h6"
-                    fontWeight={700}
                     sx={{
+                        fontWeight: 700,
+
                         wordBreak:
                             "break-word"
-                    }}
-                >
+                    }}>
                     {
                         formatValue(
                             numeric.field,
@@ -1084,7 +1084,6 @@ const StatisticRowCard = ({
             </CardContent>
 
         </Card>
-
     );
 
 };
@@ -1110,13 +1109,12 @@ const StatisticsTable = ({
     ) {
 
         return (
-
             <Typography
-                color="text.secondary"
-            >
-                No data available.
-            </Typography>
-
+                sx={{
+                    color: "text.secondary"
+                }}
+            >No data available.
+                            </Typography>
         );
 
     }
@@ -1273,21 +1271,22 @@ const StatisticBlock = ({
         ) {
 
             return (
-
                 <Box
-                    mb={3}
+                    sx={{
+                        mb: 3
+                    }}
                 >
 
                     <Typography
                         variant="subtitle1"
-                        fontWeight={700}
-                        mb={1.5}
-                    >
+                        sx={{
+                            fontWeight: 700,
+                            mb: 1.5
+                        }}>
                         {
                             title
                         }
                     </Typography>
-
 
                     <Box
                         sx={{
@@ -1303,7 +1302,9 @@ const StatisticBlock = ({
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             No data available.
                         </Typography>
@@ -1311,7 +1312,6 @@ const StatisticBlock = ({
                     </Box>
 
                 </Box>
-
             );
 
         }
@@ -1345,21 +1345,22 @@ const StatisticBlock = ({
 
 
         return (
-
             <Box
-                mb={3}
+                sx={{
+                    mb: 3
+                }}
             >
 
                 <Typography
                     variant="subtitle1"
-                    fontWeight={700}
-                    mb={1.5}
-                >
+                    sx={{
+                        fontWeight: 700,
+                        mb: 1.5
+                    }}>
                     {
                         title
                     }
                 </Typography>
-
 
                 {
                     isSimpleStatistics ? (
@@ -1414,7 +1415,6 @@ const StatisticBlock = ({
                 }
 
             </Box>
-
         );
 
     }
@@ -1427,21 +1427,22 @@ const StatisticBlock = ({
     ) {
 
         return (
-
             <Box
-                mb={3}
+                sx={{
+                    mb: 3
+                }}
             >
 
                 <Typography
                     variant="subtitle1"
-                    fontWeight={700}
-                    mb={1.5}
-                >
+                    sx={{
+                        fontWeight: 700,
+                        mb: 1.5
+                    }}>
                     {
                         title
                     }
                 </Typography>
-
 
                 <Grid
                     container
@@ -1487,10 +1488,11 @@ const StatisticBlock = ({
 
                                             <Typography
                                                 variant="body2"
-                                                color="text.secondary"
-                                                fontWeight={600}
                                                 gutterBottom
-                                            >
+                                                sx={{
+                                                    color: "text.secondary",
+                                                    fontWeight: 600
+                                                }}>
                                                 {
                                                     formatLabel(
                                                         key
@@ -1501,7 +1503,9 @@ const StatisticBlock = ({
 
                                             <Typography
                                                 variant="h6"
-                                                fontWeight={700}
+                                                sx={{
+                                                    fontWeight: 700
+                                                }}
                                             >
                                                 {
                                                     formatValue(
@@ -1524,28 +1528,28 @@ const StatisticBlock = ({
                 </Grid>
 
             </Box>
-
         );
 
     }
 
 
     return (
-
         <Box
-            mb={3}
+            sx={{
+                mb: 3
+            }}
         >
 
             <Typography
                 variant="subtitle1"
-                fontWeight={700}
-                mb={1.5}
-            >
+                sx={{
+                    fontWeight: 700,
+                    mb: 1.5
+                }}>
                 {
                     title
                 }
             </Typography>
-
 
             <Chip
                 label={
@@ -1558,7 +1562,6 @@ const StatisticBlock = ({
             />
 
         </Box>
-
     );
 
 };
@@ -1626,9 +1629,10 @@ const ReportStatistics = ({
 
 
     return (
-
         <Box
-            mt={3}
+            sx={{
+                mt: 3
+            }}
         >
 
             <FormSection
@@ -1683,7 +1687,6 @@ const ReportStatistics = ({
             </FormSection>
 
         </Box>
-
     );
 
 };

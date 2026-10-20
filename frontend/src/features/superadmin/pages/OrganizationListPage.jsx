@@ -175,7 +175,6 @@ const OrganizationListPage = () => {
     // =================================================
 
     return (
-
         <Box
             sx={{
                 width: "100%"
@@ -217,11 +216,10 @@ const OrganizationListPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mt: 0.5
-                        }}
-                    >
+                        }}>
                         Manage organizations registered on the NGO SaaS platform.
                     </Typography>
 
@@ -244,7 +242,6 @@ const OrganizationListPage = () => {
                 }
 
             </Box>
-
 
             {/* =========================================
                 VIEW TABS
@@ -282,7 +279,6 @@ const OrganizationListPage = () => {
 
             </Paper>
 
-
             {/* =========================================
                 ERROR
             ========================================= */}
@@ -311,7 +307,6 @@ const OrganizationListPage = () => {
                 )
             }
 
-
             {/* =========================================
                 TABLE
             ========================================= */}
@@ -323,7 +318,6 @@ const OrganizationListPage = () => {
             />
 
         </Box>
-
     );
 
 };

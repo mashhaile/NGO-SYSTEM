@@ -142,9 +142,10 @@ const LookupListPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 2 }}
-                    >
+                        sx={{
+                            color: "text.secondary",
+                            mt: 2
+                        }}>
                         Loading lookup values...
                     </Typography>
 
@@ -180,14 +181,18 @@ const LookupListPage = () => {
 
                         <Typography
                             variant="h4"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             Lookup Management
                         </Typography>
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Manage reusable lookup values by module and category.
                         </Typography>
@@ -206,14 +211,15 @@ const LookupListPage = () => {
 
                 </Stack>
 
-
                 <Card>
 
                     <CardContent>
 
                         <Typography
                             color="error"
-                            fontWeight={600}
+                            sx={{
+                                fontWeight: 600
+                            }}
                         >
                             Failed to load lookup values.
                         </Typography>
@@ -221,9 +227,10 @@ const LookupListPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 1 }}
-                        >
+                            sx={{
+                                color: "text.secondary",
+                                mt: 1
+                            }}>
                             {
                                 error?.response?.data?.message ||
                                 error?.message ||
@@ -246,7 +253,6 @@ const LookupListPage = () => {
     // ======================================================
 
     return (
-
         <Box>
 
             {/* ==================================================
@@ -268,7 +274,9 @@ const LookupListPage = () => {
 
                     <Typography
                         variant="h4"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Lookup Management
                     </Typography>
@@ -276,7 +284,9 @@ const LookupListPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Manage reusable dropdown values by module and category.
                     </Typography>
@@ -295,7 +305,6 @@ const LookupListPage = () => {
 
             </Stack>
 
-
             {/* ==================================================
                 SUMMARY
             ================================================== */}
@@ -313,14 +322,18 @@ const LookupListPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Modules
                         </Typography>
 
                         <Typography
                             variant="h4"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             {moduleList.length}
                         </Typography>
@@ -334,14 +347,18 @@ const LookupListPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Categories
                         </Typography>
 
                         <Typography
                             variant="h4"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             {categoryCount}
                         </Typography>
@@ -355,14 +372,18 @@ const LookupListPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Total Values
                         </Typography>
 
                         <Typography
                             variant="h4"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             {lookups.length}
                         </Typography>
@@ -376,16 +397,19 @@ const LookupListPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Active Values
                         </Typography>
 
                         <Typography
                             variant="h4"
-                            fontWeight={700}
-                            color="success.main"
-                        >
+                            sx={{
+                                fontWeight: 700,
+                                color: "success.main"
+                            }}>
                             {activeCount}
                         </Typography>
 
@@ -394,7 +418,9 @@ const LookupListPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 {inactiveCount} inactive
                             </Typography>
@@ -405,7 +431,6 @@ const LookupListPage = () => {
                 </Card>
 
             </Stack>
-
 
             {/* ==================================================
                 EMPTY
@@ -423,7 +448,9 @@ const LookupListPage = () => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={600}
+                                sx={{
+                                    fontWeight: 600
+                                }}
                             >
                                 No lookup values found
                             </Typography>
@@ -431,7 +458,9 @@ const LookupListPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Create your first lookup value.
                             </Typography>
@@ -494,7 +523,6 @@ const LookupListPage = () => {
 
 
                             return (
-
                                 <Card
                                     key={module}
                                 >
@@ -518,19 +546,21 @@ const LookupListPage = () => {
 
                                                 <Typography
                                                     variant="h6"
-                                                    fontWeight={700}
                                                     sx={{
+                                                        fontWeight: 700,
+
                                                         textTransform:
                                                             "capitalize"
-                                                    }}
-                                                >
+                                                    }}>
                                                     {module}
                                                 </Typography>
 
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
+                                                    sx={{
+                                                        color: "text.secondary"
+                                                    }}
                                                 >
                                                     Lookup values used by the{" "}
                                                     {module} module.
@@ -585,9 +615,7 @@ const LookupListPage = () => {
 
                                     </CardContent>
 
-
                                     <Divider />
-
 
                                     {/* CATEGORY TABLE */}
 
@@ -794,7 +822,6 @@ const LookupListPage = () => {
                                     </CardContent>
 
                                 </Card>
-
                             );
 
                         }
@@ -805,7 +832,6 @@ const LookupListPage = () => {
             )}
 
         </Box>
-
     );
 
 };

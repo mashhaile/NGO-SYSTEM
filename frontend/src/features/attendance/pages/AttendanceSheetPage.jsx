@@ -471,7 +471,6 @@ const AttendanceSheetPage = () => {
     }
 
     return (
-
         <PageContainer>
 
             <PageHeader
@@ -557,9 +556,10 @@ const AttendanceSheetPage = () => {
             <PageCard>
 
                 <Typography
-                    fontWeight={700}
-                    mb={2}
-                >
+                    sx={{
+                        fontWeight: 700,
+                        mb: 2
+                    }}>
 
                     Participant Type
 
@@ -630,12 +630,10 @@ const AttendanceSheetPage = () => {
                 <PageCard>
 
                     <Typography
-
-                        fontWeight={700}
-
-                        mb={2}
-
-                    >
+                        sx={{
+                            fontWeight: 700,
+                            mb: 2
+                        }}>
 
                         Add Participant
 
@@ -656,12 +654,10 @@ const AttendanceSheetPage = () => {
             <PageCard>
 
                 <Typography
-
-                    fontWeight={700}
-
-                    mb={2}
-
-                >
+                    sx={{
+                        fontWeight: 700,
+                        mb: 2
+                    }}>
 
                     Attendance Records
 
@@ -718,7 +714,6 @@ const AttendanceSheetPage = () => {
             </Box>
 
         </PageContainer>
-
     );
 
 };

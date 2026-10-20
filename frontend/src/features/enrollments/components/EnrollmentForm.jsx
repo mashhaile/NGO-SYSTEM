@@ -134,7 +134,6 @@ const EnrollmentForm = ({
     };
 
     return (
-
         <Box
             component="form"
             onSubmit={submitHandler}
@@ -239,9 +238,6 @@ const EnrollmentForm = ({
                         fullWidth
                         type="date"
                         label="Enrollment Date"
-                        InputLabelProps={{
-                            shrink: true
-                        }}
                         value={formData.enrollmentDate}
                         onChange={(e) =>
                             changeField(
@@ -249,6 +245,11 @@ const EnrollmentForm = ({
                                 e.target.value
                             )
                         }
+                        slotProps={{
+                            inputLabel: {
+                                shrink: true
+                            }
+                        }}
                     />
 
                 </Grid>
@@ -330,7 +331,6 @@ const EnrollmentForm = ({
             </Stack>
 
         </Box>
-
     );
 
 };

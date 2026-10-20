@@ -80,7 +80,6 @@ const DonorTraceSection = ({
 
 
     return (
-
         <PageCard>
 
             <FormSection
@@ -138,10 +137,12 @@ const DonorTraceSection = ({
                                             <Link
                                                 component="button"
                                                 underline="hover"
-                                                fontWeight={600}
                                                 onClick={() =>
                                                     navigate(`/donations/${row.id}/trace`)
                                                 }
+                                                sx={{
+                                                    fontWeight: 600
+                                                }}
                                             >
                                                 {[row.code, row.title].filter(Boolean).join(" - ")}
                                             </Link>
@@ -163,7 +164,6 @@ const DonorTraceSection = ({
             </FormSection>
 
         </PageCard>
-
     );
 
 };

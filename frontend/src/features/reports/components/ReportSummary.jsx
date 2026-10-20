@@ -602,17 +602,17 @@ const DistributionValue = ({
         return (
             <Typography
                 variant="body2"
-                color="text.secondary"
-            >
-                No data
-            </Typography>
+                sx={{
+                    color: "text.secondary"
+                }}
+            >No data
+                            </Typography>
         );
 
     }
 
 
     return (
-
         <Stack sx={{ mt: 1.5 }}
             spacing={1}
         >
@@ -686,7 +686,6 @@ const DistributionValue = ({
 
 
                         return (
-
                             <Box
                                 key={
                                     `${entryKey}-${index}`
@@ -710,31 +709,32 @@ const DistributionValue = ({
 
                                 <Typography
                                     variant="body2"
-                                    color="text.secondary"
                                     sx={{
+                                        color: "text.secondary",
                                         minWidth: 0,
+
                                         overflow:
                                             "hidden",
+
                                         textOverflow:
                                             "ellipsis",
+
                                         whiteSpace:
                                             "nowrap"
-                                    }}
-                                >
+                                    }}>
                                     {
                                         label
                                     }
                                 </Typography>
 
-
                                 <Typography
                                     variant="body2"
-                                    fontWeight={600}
                                     sx={{
+                                        fontWeight: 600,
+
                                         flexShrink:
                                             0
-                                    }}
-                                >
+                                    }}>
                                     {
                                         typeof displayValue ===
                                         "number"
@@ -748,7 +748,6 @@ const DistributionValue = ({
                                 </Typography>
 
                             </Box>
-
                         );
 
                     }
@@ -756,7 +755,6 @@ const DistributionValue = ({
             }
 
         </Stack>
-
     );
 
 };
@@ -793,14 +791,13 @@ const ObjectValue = ({
         ) {
 
             return (
-
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                >
-                    No data
-                </Typography>
-
+                    sx={{
+                        color: "text.secondary"
+                    }}
+                >No data
+                                    </Typography>
             );
 
         }
@@ -887,15 +884,13 @@ const SummaryValue = ({
     ) {
 
         return (
-
             <Typography
                 variant="h6"
-                fontWeight={700}
-                color="text.secondary"
-            >
-                -
-            </Typography>
-
+                sx={{
+                    fontWeight: 700,
+                    color: "text.secondary"
+                }}>-
+                            </Typography>
         );
 
     }
@@ -920,16 +915,15 @@ const SummaryValue = ({
 
 
     return (
-
         <Typography
             variant="h5"
-            fontWeight={700}
-            lineHeight={1.2}
             sx={{
+                fontWeight: 700,
+                lineHeight: 1.2,
+
                 wordBreak:
                     "break-word"
-            }}
-        >
+            }}>
             {
                 formatPrimitiveValue(
                     keyName,
@@ -937,7 +931,6 @@ const SummaryValue = ({
                 )
             }
         </Typography>
-
     );
 
 };
@@ -959,7 +952,6 @@ const SummaryCard = ({
         value !== null;
 
     return (
-
         <Card
             variant="outlined"
             sx={{
@@ -987,14 +979,14 @@ const SummaryCard = ({
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    fontWeight={600}
                     sx={{
+                        color: "text.secondary",
+                        fontWeight: 600,
+
                         mb: distribution
                             ? 0
                             : 1
-                    }}
-                >
+                    }}>
                     {
                         label
                     }
@@ -1013,7 +1005,6 @@ const SummaryCard = ({
             </CardContent>
 
         </Card>
-
     );
 
 };
@@ -1081,7 +1072,6 @@ const ReportSummary = ({
 
 
     return (
-
         <FormSection
             title="Summary"
         >
@@ -1133,7 +1123,6 @@ const ReportSummary = ({
 
             </Grid>
 
-
             {
                 visibleEntries.some(
                     (
@@ -1151,7 +1140,9 @@ const ReportSummary = ({
                 ) && (
 
                     <Box
-                        mt={2}
+                        sx={{
+                            mt: 2
+                        }}
                     >
 
                         <Divider />
@@ -1162,7 +1153,6 @@ const ReportSummary = ({
             }
 
         </FormSection>
-
     );
 
 };

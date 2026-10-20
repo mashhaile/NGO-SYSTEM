@@ -24,7 +24,6 @@ const SubscriptionDetails = ({
     if (!subscription) {
 
         return (
-
             <Paper
                 sx={{
                     p: 3,
@@ -42,16 +41,16 @@ const SubscriptionDetails = ({
                     Subscription
                 </Typography>
 
-
                 <Typography
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     This organization does not have an active
                     subscription.
                 </Typography>
 
             </Paper>
-
         );
 
     }
@@ -215,7 +214,6 @@ const SubscriptionDetails = ({
     // =================================================
 
     return (
-
         <Paper
             sx={{
                 p: 3,
@@ -237,7 +235,6 @@ const SubscriptionDetails = ({
                 Subscription Details
             </Typography>
 
-
             {/* =========================================
                 SUBSCRIPTION INFORMATION
             ========================================= */}
@@ -253,7 +250,9 @@ const SubscriptionDetails = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Plan
                     </Typography>
@@ -276,7 +275,9 @@ const SubscriptionDetails = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Status
                     </Typography>
@@ -301,7 +302,9 @@ const SubscriptionDetails = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Start Date
                     </Typography>
@@ -328,7 +331,9 @@ const SubscriptionDetails = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         {
                             normalizedStatus ===
@@ -352,7 +357,6 @@ const SubscriptionDetails = ({
                 </Grid>
 
             </Grid>
-
 
             {/* =========================================
                 PLAN LIMITS
@@ -408,7 +412,9 @@ const SubscriptionDetails = ({
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
+                                                    sx={{
+                                                        color: "text.secondary"
+                                                    }}
                                                 >
                                                     {
                                                         formatUsageName(
@@ -447,7 +453,6 @@ const SubscriptionDetails = ({
 
                 )
             }
-
 
             {/* =========================================
                 CURRENT USAGE
@@ -501,7 +506,9 @@ const SubscriptionDetails = ({
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
+                                                    sx={{
+                                                        color: "text.secondary"
+                                                    }}
                                                 >
                                                     {
                                                         formatUsageName(
@@ -535,7 +542,9 @@ const SubscriptionDetails = ({
 
                                                 <Typography
                                                     variant="caption"
-                                                    color="text.secondary"
+                                                    sx={{
+                                                        color: "text.secondary"
+                                                    }}
                                                 >
 
                                                     Remaining:{" "}
@@ -585,7 +594,6 @@ const SubscriptionDetails = ({
             }
 
         </Paper>
-
     );
 
 };

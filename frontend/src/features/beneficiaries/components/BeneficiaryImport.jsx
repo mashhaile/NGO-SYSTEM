@@ -364,7 +364,6 @@ const BeneficiaryImport = () => {
     // =====================================
 
     return (
-
         <PageCard>
 
             <Stack spacing={3}>
@@ -395,7 +394,9 @@ const BeneficiaryImport = () => {
 
                     <Typography
                         variant="h6"
-                        fontWeight={600}
+                        sx={{
+                            fontWeight: 600
+                        }}
                     >
                         Import Beneficiaries
                     </Typography>
@@ -426,7 +427,9 @@ const BeneficiaryImport = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     Download the Excel template, fill in the
                     beneficiary information, then upload the
@@ -595,7 +598,6 @@ const BeneficiaryImport = () => {
             </Stack>
 
         </PageCard>
-
     );
 
 };

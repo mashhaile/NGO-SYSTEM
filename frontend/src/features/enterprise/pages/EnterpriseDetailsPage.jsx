@@ -486,9 +486,7 @@ const EnterpriseDetailsPage = () => {
     // =====================================================
 
     return (
-
         <PageContainer>
-
 
             {/* =================================================
                 HEADER
@@ -501,7 +499,6 @@ const EnterpriseDetailsPage = () => {
                     "Enterprise record"
                 }
             />
-
 
             {/* =================================================
                 ACTION
@@ -528,7 +525,6 @@ const EnterpriseDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* =================================================
                 ENTERPRISE INFORMATION
@@ -620,7 +616,6 @@ const EnterpriseDetailsPage = () => {
 
             </PageCard>
 
-
             {/* =================================================
                 CONTACT
             ================================================= */}
@@ -673,7 +668,6 @@ const EnterpriseDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* =================================================
                 ADDRESS
@@ -736,7 +730,6 @@ const EnterpriseDetailsPage = () => {
 
             </PageCard>
 
-
             {/* =================================================
                 ENTERPRISE MEMBERS
             ================================================= */}
@@ -759,7 +752,9 @@ const EnterpriseDetailsPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Beneficiaries participating in this enterprise
                         </Typography>
@@ -960,7 +955,6 @@ const EnterpriseDetailsPage = () => {
 
             </PageCard>
 
-
             {/* =================================================
                 RECORD INFORMATION
             ================================================= */}
@@ -1011,7 +1005,6 @@ const EnterpriseDetailsPage = () => {
 
             </PageCard>
 
-
             {/* =================================================
                 BACK
             ================================================= */}
@@ -1031,9 +1024,7 @@ const EnterpriseDetailsPage = () => {
                 Back to Enterprises
             </AppButton>
 
-
         </PageContainer>
-
     );
 
 };

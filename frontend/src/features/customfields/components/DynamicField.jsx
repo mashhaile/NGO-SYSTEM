@@ -138,7 +138,6 @@ const DynamicField = ({
         case "phone":
 
             return (
-
                 <TextField
 
                     {...commonProps}
@@ -153,26 +152,27 @@ const DynamicField = ({
                         value ?? ""
                     }
 
-                    inputProps={{
-
-                        minLength:
-                            field.validation?.minLength ??
-                            undefined,
-
-                        maxLength:
-                            field.validation?.maxLength ??
-                            undefined
-
-                    }}
-
                     onChange={(e) =>
                         handleChange(
                             e.target.value
                         )
                     }
 
-                />
+                    slotProps={{
+                        htmlInput: {
 
+                            minLength:
+                                field.validation?.minLength ??
+                                undefined,
+
+                            maxLength:
+                                field.validation?.maxLength ??
+                                undefined
+
+                        }
+                    }}
+
+                />
             );
 
 
@@ -185,7 +185,6 @@ const DynamicField = ({
         case "currency":
 
             return (
-
                 <TextField
 
                     {...commonProps}
@@ -196,26 +195,27 @@ const DynamicField = ({
                         value ?? ""
                     }
 
-                    inputProps={{
-
-                        min:
-                            field.validation?.minValue ??
-                            undefined,
-
-                        max:
-                            field.validation?.maxValue ??
-                            undefined
-
-                    }}
-
                     onChange={(e) =>
                         handleChange(
                             e.target.value
                         )
                     }
 
-                />
+                    slotProps={{
+                        htmlInput: {
 
+                            min:
+                                field.validation?.minValue ??
+                                undefined,
+
+                            max:
+                                field.validation?.maxValue ??
+                                undefined
+
+                        }
+                    }}
+
+                />
             );
 
 
@@ -226,16 +226,11 @@ const DynamicField = ({
         case "date":
 
             return (
-
                 <TextField
 
                     {...commonProps}
 
                     type="date"
-
-                    InputLabelProps={{
-                        shrink: true
-                    }}
 
                     value={
                         value ?? ""
@@ -247,8 +242,13 @@ const DynamicField = ({
                         )
                     }
 
-                />
+                    slotProps={{
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
 
+                />
             );
 
 
@@ -259,7 +259,6 @@ const DynamicField = ({
         case "textarea":
 
             return (
-
                 <TextField
 
                     {...commonProps}
@@ -272,26 +271,27 @@ const DynamicField = ({
                         value ?? ""
                     }
 
-                    inputProps={{
-
-                        minLength:
-                            field.validation?.minLength ??
-                            undefined,
-
-                        maxLength:
-                            field.validation?.maxLength ??
-                            undefined
-
-                    }}
-
                     onChange={(e) =>
                         handleChange(
                             e.target.value
                         )
                     }
 
-                />
+                    slotProps={{
+                        htmlInput: {
 
+                            minLength:
+                                field.validation?.minLength ??
+                                undefined,
+
+                            maxLength:
+                                field.validation?.maxLength ??
+                                undefined
+
+                        }
+                    }}
+
+                />
             );
 
 
@@ -613,16 +613,11 @@ const DynamicField = ({
         case "file":
 
             return (
-
                 <TextField
 
                     {...commonProps}
 
                     type="file"
-
-                    InputLabelProps={{
-                        shrink: true
-                    }}
 
                     onChange={(e) => {
 
@@ -637,8 +632,13 @@ const DynamicField = ({
 
                     }}
 
-                />
+                    slotProps={{
+                        inputLabel: {
+                            shrink: true
+                        }
+                    }}
 
+                />
             );
 
 

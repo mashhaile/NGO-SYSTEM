@@ -3239,7 +3239,6 @@ const ServiceDeliveryItemRow = ({
     // =================================================
 
     return (
-
         <Box
             sx={{
                 width: "100%",
@@ -3262,7 +3261,9 @@ const ServiceDeliveryItemRow = ({
 
                 <Typography
                     variant="subtitle1"
-                    fontWeight={600}
+                    sx={{
+                        fontWeight: 600
+                    }}
                 >
                     Service Item {index + 1}
                 </Typography>
@@ -3280,7 +3281,6 @@ const ServiceDeliveryItemRow = ({
                 </AppButton>
 
             </Box>
-
 
             <Box
                 sx={{
@@ -3475,7 +3475,6 @@ const ServiceDeliveryItemRow = ({
 
             </Box>
 
-
             {/* Donation trace: unlinked costs reach no donor. */}
 
             {!donationValue && (
@@ -3491,7 +3490,6 @@ const ServiceDeliveryItemRow = ({
                 </Alert>
 
             )}
-
 
             <Box
                 sx={{
@@ -3518,13 +3516,11 @@ const ServiceDeliveryItemRow = ({
 
             </Box>
 
-
             <Divider
                 sx={{
                     my: 3
                 }}
             />
-
 
             <Box
                 sx={{
@@ -3537,7 +3533,9 @@ const ServiceDeliveryItemRow = ({
 
                 <Typography
                     variant="subtitle2"
-                    fontWeight={600}
+                    sx={{
+                        fontWeight: 600
+                    }}
                 >
                     Detail Items
                 </Typography>
@@ -3559,13 +3557,14 @@ const ServiceDeliveryItemRow = ({
 
             </Box>
 
-
             {
                 detailItems.length === 0
                     ? (
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             No detail items added.
                         </Typography>
@@ -3755,7 +3754,6 @@ const ServiceDeliveryItemRow = ({
             }
 
         </Box>
-
     );
 
 };

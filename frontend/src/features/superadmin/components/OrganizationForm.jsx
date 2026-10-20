@@ -45,7 +45,6 @@ const OrganizationForm = ({
     // =================================================
 
     return (
-
         <Box>
 
             {/* =========================================
@@ -62,24 +61,20 @@ const OrganizationForm = ({
                 Organization Information
             </Typography>
 
-
             <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
+                    color: "text.secondary",
                     mb: 3
-                }}
-            >
+                }}>
                 Organization information managed by the Super Admin.
             </Typography>
-
 
             <Divider
                 sx={{
                     mb: 3
                 }}
             />
-
 
             {/* =========================================
                 ORGANIZATION CODE
@@ -94,14 +89,15 @@ const OrganizationForm = ({
                         data?.code
                     )
                 }
-                InputProps={{
-                    readOnly: true
-                }}
                 sx={{
                     mb: 2
                 }}
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
+                }}
             />
-
 
             {/* =========================================
                 NAME
@@ -116,14 +112,15 @@ const OrganizationForm = ({
                         data?.organizationName
                     )
                 }
-                InputProps={{
-                    readOnly: true
-                }}
                 sx={{
                     mb: 2
                 }}
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
+                }}
             />
-
 
             {/* =========================================
                 EMAIL
@@ -138,14 +135,15 @@ const OrganizationForm = ({
                         data?.contactEmail
                     )
                 }
-                InputProps={{
-                    readOnly: true
-                }}
                 sx={{
                     mb: 2
                 }}
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
+                }}
             />
-
 
             {/* =========================================
                 PHONE
@@ -160,14 +158,15 @@ const OrganizationForm = ({
                         data?.contactPhone
                     )
                 }
-                InputProps={{
-                    readOnly: true
-                }}
                 sx={{
                     mb: 2
                 }}
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
+                }}
             />
-
 
             {/* =========================================
                 COUNTRY
@@ -181,14 +180,15 @@ const OrganizationForm = ({
                         data?.country
                     )
                 }
-                InputProps={{
-                    readOnly: true
-                }}
                 sx={{
                     mb: 2
                 }}
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
+                }}
             />
-
 
             {/* =========================================
                 ADDRESS
@@ -204,14 +204,15 @@ const OrganizationForm = ({
                         data?.address
                     )
                 }
-                InputProps={{
-                    readOnly: true
-                }}
                 sx={{
                     mb: 2
                 }}
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
+                }}
             />
-
 
             {/* =========================================
                 WEBSITE
@@ -225,14 +226,15 @@ const OrganizationForm = ({
                         data?.website
                     )
                 }
-                InputProps={{
-                    readOnly: true
-                }}
                 sx={{
                     mb: 2
                 }}
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
+                }}
             />
-
 
             {/* =========================================
                 LOGO
@@ -246,13 +248,14 @@ const OrganizationForm = ({
                         data?.logo
                     )
                 }
-                InputProps={{
-                    readOnly: true
+                slotProps={{
+                    input: {
+                        readOnly: true
+                    }
                 }}
             />
 
         </Box>
-
     );
 
 };

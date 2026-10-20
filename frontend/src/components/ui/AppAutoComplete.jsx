@@ -84,8 +84,12 @@ const AppAutocomplete = ({
                     }
                     size={size}
                     variant="outlined"
-                    InputLabelProps={{
-                        shrink: true
+                    slotProps={{
+                        ...params.slotProps,
+
+                        inputLabel: {
+                            shrink: true
+                        }
                     }}
                 />
             )}

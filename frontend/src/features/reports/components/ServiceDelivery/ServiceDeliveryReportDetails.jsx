@@ -245,13 +245,12 @@ const MetricCard = ({
 
             <Typography
                 variant="caption"
-                color="text.secondary"
                 sx={{
+                    color: "text.secondary",
                     display: "block",
                     mb: 0.5,
                     fontWeight: 600
-                }}
-            >
+                }}>
                 {label}
             </Typography>
 
@@ -261,13 +260,13 @@ const MetricCard = ({
                         ? "h6"
                         : "body1"
                 }
-                fontWeight={700}
                 sx={{
+                    fontWeight: 700,
                     lineHeight: 1.3,
+
                     wordBreak:
                         "break-word"
-                }}
-            >
+                }}>
                 {value}
             </Typography>
 
@@ -287,13 +286,12 @@ const InfoItem = ({
 
             <Typography
                 variant="caption"
-                color="text.secondary"
                 sx={{
+                    color: "text.secondary",
                     display: "block",
                     mb: 0.35,
                     fontWeight: 600
-                }}
-            >
+                }}>
                 {label}
             </Typography>
 
@@ -302,12 +300,12 @@ const InfoItem = ({
             ) : (
                 <Typography
                     variant="body2"
-                    fontWeight={500}
                     sx={{
+                        fontWeight: 500,
+
                         wordBreak:
                             "break-word"
-                    }}
-                >
+                    }}>
                     {formatValue(value)}
                 </Typography>
             )}
@@ -337,11 +335,10 @@ const SupportingItems = ({
 
             <Typography
                 variant="subtitle2"
-                fontWeight={700}
                 sx={{
+                    fontWeight: 700,
                     mb: 1
-                }}
-            >
+                }}>
                 Supporting Items
             </Typography>
 
@@ -421,7 +418,9 @@ const SupportingItems = ({
                                 >
                                     <Typography
                                         variant="body2"
-                                        fontWeight={600}
+                                        sx={{
+                                            fontWeight: 600
+                                        }}
                                     >
                                         {name}
                                     </Typography>
@@ -429,7 +428,9 @@ const SupportingItems = ({
                                     {detail?.remarks ? (
                                         <Typography
                                             variant="caption"
-                                            color="text.secondary"
+                                            sx={{
+                                                color: "text.secondary"
+                                            }}
                                         >
                                             {formatValue(
                                                 detail.remarks
@@ -437,7 +438,6 @@ const SupportingItems = ({
                                         </Typography>
                                     ) : null}
                                 </Box>
-
 
                                 <Box
                                     sx={{
@@ -449,22 +449,24 @@ const SupportingItems = ({
                                 >
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
-                                        display="block"
-                                    >
+                                        sx={{
+                                            color: "text.secondary",
+                                            display: "block"
+                                        }}>
                                         Quantity
                                     </Typography>
 
                                     <Typography
                                         variant="body2"
-                                        fontWeight={600}
+                                        sx={{
+                                            fontWeight: 600
+                                        }}
                                     >
                                         {formatNumber(
                                             quantity
                                         )}
                                     </Typography>
                                 </Box>
-
 
                                 <Box
                                     sx={{
@@ -476,22 +478,24 @@ const SupportingItems = ({
                                 >
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
-                                        display="block"
-                                    >
+                                        sx={{
+                                            color: "text.secondary",
+                                            display: "block"
+                                        }}>
                                         Unit
                                     </Typography>
 
                                     <Typography
                                         variant="body2"
-                                        fontWeight={600}
+                                        sx={{
+                                            fontWeight: 600
+                                        }}
                                     >
                                         {getUnitName(
                                             unit
                                         )}
                                     </Typography>
                                 </Box>
-
 
                                 <Box
                                     sx={{
@@ -507,15 +511,18 @@ const SupportingItems = ({
                                 >
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
-                                        display="block"
-                                    >
+                                        sx={{
+                                            color: "text.secondary",
+                                            display: "block"
+                                        }}>
                                         Total
                                     </Typography>
 
                                     <Typography
                                         variant="body2"
-                                        fontWeight={700}
+                                        sx={{
+                                            fontWeight: 700
+                                        }}
                                     >
                                         {formatCurrency(
                                             total
@@ -699,25 +706,24 @@ const BeneficiaryAllocationEntry = ({
 
                     <Typography
                         variant="caption"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             display: "block",
                             lineHeight: 1.3,
                             mb: 0.25
-                        }}
-                    >
+                        }}>
                         {serviceName}
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        fontWeight={700}
                         sx={{
+                            fontWeight: 700,
                             lineHeight: 1.35,
+
                             wordBreak:
                                 "break-word"
-                        }}
-                    >
+                        }}>
                         {itemName}
                     </Typography>
 
@@ -737,33 +743,35 @@ const BeneficiaryAllocationEntry = ({
 
                     <Typography
                         variant="caption"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
+
                             display: {
                                 xs: "inline",
                                 sm: "block"
                             },
+
                             mr: {
                                 xs: 0.75,
                                 sm: 0
                             }
-                        }}
-                    >
+                        }}>
                         Quantity
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        fontWeight={600}
                         sx={{
+                            fontWeight: 600,
+
                             display: {
                                 xs: "inline",
                                 sm: "block"
                             },
+
                             whiteSpace:
                                 "nowrap"
-                        }}
-                    >
+                        }}>
                         {formatQuantity(
                             quantity,
                             unit
@@ -790,33 +798,35 @@ const BeneficiaryAllocationEntry = ({
 
                     <Typography
                         variant="caption"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
+
                             display: {
                                 xs: "inline",
                                 sm: "block"
                             },
+
                             mr: {
                                 xs: 0.75,
                                 sm: 0
                             }
-                        }}
-                    >
+                        }}>
                         Allocated
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        fontWeight={800}
                         sx={{
+                            fontWeight: 800,
+
                             display: {
                                 xs: "inline",
                                 sm: "block"
                             },
+
                             whiteSpace:
                                 "nowrap"
-                        }}
-                    >
+                        }}>
                         {formatCurrency(
                             allocatedValue
                         )}
@@ -826,24 +836,24 @@ const BeneficiaryAllocationEntry = ({
 
             </Stack>
 
-
             {/* OPTIONAL REMARKS */}
 
             {allocation?.remarks ? (
 
                 <Typography
                     variant="caption"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         display: "block",
                         mt: 1,
                         pt: 0.75,
                         borderTop: "1px solid",
+
                         borderColor:
                             "divider",
+
                         lineHeight: 1.4
-                    }}
-                >
+                    }}>
                     {formatValue(
                         allocation.remarks
                     )}
@@ -914,7 +924,9 @@ const BeneficiaryCard = ({
 
                         <Typography
                             variant="subtitle1"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             {getBeneficiaryName(
                                 beneficiary
@@ -923,7 +935,9 @@ const BeneficiaryCard = ({
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             {getBeneficiaryNumber(
                                 beneficiary
@@ -944,15 +958,18 @@ const BeneficiaryCard = ({
 
                         <Typography
                             variant="caption"
-                            color="text.secondary"
-                            display="block"
-                        >
+                            sx={{
+                                color: "text.secondary",
+                                display: "block"
+                            }}>
                             Total Allocated
                         </Typography>
 
                         <Typography
                             variant="h6"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             {formatCurrency(
                                 totalAllocated
@@ -965,9 +982,7 @@ const BeneficiaryCard = ({
 
             </Box>
 
-
             <Divider />
-
 
             {/* ALLOCATIONS */}
 
@@ -1120,7 +1135,9 @@ const ServiceItemCard = ({
 
                         <Typography
                             variant="subtitle1"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             {
                                 getLookupDisplayValue(
@@ -1135,7 +1152,9 @@ const ServiceItemCard = ({
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             {
                                 getLookupDisplayValue(
@@ -1155,9 +1174,7 @@ const ServiceItemCard = ({
 
             </Box>
 
-
             <Divider />
-
 
             {/* FINANCIAL SUMMARY */}
 
@@ -1279,10 +1296,11 @@ const ServiceItemCard = ({
 
                         <Typography
                             variant="caption"
-                            color="text.secondary"
-                            display="block"
-                            fontWeight={600}
-                        >
+                            sx={{
+                                color: "text.secondary",
+                                display: "block",
+                                fontWeight: 600
+                            }}>
                             Remarks
                         </Typography>
 
@@ -1377,7 +1395,9 @@ const ServiceDeliveryCard = ({
 
                         <Typography
                             variant="h6"
-                            fontWeight={700}
+                            sx={{
+                                fontWeight: 700
+                            }}
                         >
                             {
                                 delivery
@@ -1388,7 +1408,9 @@ const ServiceDeliveryCard = ({
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             {formatDate(
                                 delivery
@@ -1409,9 +1431,7 @@ const ServiceDeliveryCard = ({
 
             </Box>
 
-
             <Divider />
-
 
             {/* DELIVERY OVERVIEW */}
 
@@ -1419,11 +1439,10 @@ const ServiceDeliveryCard = ({
 
                 <Typography
                     variant="subtitle1"
-                    fontWeight={700}
                     sx={{
+                        fontWeight: 700,
                         mb: 1.75
-                    }}
-                >
+                    }}>
                     Delivery Overview
                 </Typography>
 
@@ -1586,9 +1605,7 @@ const ServiceDeliveryCard = ({
 
             </Box>
 
-
             <Divider />
-
 
             {/* SERVICES */}
 
@@ -1596,21 +1613,19 @@ const ServiceDeliveryCard = ({
 
                 <Typography
                     variant="subtitle1"
-                    fontWeight={700}
                     sx={{
+                        fontWeight: 700,
                         mb: 0.25
-                    }}
-                >
+                    }}>
                     Services Delivered
                 </Typography>
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mb: 1.75
-                    }}
-                >
+                    }}>
                     Service items, supporting items and allocation status.
                 </Typography>
 
@@ -1652,9 +1667,7 @@ const ServiceDeliveryCard = ({
 
             </Box>
 
-
             <Divider />
-
 
             {/* BENEFICIARIES */}
 
@@ -1662,21 +1675,19 @@ const ServiceDeliveryCard = ({
 
                 <Typography
                     variant="subtitle1"
-                    fontWeight={700}
                     sx={{
+                        fontWeight: 700,
                         mb: 0.25
-                    }}
-                >
+                    }}>
                     Beneficiary Allocations
                 </Typography>
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mb: 1.75
-                    }}
-                >
+                    }}>
                     Services and support allocated to each beneficiary.
                 </Typography>
 
@@ -1959,11 +1970,10 @@ const ServiceDeliveryReportDetails = ({
 
                 <Typography
                     variant="h6"
-                    fontWeight={700}
                     sx={{
+                        fontWeight: 700,
                         mb: 1.5
-                    }}
-                >
+                    }}>
                     Executive Summary
                 </Typography>
 
@@ -2083,7 +2093,6 @@ const ServiceDeliveryReportDetails = ({
 
             </Box>
 
-
             {/* =================================================
                 QUANTITY BY UNIT
             ================================================= */}
@@ -2094,11 +2103,10 @@ const ServiceDeliveryReportDetails = ({
 
                     <Typography
                         variant="h6"
-                        fontWeight={700}
                         sx={{
+                            fontWeight: 700,
                             mb: 1.25
-                        }}
-                    >
+                        }}>
                         Quantity by Unit
                     </Typography>
 
@@ -2139,7 +2147,6 @@ const ServiceDeliveryReportDetails = ({
                 </Box>
 
             ) : null}
-
 
             {/* =================================================
                 DELIVERIES

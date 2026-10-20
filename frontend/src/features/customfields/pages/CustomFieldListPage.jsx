@@ -200,7 +200,6 @@ const CustomFieldListPage = () => {
     // ======================================================
 
     return (
-
         <Box>
 
             {/* ==================================================
@@ -220,16 +219,19 @@ const CustomFieldListPage = () => {
 
                     <Typography
                         variant="h5"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Custom Fields Management
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 0.5 }}
-                    >
+                        sx={{
+                            color: "text.secondary",
+                            mt: 0.5
+                        }}>
                         Create and manage custom fields for your
                         organization.
                     </Typography>
@@ -249,7 +251,6 @@ const CustomFieldListPage = () => {
     Create Custom Field
 </Button>
             </Box>
-
 
             {/* ==================================================
                 FILTER
@@ -305,7 +306,6 @@ const CustomFieldListPage = () => {
                 </CardContent>
 
             </Card>
-
 
             {/* ==================================================
                 TABLE
@@ -386,11 +386,10 @@ const CustomFieldListPage = () => {
                                         >
 
                                             <Typography
-                                                color="text.secondary"
                                                 sx={{
+                                                    color: "text.secondary",
                                                     py: 4
-                                                }}
-                                            >
+                                                }}>
                                                 No custom fields found
                                                 for {module}.
                                             </Typography>
@@ -412,7 +411,9 @@ const CustomFieldListPage = () => {
                                                 <TableCell>
 
                                                     <Typography
-                                                        fontWeight={600}
+                                                        sx={{
+                                                            fontWeight: 600
+                                                        }}
                                                     >
                                                         {field.label}
                                                     </Typography>
@@ -502,7 +503,6 @@ const CustomFieldListPage = () => {
             </Card>
 
         </Box>
-
     );
 
 };

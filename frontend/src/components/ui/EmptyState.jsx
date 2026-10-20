@@ -32,7 +32,9 @@ const LoadingState = ({
 
             <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                    color: "text.secondary"
+                }}
             >
                 {message}
             </Typography>

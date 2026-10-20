@@ -749,7 +749,6 @@ const LookupEditPage = () => {
     if (isLoading) {
 
         return (
-
             <Stack sx={{ alignItems: "center", justifyContent: "center", py: 8 }}
             >
 
@@ -757,14 +756,14 @@ const LookupEditPage = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 2 }}
-                >
+                    sx={{
+                        color: "text.secondary",
+                        mt: 2
+                    }}>
                     Loading lookup...
                 </Typography>
 
             </Stack>
-
         );
 
     }
@@ -777,17 +776,16 @@ const LookupEditPage = () => {
     if (isError) {
 
         return (
-
             <Box>
 
                 <Typography
                     variant="h5"
-                    fontWeight={700}
-                    mb={2}
-                >
+                    sx={{
+                        fontWeight: 700,
+                        mb: 2
+                    }}>
                     Edit Lookup
                 </Typography>
-
 
                 <Card>
 
@@ -795,9 +793,10 @@ const LookupEditPage = () => {
 
                         <Typography
                             color="error"
-                            fontWeight={600}
-                            mb={2}
-                        >
+                            sx={{
+                                fontWeight: 600,
+                                mb: 2
+                            }}>
                             {
                                 error
                                     ?.response
@@ -822,7 +821,6 @@ const LookupEditPage = () => {
                 </Card>
 
             </Box>
-
         );
 
     }
@@ -833,7 +831,6 @@ const LookupEditPage = () => {
     // ======================================================
 
     return (
-
         <Box>
 
             {/* HEADER */}
@@ -865,7 +862,9 @@ const LookupEditPage = () => {
 
                     <Typography
                         variant="h4"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Edit Lookup
                     </Typography>
@@ -873,7 +872,9 @@ const LookupEditPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Update the lookup value, code, category, or status.
                     </Typography>
@@ -881,7 +882,6 @@ const LookupEditPage = () => {
                 </Box>
 
             </Stack>
-
 
             {/* FORM */}
 
@@ -1189,7 +1189,9 @@ const LookupEditPage = () => {
 
                                         <Typography
                                             color="error"
-                                            fontWeight={600}
+                                            sx={{
+                                                fontWeight: 600
+                                            }}
                                         >
                                             {formError}
                                         </Typography>
@@ -1263,7 +1265,6 @@ const LookupEditPage = () => {
             </Card>
 
         </Box>
-
     );
 
 };

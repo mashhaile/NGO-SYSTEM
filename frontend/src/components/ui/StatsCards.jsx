@@ -85,19 +85,21 @@ const StatsCards = ({
 
 
                             <Typography
-                                color="text.secondary"
                                 variant="body2"
-                                fontWeight={600}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    fontWeight: 600
+                                }}>
                                 {item.label}
                             </Typography>
 
 
                             <Typography
                                 variant="h4"
-                                fontWeight={800}
-                                sx={{ mt: 0.75 }}
-                            >
+                                sx={{
+                                    fontWeight: 800,
+                                    mt: 0.75
+                                }}>
                                 {item.value ?? 0}
                             </Typography>
 
@@ -105,12 +107,11 @@ const StatsCards = ({
                             {item.caption && (
                                 <Typography
                                     variant="caption"
-                                    color="text.secondary"
                                     sx={{
+                                        color: "text.secondary",
                                         display: "block",
                                         mt: 0.5
-                                    }}
-                                >
+                                    }}>
                                     {item.caption}
                                 </Typography>
                             )}

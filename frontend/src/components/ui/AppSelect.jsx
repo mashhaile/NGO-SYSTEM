@@ -124,127 +124,20 @@ const AppSelect = ({
 
 
     return (
-
         <TextField
             {...props}
-
             select
-
             label={label}
             name={name}
-
             value={selectValue}
-
             onChange={onChange}
-
             error={error}
             helperText={helperText}
-
             required={required}
             disabled={disabled}
-
             fullWidth={fullWidth}
             size={size}
-
             variant="outlined"
-
-            InputLabelProps={{
-                shrink: true
-            }}
-
-            SelectProps={{
-                ...otherSelectProps,
-
-                multiple,
-
-                value:
-                    selectValue,
-
-                displayEmpty:
-                    !multiple,
-
-                MenuProps: {
-
-                    ...externalMenuProps,
-
-                    PaperProps: {
-
-                        ...externalMenuProps.PaperProps,
-
-                        sx: {
-
-                            mt: 0.75,
-
-                            borderRadius: 2,
-
-                            border:
-                                "1px solid",
-
-                            borderColor:
-                                "divider",
-
-                            boxShadow:
-                                "0 12px 35px rgba(15,23,42,0.12)",
-
-                            "& .MuiMenuItem-root": {
-
-                                minHeight:
-                                    42,
-
-                                px:
-                                    1.5,
-
-                                borderRadius:
-                                    1,
-
-                                mx:
-                                    0.5,
-
-                                my:
-                                    0.25,
-
-                                "&:hover":
-                                    {
-                                        backgroundColor:
-                                            "action.hover"
-                                    },
-
-                                "&.Mui-selected":
-                                    {
-
-                                        backgroundColor:
-                                            "action.selected",
-
-                                        color:
-                                            "primary.main",
-
-                                        fontWeight:
-                                            600
-
-                                    },
-
-                                "&.Mui-selected:hover":
-                                    {
-
-                                        backgroundColor:
-                                            "action.selected"
-
-                                    }
-
-                            },
-
-                            ...externalMenuProps
-                                .PaperProps
-                                ?.sx
-
-                        }
-
-                    }
-
-                }
-
-            }}
-
             sx={{
 
                 width:
@@ -342,8 +235,112 @@ const AppSelect = ({
                 ...sx
 
             }}
+            slotProps={{
+                select: {
+                    ...otherSelectProps,
 
-        >
+                    multiple,
+
+                    value:
+                        selectValue,
+
+                    displayEmpty:
+                        !multiple,
+
+                    MenuProps: {
+
+                        ...externalMenuProps,
+
+                        slotProps: {
+
+                        ...externalMenuProps.slotProps,
+
+                        paper: {
+
+                            ...externalMenuProps.PaperProps,
+
+                            ...externalMenuProps.slotProps?.paper,
+
+                            sx: {
+
+                                mt: 0.75,
+
+                                borderRadius: 2,
+
+                                border:
+                                    "1px solid",
+
+                                borderColor:
+                                    "divider",
+
+                                boxShadow:
+                                    "0 12px 35px rgba(15,23,42,0.12)",
+
+                                "& .MuiMenuItem-root": {
+
+                                    minHeight:
+                                        42,
+
+                                    px:
+                                        1.5,
+
+                                    borderRadius:
+                                        1,
+
+                                    mx:
+                                        0.5,
+
+                                    my:
+                                        0.25,
+
+                                    "&:hover":
+                                        {
+                                            backgroundColor:
+                                                "action.hover"
+                                        },
+
+                                    "&.Mui-selected":
+                                        {
+
+                                            backgroundColor:
+                                                "action.selected",
+
+                                            color:
+                                                "primary.main",
+
+                                            fontWeight:
+                                                600
+
+                                        },
+
+                                    "&.Mui-selected:hover":
+                                        {
+
+                                            backgroundColor:
+                                                "action.selected"
+
+                                        }
+
+                                },
+
+                                ...externalMenuProps
+                                    .PaperProps
+                                    ?.sx
+
+                            }
+
+                        }
+
+                        }
+
+                    }
+
+                },
+
+                inputLabel: {
+                    shrink: true
+                }
+            }}>
 
             {/*
               * Placeholder row. Optional selects can pick it
@@ -366,7 +363,6 @@ const AppSelect = ({
                 </MenuItem>
 
             )}
-
 
             {
                 hasOptions
@@ -398,7 +394,6 @@ const AppSelect = ({
             }
 
         </TextField>
-
     );
 
 };

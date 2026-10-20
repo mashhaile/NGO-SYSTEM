@@ -148,360 +148,326 @@ Loading...
 
 
 return (
+    <Box>
 
+        <Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
 
+        direction="row"
 
-<Box>
+        >
 
 
 
+        <Typography
 
+        variant="h4"
 
+        sx={{
+            fontWeight: "700"
+        }}
 
+        >
 
-<Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
+        Enrollment Details
 
-direction="row"
+        </Typography>
 
->
 
 
 
-<Typography
 
-variant="h4"
 
-fontWeight="700"
+        <Button
 
->
+        variant="outlined"
 
-Enrollment Details
+        startIcon={<ArrowBack/>}
 
-</Typography>
+        onClick={()=>navigate("/enrollments")}
 
+        >
 
+        Back
 
+        </Button>
 
 
 
-<Button
 
-variant="outlined"
 
-startIcon={<ArrowBack/>}
 
-onClick={()=>navigate("/enrollments")}
+        </Stack>
 
->
+        <Card>
 
-Back
 
-</Button>
 
+        <CardContent>
 
 
 
+        <Typography
+            variant="h6"
+            sx={{
+                fontWeight: "700",
+                mb: 2
+            }}>
 
+        Beneficiary Information
 
-</Stack>
+        </Typography>
 
 
 
 
 
+        <Typography>
 
+        Name:
 
+        {" "}
 
+        {
 
-<Card>
+        current.beneficiary?.firstName
 
+        }
 
+        {" "}
 
-<CardContent>
+        {
 
+        current.beneficiary?.lastName
 
+        }
 
-<Typography
+        </Typography>
 
-variant="h6"
 
-fontWeight="700"
 
-mb={2}
 
->
 
-Beneficiary Information
+        <Typography>
 
-</Typography>
+        Beneficiary Number:
 
+        {" "}
 
+        {
 
+        current.beneficiary?.beneficiaryNumber
 
+        }
 
-<Typography>
+        </Typography>
 
-Name:
 
-{" "}
 
-{
 
-current.beneficiary?.firstName
 
-}
 
-{" "}
 
-{
+        <Divider sx={{my:3}}/>
 
-current.beneficiary?.lastName
 
-}
 
-</Typography>
 
 
 
 
 
-<Typography>
 
-Beneficiary Number:
+        <Typography
+            variant="h6"
+            sx={{
+                fontWeight: "700",
+                mb: 2
+            }}>
 
-{" "}
+        Program Information
 
-{
+        </Typography>
 
-current.beneficiary?.beneficiaryNumber
 
-}
 
-</Typography>
 
 
 
 
+        <Typography>
 
+        Program:
 
+        {" "}
 
-<Divider sx={{my:3}}/>
+        {
 
+        current.program?.name
 
+        }
 
+        </Typography>
 
 
 
 
 
+        <Typography>
 
-<Typography
+        Program Code:
 
-variant="h6"
+        {" "}
 
-fontWeight="700"
+        {
 
-mb={2}
+        current.program?.programCode
 
->
+        }
 
-Program Information
+        </Typography>
 
-</Typography>
 
 
 
 
 
 
+        <Divider sx={{my:3}}/>
 
-<Typography>
 
-Program:
 
-{" "}
 
-{
 
-current.program?.name
 
-}
 
-</Typography>
 
+        <Typography
+            variant="h6"
+            sx={{
+                fontWeight: "700",
+                mb: 2
+            }}>
 
+        Enrollment Information
 
+        </Typography>
 
 
-<Typography>
 
-Program Code:
 
-{" "}
 
-{
 
-current.program?.programCode
 
-}
+        <Typography>
 
-</Typography>
+        Status:
 
+        {" "}
 
+        {
 
+        current.status
 
+        }
 
+        </Typography>
 
 
-<Divider sx={{my:3}}/>
 
 
 
 
+        <Typography>
 
+        Enrollment Date:
 
+        {" "}
 
+        {
 
-<Typography
+        current.enrollmentDate
 
-variant="h6"
+        ?
 
-fontWeight="700"
+        new Date(
 
-mb={2}
+        current.enrollmentDate
 
->
+        ).toLocaleDateString()
 
-Enrollment Information
+        :
 
-</Typography>
+        "-"
 
+        }
 
+        </Typography>
 
 
 
 
 
-<Typography>
 
-Status:
 
-{" "}
+        <Typography>
 
-{
+        Completion Date:
 
-current.status
+        {" "}
 
-}
+        {
 
-</Typography>
+        current.completionDate
 
+        ?
 
+        new Date(
 
+        current.completionDate
 
+        ).toLocaleDateString()
 
+        :
 
-<Typography>
+        "-"
 
-Enrollment Date:
+        }
 
-{" "}
+        </Typography>
 
-{
 
-current.enrollmentDate
 
-?
 
-new Date(
 
-current.enrollmentDate
 
-).toLocaleDateString()
 
-:
+        <Typography>
 
-"-"
+        Remarks:
 
-}
+        {" "}
 
-</Typography>
+        {
 
+        current.remarks || "-"
 
+        }
 
+        </Typography>
 
 
 
 
-<Typography>
 
-Completion Date:
 
-{" "}
 
-{
+        </CardContent>
 
-current.completionDate
 
-?
 
-new Date(
+        </Card>
 
-current.completionDate
-
-).toLocaleDateString()
-
-:
-
-"-"
-
-}
-
-</Typography>
-
-
-
-
-
-
-
-<Typography>
-
-Remarks:
-
-{" "}
-
-{
-
-current.remarks || "-"
-
-}
-
-</Typography>
-
-
-
-
-
-
-
-</CardContent>
-
-
-
-</Card>
-
-
-
-
-
-
-
-
-</Box>
-
-
-
+    </Box>
 );
 
 

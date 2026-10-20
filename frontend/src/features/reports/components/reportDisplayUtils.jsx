@@ -309,13 +309,12 @@ export const DetailField = ({
             <Box>
                 <Typography
                     variant="caption"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         display: "block",
                         mb: 0.5,
                         fontWeight: 600
-                    }}
-                >
+                    }}>
                     {label}
                 </Typography>
 
@@ -442,11 +441,10 @@ export const SectionHeader = ({
                     {subtitle && (
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.25
-                            }}
-                        >
+                            }}>
                             {subtitle}
                         </Typography>
                     )}
@@ -505,11 +503,10 @@ export const EmptyState = ({
                 {message && (
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mt: 0.5
-                        }}
-                    >
+                        }}>
                         {message}
                     </Typography>
                 )}
@@ -633,10 +630,11 @@ export const StatusValue = ({
         return (
             <Typography
                 variant="body2"
-                color="text.secondary"
-            >
-                —
-            </Typography>
+                sx={{
+                    color: "text.secondary"
+                }}
+            >—
+                            </Typography>
         );
     }
 

@@ -376,18 +376,17 @@ const OrganizationSettingsPage = () => {
     if (loading) {
 
         return (
-
             <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                minHeight="300px"
-            >
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "300px"
+                }}>
 
                 <CircularProgress />
 
             </Box>
-
         );
 
     }
@@ -398,18 +397,21 @@ const OrganizationSettingsPage = () => {
     // ==========================================
 
     return (
-
         <Box>
 
             {/* ==================================
                 PAGE HEADER
             ================================== */}
 
-            <Box mb={3}>
+            <Box sx={{
+                mb: 3
+            }}>
 
                 <Typography
                     variant="h4"
-                    fontWeight={700}
+                    sx={{
+                        fontWeight: 700
+                    }}
                 >
                     Organization Settings
                 </Typography>
@@ -417,15 +419,15 @@ const OrganizationSettingsPage = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    mt={0.5}
-                >
+                    sx={{
+                        color: "text.secondary",
+                        mt: 0.5
+                    }}>
                     Manage your organization's information,
                     contact details and legal information.
                 </Typography>
 
             </Box>
-
 
             {/* ==================================
                 MESSAGES
@@ -442,7 +444,6 @@ const OrganizationSettingsPage = () => {
 
             )}
 
-
             {success && (
 
                 <Alert
@@ -453,7 +454,6 @@ const OrganizationSettingsPage = () => {
                 </Alert>
 
             )}
-
 
             {/* ==================================
                 FORM
@@ -579,7 +579,9 @@ const OrganizationSettingsPage = () => {
                     LEGAL INFORMATION
                 ================================== */}
 
-                <Box mt={3}>
+                <Box sx={{
+                    mt: 3
+                }}>
 
                     <PageCard>
 
@@ -644,7 +646,9 @@ const OrganizationSettingsPage = () => {
                     CONTACT INFORMATION
                 ================================== */}
 
-                <Box mt={3}>
+                <Box sx={{
+                    mt: 3
+                }}>
 
                     <PageCard>
 
@@ -738,7 +742,9 @@ const OrganizationSettingsPage = () => {
                     PRIMARY CONTACT
                 ================================== */}
 
-                <Box mt={3}>
+                <Box sx={{
+                    mt: 3
+                }}>
 
                     <PageCard>
 
@@ -844,7 +850,9 @@ const OrganizationSettingsPage = () => {
                     ADDRESS
                 ================================== */}
 
-                <Box mt={3}>
+                <Box sx={{
+                    mt: 3
+                }}>
 
                     <PageCard>
 
@@ -972,7 +980,9 @@ const OrganizationSettingsPage = () => {
                     BRANDING
                 ================================== */}
 
-                <Box mt={3}>
+                <Box sx={{
+                    mt: 3
+                }}>
 
                     <PageCard>
 
@@ -1024,7 +1034,6 @@ const OrganizationSettingsPage = () => {
             </Box>
 
         </Box>
-
     );
 
 };

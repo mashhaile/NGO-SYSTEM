@@ -265,10 +265,12 @@ const TorListPage = () => {
                 <Link
                     component="button"
                     underline="hover"
-                    fontWeight={600}
                     onClick={() =>
                         navigate(`/tors/${params.row._id}`)
                     }
+                    sx={{
+                        fontWeight: 600
+                    }}
                 >
                     {params.value}
                 </Link>

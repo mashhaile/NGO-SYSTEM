@@ -39,7 +39,6 @@ const FundingTrendChart = ({
     if (!chartData.length) {
 
         return (
-
             <Box
                 sx={{
                     height: 300,
@@ -59,26 +58,25 @@ const FundingTrendChart = ({
                 <Box>
 
                     <Typography
-                        fontWeight={700}
-                        color="text.secondary"
-                    >
+                        sx={{
+                            fontWeight: 700,
+                            color: "text.secondary"
+                        }}>
                         No funding data available
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        color="text.disabled"
                         sx={{
+                            color: "text.disabled",
                             mt: 0.5
-                        }}
-                    >
+                        }}>
                         Funding trends will appear here.
                     </Typography>
 
                 </Box>
 
             </Box>
-
         );
 
     }

@@ -86,7 +86,6 @@ const TorBudgetLines = ({
 
 
     return (
-
         <Box>
 
             <TableContainer
@@ -140,9 +139,10 @@ const TorBudgetLines = ({
 
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
-                                        sx={{ py: 1 }}
-                                    >
+                                        sx={{
+                                            color: "text.secondary",
+                                            py: 1
+                                        }}>
                                         No budget lines yet.
                                     </Typography>
 
@@ -185,15 +185,17 @@ const TorBudgetLines = ({
                                     <TextField
                                         {...cellInput}
                                         type="number"
-                                        inputProps={{
-                                            min: 0,
-                                            style: { textAlign: "right" }
-                                        }}
                                         value={line.quantity}
                                         disabled={disabled}
                                         onChange={(e) =>
                                             updateLine(index, "quantity", e.target.value)
                                         }
+                                        slotProps={{
+                                            htmlInput: {
+                                                min: 0,
+                                                style: { textAlign: "right" }
+                                            }
+                                        }}
                                     />
                                 </TableCell>
 
@@ -201,16 +203,18 @@ const TorBudgetLines = ({
                                     <TextField
                                         {...cellInput}
                                         type="number"
-                                        inputProps={{
-                                            min: 0,
-                                            step: "0.01",
-                                            style: { textAlign: "right" }
-                                        }}
                                         value={line.unitCost}
                                         disabled={disabled}
                                         onChange={(e) =>
                                             updateLine(index, "unitCost", e.target.value)
                                         }
+                                        slotProps={{
+                                            htmlInput: {
+                                                min: 0,
+                                                step: "0.01",
+                                                style: { textAlign: "right" }
+                                            }
+                                        }}
                                     />
                                 </TableCell>
 
@@ -244,13 +248,17 @@ const TorBudgetLines = ({
                         <TableRow>
 
                             <TableCell colSpan={4} align="right">
-                                <Typography fontWeight={700}>
+                                <Typography sx={{
+                                    fontWeight: 700
+                                }}>
                                     Total Budget
                                 </Typography>
                             </TableCell>
 
                             <TableCell align="right">
-                                <Typography fontWeight={700}>
+                                <Typography sx={{
+                                    fontWeight: 700
+                                }}>
                                     {formatAmount(getBudgetTotal(lines), currency)}
                                 </Typography>
                             </TableCell>
@@ -264,7 +272,6 @@ const TorBudgetLines = ({
                 </Table>
 
             </TableContainer>
-
 
             <Stack
                 direction="row"
@@ -283,7 +290,6 @@ const TorBudgetLines = ({
             </Stack>
 
         </Box>
-
     );
 
 };

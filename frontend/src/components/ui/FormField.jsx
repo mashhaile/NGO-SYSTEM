@@ -15,19 +15,9 @@ const FormField = ({
     return (
         <TextField
             {...props}
-
             fullWidth={
                 props.fullWidth !== false
             }
-
-            InputProps={{
-                ...InputProps
-            }}
-
-            SelectProps={{
-                ...SelectProps
-            }}
-
             sx={{
                 width: "100%",
 
@@ -62,7 +52,15 @@ const FormField = ({
 
                 ...sx
             }}
-        />
+            slotProps={{
+                input: {
+                    ...InputProps
+                },
+
+                select: {
+                    ...SelectProps
+                }
+            }} />
     );
 };
 

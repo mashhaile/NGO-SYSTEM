@@ -122,7 +122,6 @@ const LoginPage = () => {
 
 
     return (
-
         <Box
             sx={{
                 minHeight: "100vh",
@@ -151,15 +150,19 @@ const LoginPage = () => {
 
                 <Typography
                     variant="h5"
-                    fontWeight={700}
+                    sx={{
+                        fontWeight: 700
+                    }}
                 >
                     NGO Management System
                 </Typography>
 
                 <Typography
-                    color="text.secondary"
-                    sx={{ mt: 0.5, mb: 3 }}
-                >
+                    sx={{
+                        color: "text.secondary",
+                        mt: 0.5,
+                        mb: 3
+                    }}>
                     Sign in to continue
                 </Typography>
 
@@ -212,22 +215,24 @@ const LoginPage = () => {
                         value={form.password}
                         onChange={handleChange}
                         required
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                        onClick={() =>
-                                            setShowPassword(value => !value)
-                                        }
-                                        edge="end"
-                                    >
-                                        {showPassword
-                                            ? <VisibilityOff />
-                                            : <Visibility />}
-                                    </IconButton>
-                                </InputAdornment>
-                            )
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                            onClick={() =>
+                                                setShowPassword(value => !value)
+                                            }
+                                            edge="end"
+                                        >
+                                            {showPassword
+                                                ? <VisibilityOff />
+                                                : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }
                         }}
                     />
 
@@ -246,16 +251,16 @@ const LoginPage = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 3 }}
-                >
+                    sx={{
+                        color: "text.secondary",
+                        mt: 3
+                    }}>
                     Forgot your password? Ask your organization administrator to reset it.
                 </Typography>
 
             </Paper>
 
         </Box>
-
     );
 
 };

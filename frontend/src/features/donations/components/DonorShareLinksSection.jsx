@@ -317,7 +317,6 @@ const DonorShareLinksSection = ({
 
 
     return (
-
         <PageCard>
 
             <FormSection
@@ -337,7 +336,9 @@ const DonorShareLinksSection = ({
                     }, justifyContent: "space-between", mb: 2 }}
                 >
 
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{
+                        color: "text.secondary"
+                    }}>
                         {shareBeneficiaryNames
                             ? "Links include beneficiary names (donor setting)."
                             : "Links show numbers only; beneficiary names are not shared."}
@@ -393,7 +394,6 @@ const DonorShareLinksSection = ({
 
             </FormSection>
 
-
             {/* CREATE */}
 
             <Dialog
@@ -422,23 +422,30 @@ const DonorShareLinksSection = ({
                                     fullWidth
                                     size="small"
                                     value={newUrl}
-                                    InputProps={{
-                                        readOnly: true,
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <AppIconButton
-                                                    icon={<ContentCopy fontSize="small" />}
-                                                    tooltip={copied ? "Copied" : "Copy link"}
-                                                    onClick={handleCopy}
-                                                />
-                                            </InputAdornment>
-                                        )
-                                    }}
                                     onFocus={(e) => e.target.select()}
+                                    slotProps={{
+                                        input: {
+                                            readOnly: true,
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <AppIconButton
+                                                        icon={<ContentCopy fontSize="small" />}
+                                                        tooltip={copied ? "Copied" : "Copy link"}
+                                                        onClick={handleCopy}
+                                                    />
+                                                </InputAdornment>
+                                            )
+                                        }
+                                    }}
                                 />
 
                                 {copied && (
-                                    <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: "success.main",
+                                            mt: 1
+                                        }}>
                                         Link copied to the clipboard.
                                     </Typography>
                                 )}
@@ -528,7 +535,6 @@ const DonorShareLinksSection = ({
 
             </Dialog>
 
-
             {/* REVOKE */}
 
             <ConfirmDialog
@@ -543,7 +549,6 @@ const DonorShareLinksSection = ({
             />
 
         </PageCard>
-
     );
 
 };

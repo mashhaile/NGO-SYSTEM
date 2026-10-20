@@ -88,11 +88,19 @@ const SummaryCards = ({
             typeof value === "number"
         ) {
 
+            // Short form for big numbers so they fit the
+            // card (60,000,000 -> 60M); exact value on hover.
+
             return new Intl.NumberFormat(
                 "en-US",
-                {
-                    maximumFractionDigits: 2
-                }
+                Math.abs(value) >= 100000
+                    ? {
+                        notation: "compact",
+                        maximumFractionDigits: 2
+                    }
+                    : {
+                        maximumFractionDigits: 2
+                    }
             ).format(value);
 
         }
@@ -270,9 +278,20 @@ const SummaryCards = ({
 
                                                 lineHeight: 1.2,
 
-                                                wordBreak:
-                                                    "break-word"
+                                                whiteSpace:
+                                                    "nowrap",
+
+                                                overflow:
+                                                    "hidden",
+
+                                                textOverflow:
+                                                    "ellipsis"
                                             }}
+                                            title={
+                                                typeof card.value === "number"
+                                                    ? new Intl.NumberFormat("en-US").format(card.value)
+                                                    : undefined
+                                            }
                                         >
 
                                             {

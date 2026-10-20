@@ -541,7 +541,6 @@ const CustomFieldCreatePage = () => {
     // ======================================================
 
     return (
-
         <Box>
 
             {/* ==================================================
@@ -575,7 +574,9 @@ const CustomFieldCreatePage = () => {
 
                     <Typography
                         variant="h5"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Create Custom Field
                     </Typography>
@@ -583,7 +584,9 @@ const CustomFieldCreatePage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Add a custom field to an
                         organization module.
@@ -592,7 +595,6 @@ const CustomFieldCreatePage = () => {
                 </Box>
 
             </Box>
-
 
             {/* ==================================================
                 FORM
@@ -793,22 +795,20 @@ const CustomFieldCreatePage = () => {
 
                                     <Typography
                                         variant="subtitle1"
-                                        fontWeight={600}
                                         sx={{
+                                            fontWeight: 600,
                                             mb: 1
-                                        }}
-                                    >
+                                        }}>
                                         Select Options
                                     </Typography>
 
 
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
                                         sx={{
+                                            color: "text.secondary",
                                             mb: 2
-                                        }}
-                                    >
+                                        }}>
                                         Add the choices
                                         users will see
                                         in the dropdown.
@@ -988,7 +988,6 @@ const CustomFieldCreatePage = () => {
             </Card>
 
         </Box>
-
     );
 
 };

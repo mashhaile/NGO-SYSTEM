@@ -729,18 +729,18 @@ const CustomFieldEditPage = () => {
     if (loading) {
 
         return (
-
             <Box>
 
                 <Typography
                     variant="h5"
-                    fontWeight={700}
+                    sx={{
+                        fontWeight: 700
+                    }}
                 >
                     Loading Custom Field...
                 </Typography>
 
             </Box>
-
         );
 
     }
@@ -751,7 +751,6 @@ const CustomFieldEditPage = () => {
     // ======================================================
 
     return (
-
         <Box>
 
             {/* ==================================================
@@ -786,7 +785,9 @@ const CustomFieldEditPage = () => {
 
                     <Typography
                         variant="h5"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Edit Custom Field
                     </Typography>
@@ -794,7 +795,9 @@ const CustomFieldEditPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Update the custom field configuration.
                     </Typography>
@@ -802,7 +805,6 @@ const CustomFieldEditPage = () => {
                 </Box>
 
             </Box>
-
 
             {/* ==================================================
                 FORM
@@ -906,22 +908,20 @@ const CustomFieldEditPage = () => {
 
                                     <Typography
                                         variant="subtitle1"
-                                        fontWeight={600}
                                         sx={{
+                                            fontWeight: 600,
                                             mb: 1
-                                        }}
-                                    >
+                                        }}>
                                         Select Options
                                     </Typography>
 
 
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
                                         sx={{
+                                            color: "text.secondary",
                                             mb: 2
-                                        }}
-                                    >
+                                        }}>
                                         The value is used internally
                                         to store the selected option.
                                         It is generated automatically
@@ -997,21 +997,23 @@ const CustomFieldEditPage = () => {
                                                             saving ||
                                                             option.isValueLocked
                                                         }
-                                                        InputProps={{
-                                                            endAdornment:
-                                                                option.isValueLocked
-                                                                    ? (
-                                                                        <Lock
-                                                                            fontSize="small"
-                                                                        />
-                                                                    )
-                                                                    : null
-                                                        }}
                                                         helperText={
                                                             option.isValueLocked
                                                                 ? "Locked because this value is already in use."
                                                                 : "Editable until first use."
                                                         }
+                                                        slotProps={{
+                                                            input: {
+                                                                endAdornment:
+                                                                    option.isValueLocked
+                                                                        ? (
+                                                                            <Lock
+                                                                                fontSize="small"
+                                                                            />
+                                                                        )
+                                                                        : null
+                                                            }
+                                                        }}
                                                     />
 
 
@@ -1163,7 +1165,6 @@ const CustomFieldEditPage = () => {
             </Card>
 
         </Box>
-
     );
 
 };

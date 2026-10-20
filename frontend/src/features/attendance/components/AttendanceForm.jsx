@@ -136,7 +136,6 @@ const AttendanceForm = ({
     };
 
     return (
-
         <Box
             component="form"
             onSubmit={submit}
@@ -186,7 +185,9 @@ const AttendanceForm = ({
                                 <Box>
 
                                     <Typography
-                                        fontWeight={700}
+                                        sx={{
+                                            fontWeight: 700
+                                        }}
                                     >
 
                                         {option.runCode}
@@ -203,7 +204,9 @@ const AttendanceForm = ({
 
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
 
                                         {option.activity?.activityCode}
@@ -304,10 +307,6 @@ const AttendanceForm = ({
 
                         label="Session Date"
 
-                        InputLabelProps={{
-                            shrink: true
-                        }}
-
                         value={formData.sessionDate}
 
                         onChange={(e) =>
@@ -318,6 +317,12 @@ const AttendanceForm = ({
                             )
 
                         }
+
+                        slotProps={{
+                            inputLabel: {
+                                shrink: true
+                            }
+                        }}
 
                     />
 
@@ -381,7 +386,6 @@ const AttendanceForm = ({
             </Stack>
 
         </Box>
-
     );
 
 };

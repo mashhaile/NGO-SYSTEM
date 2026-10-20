@@ -98,7 +98,6 @@ const TorLinkActivityDialog = ({
 
 
     return (
-
         <Dialog
             open={open}
             onClose={loading ? undefined : onClose}
@@ -114,9 +113,10 @@ const TorLinkActivityDialog = ({
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                >
+                    sx={{
+                        color: "text.secondary",
+                        mb: 2
+                    }}>
                     Use this when the activity was already created. Only activities of this TOR's project are listed.
                 </Typography>
 
@@ -169,7 +169,6 @@ const TorLinkActivityDialog = ({
             </DialogActions>
 
         </Dialog>
-
     );
 
 };

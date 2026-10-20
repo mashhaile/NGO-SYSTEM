@@ -211,114 +211,89 @@ Loading...
 
 
 return (
+    <Box>
 
+        <Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
 
+        direction="row"
 
-<Box>
+        >
 
 
 
 
+        <Typography
 
+        variant="h4"
 
-<Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
+        sx={{
+            fontWeight: "700"
+        }}
 
-direction="row"
+        >
 
->
+        Edit Enrollment
 
+        </Typography>
 
 
 
-<Typography
 
-variant="h4"
 
-fontWeight="700"
 
->
+        <Button
 
-Edit Enrollment
+        variant="outlined"
 
-</Typography>
+        startIcon={<ArrowBack/>}
 
+        onClick={()=>navigate("/enrollments")}
 
+        >
 
+        Back
 
+        </Button>
 
 
-<Button
 
-variant="outlined"
 
-startIcon={<ArrowBack/>}
 
-onClick={()=>navigate("/enrollments")}
+        </Stack>
 
->
+        <Card>
 
-Back
 
-</Button>
 
+        <CardContent>
 
 
 
+        <EnrollmentForm
 
-</Stack>
 
+        initialData={current}
 
 
+        onSubmit={handleSubmit}
 
 
+        loading={loading}
 
 
+        />
 
 
-<Card>
 
 
 
-<CardContent>
+        </CardContent>
 
 
 
-<EnrollmentForm
+        </Card>
 
-
-initialData={current}
-
-
-onSubmit={handleSubmit}
-
-
-loading={loading}
-
-
-/>
-
-
-
-
-
-</CardContent>
-
-
-
-</Card>
-
-
-
-
-
-
-
-
-
-</Box>
-
-
-
+    </Box>
 );
 
 

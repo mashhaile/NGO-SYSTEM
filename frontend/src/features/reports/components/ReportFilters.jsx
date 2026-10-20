@@ -1702,7 +1702,6 @@ const ReportFilters = ({
     // =================================================
 
     return (
-
         <FormSection
             title="Report Filters"
         >
@@ -1908,7 +1907,9 @@ const ReportFilters = ({
 
                             <Typography
                                 variant="body2"
-                                color="error.main"
+                                sx={{
+                                    color: "error.main"
+                                }}
                             >
                                 End Date cannot be earlier than Start Date.
                             </Typography>
@@ -1939,7 +1940,9 @@ const ReportFilters = ({
 
                             <Typography
                                 variant="body2"
-                                color="error.main"
+                                sx={{
+                                    color: "error.main"
+                                }}
                             >
                                 {
                                     filterError
@@ -1971,7 +1974,6 @@ const ReportFilters = ({
             </Box>
 
         </FormSection>
-
     );
 
 };

@@ -549,7 +549,6 @@ const PlanListPage = () => {
     // =================================================
 
     return (
-
         <Box
             sx={{
                 p: 3
@@ -581,7 +580,9 @@ const PlanListPage = () => {
                     </Typography>
 
                     <Typography
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Manage subscription plans, pricing,
                         trial periods, features and limits.
@@ -599,7 +600,6 @@ const PlanListPage = () => {
 
             </Box>
 
-
             {/* =========================================
                 ERROR
             ========================================= */}
@@ -616,7 +616,6 @@ const PlanListPage = () => {
                 </Alert>
 
             )}
-
 
             {/* =========================================
                 LOADING
@@ -682,7 +681,9 @@ const PlanListPage = () => {
 
                                             <Typography
                                                 variant="body2"
-                                                color="text.secondary"
+                                                sx={{
+                                                    color: "text.secondary"
+                                                }}
                                             >
                                                 {plan.code}
                                             </Typography>
@@ -726,11 +727,10 @@ const PlanListPage = () => {
 
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
                                         sx={{
+                                            color: "text.secondary",
                                             mb: 1
-                                        }}
-                                    >
+                                        }}>
                                         {plan.billingCycle}
                                     </Typography>
 
@@ -902,7 +902,6 @@ const PlanListPage = () => {
                 </Grid>
 
             )}
-
 
             {/* =========================================
                 CREATE / EDIT DIALOG
@@ -1082,14 +1081,16 @@ const PlanListPage = () => {
                                         ? 0
                                         : 30
                                 }
-                                InputProps={{
-                                    readOnly: true
-                                }}
                                 helperText={
                                     form.billingCycle === "lifetime"
                                         ? "Lifetime plans do not have a trial."
                                         : "All non-lifetime plans have a 30-day trial."
                                 }
+                                slotProps={{
+                                    input: {
+                                        readOnly: true
+                                    }
+                                }}
                             />
 
                         </Grid>
@@ -1379,7 +1380,6 @@ const PlanListPage = () => {
             </Dialog>
 
         </Box>
-
     );
 
 };

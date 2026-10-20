@@ -127,7 +127,6 @@ const DonorSharePage = () => {
     if (error) {
 
         return (
-
             <PageContainer sx={{ pt: 6, maxWidth: 720 }}>
 
                 <PageCard>
@@ -136,11 +135,15 @@ const DonorSharePage = () => {
 
                         <LockOutlined color="action" fontSize="large" />
 
-                        <Typography variant="h6" fontWeight={700}>
+                        <Typography variant="h6" sx={{
+                            fontWeight: 700
+                        }}>
                             Link not available
                         </Typography>
 
-                        <Typography color="text.secondary">
+                        <Typography sx={{
+                            color: "text.secondary"
+                        }}>
                             {error}
                         </Typography>
 
@@ -149,7 +152,6 @@ const DonorSharePage = () => {
                 </PageCard>
 
             </PageContainer>
-
         );
 
     }
@@ -167,27 +169,33 @@ const DonorSharePage = () => {
 
 
     return (
-
         <PageContainer sx={{ pt: 4 }}>
 
             {/* HEADER */}
 
             <Box sx={{ mb: 3 }}>
 
-                <Typography variant="overline" color="text.secondary">
+                <Typography variant="overline" sx={{
+                    color: "text.secondary"
+                }}>
                     {view.organization.name}
                 </Typography>
 
-                <Typography variant="h4" fontWeight={700}>
+                <Typography variant="h4" sx={{
+                    fontWeight: 700
+                }}>
                     Where your donation went
                 </Typography>
 
-                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography
+                    sx={{
+                        color: "text.secondary",
+                        mt: 0.5
+                    }}>
                     Prepared for <strong>{view.donor.name}</strong> · updated {formatDate(view.generatedAt)}
                 </Typography>
 
             </Box>
-
 
             <Alert
                 severity="info"
@@ -201,13 +209,11 @@ const DonorSharePage = () => {
                     : " To protect beneficiaries, figures are shown as totals only."}
             </Alert>
 
-
             {pdfError && (
                 <Alert severity="error" sx={{ mb: 3 }}>
                     {pdfError}
                 </Alert>
             )}
-
 
             {/* ALL DONATIONS SUMMARY */}
 
@@ -215,11 +221,18 @@ const DonorSharePage = () => {
 
                 <PageCard sx={{ mb: 3 }}>
 
-                    <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            fontWeight: 700,
+                            mb: 1
+                        }}>
                         All your donations
                     </Typography>
 
-                    <Typography color="text.secondary">
+                    <Typography sx={{
+                        color: "text.secondary"
+                    }}>
                         {view.summary.donations} donations · {formatMoney(view.summary.received)} received ·{" "}
                         {formatMoney(view.summary.used)} used ({view.summary.percentUsed}%) ·{" "}
                         {view.summary.beneficiariesReached} people reached
@@ -229,7 +242,6 @@ const DonorSharePage = () => {
 
             )}
 
-
             {view.donations.length === 0 && (
 
                 <Alert severity="info">
@@ -237,7 +249,6 @@ const DonorSharePage = () => {
                 </Alert>
 
             )}
-
 
             {/* EACH DONATION */}
 
@@ -263,11 +274,15 @@ const DonorSharePage = () => {
 
                         <Box>
 
-                            <Typography variant="h5" fontWeight={700}>
+                            <Typography variant="h5" sx={{
+                                fontWeight: 700
+                            }}>
                                 {trace.donation.title || trace.donation.code}
                             </Typography>
 
-                            <Typography color="text.secondary">
+                            <Typography sx={{
+                                color: "text.secondary"
+                            }}>
                                 {trace.donation.code} · {formatDate(trace.donation.date)}
                             </Typography>
 
@@ -291,17 +306,19 @@ const DonorSharePage = () => {
 
             ))}
 
-
             <Typography
                 variant="caption"
-                color="text.secondary"
-                sx={{ display: "block", mt: 4, mb: 5, textAlign: "center" }}
-            >
+                sx={{
+                    color: "text.secondary",
+                    display: "block",
+                    mt: 4,
+                    mb: 5,
+                    textAlign: "center"
+                }}>
                 Figures cover delivered services recorded against each donation by {view.organization.name}.
             </Typography>
 
         </PageContainer>
-
     );
 
 };

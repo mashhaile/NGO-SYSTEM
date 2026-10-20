@@ -81,7 +81,6 @@ const DashboardPage = () => {
     if (loading) {
 
         return (
-
             <Box
                 sx={{
                     minHeight: "60vh",
@@ -103,7 +102,9 @@ const DashboardPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Loading dashboard...
                     </Typography>
@@ -111,7 +112,6 @@ const DashboardPage = () => {
                 </Stack>
 
             </Box>
-
         );
 
     }
@@ -231,7 +231,6 @@ const DashboardPage = () => {
     }) => {
 
         return (
-
             <Stack
                 direction="row"
                 spacing={1.5}
@@ -270,7 +269,6 @@ const DashboardPage = () => {
 
                 </Box>
 
-
                 <Box
                     sx={{
                         minWidth: 0
@@ -296,11 +294,10 @@ const DashboardPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.45
-                            }}
-                        >
+                            }}>
 
                             {subtitle}
 
@@ -311,7 +308,6 @@ const DashboardPage = () => {
                 </Box>
 
             </Stack>
-
         );
 
     };
@@ -328,7 +324,6 @@ const DashboardPage = () => {
     }) => {
 
         return (
-
             <Stack
                 direction="row"
                 spacing={1.5}
@@ -365,11 +360,12 @@ const DashboardPage = () => {
 
                 </Box>
 
-
                 <Box>
 
                     <Typography
-                        fontWeight={800}
+                        sx={{
+                            fontWeight: 800
+                        }}
                     >
 
                         {title}
@@ -379,7 +375,9 @@ const DashboardPage = () => {
 
                     <Typography
                         variant="caption"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
 
                         {subtitle}
@@ -389,14 +387,12 @@ const DashboardPage = () => {
                 </Box>
 
             </Stack>
-
         );
 
     };
 
 
     return (
-
         <Box
             sx={{
 
@@ -452,17 +448,12 @@ const DashboardPage = () => {
 
 
                 <Typography
-                    color="text.secondary"
                     sx={{
-
+                        color: "text.secondary",
                         mt: 0.8,
-
                         maxWidth: 720,
-
                         lineHeight: 1.6
-
-                    }}
-                >
+                    }}>
 
                     Monitor your organization's
                     programs, beneficiaries,
@@ -472,7 +463,6 @@ const DashboardPage = () => {
                 </Typography>
 
             </Box>
-
 
             {/* ==================================================
                 SUMMARY CARDS
@@ -492,7 +482,6 @@ const DashboardPage = () => {
                 />
 
             </Box>
-
 
             {/* ==================================================
                 BENEFICIARY ANALYTICS
@@ -527,7 +516,9 @@ const DashboardPage = () => {
                 <Grid
                     container
                     spacing={3}
-                    alignItems="stretch"
+                    sx={{
+                        alignItems: "stretch"
+                    }}
                 >
 
                     {/* ==========================================
@@ -636,7 +627,6 @@ const DashboardPage = () => {
                 </Grid>
 
             </Box>
-
 
             {/* ==================================================
                 PROGRAM PERFORMANCE
@@ -784,7 +774,6 @@ const DashboardPage = () => {
 
             </Box>
 
-
             {/* ==================================================
                 RECENT ACTIVITY
             ================================================== */}
@@ -827,7 +816,6 @@ const DashboardPage = () => {
             </Box>
 
         </Box>
-
     );
 
 };

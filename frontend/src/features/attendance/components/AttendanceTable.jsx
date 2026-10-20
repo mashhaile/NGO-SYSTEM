@@ -72,13 +72,17 @@ const AttendanceTable = ({
 
                 <Box>
 
-                    <Typography fontWeight={700}>
+                    <Typography sx={{
+                        fontWeight: 700
+                    }}>
                         {row.activityRun?.runCode || "-"}
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         {row.activityRun?.name || "-"}
                     </Typography>
@@ -102,7 +106,9 @@ const AttendanceTable = ({
             minWidth: 220,
             renderCell: ({ value }) => (
 
-                <Typography fontWeight={600}>
+                <Typography sx={{
+                    fontWeight: 600
+                }}>
                     {value || "-"}
                 </Typography>
 

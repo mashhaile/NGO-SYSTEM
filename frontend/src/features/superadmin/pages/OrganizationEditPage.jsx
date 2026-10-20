@@ -417,7 +417,6 @@ const OrganizationEditPage = () => {
     // =================================================
 
     return (
-
         <Box
             sx={{
                 width: "100%",
@@ -439,7 +438,9 @@ const OrganizationEditPage = () => {
 
                 <Typography
                     variant="h5"
-                    fontWeight={700}
+                    sx={{
+                        fontWeight: 700
+                    }}
                 >
                     Edit Organization
                 </Typography>
@@ -447,16 +448,14 @@ const OrganizationEditPage = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mt: 0.5
-                    }}
-                >
+                    }}>
                     Update the organization's basic information.
                 </Typography>
 
             </Box>
-
 
             {/* =========================================
                 ALERTS
@@ -474,7 +473,6 @@ const OrganizationEditPage = () => {
                 </Alert>
 
             )}
-
 
             {error && (
 
@@ -496,7 +494,6 @@ const OrganizationEditPage = () => {
 
             )}
 
-
             {success && (
 
                 <Alert
@@ -512,7 +509,6 @@ const OrganizationEditPage = () => {
                 </Alert>
 
             )}
-
 
             {/* =========================================
                 FORM
@@ -542,22 +538,20 @@ const OrganizationEditPage = () => {
 
                     <Typography
                         variant="h6"
-                        fontWeight={700}
                         sx={{
+                            fontWeight: 700,
                             mb: 0.5
-                        }}
-                    >
+                        }}>
                         Organization Information
                     </Typography>
 
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mb: 3
-                        }}
-                    >
+                        }}>
                         Update the organization's contact and
                         profile information.
                     </Typography>
@@ -725,7 +719,6 @@ const OrganizationEditPage = () => {
             </Paper>
 
         </Box>
-
     );
 
 };

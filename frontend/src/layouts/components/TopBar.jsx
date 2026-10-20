@@ -128,7 +128,6 @@ const TopBar = ({
 
 
     return (
-
         <AppBar
 
             position="fixed"
@@ -505,23 +504,27 @@ const TopBar = ({
                         handleClose
                     }
 
-                    PaperProps={{
+                    slotProps={{
 
-                        elevation: 4,
+                        paper: {
 
-                        sx: {
+                            elevation: 4,
 
-                            mt: 1,
+                            sx: {
 
-                            minWidth: 230,
+                                mt: 1,
 
-                            borderRadius: 2,
+                                minWidth: 230,
 
-                            border:
-                                "1px solid",
+                                borderRadius: 2,
 
-                            borderColor:
-                                "divider"
+                                border:
+                                    "1px solid",
+
+                                borderColor:
+                                    "divider"
+
+                            }
 
                         }
 
@@ -635,12 +638,9 @@ const TopBar = ({
 
 
                                 <Typography
-
                                     variant="caption"
-
-                                    color="text.secondary"
-
                                     sx={{
+                                        color: "text.secondary",
 
                                         display:
                                             "block",
@@ -656,10 +656,7 @@ const TopBar = ({
 
                                         textOverflow:
                                             "ellipsis"
-
-                                    }}
-
-                                >
+                                    }}>
 
                                     {user?.email}
 
@@ -750,7 +747,6 @@ const TopBar = ({
             </Toolbar>
 
         </AppBar>
-
     );
 
 };

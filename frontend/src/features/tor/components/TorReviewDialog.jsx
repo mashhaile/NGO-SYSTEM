@@ -51,7 +51,6 @@ const TorReviewDialog = ({
 
 
     return (
-
         <Dialog
             open={open}
             onClose={loading ? undefined : onClose}
@@ -69,9 +68,10 @@ const TorReviewDialog = ({
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                >
+                    sx={{
+                        color: "text.secondary",
+                        mb: 2
+                    }}>
                     {isReturn
                         ? "The author will see your comment and can edit and resubmit the TOR."
                         : "Approved TORs are locked and can no longer be edited."}
@@ -120,7 +120,6 @@ const TorReviewDialog = ({
             </DialogActions>
 
         </Dialog>
-
     );
 
 };

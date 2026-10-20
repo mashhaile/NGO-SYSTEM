@@ -807,7 +807,6 @@ const SummaryCard = ({
 }) => {
 
     return (
-
         <Paper
             elevation={0}
             sx={{
@@ -849,7 +848,9 @@ const SummaryCard = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         {label}
                     </Typography>
@@ -857,11 +858,10 @@ const SummaryCard = ({
 
                     <Typography
                         variant="h6"
-                        fontWeight={700}
                         sx={{
+                            fontWeight: 700,
                             mt: 0.25
-                        }}
-                    >
+                        }}>
                         {value}
                     </Typography>
 
@@ -871,7 +871,9 @@ const SummaryCard = ({
 
                             <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 {subtitle}
                             </Typography>
@@ -884,7 +886,6 @@ const SummaryCard = ({
             </Stack>
 
         </Paper>
-
     );
 
 };
@@ -2684,9 +2685,7 @@ const ServiceDeliveryDetailsPage = () => {
     // =================================================
 
     return (
-
         <PageContainer>
-
 
             {/* =================================================
                 HEADER
@@ -2699,7 +2698,6 @@ const ServiceDeliveryDetailsPage = () => {
                     "Service delivery record"
                 }
             />
-
 
             {/* =================================================
                 ACTIONS + STATUS
@@ -2751,7 +2749,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Status:
                             </Typography>
@@ -2786,7 +2786,6 @@ const ServiceDeliveryDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* =================================================
                 KPI SUMMARY
@@ -2874,7 +2873,6 @@ const ServiceDeliveryDetailsPage = () => {
                 </Grid>
 
             </Grid>
-
 
             {/* =================================================
                 DELIVERY OVERVIEW
@@ -3091,8 +3089,6 @@ const ServiceDeliveryDetailsPage = () => {
 
             </DetailSection>
 
-
-
             {/* =================================================
                 FUNDING INFORMATION
             ================================================= */}
@@ -3271,7 +3267,9 @@ const ServiceDeliveryDetailsPage = () => {
                                 >
 
                                     <Typography
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         No beneficiaries recorded.
                                     </Typography>
@@ -3282,7 +3280,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                             <Typography
                                                 variant="body2"
-                                                fontWeight={600}
+                                                sx={{
+                                                    fontWeight: 600
+                                                }}
                                             >
                                                 Recipient: {
                                                     recipientName
@@ -3322,7 +3322,6 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                 return (
-
                                                     <Box
                                                         key={
                                                             record?._id ||
@@ -3362,7 +3361,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                     <Typography
                                                                         variant="body2"
-                                                                        fontWeight={600}
+                                                                        sx={{
+                                                                            fontWeight: 600
+                                                                        }}
                                                                     >
                                                                         {
                                                                             getBeneficiaryName(
@@ -3377,7 +3378,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                             <Typography
                                                                                 variant="caption"
-                                                                                color="text.secondary"
+                                                                                sx={{
+                                                                                    color: "text.secondary"
+                                                                                }}
                                                                             >
                                                                                 {
                                                                                     beneficiary.beneficiaryNumber
@@ -3402,7 +3405,6 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                         </Stack>
 
-
                                                         {
                                                             allocations.length > 0 && (
 
@@ -3418,12 +3420,11 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                     <Typography
                                                                         variant="caption"
-                                                                        color="text.secondary"
                                                                         sx={{
+                                                                            color: "text.secondary",
                                                                             display: "block",
                                                                             mb: 1
-                                                                        }}
-                                                                    >
+                                                                        }}>
                                                                         Item Allocations
                                                                     </Typography>
 
@@ -3487,7 +3488,6 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                     return (
-
                                                                                         <Box
                                                                                             key={
                                                                                                 allocation?._id ||
@@ -3513,7 +3513,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                                                     <Typography
                                                                                                         variant="body2"
-                                                                                                        fontWeight={600}
+                                                                                                        sx={{
+                                                                                                            fontWeight: 600
+                                                                                                        }}
                                                                                                     >
                                                                                                         {
                                                                                                             serviceType
@@ -3526,11 +3528,10 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                                                             <Typography
                                                                                                                 variant="body2"
-                                                                                                                fontWeight={600}
                                                                                                                 sx={{
+                                                                                                                    fontWeight: 600,
                                                                                                                     mt: 0.25
-                                                                                                                }}
-                                                                                                            >
+                                                                                                                }}>
                                                                                                                 Detail: {
                                                                                                                     detailItem?.name ||
                                                                                                                     detailItem?.label ||
@@ -3549,7 +3550,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                                                             <Typography
                                                                                                                 variant="caption"
-                                                                                                                color="text.secondary"
+                                                                                                                sx={{
+                                                                                                                    color: "text.secondary"
+                                                                                                                }}
                                                                                                             >
                                                                                                                 Unit: {
                                                                                                                     getLookupValue(
@@ -3575,7 +3578,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                                                     <Typography
                                                                                                         variant="body2"
-                                                                                                        fontWeight={600}
+                                                                                                        sx={{
+                                                                                                            fontWeight: 600
+                                                                                                        }}
                                                                                                     >
 
                                                                                                         {
@@ -3612,7 +3617,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                                                     <Typography
                                                                                                         variant="caption"
-                                                                                                        color="text.secondary"
+                                                                                                        sx={{
+                                                                                                            color: "text.secondary"
+                                                                                                        }}
                                                                                                     >
                                                                                                         {
                                                                                                             allocationDisplay.secondary
@@ -3624,7 +3631,6 @@ const ServiceDeliveryDetailsPage = () => {
                                                                                             </Stack>
 
                                                                                         </Box>
-
                                                                                     );
 
                                                                                 }
@@ -3640,7 +3646,6 @@ const ServiceDeliveryDetailsPage = () => {
                                                         }
 
                                                     </Box>
-
                                                 );
 
                                             }
@@ -3656,7 +3661,6 @@ const ServiceDeliveryDetailsPage = () => {
                 </DetailSection>
 
             </Box>
-
 
             {/* =================================================
                 DELIVERED SERVICES
@@ -3683,7 +3687,9 @@ const ServiceDeliveryDetailsPage = () => {
                                 ? (
 
                                     <Typography
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         No service items recorded.
                                     </Typography>
@@ -3708,7 +3714,6 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                             return (
-
                                                 <Paper
                                                     key={
                                                         item?._id ||
@@ -3734,7 +3739,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                             <Typography
                                                                 variant="body1"
-                                                                fontWeight={700}
+                                                                sx={{
+                                                                    fontWeight: 700
+                                                                }}
                                                             >
                                                                 {
                                                                     getLookupValue(
@@ -3749,11 +3756,10 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                     <Typography
                                                                         variant="body2"
-                                                                        color="text.secondary"
                                                                         sx={{
+                                                                            color: "text.secondary",
                                                                             mt: 0.5
-                                                                        }}
-                                                                    >
+                                                                        }}>
                                                                         {
                                                                             item.remarks
                                                                         }
@@ -3837,7 +3843,6 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                     </Grid>
 
-
                                                     {
                                                         detailItems.length > 0 && (
 
@@ -3856,11 +3861,10 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                 <Typography
                                                                     variant="subtitle2"
-                                                                    fontWeight={700}
                                                                     sx={{
+                                                                        fontWeight: 700,
                                                                         mb: 1.5
-                                                                    }}
-                                                                >
+                                                                    }}>
                                                                     Detail Items
                                                                 </Typography>
 
@@ -3897,7 +3901,6 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                 return (
-
                                                                                     <Paper
                                                                                         key={
                                                                                             detailItem?._id ||
@@ -3914,7 +3917,9 @@ const ServiceDeliveryDetailsPage = () => {
                                                                                         <Grid
                                                                                             container
                                                                                             spacing={2}
-                                                                                            alignItems="center"
+                                                                                            sx={{
+                                                                                                alignItems: "center"
+                                                                                            }}
                                                                                         >
 
                                                                                             <Grid
@@ -3923,7 +3928,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                                                                 <Typography
                                                                                                     variant="body2"
-                                                                                                    fontWeight={600}
+                                                                                                    sx={{
+                                                                                                        fontWeight: 600
+                                                                                                    }}
                                                                                                 >
                                                                                                     {
                                                                                                         detailItem?.name ||
@@ -4030,7 +4037,6 @@ const ServiceDeliveryDetailsPage = () => {
                                                                                         </Grid>
 
                                                                                     </Paper>
-
                                                                                 );
 
                                                                             }
@@ -4045,7 +4051,6 @@ const ServiceDeliveryDetailsPage = () => {
                                                     }
 
                                                 </Paper>
-
                                             );
 
                                         }
@@ -4059,7 +4064,6 @@ const ServiceDeliveryDetailsPage = () => {
                 </DetailSection>
 
             </Box>
-
 
             {/* =================================================
                 ITEM ALLOCATION BREAKDOWN
@@ -4097,7 +4101,6 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                     return (
-
                                         <Paper
                                             key={
                                                 item?._id ||
@@ -4124,7 +4127,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                     <Typography
                                                         variant="body1"
-                                                        fontWeight={700}
+                                                        sx={{
+                                                            fontWeight: 700
+                                                        }}
                                                     >
                                                         {
                                                             getLookupValue(
@@ -4135,7 +4140,9 @@ const ServiceDeliveryDetailsPage = () => {
 
                                                     <Typography
                                                         variant="caption"
-                                                        color="text.secondary"
+                                                        sx={{
+                                                            color: "text.secondary"
+                                                        }}
                                                     >
                                                         {
                                                             summary.allocationBehavior
@@ -4236,7 +4243,6 @@ const ServiceDeliveryDetailsPage = () => {
                                             </Stack>
 
                                         </Paper>
-
                                     );
 
                                 }
@@ -4250,143 +4256,144 @@ const ServiceDeliveryDetailsPage = () => {
 
             </Box>
 
-{/* =================================================
-    ALLOCATION SUMMARY
-================================================= */}
+            {/* =================================================
+                ALLOCATION SUMMARY
+            ================================================= */}
 
-<Box
-    sx={{
-        mt: 3
-    }}
->
-
-    <DetailSection
-        title="Allocation Summary"
-        subtitle="Overall beneficiary allocation accounting"
-    >
-
-        <Grid
-            container
-            spacing={3}
-        >
-
-            <Grid
-                size={{ xs: 12, sm: 6, md: 3 }}
+            <Box
+                sx={{
+                    mt: 3
+                }}
             >
 
-                <DetailField
-                    label="Total Allocated Value"
-                    value={
-                        `ETB ${formatMoney(
-                            totalAllocatedValue
-                        )}`
-                    }
-                />
-
-            </Grid>
-
-
-            <Grid
-                size={{ xs: 12, sm: 6, md: 3 }}
-            >
-
-                <DetailField
-                    label="Unallocated Value"
-                    value={
-                        `ETB ${formatMoney(
-                            unallocatedValue
-                        )}`
-                    }
-                />
-
-            </Grid>
-
-
-            <Grid
-                size={{ xs: 12, sm: 6, md: 3 }}
-            >
-
-                <DetailField
-                    label="Direct Parent Allocated Quantity"
-                    value={
-                        totalAllocatedQuantitySummary
-                    }
-                />
-
-            </Grid>
-
-
-            <Grid
-                size={{ xs: 12, sm: 6, md: 3 }}
-            >
-
-                <DetailField
-                    label="Consumption Allocated Quantity"
-                    value={
-                        allocatedConsumptionQuantitySummary
-                    }
-                />
-
-            </Grid>
-
-
-            <Grid
-                size={{ xs: 12, sm: 6, md: 3 }}
-            >
-
-                <DetailField
-    label="Participation Quantity"
-    value={
-        beneficiaryParticipationSummary === "0"
-            ? "—"
-            : beneficiaryParticipationSummary
-    }
-/>
-
-            </Grid>
-
-
-            <Grid
-                size={{ xs: 12, sm: 6, md: 3 }}
-            >
-
-                <DetailField
-                    label="Unallocated Physical Quantities"
-                    value={
-                        unallocatedPhysicalQuantitySummary
-                    }
-                />
-
-            </Grid>
-
-        </Grid>
-
-
-        {
-            hasParticipationItems && (
-
-                <Box
-                    sx={{
-                        mt: 2
-                    }}
+                <DetailSection
+                    title="Allocation Summary"
+                    subtitle="Overall beneficiary allocation accounting"
                 >
 
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
+                    <Grid
+                        container
+                        spacing={3}
                     >
-                        Participation allocations are beneficiary-level records and do not consume the shared delivered quantity pool.
-                    </Typography>
 
-                </Box>
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 3 }}
+                        >
 
-            )
-        }
+                            <DetailField
+                                label="Total Allocated Value"
+                                value={
+                                    `ETB ${formatMoney(
+                                        totalAllocatedValue
+                                    )}`
+                                }
+                            />
 
-    </DetailSection>
+                        </Grid>
 
-</Box>
 
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 3 }}
+                        >
+
+                            <DetailField
+                                label="Unallocated Value"
+                                value={
+                                    `ETB ${formatMoney(
+                                        unallocatedValue
+                                    )}`
+                                }
+                            />
+
+                        </Grid>
+
+
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 3 }}
+                        >
+
+                            <DetailField
+                                label="Direct Parent Allocated Quantity"
+                                value={
+                                    totalAllocatedQuantitySummary
+                                }
+                            />
+
+                        </Grid>
+
+
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 3 }}
+                        >
+
+                            <DetailField
+                                label="Consumption Allocated Quantity"
+                                value={
+                                    allocatedConsumptionQuantitySummary
+                                }
+                            />
+
+                        </Grid>
+
+
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 3 }}
+                        >
+
+                            <DetailField
+                label="Participation Quantity"
+                value={
+                    beneficiaryParticipationSummary === "0"
+                        ? "—"
+                        : beneficiaryParticipationSummary
+                }
+            />
+
+                        </Grid>
+
+
+                        <Grid
+                            size={{ xs: 12, sm: 6, md: 3 }}
+                        >
+
+                            <DetailField
+                                label="Unallocated Physical Quantities"
+                                value={
+                                    unallocatedPhysicalQuantitySummary
+                                }
+                            />
+
+                        </Grid>
+
+                    </Grid>
+
+
+                    {
+                        hasParticipationItems && (
+
+                            <Box
+                                sx={{
+                                    mt: 2
+                                }}
+                            >
+
+                                <Typography
+                                    variant="caption"
+                                    sx={{
+                                        color: "text.secondary"
+                                    }}
+                                >
+                                    Participation allocations are beneficiary-level records and do not consume the shared delivered quantity pool.
+                                </Typography>
+
+                            </Box>
+
+                        )
+                    }
+
+                </DetailSection>
+
+            </Box>
 
             {/* =================================================
                 FINANCIAL SUMMARY
@@ -4461,7 +4468,6 @@ const ServiceDeliveryDetailsPage = () => {
 
             </Box>
 
-
             {/* =================================================
                 RECORD INFORMATION
             ================================================= */}
@@ -4533,7 +4539,6 @@ const ServiceDeliveryDetailsPage = () => {
 
             </Box>
 
-
             {/* =================================================
                 BACK
             ================================================= */}
@@ -4560,7 +4565,6 @@ const ServiceDeliveryDetailsPage = () => {
             </Stack>
 
         </PageContainer>
-
     );
 
 };

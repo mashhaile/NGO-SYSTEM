@@ -273,7 +273,6 @@ const UserListPage = () => {
     // ==========================================
 
     return (
-
         <Box>
 
             {/* ==================================
@@ -301,14 +300,18 @@ const UserListPage = () => {
 
                     <Typography
                         variant="h5"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         User Management
                     </Typography>
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Manage users and access within your organization.
                     </Typography>
@@ -327,7 +330,6 @@ const UserListPage = () => {
                 </Button>
 
             </Box>
-
 
             {/* ==================================
                 ERROR
@@ -356,7 +358,6 @@ const UserListPage = () => {
                 </Card>
 
             )}
-
 
             {/* ==================================
                 USER TABLE
@@ -409,11 +410,10 @@ const UserListPage = () => {
                                     >
 
                                         <Typography
-                                            color="text.secondary"
                                             sx={{
+                                                color: "text.secondary",
                                                 py: 4
-                                            }}
-                                        >
+                                            }}>
                                             No users found.
                                         </Typography>
 
@@ -436,7 +436,9 @@ const UserListPage = () => {
                                         <TableCell>
 
                                             <Typography
-                                                fontWeight={600}
+                                                sx={{
+                                                    fontWeight: 600
+                                                }}
                                             >
                                                 {user.name}
                                             </Typography>
@@ -541,7 +543,6 @@ const UserListPage = () => {
 
             </Card>
 
-
             <ResetPasswordDialog
                 user={resetUser}
                 resetFn={resetUserPasswordService}
@@ -549,7 +550,6 @@ const UserListPage = () => {
             />
 
         </Box>
-
     );
 
 };

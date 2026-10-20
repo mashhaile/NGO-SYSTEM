@@ -28,45 +28,56 @@ const AppTextField = ({
 
     sx = {},
 
+    // Pre-MUI 9 names, still accepted by this wrapper
+    InputProps,
+    inputProps,
+    InputLabelProps,
+
+    slotProps = {},
+
     ...props
 }) => {
+
+    const mergedSlotProps = {
+        ...slotProps,
+
+        input: {
+            ...InputProps,
+            ...slotProps.input
+        },
+
+        htmlInput: {
+            ...inputProps,
+            ...slotProps.htmlInput
+        },
+
+        inputLabel: {
+            shrink: true,
+            ...InputLabelProps,
+            ...slotProps.inputLabel
+        }
+    };
 
     return (
         <TextField
             label={label}
             name={name}
-
             value={
                 value ?? ""
             }
-
             onChange={onChange}
-
             error={error}
             helperText={helperText}
-
             required={required}
             disabled={disabled}
-
             placeholder={placeholder}
-
             type={type}
-
             fullWidth={fullWidth}
-
             multiline={multiline}
             rows={rows}
-
             size={size}
-
             variant="outlined"
-
-            InputLabelProps={{
-                shrink: true
-            }}
-
             {...props}
-
             sx={{
                 width: "100%",
                 minWidth: 0,
@@ -114,7 +125,7 @@ const AppTextField = ({
 
                 ...sx
             }}
-        />
+            slotProps={mergedSlotProps} />
     );
 };
 

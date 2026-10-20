@@ -27,17 +27,15 @@ if(!fields.length){
 
 
 return (
+  <Typography
 
-<Typography
+  sx={{
+    color: "text.secondary"
+  }}
 
-color="text.secondary"
+  >No custom information available
 
->
-
-No custom information available
-
-</Typography>
-
+  </Typography>
 );
 
 
@@ -47,98 +45,97 @@ No custom information available
 
 
 return (
+  <Box>
 
-<Box>
+    {
 
-
-{
-
-fields.map(item=>(
+    fields.map(item=>(
 
 
-<Paper
+    <Paper
 
-key={item._id}
+    key={item._id}
 
-sx={{
+    sx={{
 
-p:2,
+    p:2,
 
-mb:2,
+    mb:2,
 
-borderRadius:2
+    borderRadius:2
 
-}}
+    }}
 
-variant="outlined"
+    variant="outlined"
 
->
-
-
-<Box
-
-sx={{
-
-display:"flex",
-
-justifyContent:"space-between",
-
-alignItems:"center"
-
-}}
-
->
+    >
 
 
-<Typography
+    <Box
 
-fontWeight="600"
+    sx={{
 
->
+    display:"flex",
 
-{
+    justifyContent:"space-between",
 
-item.fieldId?.label || "Field"
+    alignItems:"center"
 
-}
+    }}
 
-</Typography>
+    >
 
 
+    <Typography
+
+    sx={{
+      fontWeight: "600"
+    }}
+
+    >
+
+    {
+
+    item.fieldId?.label || "Field"
+
+    }
+
+    </Typography>
 
 
 
-<Typography
-
-color="text.secondary"
-
->
-
-{
-
-item.value || "-"
-
-}
-
-</Typography>
 
 
+    <Typography
 
-</Box>
+    sx={{
+      color: "text.secondary"
+    }}
 
+    >
 
-</Paper>
+    {
 
+    item.value || "-"
 
-))
+    }
 
-
-}
+    </Typography>
 
 
 
-</Box>
+    </Box>
 
+
+    </Paper>
+
+
+    ))
+
+
+    }
+
+  </Box>
 );
 
 

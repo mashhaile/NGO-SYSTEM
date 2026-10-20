@@ -1702,14 +1702,12 @@ const LookupCreatePage = () => {
     // ======================================================
 
     return (
-
         <PageContainer>
 
             <PageHeader
                 title="Create Lookups"
                 subtitle="Add lookup values to a system-defined category"
             />
-
 
             <Box sx={{ mb: 2 }}>
 
@@ -1726,7 +1724,6 @@ const LookupCreatePage = () => {
                 </Button>
 
             </Box>
-
 
             <Card>
 
@@ -2176,14 +2173,15 @@ const LookupCreatePage = () => {
 
                                         <Typography
                                             variant="caption"
-                                            color="text.secondary"
                                             sx={{
+                                                color: "text.secondary",
+
                                                 mt:
                                                     0.75,
+
                                                 px:
                                                     1.5
-                                            }}
-                                        >
+                                            }}>
                                             Select one or more units that this Service Type is allowed to use. There is no default unit.
                                         </Typography>
 
@@ -2210,13 +2208,17 @@ const LookupCreatePage = () => {
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
+                                                    sx={{
+                                                        color: "text.secondary"
+                                                    }}
                                                 >
                                                     Module
                                                 </Typography>
 
                                                 <Typography
-                                                    fontWeight={700}
+                                                    sx={{
+                                                        fontWeight: 700
+                                                    }}
                                                 >
                                                     {
                                                         moduleLabel
@@ -2226,16 +2228,17 @@ const LookupCreatePage = () => {
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
                                                     sx={{
+                                                        color: "text.secondary",
                                                         mt: 1
-                                                    }}
-                                                >
+                                                    }}>
                                                     Category
                                                 </Typography>
 
                                                 <Typography
-                                                    fontWeight={700}
+                                                    sx={{
+                                                        fontWeight: 700
+                                                    }}
                                                 >
                                                     {
                                                         getLookupLabel(
@@ -2255,16 +2258,17 @@ const LookupCreatePage = () => {
 
                                                             <Typography
                                                                 variant="body2"
-                                                                color="text.secondary"
                                                                 sx={{
+                                                                    color: "text.secondary",
                                                                     mt: 1
-                                                                }}
-                                                            >
+                                                                }}>
                                                                 Service Category
                                                             </Typography>
 
                                                             <Typography
-                                                                fontWeight={700}
+                                                                sx={{
+                                                                    fontWeight: 700
+                                                                }}
                                                             >
                                                                 {
                                                                     getLookupLabel(
@@ -2298,11 +2302,10 @@ const LookupCreatePage = () => {
 
                                                             <Typography
                                                                 variant="body2"
-                                                                color="text.secondary"
                                                                 sx={{
+                                                                    color: "text.secondary",
                                                                     mt: 1
-                                                                }}
-                                                            >
+                                                                }}>
                                                                 Allowed Units
                                                             </Typography>
 
@@ -2391,14 +2394,18 @@ const LookupCreatePage = () => {
 
                                     <Typography
                                         variant="h6"
-                                        fontWeight={700}
+                                        sx={{
+                                            fontWeight: 700
+                                        }}
                                     >
                                         Lookup Values
                                     </Typography>
 
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         Add one or more values to the selected category.
                                     </Typography>
@@ -2607,7 +2614,9 @@ const LookupCreatePage = () => {
 
                                             <Typography
                                                 color="error"
-                                                fontWeight={600}
+                                                sx={{
+                                                    fontWeight: 600
+                                                }}
                                             >
                                                 {
                                                     error
@@ -2696,7 +2705,6 @@ const LookupCreatePage = () => {
             </Card>
 
         </PageContainer>
-
     );
 
 };

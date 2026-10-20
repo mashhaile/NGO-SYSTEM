@@ -31,7 +31,9 @@ const TraceTable = ({
         return (
             <Typography
                 variant="body2"
-                color="text.secondary"
+                sx={{
+                    color: "text.secondary"
+                }}
             >
                 {empty}
             </Typography>

@@ -1765,7 +1765,6 @@ const LookupCategoryPage = () => {
     // ======================================================
 
     return (
-
         <PageContainer>
 
             <PageHeader
@@ -1776,7 +1775,6 @@ const LookupCategoryPage = () => {
                     `Manage ${category} lookup values`
                 }
             />
-
 
             <Box
                 sx={{
@@ -1800,7 +1798,6 @@ const LookupCategoryPage = () => {
 
             </Box>
 
-
             {/* ==================================================
                 INFORMATION
             ================================================== */}
@@ -1821,7 +1818,9 @@ const LookupCategoryPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Module
                             </Typography>
@@ -1829,7 +1828,9 @@ const LookupCategoryPage = () => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={700}
+                                sx={{
+                                    fontWeight: 700
+                                }}
                             >
                                 {moduleLabel}
                             </Typography>
@@ -1841,7 +1842,9 @@ const LookupCategoryPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Category
                             </Typography>
@@ -1849,7 +1852,9 @@ const LookupCategoryPage = () => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={700}
+                                sx={{
+                                    fontWeight: 700
+                                }}
                             >
                                 {category}
                             </Typography>
@@ -1886,7 +1891,6 @@ const LookupCategoryPage = () => {
 
             </Card>
 
-
             {/* ==================================================
                 ERROR
             ================================================== */}
@@ -1903,7 +1907,6 @@ const LookupCategoryPage = () => {
                 </Alert>
 
             )}
-
 
             {/* ==================================================
                 VALUES
@@ -1934,7 +1937,9 @@ const LookupCategoryPage = () => {
 
                                 <Typography
                                     variant="h6"
-                                    fontWeight={700}
+                                    sx={{
+                                        fontWeight: 700
+                                    }}
                                 >
                                     Lookup Values
                                 </Typography>
@@ -1942,7 +1947,9 @@ const LookupCategoryPage = () => {
 
                                 <Typography
                                     variant="body2"
-                                    color="text.secondary"
+                                    sx={{
+                                        color: "text.secondary"
+                                    }}
                                 >
                                     Values available for{" "}
                                     <strong>
@@ -1998,7 +2005,9 @@ const LookupCategoryPage = () => {
                                     >
 
                                         <Typography
-                                            fontWeight={700}
+                                            sx={{
+                                                fontWeight: 700
+                                            }}
                                         >
                                             Add New Value
                                         </Typography>
@@ -2154,12 +2163,11 @@ const LookupCategoryPage = () => {
 
                                                 <Typography
                                                     variant="caption"
-                                                    color="text.secondary"
                                                     sx={{
+                                                        color: "text.secondary",
                                                         mt: 0.75,
                                                         display: "block"
-                                                    }}
-                                                >
+                                                    }}>
                                                     Consumption uses the delivered quantity as a shared pool. Participation allows each beneficiary to participate independently in the delivered quantity.
                                                 </Typography>
 
@@ -2331,12 +2339,11 @@ const LookupCategoryPage = () => {
 
                                                 <Typography
                                                     variant="caption"
-                                                    color="text.secondary"
                                                     sx={{
+                                                        color: "text.secondary",
                                                         mt: 0.75,
                                                         display: "block"
-                                                    }}
-                                                >
+                                                    }}>
                                                     Select the units that this Service Type is allowed to use. There is no default unit.
                                                 </Typography>
 
@@ -2512,11 +2519,10 @@ const LookupCategoryPage = () => {
 
                                 <Typography
                                     variant="body2"
-                                    color="text.secondary"
                                     sx={{
+                                        color: "text.secondary",
                                         mt: 2
-                                    }}
-                                >
+                                    }}>
                                     Loading lookup values...
                                 </Typography>
 
@@ -2540,9 +2546,10 @@ const LookupCategoryPage = () => {
 
                                         <Typography
                                             align="center"
-                                            color="text.secondary"
-                                            py={4}
-                                        >
+                                            sx={{
+                                                color: "text.secondary",
+                                                py: 4
+                                            }}>
                                             No values found for{" "}
                                             <strong>
                                                 {category}
@@ -2602,7 +2609,6 @@ const LookupCategoryPage = () => {
 
 
                                             return (
-
                                                 <Card
                                                     key={
                                                         lookup?._id ||
@@ -2620,7 +2626,9 @@ const LookupCategoryPage = () => {
                                                             >
 
                                                                 <Typography
-                                                                    fontWeight={700}
+                                                                    sx={{
+                                                                        fontWeight: 700
+                                                                    }}
                                                                 >
                                                                     Edit Lookup Value
                                                                 </Typography>
@@ -2776,12 +2784,11 @@ const LookupCategoryPage = () => {
 
                                                                         <Typography
                                                                             variant="caption"
-                                                                            color="text.secondary"
                                                                             sx={{
+                                                                                color: "text.secondary",
                                                                                 mt: 0.75,
                                                                                 display: "block"
-                                                                            }}
-                                                                        >
+                                                                            }}>
                                                                             Consumption uses the delivered quantity as a shared pool. Participation allows each beneficiary to participate independently in the delivered quantity.
                                                                         </Typography>
 
@@ -2953,12 +2960,11 @@ const LookupCategoryPage = () => {
 
                                                                         <Typography
                                                                             variant="caption"
-                                                                            color="text.secondary"
                                                                             sx={{
+                                                                                color: "text.secondary",
                                                                                 mt: 0.75,
                                                                                 display: "block"
-                                                                            }}
-                                                                        >
+                                                                            }}>
                                                                             These are the only units that this Service Type may use. No default unit is assigned.
                                                                         </Typography>
 
@@ -3123,7 +3129,9 @@ const LookupCategoryPage = () => {
 
                                                                         <Typography
                                                                             variant="h6"
-                                                                            fontWeight={700}
+                                                                            sx={{
+                                                                                fontWeight: 700
+                                                                            }}
                                                                         >
                                                                             {
                                                                                 lookup?.value ||
@@ -3136,7 +3144,9 @@ const LookupCategoryPage = () => {
 
                                                                             <Typography
                                                                                 variant="body2"
-                                                                                color="text.secondary"
+                                                                                sx={{
+                                                                                    color: "text.secondary"
+                                                                                }}
                                                                             >
                                                                                 Code:{" "}
                                                                                 {lookup.code}
@@ -3150,7 +3160,9 @@ const LookupCategoryPage = () => {
 
                                                                                 <Typography
                                                                                     variant="body2"
-                                                                                    color="text.secondary"
+                                                                                    sx={{
+                                                                                        color: "text.secondary"
+                                                                                    }}
                                                                                 >
                                                                                     Service Category:{" "}
                                                                                     {
@@ -3177,7 +3189,9 @@ const LookupCategoryPage = () => {
 
                                                                                 <Typography
                                                                                     variant="body2"
-                                                                                    color="text.secondary"
+                                                                                    sx={{
+                                                                                        color: "text.secondary"
+                                                                                    }}
                                                                                 >
                                                                                     Allocation Behavior:
                                                                                 </Typography>
@@ -3208,11 +3222,10 @@ const LookupCategoryPage = () => {
 
                                                                                 <Typography
                                                                                     variant="body2"
-                                                                                    color="text.secondary"
                                                                                     sx={{
+                                                                                        color: "text.secondary",
                                                                                         mb: 0.75
-                                                                                    }}
-                                                                                >
+                                                                                    }}>
                                                                                     Allowed Units:
                                                                                 </Typography>
 
@@ -3305,7 +3318,9 @@ const LookupCategoryPage = () => {
 
                                                                     <Typography
                                                                         variant="body2"
-                                                                        color="text.secondary"
+                                                                        sx={{
+                                                                            color: "text.secondary"
+                                                                        }}
                                                                     >
                                                                         {
                                                                             lookup?.category ||
@@ -3368,7 +3383,6 @@ const LookupCategoryPage = () => {
                                                     </CardContent>
 
                                                 </Card>
-
                                             );
 
                                         }
@@ -3385,7 +3399,6 @@ const LookupCategoryPage = () => {
             </Card>
 
         </PageContainer>
-
     );
 
 };

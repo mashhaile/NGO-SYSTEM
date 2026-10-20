@@ -38,7 +38,6 @@ const ServiceTrendChart = ({
     if (!chartData.length) {
 
         return (
-
             <Box
                 sx={{
                     height: 300,
@@ -49,14 +48,15 @@ const ServiceTrendChart = ({
             >
 
                 <Typography
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     No service delivery data
                     available.
                 </Typography>
 
             </Box>
-
         );
 
     }

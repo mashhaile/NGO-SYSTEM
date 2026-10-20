@@ -62,7 +62,6 @@ const ActionMenu = ({
                 </IconButton>
             </Tooltip>
 
-
             <Menu
                 anchorEl={anchorEl}
                 open={open}
@@ -135,9 +134,11 @@ const ActionMenu = ({
 
                         <ListItemText
                             primary={item.label}
-                            primaryTypographyProps={{
-                                fontSize: "0.875rem",
-                                fontWeight: 500
+                            slotProps={{
+                                primary: {
+                                    fontSize: "0.875rem",
+                                    fontWeight: 500
+                                }
                             }}
                         />
 

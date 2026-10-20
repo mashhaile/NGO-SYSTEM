@@ -15,6 +15,23 @@ import {
 } from "@mui/icons-material";
 
 
+// "2026-10-19T16:56:29Z" -> "Oct 19, 2026, 4:56 PM"
+
+const formatTime = (value) => {
+
+    const date =
+        new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? value
+        : date.toLocaleString(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
+
+};
+
+
 const RecentActivity = ({
     activities = []
 }) => {
@@ -67,7 +84,6 @@ const RecentActivity = ({
 
 
     return (
-
         <Paper
             elevation={0}
             sx={{
@@ -101,28 +117,25 @@ const RecentActivity = ({
 
                 <Typography
                     variant="h6"
-                    fontWeight={800}
                     sx={{
+                        fontWeight: 800,
                         color: "#0f172a"
-                    }}
-                >
+                    }}>
                     Recent Activity
                 </Typography>
 
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mt: 0.5
-                    }}
-                >
+                    }}>
                     Latest activity across
                     your organization
                 </Typography>
 
             </Box>
-
 
             {/* =========================================
                 EMPTY STATE
@@ -163,7 +176,9 @@ const RecentActivity = ({
 
 
                     <Typography
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         No recent activity
                     </Typography>
@@ -171,11 +186,10 @@ const RecentActivity = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mt: 0.5
-                        }}
-                    >
+                        }}>
                         Activity will appear
                         here as your organization
                         starts using the platform.
@@ -207,7 +221,6 @@ const RecentActivity = ({
 
 
                             return (
-
                                 <Box
                                     key={
                                         activity._id ||
@@ -268,16 +281,16 @@ const RecentActivity = ({
                                         >
 
                                             <Typography
-                                                fontWeight={700}
                                                 noWrap
                                                 sx={{
+                                                    fontWeight: 700,
+
                                                     overflow:
                                                         "hidden",
 
                                                     textOverflow:
                                                         "ellipsis"
-                                                }}
-                                            >
+                                                }}>
                                                 {
                                                     activity.title ||
                                                     "Activity"
@@ -289,8 +302,8 @@ const RecentActivity = ({
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
                                                     sx={{
+                                                        color: "text.secondary",
                                                         mt: 0.25,
 
                                                         overflow:
@@ -304,8 +317,7 @@ const RecentActivity = ({
                                                                 xs: "normal",
                                                                 sm: "nowrap"
                                                             }
-                                                    }}
-                                                >
+                                                    }}>
                                                     {
                                                         activity.description
                                                     }
@@ -322,22 +334,21 @@ const RecentActivity = ({
 
                                             <Typography
                                                 variant="caption"
-                                                color="text.secondary"
                                                 sx={{
+                                                    color: "text.secondary",
                                                     flexShrink: 0,
+
                                                     whiteSpace:
                                                         "nowrap"
-                                                }}
-                                            >
+                                                }}>
                                                 {
-                                                    activity.time
+                                                    formatTime(activity.time)
                                                 }
                                             </Typography>
 
                                         )}
 
                                     </Stack>
-
 
                                     {index <
                                         activities.length - 1 && (
@@ -347,7 +358,6 @@ const RecentActivity = ({
                                     )}
 
                                 </Box>
-
                             );
 
                         }
@@ -358,7 +368,6 @@ const RecentActivity = ({
             )}
 
         </Paper>
-
     );
 
 };

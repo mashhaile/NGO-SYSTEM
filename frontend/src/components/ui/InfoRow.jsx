@@ -42,29 +42,29 @@ const InfoRow = ({
         >
             <Typography
                 variant="body2"
-                color="text.secondary"
-                fontWeight={600}
                 sx={{
+                    color: "text.secondary",
+                    fontWeight: 600,
+
                     width:
                         direction === "row"
                             ? labelWidth
                             : "auto",
+
                     flexShrink: 0
-                }}
-            >
+                }}>
                 {label}
             </Typography>
 
             <Typography
                 variant="body2"
-                color="text.primary"
                 component="div"
                 sx={{
+                    color: "text.primary",
                     flex: 1,
                     minWidth: 0,
                     wordBreak: "break-word"
-                }}
-            >
+                }}>
                 {displayValue}
             </Typography>
         </Box>

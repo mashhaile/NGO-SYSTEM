@@ -459,14 +459,12 @@ const TorDetailsPage = () => {
     // =================================================
 
     return (
-
         <PageContainer>
 
             <PageHeader
                 title={tor.title}
                 subtitle={`Terms of Reference · ${tor.torNumber}`}
             />
-
 
             {notice && (
 
@@ -480,7 +478,6 @@ const TorDetailsPage = () => {
 
             )}
 
-
             {actionError && !dialog && (
 
                 <Alert
@@ -493,7 +490,6 @@ const TorDetailsPage = () => {
 
             )}
 
-
             {actions.canCreateActivity && (
 
                 <Alert
@@ -505,7 +501,6 @@ const TorDetailsPage = () => {
 
             )}
 
-
             {tor.status === "Returned" && tor.reviewComment && (
 
                 <Alert
@@ -516,7 +511,6 @@ const TorDetailsPage = () => {
                 </Alert>
 
             )}
-
 
             {/* ACTIONS */}
 
@@ -648,7 +642,9 @@ const TorDetailsPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Status:
                             </Typography>
@@ -664,7 +660,6 @@ const TorDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* TOR INFORMATION */}
 
@@ -701,10 +696,12 @@ const TorDetailsPage = () => {
                                         <Link
                                             component="button"
                                             underline="hover"
-                                            fontWeight={600}
                                             onClick={() =>
                                                 navigate(`/activities/${tor.activity._id}`)
                                             }
+                                            sx={{
+                                                fontWeight: 600
+                                            }}
                                         >
                                             {codeName(tor.activity, "activityCode")}
                                         </Link>
@@ -712,7 +709,9 @@ const TorDetailsPage = () => {
                                         {tor.activity.activityType && (
                                             <Typography
                                                 variant="body2"
-                                                color="text.secondary"
+                                                sx={{
+                                                    color: "text.secondary"
+                                                }}
                                             >
                                                 · {tor.activity.activityType}
                                             </Typography>
@@ -733,7 +732,9 @@ const TorDetailsPage = () => {
                                 : (
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         Not created yet. It is created from this TOR after approval.
                                     </Typography>
@@ -751,7 +752,6 @@ const TorDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* PURPOSE */}
 
@@ -773,7 +773,6 @@ const TorDetailsPage = () => {
 
             </PageCard>
 
-
             {/* PARTICIPANTS */}
 
             <PageCard>
@@ -794,7 +793,6 @@ const TorDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* DATE AND VENUE */}
 
@@ -821,7 +819,6 @@ const TorDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* BUDGET */}
 
@@ -877,12 +874,16 @@ const TorDetailsPage = () => {
 
                                         <TableRow>
                                             <TableCell colSpan={5} align="right">
-                                                <Typography fontWeight={700}>
+                                                <Typography sx={{
+                                                    fontWeight: 700
+                                                }}>
                                                     Total Budget
                                                 </Typography>
                                             </TableCell>
                                             <TableCell align="right">
-                                                <Typography fontWeight={700}>
+                                                <Typography sx={{
+                                                    fontWeight: 700
+                                                }}>
                                                     {formatAmount(tor.totalBudget, tor.currency)}
                                                 </Typography>
                                             </TableCell>
@@ -906,7 +907,6 @@ const TorDetailsPage = () => {
 
             </PageCard>
 
-
             {/* LOGISTICS AND REPORTING */}
 
             <PageCard>
@@ -925,7 +925,6 @@ const TorDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* APPROVAL HISTORY */}
 
@@ -949,12 +948,11 @@ const TorDetailsPage = () => {
                                         {entry.comment && (
                                             <Typography
                                                 variant="body2"
-                                                color="text.secondary"
                                                 sx={{
+                                                    color: "text.secondary",
                                                     mt: 0.5,
                                                     whiteSpace: "pre-line"
-                                                }}
-                                            >
+                                                }}>
                                                 “{entry.comment}”
                                             </Typography>
                                         )}
@@ -967,7 +965,6 @@ const TorDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* RECORD */}
 
@@ -1000,9 +997,7 @@ const TorDetailsPage = () => {
 
             </PageCard>
 
-
             {backButton}
-
 
             {/* DIALOGS */}
 
@@ -1107,7 +1102,6 @@ const TorDetailsPage = () => {
             />
 
         </PageContainer>
-
     );
 
 };

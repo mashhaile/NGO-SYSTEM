@@ -77,7 +77,6 @@ const Charts = ({
 
 
     return (
-
         <Box
             sx={{
                 display: "grid",
@@ -124,25 +123,24 @@ const Charts = ({
 
                         <Typography
                             variant="h6"
-                            fontWeight={800}
                             sx={{
+                                fontWeight: 800,
+
                                 color:
                                     "#0f172a",
 
                                 lineHeight: 1.2
-                            }}
-                        >
+                            }}>
                             Funding Trend
                         </Typography>
 
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.4
-                            }}
-                        >
+                            }}>
                             Funding performance over time
                         </Typography>
 
@@ -158,7 +156,6 @@ const Charts = ({
                 />
 
             </Paper>
-
 
             {/* =================================================
                 SERVICE DELIVERY
@@ -190,25 +187,24 @@ const Charts = ({
 
                         <Typography
                             variant="h6"
-                            fontWeight={800}
                             sx={{
+                                fontWeight: 800,
+
                                 color:
                                     "#0f172a",
 
                                 lineHeight: 1.2
-                            }}
-                        >
+                            }}>
                             Service Delivery
                         </Typography>
 
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.4
-                            }}
-                        >
+                            }}>
                             Service delivery performance
                         </Typography>
 
@@ -226,7 +222,6 @@ const Charts = ({
             </Paper>
 
         </Box>
-
     );
 
 };

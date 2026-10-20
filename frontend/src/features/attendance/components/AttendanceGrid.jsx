@@ -104,7 +104,9 @@ const AttendanceGrid = ({
             flex: 1.4,
             minWidth: 230,
             renderCell: ({ row }) => (
-                <Typography fontWeight={600}>
+                <Typography sx={{
+                    fontWeight: 600
+                }}>
                     {getParticipantName(row)}
                 </Typography>
             )

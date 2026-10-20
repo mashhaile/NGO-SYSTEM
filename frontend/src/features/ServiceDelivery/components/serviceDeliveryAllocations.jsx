@@ -1821,7 +1821,6 @@ const ServiceDeliveryAllocations = ({
     ) {
 
         return (
-
             <Box
                 sx={{
                     mt: 2
@@ -1837,7 +1836,9 @@ const ServiceDeliveryAllocations = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Select beneficiaries to configure
                         service allocations.
@@ -1846,7 +1847,6 @@ const ServiceDeliveryAllocations = ({
                 </Paper>
 
             </Box>
-
         );
 
     }
@@ -1858,7 +1858,6 @@ const ServiceDeliveryAllocations = ({
     ) {
 
         return (
-
             <Box
                 sx={{
                     mt: 2
@@ -1874,7 +1873,9 @@ const ServiceDeliveryAllocations = ({
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Add service items before configuring
                         beneficiary allocations.
@@ -1883,7 +1884,6 @@ const ServiceDeliveryAllocations = ({
                 </Paper>
 
             </Box>
-
         );
 
     }
@@ -2560,7 +2560,6 @@ const applyFullAllocation = (
     // ===================================================
 
     return (
-
         <Box
             sx={{
                 mt: 3
@@ -2576,20 +2575,17 @@ const applyFullAllocation = (
                 Beneficiary Allocation
             </Typography>
 
-
             <Typography
                 variant="body2"
-                color="text.secondary"
                 sx={{
+                    color: "text.secondary",
                     mb: 3
-                }}
-            >
+                }}>
                 Declare which service items or supporting detail
                 items are attributable to each beneficiary. Actual
                 delivery cost remains separate from beneficiary
                 attribution.
             </Typography>
-
 
             {/* =================================================
                 BENEFICIARIES
@@ -2609,7 +2605,6 @@ const applyFullAllocation = (
 
 
                         return (
-
                             <Paper
                                 key={
                                     `${beneficiaryId || "beneficiary"}-${beneficiaryIndex}`
@@ -2623,11 +2618,10 @@ const applyFullAllocation = (
 
                                 <Typography
                                     variant="subtitle1"
-                                    fontWeight={600}
                                     sx={{
+                                        fontWeight: 600,
                                         mb: 2
-                                    }}
-                                >
+                                    }}>
                                     {
                                         getBeneficiaryName(
                                             beneficiary,
@@ -2636,13 +2630,11 @@ const applyFullAllocation = (
                                     }
                                 </Typography>
 
-
                                 <Divider
                                     sx={{
                                         mb: 3
                                     }}
                                 />
-
 
                                 {
                                     validItems.map(
@@ -2704,7 +2696,6 @@ const applyFullAllocation = (
 
 
                                             return (
-
                                                 <Box
                                                     key={
                                                         serviceItemId
@@ -2720,23 +2711,25 @@ const applyFullAllocation = (
 
                                                     <Typography
                                                         variant="body1"
-                                                        fontWeight={600}
+                                                        sx={{
+                                                            fontWeight: 600
+                                                        }}
                                                     >
                                                         {
                                                             serviceItemLabel
                                                         }
                                                     </Typography>
 
-
                                                     <Typography
                                                         variant="caption"
-                                                        color="text.secondary"
                                                         sx={{
+                                                            color: "text.secondary",
+
                                                             display:
                                                                 "block",
+
                                                             mb: 2
-                                                        }}
-                                                    >
+                                                        }}>
 
                                                         {
                                                             monetary
@@ -2789,20 +2782,20 @@ const applyFullAllocation = (
 
                                                     </Typography>
 
-
                                                     {
                                                         !monetary
                                                             ? (
 
                                                                 <Typography
                                                                     variant="caption"
-                                                                    color="text.secondary"
                                                                     sx={{
+                                                                        color: "text.secondary",
+
                                                                         display:
                                                                             "block",
+
                                                                         mb: 2
-                                                                    }}
-                                                                >
+                                                                    }}>
 
                                                                     Allocation behavior:
                                                                     {" "}
@@ -2818,7 +2811,6 @@ const applyFullAllocation = (
                                                             )
                                                             : null
                                                     }
-
 
                                                     {/* =========================================
                                                         DIRECT PARENT ALLOCATION
@@ -2861,14 +2853,6 @@ const applyFullAllocation = (
                                                                                             directAllocation?.quantity
                                                                                         )
                                                                                     }
-                                                                                    inputProps={{
-                                                                                        min:
-                                                                                            0,
-                                                                                        max:
-                                                                                            deliveryQuantity,
-                                                                                        step:
-                                                                                            "any"
-                                                                                    }}
                                                                                     onChange={
                                                                                         (
                                                                                             event
@@ -2881,6 +2865,16 @@ const applyFullAllocation = (
                                                                                                 event.target.value
                                                                                             )
                                                                                     }
+                                                                                    slotProps={{
+                                                                                        htmlInput: {
+                                                                                            min:
+                                                                                                0,
+                                                                                            max:
+                                                                                                deliveryQuantity,
+                                                                                            step:
+                                                                                                "any"
+                                                                                        }
+                                                                                    }}
                                                                                 />
 
                                                                             )
@@ -2901,14 +2895,6 @@ const applyFullAllocation = (
                                                                                 directAllocation?.allocatedValue
                                                                             )
                                                                         }
-                                                                        inputProps={{
-                                                                            min:
-                                                                                0,
-                                                                            max:
-                                                                                itemTotal,
-                                                                            step:
-                                                                                "any"
-                                                                        }}
                                                                         onChange={
                                                                             (
                                                                                 event
@@ -2921,6 +2907,16 @@ const applyFullAllocation = (
                                                                                     event.target.value
                                                                                 )
                                                                         }
+                                                                        slotProps={{
+                                                                            htmlInput: {
+                                                                                min:
+                                                                                    0,
+                                                                                max:
+                                                                                    itemTotal,
+                                                                                step:
+                                                                                    "any"
+                                                                            }
+                                                                        }}
                                                                     />
 
                                                                 </Box>
@@ -2928,7 +2924,6 @@ const applyFullAllocation = (
                                                             )
                                                             : null
                                                     }
-
 
                                                     {/* =========================================
                                                         DETAIL ITEMS
@@ -2961,11 +2956,10 @@ const applyFullAllocation = (
 
                                                                     <Typography
                                                                         variant="subtitle2"
-                                                                        fontWeight={600}
                                                                         sx={{
+                                                                            fontWeight: 600,
                                                                             mb: 2
-                                                                        }}
-                                                                    >
+                                                                        }}>
                                                                         Supporting Detail Items
                                                                     </Typography>
 
@@ -3035,7 +3029,6 @@ const applyFullAllocation = (
 
 
                                                                                 return (
-
                                                                                     <Box
                                                                                         key={
                                                                                             detailItemId
@@ -3048,7 +3041,9 @@ const applyFullAllocation = (
 
                                                                                         <Typography
                                                                                             variant="body2"
-                                                                                            fontWeight={600}
+                                                                                            sx={{
+                                                                                                fontWeight: 600
+                                                                                            }}
                                                                                         >
                                                                                             {
                                                                                                 detailItem?.name ||
@@ -3056,17 +3051,17 @@ const applyFullAllocation = (
                                                                                             }
                                                                                         </Typography>
 
-
                                                                                         <Typography
                                                                                             variant="caption"
-                                                                                            color="text.secondary"
                                                                                             sx={{
+                                                                                                color: "text.secondary",
+
                                                                                                 display:
                                                                                                     "block",
+
                                                                                                 mb:
                                                                                                     1.5
-                                                                                            }}
-                                                                                        >
+                                                                                            }}>
 
                                                                                             Delivered:
                                                                                             {" "}
@@ -3099,7 +3094,6 @@ const applyFullAllocation = (
                                                                                             }
 
                                                                                         </Typography>
-
 
                                                                                         <Box
                                                                                             sx={{
@@ -3134,14 +3128,6 @@ const applyFullAllocation = (
                                                                                                                     detailAllocation?.quantity
                                                                                                                 )
                                                                                                             }
-                                                                                                            inputProps={{
-                                                                                                                min:
-                                                                                                                    0,
-                                                                                                                max:
-                                                                                                                    detailQuantity,
-                                                                                                                step:
-                                                                                                                    "any"
-                                                                                                            }}
                                                                                                             onChange={
                                                                                                                 (
                                                                                                                     event
@@ -3154,6 +3140,16 @@ const applyFullAllocation = (
                                                                                                                         event.target.value
                                                                                                                     )
                                                                                                             }
+                                                                                                            slotProps={{
+                                                                                                                htmlInput: {
+                                                                                                                    min:
+                                                                                                                        0,
+                                                                                                                    max:
+                                                                                                                        detailQuantity,
+                                                                                                                    step:
+                                                                                                                        "any"
+                                                                                                                }
+                                                                                                            }}
                                                                                                         />
 
                                                                                                     )
@@ -3174,14 +3170,6 @@ const applyFullAllocation = (
                                                                                                         detailAllocation?.allocatedValue
                                                                                                     )
                                                                                                 }
-                                                                                                inputProps={{
-                                                                                                    min:
-                                                                                                        0,
-                                                                                                    max:
-                                                                                                        detailTotal,
-                                                                                                    step:
-                                                                                                        "any"
-                                                                                                }}
                                                                                                 onChange={
                                                                                                     (
                                                                                                         event
@@ -3194,10 +3182,19 @@ const applyFullAllocation = (
                                                                                                             event.target.value
                                                                                                         )
                                                                                                 }
+                                                                                                slotProps={{
+                                                                                                    htmlInput: {
+                                                                                                        min:
+                                                                                                            0,
+                                                                                                        max:
+                                                                                                            detailTotal,
+                                                                                                        step:
+                                                                                                            "any"
+                                                                                                    }
+                                                                                                }}
                                                                                             />
 
                                                                                         </Box>
-
 
                                                                                         <Box
                                                                                             sx={{
@@ -3229,7 +3226,6 @@ const applyFullAllocation = (
                                                                                         </Box>
 
                                                                                     </Box>
-
                                                                                 );
 
                                                                             }
@@ -3241,7 +3237,6 @@ const applyFullAllocation = (
                                                             )
                                                             : null
                                                     }
-
 
                                                     {/* =========================================
                                                         APPLY FULL PARENT
@@ -3284,7 +3279,6 @@ const applyFullAllocation = (
                                                     }
 
                                                 </Box>
-
                                             );
 
                                         }
@@ -3292,13 +3286,11 @@ const applyFullAllocation = (
                                 }
 
                             </Paper>
-
                         );
 
                     }
                 )
             }
-
 
             {/* =================================================
                 ALLOCATION SUMMARY
@@ -3357,7 +3349,6 @@ const applyFullAllocation = (
 
 
                             return (
-
                                 <Paper
                                     key={
                                         `summary-${serviceItemId}`
@@ -3371,16 +3362,14 @@ const applyFullAllocation = (
 
                                     <Typography
                                         variant="subtitle1"
-                                        fontWeight={600}
                                         sx={{
+                                            fontWeight: 600,
                                             mb: 1
-                                        }}
-                                    >
+                                        }}>
                                         {
                                             serviceItemLabel
                                         }
                                     </Typography>
-
 
                                     {
                                         summary.monetary
@@ -3418,12 +3407,12 @@ const applyFullAllocation = (
 
                                                     <Typography
                                                         variant="body2"
-                                                        fontWeight={600}
                                                         sx={{
+                                                            fontWeight: 600,
+
                                                             mt:
                                                                 0.5
-                                                        }}
-                                                    >
+                                                        }}>
                                                         Unallocated Delivery Cost:
                                                         {" "}
                                                         ETB{" "}
@@ -3437,14 +3426,15 @@ const applyFullAllocation = (
 
                                                     <Typography
                                                         variant="caption"
-                                                        color="text.secondary"
                                                         sx={{
+                                                            color: "text.secondary",
+
                                                             display:
                                                                 "block",
+
                                                             mt:
                                                                 1
-                                                        }}
-                                                    >
+                                                        }}>
                                                         Physical quantity is not applicable
                                                         to monetary items.
                                                     </Typography>
@@ -3521,12 +3511,12 @@ const applyFullAllocation = (
 
                                                                 <Typography
                                                                     variant="body2"
-                                                                    fontWeight={600}
                                                                     sx={{
+                                                                        fontWeight: 600,
+
                                                                         mt:
                                                                             0.5
-                                                                    }}
-                                                                >
+                                                                    }}>
                                                                     Unallocated Quantity:
                                                                     {" "}
                                                                     {
@@ -3543,14 +3533,15 @@ const applyFullAllocation = (
 
                                                                 <Typography
                                                                     variant="caption"
-                                                                    color="text.secondary"
                                                                     sx={{
+                                                                        color: "text.secondary",
+
                                                                         display:
                                                                             "block",
+
                                                                         mt:
                                                                             0.5
-                                                                    }}
-                                                                >
+                                                                    }}>
                                                                     Participation is beneficiary-based;
                                                                     aggregate participation may exceed
                                                                     the actual delivered quantity.
@@ -3602,12 +3593,12 @@ const applyFullAllocation = (
 
                                                     <Typography
                                                         variant="body2"
-                                                        fontWeight={600}
                                                         sx={{
+                                                            fontWeight: 600,
+
                                                             mt:
                                                                 0.5
-                                                        }}
-                                                    >
+                                                        }}>
                                                         Unallocated Delivery Cost:
                                                         {" "}
                                                         ETB{" "}
@@ -3644,12 +3635,12 @@ const applyFullAllocation = (
 
                                                                     <Typography
                                                                         variant="subtitle2"
-                                                                        fontWeight={600}
                                                                         sx={{
+                                                                            fontWeight: 600,
+
                                                                             mb:
                                                                                 1
-                                                                        }}
-                                                                    >
+                                                                        }}>
                                                                         Detail Item Allocation Breakdown
                                                                     </Typography>
 
@@ -3747,7 +3738,6 @@ const applyFullAllocation = (
 
 
                                                                                 return (
-
                                                                                     <Box
                                                                                         key={
                                                                                             detailItemId
@@ -3760,7 +3750,9 @@ const applyFullAllocation = (
 
                                                                                         <Typography
                                                                                             variant="body2"
-                                                                                            fontWeight={600}
+                                                                                            sx={{
+                                                                                                fontWeight: 600
+                                                                                            }}
                                                                                         >
                                                                                             {
                                                                                                 detailItem?.name ||
@@ -3768,10 +3760,11 @@ const applyFullAllocation = (
                                                                                             }
                                                                                         </Typography>
 
-
                                                                                         <Typography
                                                                                             variant="body2"
-                                                                                            color="text.secondary"
+                                                                                            sx={{
+                                                                                                color: "text.secondary"
+                                                                                            }}
                                                                                         >
 
                                                                                             Delivered:
@@ -3818,10 +3811,11 @@ const applyFullAllocation = (
 
                                                                                         </Typography>
 
-
                                                                                         <Typography
                                                                                             variant="body2"
-                                                                                            color="text.secondary"
+                                                                                            sx={{
+                                                                                                color: "text.secondary"
+                                                                                            }}
                                                                                         >
 
                                                                                             Actual Detail Cost:
@@ -3846,7 +3840,6 @@ const applyFullAllocation = (
                                                                                         </Typography>
 
                                                                                     </Box>
-
                                                                                 );
 
                                                                             }
@@ -3865,7 +3858,6 @@ const applyFullAllocation = (
                                     }
 
                                 </Paper>
-
                             );
 
                         }
@@ -3875,7 +3867,6 @@ const applyFullAllocation = (
             </Box>
 
         </Box>
-
     );
 
 };

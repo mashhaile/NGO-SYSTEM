@@ -83,7 +83,6 @@ const BeneficiaryByProgram = ({
     if (!chartData.length) {
 
         return (
-
             <Box
                 sx={{
                     height: 360,
@@ -94,20 +93,20 @@ const BeneficiaryByProgram = ({
             >
 
                 <Typography
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     No program beneficiary data available.
                 </Typography>
 
             </Box>
-
         );
 
     }
 
 
     return (
-
         <Box
             sx={{
                 width: "100%"
@@ -325,7 +324,6 @@ const BeneficiaryByProgram = ({
 
             </Box>
 
-
             {/* =====================================
                 PROGRAM DETAILS
             ===================================== */}
@@ -338,8 +336,8 @@ const BeneficiaryByProgram = ({
 
                     gridTemplateColumns: {
                         xs: "1fr",
-                        sm: "repeat(2, 1fr)",
-                        lg: "repeat(3, 1fr)"
+                        sm: "repeat(2, minmax(0, 1fr))",
+                        lg: "repeat(3, minmax(0, 1fr))"
                     },
 
                     gap: 1.5
@@ -360,6 +358,8 @@ const BeneficiaryByProgram = ({
 
                             sx={{
                                 p: 1.75,
+
+                                minWidth: 0,
 
                                 borderRadius: 2.5,
 
@@ -389,7 +389,7 @@ const BeneficiaryByProgram = ({
                             <Stack
                                 direction="row"
                                 spacing={1}
-                                sx={{ alignItems: "center",
+                                sx={{ alignItems: "center", minWidth: 0,
                                     mb: 1.5
                                 }}
                             >
@@ -412,16 +412,17 @@ const BeneficiaryByProgram = ({
 
                                 <Typography
                                     variant="body2"
-                                    fontWeight={700}
                                     noWrap
+                                    title={program.programName}
                                     sx={{
+                                        fontWeight: 700,
+
                                         overflow:
                                             "hidden",
 
                                         textOverflow:
                                             "ellipsis"
-                                    }}
-                                >
+                                    }}>
                                     {
                                         program.programName
                                     }
@@ -448,7 +449,9 @@ const BeneficiaryByProgram = ({
 
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         Male
                                     </Typography>
@@ -479,7 +482,9 @@ const BeneficiaryByProgram = ({
 
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         Female
                                     </Typography>
@@ -510,7 +515,9 @@ const BeneficiaryByProgram = ({
 
                                     <Typography
                                         variant="caption"
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         Total
                                     </Typography>
@@ -554,7 +561,9 @@ const BeneficiaryByProgram = ({
 
                                 <Typography
                                     variant="caption"
-                                    color="text.secondary"
+                                    sx={{
+                                        color: "text.secondary"
+                                    }}
                                 >
                                     Target
                                 </Typography>
@@ -562,7 +571,9 @@ const BeneficiaryByProgram = ({
 
                                 <Typography
                                     variant="body2"
-                                    fontWeight={800}
+                                    sx={{
+                                        fontWeight: 800
+                                    }}
                                 >
                                     {
                                         program.target
@@ -585,7 +596,9 @@ const BeneficiaryByProgram = ({
 
                                 <Typography
                                     variant="caption"
-                                    color="text.secondary"
+                                    sx={{
+                                        color: "text.secondary"
+                                    }}
                                 >
                                     Achievement
                                 </Typography>
@@ -593,12 +606,12 @@ const BeneficiaryByProgram = ({
 
                                 <Typography
                                     variant="caption"
-                                    fontWeight={800}
                                     sx={{
+                                        fontWeight: 800,
+
                                         color:
                                             program.color
-                                    }}
-                                >
+                                    }}>
                                     {
                                         program.target > 0
                                             ? `${Math.min(
@@ -624,7 +637,6 @@ const BeneficiaryByProgram = ({
             </Box>
 
         </Box>
-
     );
 
 };

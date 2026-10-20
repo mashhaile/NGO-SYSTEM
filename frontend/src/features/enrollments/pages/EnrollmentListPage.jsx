@@ -112,123 +112,102 @@ dispatch(
 
 
 return (
+    <Box>
 
+        <Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
 
-<Box>
+        direction="row"
 
+        >
 
 
 
 
 
-<Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
 
-direction="row"
+        <Box>
 
->
 
+        <Typography
 
+        variant="h4"
 
+        sx={{
+            fontWeight: "700"
+        }}
 
+        >
 
+        Enrollments
 
-<Box>
+        </Typography>
 
 
-<Typography
 
-variant="h4"
 
-fontWeight="700"
 
->
+        <Typography
 
-Enrollments
+        sx={{
+            color: "text.secondary"
+        }}
 
-</Typography>
+        >
 
+        Manage beneficiary program enrollments
 
+        </Typography>
 
 
 
-<Typography
+        </Box>
 
-color="text.secondary"
 
->
 
-Manage beneficiary program enrollments
 
-</Typography>
 
 
 
-</Box>
 
 
+        <Button
 
+        variant="contained"
 
+        startIcon={<Add/>}
 
+        onClick={()=>navigate(
 
+            "/enrollments/create"
 
+        )}
 
+        >
 
-<Button
+        Create Enrollment
 
-variant="contained"
+        </Button>
 
-startIcon={<Add/>}
 
-onClick={()=>navigate(
 
-    "/enrollments/create"
 
-)}
 
->
 
-Create Enrollment
 
-</Button>
+        </Stack>
 
+        <EnrollmentTable
 
 
+        data={data}
 
 
+        loading={loading}
 
 
-</Stack>
+        />
 
-
-
-
-
-
-
-
-
-<EnrollmentTable
-
-
-data={data}
-
-
-loading={loading}
-
-
-/>
-
-
-
-
-
-
-
-
-
-</Box>
-
-
+    </Box>
 );
 
 

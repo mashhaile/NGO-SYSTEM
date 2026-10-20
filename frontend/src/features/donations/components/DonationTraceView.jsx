@@ -55,23 +55,28 @@ const Tile = ({
 
         <Typography
             variant="body2"
-            color="text.secondary"
+            sx={{
+                color: "text.secondary"
+            }}
         >
             {label}
         </Typography>
 
         <Typography
             variant="h6"
-            fontWeight={700}
-            sx={{ mt: 0.5 }}
-        >
+            sx={{
+                fontWeight: 700,
+                mt: 0.5
+            }}>
             {value}
         </Typography>
 
         {hint && (
             <Typography
                 variant="caption"
-                color="text.secondary"
+                sx={{
+                    color: "text.secondary"
+                }}
             >
                 {hint}
             </Typography>
@@ -134,7 +139,6 @@ const DonationTraceView = ({
 
 
     return (
-
         <>
 
             {donation.fundingRestriction === "Unrestricted" && (
@@ -147,7 +151,6 @@ const DonationTraceView = ({
                 </Alert>
 
             )}
-
 
             {/* SUMMARY TILES */}
 
@@ -191,17 +194,20 @@ const DonationTraceView = ({
 
             </Grid>
 
-
             <PageCard sx={{ mb: 3 }}>
 
                 <Stack
                     direction="row"
                     sx={{ justifyContent: "space-between", mb: 1 }}
                 >
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{
+                        fontWeight: 600
+                    }}>
                         Utilization
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{
+                        color: "text.secondary"
+                    }}>
                         {totals.percentUsed}% used
                     </Typography>
                 </Stack>
@@ -218,7 +224,6 @@ const DonationTraceView = ({
 
             </PageCard>
 
-
             {/* DONATION */}
 
             <PageCard>
@@ -231,7 +236,6 @@ const DonationTraceView = ({
                     <InfoRow label="Restriction" value={donation.fundingRestriction} />
                 </FormSection>
             </PageCard>
-
 
             {/* WHAT IT PAID FOR */}
 
@@ -250,7 +254,6 @@ const DonationTraceView = ({
                     />
                 </FormSection>
             </PageCard>
-
 
             {/* WHERE */}
 
@@ -286,7 +289,6 @@ const DonationTraceView = ({
                 </FormSection>
             </PageCard>
 
-
             {/* WHO */}
 
             <PageCard>
@@ -306,7 +308,6 @@ const DonationTraceView = ({
                     />
                 </FormSection>
             </PageCard>
-
 
             {/* DELIVERIES */}
 
@@ -342,7 +343,6 @@ const DonationTraceView = ({
                     />
                 </FormSection>
             </PageCard>
-
 
             {/* ACTIVITIES + TORS */}
 
@@ -399,7 +399,6 @@ const DonationTraceView = ({
 
             )}
 
-
             {/* TIMELINE */}
 
             <PageCard>
@@ -422,7 +421,6 @@ const DonationTraceView = ({
                     ))}
                 </FormSection>
             </PageCard>
-
 
             {/* NAMES (only present when allowed) */}
 
@@ -460,7 +458,6 @@ const DonationTraceView = ({
             )}
 
         </>
-
     );
 
 };

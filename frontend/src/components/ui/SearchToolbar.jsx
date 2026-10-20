@@ -76,17 +76,19 @@ const SearchToolbar = ({
                         }
                     }}
 
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment
-                                position="start"
-                            >
-                                <Search
-                                    fontSize="small"
-                                    color="action"
-                                />
-                            </InputAdornment>
-                        )
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                                <InputAdornment
+                                    position="start"
+                                >
+                                    <Search
+                                        fontSize="small"
+                                        color="action"
+                                    />
+                                </InputAdornment>
+                            )
+                        }
                     }}
                 />
 

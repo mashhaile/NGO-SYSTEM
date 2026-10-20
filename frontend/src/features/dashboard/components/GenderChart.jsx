@@ -62,7 +62,6 @@ const GenderChart = ({ data = {} }) => {
 
 
     return (
-
         <Box
             sx={{
                 width: "100%"
@@ -175,7 +174,9 @@ const GenderChart = ({ data = {} }) => {
 
                         <Typography
                             variant="h4"
-                            fontWeight={800}
+                            sx={{
+                                fontWeight: 800
+                            }}
                         >
                             {total}
                         </Typography>
@@ -183,7 +184,9 @@ const GenderChart = ({ data = {} }) => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Beneficiaries
                         </Typography>
@@ -240,7 +243,9 @@ const GenderChart = ({ data = {} }) => {
                                 />
 
                                 <Typography
-                                    fontWeight={700}
+                                    sx={{
+                                        fontWeight: 700
+                                    }}
                                 >
                                     Male
                                 </Typography>
@@ -250,7 +255,9 @@ const GenderChart = ({ data = {} }) => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={800}
+                                sx={{
+                                    fontWeight: 800
+                                }}
                             >
                                 {male}
                             </Typography>
@@ -260,11 +267,10 @@ const GenderChart = ({ data = {} }) => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.5
-                            }}
-                        >
+                            }}>
                             {malePercentage}% of beneficiaries
                         </Typography>
 
@@ -305,7 +311,9 @@ const GenderChart = ({ data = {} }) => {
                                 />
 
                                 <Typography
-                                    fontWeight={700}
+                                    sx={{
+                                        fontWeight: 700
+                                    }}
                                 >
                                     Female
                                 </Typography>
@@ -315,7 +323,9 @@ const GenderChart = ({ data = {} }) => {
 
                             <Typography
                                 variant="h6"
-                                fontWeight={800}
+                                sx={{
+                                    fontWeight: 800
+                                }}
                             >
                                 {female}
                             </Typography>
@@ -325,11 +335,10 @@ const GenderChart = ({ data = {} }) => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.5
-                            }}
-                        >
+                            }}>
                             {femalePercentage}% of beneficiaries
                         </Typography>
 
@@ -341,7 +350,6 @@ const GenderChart = ({ data = {} }) => {
             </Stack>
 
         </Box>
-
     );
 
 };

@@ -336,7 +336,6 @@ const OrganizationCreatePage = () => {
     // =================================================
 
     return (
-
         <Box
             sx={{
                 width: "100%",
@@ -358,7 +357,9 @@ const OrganizationCreatePage = () => {
 
                 <Typography
                     variant="h5"
-                    fontWeight={700}
+                    sx={{
+                        fontWeight: 700
+                    }}
                 >
                     Create Organization
                 </Typography>
@@ -366,17 +367,15 @@ const OrganizationCreatePage = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mt: 0.5
-                    }}
-                >
+                    }}>
                     Create a new organization and its initial
                     organization administrator.
                 </Typography>
 
             </Box>
-
 
             {/* =========================================
                 ALERTS
@@ -395,7 +394,6 @@ const OrganizationCreatePage = () => {
 
             )}
 
-
             {error && (
 
                 <Alert
@@ -408,7 +406,6 @@ const OrganizationCreatePage = () => {
                 </Alert>
 
             )}
-
 
             {success && (
 
@@ -423,7 +420,6 @@ const OrganizationCreatePage = () => {
                 </Alert>
 
             )}
-
 
             {/* =========================================
                 FORM
@@ -453,22 +449,20 @@ const OrganizationCreatePage = () => {
 
                     <Typography
                         variant="h6"
-                        fontWeight={700}
                         sx={{
+                            fontWeight: 700,
                             mb: 0.5
-                        }}
-                    >
+                        }}>
                         Organization Information
                     </Typography>
 
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mb: 3
-                        }}
-                    >
+                        }}>
                         Enter the basic information for the
                         organization.
                     </Typography>
@@ -608,22 +602,20 @@ const OrganizationCreatePage = () => {
 
                     <Typography
                         variant="h6"
-                        fontWeight={700}
                         sx={{
+                            fontWeight: 700,
                             mb: 0.5
-                        }}
-                    >
+                        }}>
                         Initial Administrator
                     </Typography>
 
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mb: 3
-                        }}
-                    >
+                        }}>
                         This administrator will receive full
                         organization administrator access.
                     </Typography>
@@ -730,7 +722,6 @@ const OrganizationCreatePage = () => {
             </Paper>
 
         </Box>
-
     );
 
 };

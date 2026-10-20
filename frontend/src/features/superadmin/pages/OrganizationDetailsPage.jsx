@@ -1279,11 +1279,10 @@ const isTrialing =
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.5
-                            }}
-                        >
+                            }}>
 
                             {subtitle}
 
@@ -1323,13 +1322,12 @@ const isTrialing =
 
             <Typography
                 variant="caption"
-                color="text.secondary"
                 sx={{
+                    color: "text.secondary",
                     display: "block",
                     mb: 0.5,
                     fontWeight: 600
-                }}
-            >
+                }}>
 
                 {label}
 
@@ -1366,7 +1364,6 @@ const isTrialing =
     // =================================================
 
     return (
-
         <PageContainer>
 
             {/* =================================================
@@ -1403,7 +1400,6 @@ const isTrialing =
                     <ArrowBack />
                 }
             />
-
 
             {/* =================================================
                 ORGANIZATION OVERVIEW
@@ -1491,7 +1487,6 @@ const isTrialing =
 
             </Section>
 
-
             {/* =================================================
                 CONTACT
             ================================================= */}
@@ -1565,7 +1560,6 @@ const isTrialing =
 
             </Section>
 
-
             {/* =================================================
                 ADDRESS
             ================================================= */}
@@ -1590,7 +1584,6 @@ const isTrialing =
                 </Typography>
 
             </Section>
-
 
             {/* =================================================
                 SUBSCRIPTION
@@ -1808,11 +1801,10 @@ const isTrialing =
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
                                 sx={{
+                                    color: "text.secondary",
                                     mb: 2
-                                }}
-                            >
+                                }}>
 
                                 Change the organization's plan or manage its
                                 current subscription lifecycle.
@@ -1823,7 +1815,9 @@ const isTrialing =
                             <Grid
                                 container
                                 spacing={2}
-                                alignItems="center"
+                                sx={{
+                                    alignItems: "center"
+                                }}
                             >
 
                                 <Grid
@@ -2045,7 +2039,9 @@ const isTrialing =
                             <Grid
                                 container
                                 spacing={2}
-                                alignItems="center"
+                                sx={{
+                                    alignItems: "center"
+                                }}
                             >
 
                                 <Grid
@@ -2175,11 +2171,10 @@ const isTrialing =
 
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
                                         sx={{
+                                            color: "text.secondary",
                                             mt: 2
-                                        }}
-                                    >
+                                        }}>
 
                                         No available subscription plans were
                                         found.
@@ -2212,7 +2207,6 @@ const isTrialing =
                 }
 
             </Section>
-
 
             {/* =================================================
                 RESOURCE USAGE
@@ -2307,7 +2301,6 @@ const isTrialing =
 
 
                                         return (
-
                                             <Grid
                                                 size={{ xs: 12, sm: 6, md: 4 }}
                                                 key={
@@ -2350,7 +2343,9 @@ const isTrialing =
 
                                                         <Typography
                                                             variant="body2"
-                                                            color="text.secondary"
+                                                            sx={{
+                                                                color: "text.secondary"
+                                                            }}
                                                         >
 
                                                             Used:{" "}
@@ -2366,7 +2361,9 @@ const isTrialing =
 
                                                         <Typography
                                                             variant="body2"
-                                                            color="text.secondary"
+                                                            sx={{
+                                                                color: "text.secondary"
+                                                            }}
                                                         >
 
                                                             Limit:{" "}
@@ -2411,7 +2408,6 @@ const isTrialing =
                                                 </Paper>
 
                                             </Grid>
-
                                         );
 
                                     }
@@ -2424,7 +2420,9 @@ const isTrialing =
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
 
                             Usage information is not available.
@@ -2435,7 +2433,6 @@ const isTrialing =
                 }
 
             </Section>
-
 
             {/* =================================================
                 PLAN LIMITS
@@ -2483,7 +2480,9 @@ const isTrialing =
 
                                                 <Typography
                                                     variant="body2"
-                                                    color="text.secondary"
+                                                    sx={{
+                                                        color: "text.secondary"
+                                                    }}
                                                 >
 
                                                     {
@@ -2525,7 +2524,6 @@ const isTrialing =
 
                 )
             }
-
 
             {/* =================================================
                 LIFECYCLE
@@ -2625,7 +2623,6 @@ const isTrialing =
 
             </Section>
 
-
             {/* =================================================
                 PLATFORM NOTE
             ================================================= */}
@@ -2644,7 +2641,6 @@ const isTrialing =
             </Alert>
 
         </PageContainer>
-
     );
 
 };

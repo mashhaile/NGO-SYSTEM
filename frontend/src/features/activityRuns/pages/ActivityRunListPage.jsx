@@ -237,21 +237,27 @@ const ActivityRunListPage = () => {
             field: "name",
             headerName: "Run",
             flex: 1.4,
-            minWidth: 230,
+            minWidth: 200,
             renderCell: (params) => (
                 <Box sx={{ lineHeight: 1.3, py: 0.5 }}>
                     <Link
                         component="button"
                         underline="hover"
-                        fontWeight={600}
-                        sx={{ textAlign: "left" }}
                         onClick={() =>
                             navigate(`/activity-runs/${params.row._id}`)
                         }
-                    >
+                        sx={{
+                            fontWeight: 600,
+                            textAlign: "left"
+                        }}>
                         {params.value || params.row.runCode || "-"}
                     </Link>
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: "text.secondary",
+                            display: "block"
+                        }}>
                         {params.row.runCode}
                     </Typography>
                 </Box>
@@ -262,7 +268,7 @@ const ActivityRunListPage = () => {
             field: "activity",
             headerName: "Activity",
             flex: 1.3,
-            minWidth: 200,
+            minWidth: 170,
             sortable: false,
             renderCell: (params) =>
                 params.value
@@ -271,7 +277,12 @@ const ActivityRunListPage = () => {
                             <Typography variant="body2">
                                 {params.value.name}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" display="block">
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    color: "text.secondary",
+                                    display: "block"
+                                }}>
                                 {params.value.activityCode}
                             </Typography>
                         </Box>
@@ -282,7 +293,7 @@ const ActivityRunListPage = () => {
         {
             field: "startDate",
             headerName: "Dates",
-            minWidth: 190,
+            minWidth: 170,
             valueGetter: (value, row) =>
                 row.startDate
                     ? `${formatDate(row.startDate)} – ${formatDate(row.endDate || row.startDate)}`
@@ -293,25 +304,18 @@ const ActivityRunListPage = () => {
             field: "region",
             headerName: "Location",
             flex: 1,
-            minWidth: 170,
+            minWidth: 140,
             valueGetter: (value, row) =>
                 [row.location, row.woreda, row.zone, row.region]
                     .filter(Boolean)
                     .join(", ") || "-"
         },
 
-        {
-            field: "trainer",
-            headerName: "Trainer",
-            minWidth: 140,
-            valueGetter: (value) =>
-                value?.name || "-"
-        },
 
         {
             field: "status",
             headerName: "Status",
-            minWidth: 120,
+            minWidth: 110,
             renderCell: (params) => (
                 <StatusChip
                     status={params.value}
@@ -322,7 +326,7 @@ const ActivityRunListPage = () => {
         {
             field: "actions",
             headerName: "Actions",
-            width: 140,
+            width: 124,
             sortable: false,
             filterable: false,
             disableColumnMenu: true,

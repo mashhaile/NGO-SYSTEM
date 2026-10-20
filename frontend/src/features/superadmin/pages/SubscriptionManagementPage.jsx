@@ -622,7 +622,6 @@ const SubscriptionManagementPage = () => {
     // =================================================
 
     return (
-
         <Box
             sx={{
                 p: 3
@@ -650,14 +649,15 @@ const SubscriptionManagementPage = () => {
 
 
                 <Typography
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     Manage organization subscriptions,
                     plans and resource usage.
                 </Typography>
 
             </Box>
-
 
             {/* =========================================
                 ALERTS
@@ -679,7 +679,6 @@ const SubscriptionManagementPage = () => {
 
             )}
 
-
             {success && (
 
                 <Alert
@@ -695,7 +694,6 @@ const SubscriptionManagementPage = () => {
                 </Alert>
 
             )}
-
 
             {/* =========================================
                 ORGANIZATION
@@ -766,7 +764,9 @@ const SubscriptionManagementPage = () => {
 
                         <Typography
                             variant="body2"
-                            color="text.secondary"
+                            sx={{
+                                color: "text.secondary"
+                            }}
                         >
                             Organization ID
                         </Typography>
@@ -781,7 +781,6 @@ const SubscriptionManagementPage = () => {
                 )}
 
             </Paper>
-
 
             {/* =========================================
                 LOADING SUBSCRIPTION
@@ -811,7 +810,6 @@ const SubscriptionManagementPage = () => {
                     </Paper>
 
                 )}
-
 
             {/* =========================================
                 PLAN MANAGEMENT
@@ -936,7 +934,6 @@ const SubscriptionManagementPage = () => {
 
                 )}
 
-
             {/* =========================================
                 SUBSCRIPTION DETAILS
             ========================================= */}
@@ -954,7 +951,6 @@ const SubscriptionManagementPage = () => {
                     />
 
                 )}
-
 
             {/* =========================================
                 SUBSCRIPTION ACTIONS
@@ -1041,7 +1037,6 @@ const SubscriptionManagementPage = () => {
                 )}
 
         </Box>
-
     );
 
 };

@@ -109,14 +109,18 @@ const DataTable = ({
                         >
 
                             <Typography
-                                fontWeight={600}
+                                sx={{
+                                    fontWeight: 600
+                                }}
                             >
                                 No records found
                             </Typography>
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 There is no data to display.
                             </Typography>

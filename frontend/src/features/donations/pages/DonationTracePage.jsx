@@ -160,11 +160,9 @@ const DonationTracePage = () => {
 
 
     return (
-
         <PageContainer>
 
             {header}
-
 
             {/* ACTIONS */}
 
@@ -191,7 +189,9 @@ const DonationTracePage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         {trace.donation.donor?.shareBeneficiaryNames
                             ? "The statement includes beneficiary names (donor setting)."
@@ -208,7 +208,6 @@ const DonationTracePage = () => {
 
             </PageCard>
 
-
             <DonationTraceView
                 trace={trace}
                 staff
@@ -220,7 +219,6 @@ const DonationTracePage = () => {
                 }
             />
 
-
             <AppButton
                 variant="outlined"
                 onClick={() => navigate(`/donations/${id}`)}
@@ -230,7 +228,6 @@ const DonationTracePage = () => {
             </AppButton>
 
         </PageContainer>
-
     );
 
 };

@@ -440,444 +440,440 @@ setSelected(null);
 
 
 return (
+    <Box sx={{
+        mb: 2
+    }}>
 
+        <Grid
+        container
+        spacing={2}
+        >
 
-<Box mb={2}>
 
 
-<Grid
-container
-spacing={2}
->
 
 
+        {
+        (type==="Beneficiary" || type==="Staff") &&
 
+        <Grid size={{xs:12,md:10}}>
 
 
-{
-(type==="Beneficiary" || type==="Staff") &&
+        <Autocomplete
 
-<Grid size={{xs:12,md:10}}>
 
+        options={people}
 
-<Autocomplete
 
+        value={selected}
 
-options={people}
 
+        isOptionEqualToValue={
+        (a,b)=>
+        a?._id===b?._id
+        }
 
-value={selected}
 
 
-isOptionEqualToValue={
-(a,b)=>
-a?._id===b?._id
-}
+        getOptionLabel={(option)=>{
 
 
+        if(!option)
+        return "";
 
-getOptionLabel={(option)=>{
 
 
-if(!option)
-return "";
+        if(type==="Staff"){
 
+        return (
 
+        option.name ||
 
-if(type==="Staff"){
+        option.email ||
 
-return (
+        ""
 
-option.name ||
+        );
 
-option.email ||
+        }
 
-""
 
-);
 
-}
+        return (
 
+        `${option.beneficiaryNumber || ""} - ${option.firstName || ""} ${option.lastName || ""}`
 
+        );
 
-return (
 
-`${option.beneficiaryNumber || ""} - ${option.firstName || ""} ${option.lastName || ""}`
+        }}
 
-);
 
 
-}}
+        onChange={(e,value)=>
+        setSelected(value)
+        }
 
 
 
-onChange={(e,value)=>
-setSelected(value)
-}
+        renderInput={(params)=>(
 
+        <TextField
 
+        {...params}
 
-renderInput={(params)=>(
+        label={`Select ${type}`}
 
-<TextField
+        />
 
-{...params}
+        )}
 
-label={`Select ${type}`}
 
-/>
 
-)}
+        />
 
 
 
-/>
+        </Grid>
 
+        }
 
 
-</Grid>
 
-}
 
 
 
 
 
 
+        {
+        type!=="Beneficiary" &&
+        type!=="Staff" &&
 
+        <>
 
 
-{
-type!=="Beneficiary" &&
-type!=="Staff" &&
 
-<>
+        <Grid size={{xs:12,md:3}}>
 
+        <TextField
 
+        fullWidth
 
-<Grid size={{xs:12,md:3}}>
+        label="Name"
 
-<TextField
+        value={external.name}
 
-fullWidth
+        onChange={(e)=>
+        updateExternal(
+        "name",
+        e.target.value
+        )
+        }
 
-label="Name"
+        />
 
-value={external.name}
+        </Grid>
 
-onChange={(e)=>
-updateExternal(
-"name",
-e.target.value
-)
-}
 
-/>
 
-</Grid>
 
 
+        <Grid size={{xs:12,md:3}}>
 
+        <TextField
 
+        fullWidth
 
-<Grid size={{xs:12,md:3}}>
+        label="Organization"
 
-<TextField
+        value={
+        external.organizationName
+        }
 
-fullWidth
+        onChange={(e)=>
+        updateExternal(
+        "organizationName",
+        e.target.value
+        )
+        }
 
-label="Organization"
+        />
 
-value={
-external.organizationName
-}
+        </Grid>
 
-onChange={(e)=>
-updateExternal(
-"organizationName",
-e.target.value
-)
-}
 
-/>
 
-</Grid>
 
 
 
+        <Grid size={{xs:12,md:2}}>
 
+        <TextField
 
+        fullWidth
 
-<Grid size={{xs:12,md:2}}>
+        label="Position"
 
-<TextField
+        value={external.position}
 
-fullWidth
+        onChange={(e)=>
+        updateExternal(
+        "position",
+        e.target.value
+        )
+        }
 
-label="Position"
+        />
 
-value={external.position}
+        </Grid>
 
-onChange={(e)=>
-updateExternal(
-"position",
-e.target.value
-)
-}
 
-/>
 
-</Grid>
 
 
+        <Grid size={{xs:12,md:2}}>
 
+        <TextField
 
+        fullWidth
 
-<Grid size={{xs:12,md:2}}>
+        label="Phone"
 
-<TextField
+        value={external.phone}
 
-fullWidth
+        onChange={(e)=>
+        updateExternal(
+        "phone",
+        e.target.value
+        )
+        }
 
-label="Phone"
+        />
 
-value={external.phone}
+        </Grid>
 
-onChange={(e)=>
-updateExternal(
-"phone",
-e.target.value
-)
-}
 
-/>
 
-</Grid>
 
 
+        <Grid size={{xs:12,md:2}}>
 
+        <TextField
 
+        select
 
-<Grid size={{xs:12,md:2}}>
+        fullWidth
 
-<TextField
+        label="Gender"
 
-select
+        value={
+        external.gender
+        }
 
-fullWidth
+        onChange={(e)=>
+        updateExternal(
+        "gender",
+        e.target.value
+        )
+        }
 
-label="Gender"
+        >
 
-value={
-external.gender
-}
 
-onChange={(e)=>
-updateExternal(
-"gender",
-e.target.value
-)
-}
+        <MenuItem value="">
+        <em>None</em>
+        </MenuItem>
 
->
+        <MenuItem value="Male">
+        Male
+        </MenuItem>
 
 
-<MenuItem value="">
-<em>None</em>
-</MenuItem>
+        <MenuItem value="Female">
+        Female
+        </MenuItem>
 
-<MenuItem value="Male">
-Male
-</MenuItem>
+        </TextField>
 
 
-<MenuItem value="Female">
-Female
-</MenuItem>
+        </Grid>
 
-</TextField>
 
 
-</Grid>
 
 
+        <Grid size={{xs:12,md:2}}>
 
 
+        <TextField
 
-<Grid size={{xs:12,md:2}}>
+        select
 
+        fullWidth
 
-<TextField
+        label="Age Group"
 
-select
+        value={
+        external.ageGroup
+        }
 
-fullWidth
+        onChange={(e)=>
+        updateExternal(
+        "ageGroup",
+        e.target.value
+        )
+        }
 
-label="Age Group"
 
-value={
-external.ageGroup
-}
+        >
 
-onChange={(e)=>
-updateExternal(
-"ageGroup",
-e.target.value
-)
-}
 
+        <MenuItem value="">
+        <em>None</em>
+        </MenuItem>
 
->
+        <MenuItem value="Child">
+        Child
+        </MenuItem>
 
 
-<MenuItem value="">
-<em>None</em>
-</MenuItem>
+        <MenuItem value="Youth">
+        Youth
+        </MenuItem>
 
-<MenuItem value="Child">
-Child
-</MenuItem>
 
+        <MenuItem value="Adult">
+        Adult
+        </MenuItem>
 
-<MenuItem value="Youth">
-Youth
-</MenuItem>
 
+        <MenuItem value="Elderly">
+        Elderly
+        </MenuItem>
 
-<MenuItem value="Adult">
-Adult
-</MenuItem>
 
+        </TextField>
 
-<MenuItem value="Elderly">
-Elderly
-</MenuItem>
 
+        </Grid>
 
-</TextField>
 
 
-</Grid>
 
 
+        <LocationCascadeFields
 
+        value={external.location}
 
+        onChange={changeLocationFields}
 
-<LocationCascadeFields
+        size="medium"
 
-value={external.location}
+        renderItem={(field,key)=>(
 
-onChange={changeLocationFields}
+        <Grid key={key} size={{xs:12,md:3}}>
 
-size="medium"
+        {field}
 
-renderItem={(field,key)=>(
+        </Grid>
 
-<Grid key={key} size={{xs:12,md:3}}>
+        )}
 
-{field}
+        />
 
-</Grid>
 
-)}
 
-/>
 
 
+        <Grid size={{xs:12,md:2}}>
 
 
+        <FormControlLabel
 
-<Grid size={{xs:12,md:2}}>
+        control={
 
+        <Checkbox
 
-<FormControlLabel
+        checked={
+        external.disabilityStatus
+        }
 
-control={
+        onChange={(e)=>
 
-<Checkbox
+        updateExternal(
 
-checked={
-external.disabilityStatus
-}
+        "disabilityStatus",
 
-onChange={(e)=>
+        e.target.checked
 
-updateExternal(
+        )
 
-"disabilityStatus",
+        }
 
-e.target.checked
+        />
 
-)
+        }
 
-}
+        label="Disability"
 
-/>
+        />
 
-}
 
-label="Disability"
+        </Grid>
 
-/>
 
+        </>
 
-</Grid>
+        }
 
 
-</>
 
-}
 
 
 
 
 
 
+        <Grid
+        size={{xs:12,md:2}}
+        >
 
 
+        <Button
 
-<Grid
-size={{xs:12,md:2}}
->
+        fullWidth
 
+        variant="contained"
 
-<Button
+        startIcon={<Add/>}
 
-fullWidth
+        sx={{
+        height:"56px"
+        }}
 
-variant="contained"
+        onClick={addParticipant}
 
-startIcon={<Add/>}
+        >
 
-sx={{
-height:"56px"
-}}
 
-onClick={addParticipant}
+        Add
 
->
 
+        </Button>
 
-Add
 
+        </Grid>
 
-</Button>
 
 
-</Grid>
 
 
 
 
+        </Grid>
 
-
-
-</Grid>
-
-
-</Box>
-
-
+    </Box>
 );
 
 

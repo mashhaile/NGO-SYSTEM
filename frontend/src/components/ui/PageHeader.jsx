@@ -70,13 +70,12 @@ const PageHeader = ({
 
                     {subtitle && (
                         <Typography
-                            color="text.secondary"
                             sx={{
+                                color: "text.secondary",
                                 mt: 0.7,
                                 maxWidth: 720,
                                 lineHeight: 1.6
-                            }}
-                        >
+                            }}>
                             {subtitle}
                         </Typography>
                     )}
@@ -122,7 +121,6 @@ const PageHeader = ({
                 )}
 
             </Stack>
-
 
             {children && (
                 <Box sx={{ mt: 3 }}>

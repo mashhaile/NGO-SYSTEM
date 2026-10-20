@@ -54,25 +54,23 @@ const ErrorState = ({
                 <ErrorOutlined />
             </Box>
 
-
             <Typography
                 variant="h6"
-                fontWeight={700}
+                sx={{
+                    fontWeight: 700
+                }}
             >
                 {title}
             </Typography>
 
-
             <Typography
-                color="text.secondary"
                 sx={{
+                    color: "text.secondary",
                     mt: 0.75,
                     maxWidth: 500
-                }}
-            >
+                }}>
                 {message}
             </Typography>
-
 
             {action && (
                 <Button

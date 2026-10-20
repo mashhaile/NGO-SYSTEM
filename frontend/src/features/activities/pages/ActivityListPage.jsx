@@ -261,21 +261,27 @@ const ActivityListPage = () => {
             field: "name",
             headerName: "Activity",
             flex: 1.5,
-            minWidth: 230,
+            minWidth: 200,
             renderCell: (params) => (
                 <Box sx={{ lineHeight: 1.3, py: 0.5 }}>
                     <Link
                         component="button"
                         underline="hover"
-                        fontWeight={600}
-                        sx={{ textAlign: "left" }}
                         onClick={() =>
                             navigate(`/activities/${params.row._id}`)
                         }
-                    >
+                        sx={{
+                            fontWeight: 600,
+                            textAlign: "left"
+                        }}>
                         {params.value || "-"}
                     </Link>
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: "text.secondary",
+                            display: "block"
+                        }}>
                         {params.row.activityCode}
                     </Typography>
                 </Box>
@@ -286,7 +292,7 @@ const ActivityListPage = () => {
             field: "project",
             headerName: "Project",
             flex: 1.2,
-            minWidth: 200,
+            minWidth: 150,
             sortable: false,
             renderCell: (params) =>
                 params.value
@@ -295,7 +301,12 @@ const ActivityListPage = () => {
                             <Typography variant="body2">
                                 {params.value.name}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" display="block">
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    color: "text.secondary",
+                                    display: "block"
+                                }}>
                                 {params.value.projectCode}
                             </Typography>
                         </Box>
@@ -306,13 +317,13 @@ const ActivityListPage = () => {
         {
             field: "activityType",
             headerName: "Type",
-            minWidth: 150
+            minWidth: 120
         },
 
         {
             field: "activityDate",
             headerName: "Date",
-            minWidth: 120,
+            minWidth: 100,
             valueGetter: (value) =>
                 formatDate(value)
         },
@@ -321,7 +332,7 @@ const ActivityListPage = () => {
             field: "region",
             headerName: "Location",
             flex: 1,
-            minWidth: 160,
+            minWidth: 130,
             valueGetter: (value, row) =>
                 [row.woreda, row.zone, row.region]
                     .filter(Boolean)
@@ -329,17 +340,9 @@ const ActivityListPage = () => {
         },
 
         {
-            field: "targetParticipants",
-            headerName: "Target",
-            minWidth: 90,
-            align: "right",
-            headerAlign: "right"
-        },
-
-        {
             field: "status",
             headerName: "Status",
-            minWidth: 120,
+            minWidth: 110,
             renderCell: (params) => (
                 <StatusChip
                     status={params.value}
@@ -350,7 +353,7 @@ const ActivityListPage = () => {
         {
             field: "actions",
             headerName: "Actions",
-            width: 140,
+            width: 124,
             sortable: false,
             filterable: false,
             disableColumnMenu: true,

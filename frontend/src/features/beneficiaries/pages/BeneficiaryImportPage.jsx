@@ -308,9 +308,7 @@ const BeneficiaryImportPage = () => {
     // =====================================================
 
     return (
-
         <PageContainer>
-
 
             <PageHeader
 
@@ -321,7 +319,6 @@ const BeneficiaryImportPage = () => {
                 }
 
             />
-
 
             <PageCard>
 
@@ -334,7 +331,9 @@ const BeneficiaryImportPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Download the Excel template, fill in
                         the beneficiary information, then upload
@@ -464,7 +463,9 @@ const BeneficiaryImportPage = () => {
 
                                     variant="body2"
 
-                                    color="text.secondary"
+                                    sx={{
+                                        color: "text.secondary"
+                                    }}
 
                                 >
                                     Selected file
@@ -472,7 +473,9 @@ const BeneficiaryImportPage = () => {
 
 
                                 <Typography
-                                    fontWeight={600}
+                                    sx={{
+                                        fontWeight: 600
+                                    }}
                                 >
                                     {file.name}
                                 </Typography>
@@ -482,7 +485,9 @@ const BeneficiaryImportPage = () => {
 
                                     variant="caption"
 
-                                    color="text.secondary"
+                                    sx={{
+                                        color: "text.secondary"
+                                    }}
 
                                 >
                                     {(
@@ -602,7 +607,6 @@ const BeneficiaryImportPage = () => {
             </PageCard>
 
         </PageContainer>
-
     );
 
 };

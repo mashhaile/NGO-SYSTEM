@@ -722,7 +722,6 @@ const ReportsPage = () => {
     // =================================================
 
     return (
-
         <Box
             sx={{
                 width: "100%"
@@ -779,7 +778,9 @@ const ReportsPage = () => {
 
                             <Typography
                                 variant="h5"
-                                fontWeight={600}
+                                sx={{
+                                    fontWeight: 600
+                                }}
                             >
                                 Reports
                             </Typography>
@@ -787,11 +788,10 @@ const ReportsPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
                                 sx={{
+                                    color: "text.secondary",
                                     mt: 0.5
-                                }}
-                            >
+                                }}>
                                 Generate, review and export
                                 organizational reports.
                             </Typography>
@@ -907,7 +907,9 @@ const ReportsPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Selected Report
                             </Typography>
@@ -915,11 +917,10 @@ const ReportsPage = () => {
 
                             <Typography
                                 variant="subtitle1"
-                                fontWeight={600}
                                 sx={{
+                                    fontWeight: 600,
                                     mt: 0.25
-                                }}
-                            >
+                                }}>
                                 {
                                     currentReportLabel ||
                                     selectedReport
@@ -1156,7 +1157,6 @@ const ReportsPage = () => {
             </PageCard>
 
         </Box>
-
     );
 
 };
@@ -1185,7 +1185,6 @@ const ReportResult = ({
 
 
     return (
-
         <Box
             sx={{
                 width: "100%"
@@ -1223,11 +1222,10 @@ const ReportResult = ({
 
                     <Typography
                         variant="h5"
-                        fontWeight={600}
                         sx={{
+                            fontWeight: 600,
                             wordBreak: "break-word"
-                        }}
-                    >
+                        }}>
                         {
                             reportTitle
                         }
@@ -1239,12 +1237,11 @@ const ReportResult = ({
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
                                 sx={{
+                                    color: "text.secondary",
                                     mt: 0.75,
                                     maxWidth: 800
-                                }}
-                            >
+                                }}>
                                 {
                                     reportData.description
                                 }
@@ -1259,11 +1256,10 @@ const ReportResult = ({
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
                                 sx={{
+                                    color: "text.secondary",
                                     mt: 0.75
-                                }}
-                            >
+                                }}>
                                 Generated:
                                 {" "}
                                 {
@@ -1332,7 +1328,6 @@ const ReportResult = ({
                 </Box>
 
             </Box>
-
 
             {/* =================================================
                 REPORT CONTENT
@@ -1409,7 +1404,6 @@ const ReportResult = ({
             }
 
         </Box>
-
     );
 
 };

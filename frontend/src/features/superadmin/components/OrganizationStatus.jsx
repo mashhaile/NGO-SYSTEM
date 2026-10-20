@@ -225,7 +225,6 @@ const OrganizationStatus = () => {
     if (isDeleted) {
 
         return (
-
             <Paper
                 elevation={0}
                 sx={{
@@ -257,16 +256,14 @@ const OrganizationStatus = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mt: 0.5
-                        }}
-                    >
+                        }}>
                         This organization has been deleted.
                     </Typography>
 
                 </Box>
-
 
                 {
                     error && (
@@ -290,7 +287,6 @@ const OrganizationStatus = () => {
                     )
                 }
 
-
                 {
                     success && (
 
@@ -306,7 +302,6 @@ const OrganizationStatus = () => {
                     )
                 }
 
-
                 <Box
                     sx={{
                         mb: 3
@@ -315,11 +310,10 @@ const OrganizationStatus = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
+                            color: "text.secondary",
                             mb: 1
-                        }}
-                    >
+                        }}>
                         Current Status
                     </Typography>
 
@@ -335,7 +329,6 @@ const OrganizationStatus = () => {
                     </Typography>
 
                 </Box>
-
 
                 <Box
                     sx={{
@@ -377,7 +370,6 @@ const OrganizationStatus = () => {
 
                 </Box>
 
-
                 <Box
                     sx={{
                         display: "flex",
@@ -406,7 +398,6 @@ const OrganizationStatus = () => {
                 </Box>
 
             </Paper>
-
         );
 
     }
@@ -417,7 +408,6 @@ const OrganizationStatus = () => {
     // =================================================
 
     return (
-
         <Paper
             elevation={0}
             sx={{
@@ -453,16 +443,14 @@ const OrganizationStatus = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mt: 0.5
-                    }}
-                >
+                    }}>
                     Manage the platform lifecycle of this organization.
                 </Typography>
 
             </Box>
-
 
             {/* =========================================
                 ERROR
@@ -492,7 +480,6 @@ const OrganizationStatus = () => {
                 )
             }
 
-
             {/* =========================================
                 SUCCESS
             ========================================= */}
@@ -512,7 +499,6 @@ const OrganizationStatus = () => {
                 )
             }
 
-
             {/* =========================================
                 CURRENT STATUS
             ========================================= */}
@@ -525,11 +511,10 @@ const OrganizationStatus = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mb: 1
-                    }}
-                >
+                    }}>
                     Current Status
                 </Typography>
 
@@ -545,7 +530,6 @@ const OrganizationStatus = () => {
                 </Typography>
 
             </Box>
-
 
             {/* =========================================
                 ACTIONS
@@ -686,7 +670,6 @@ const OrganizationStatus = () => {
 
             </Box>
 
-
             {/* =========================================
                 BACK
             ========================================= */}
@@ -719,7 +702,6 @@ const OrganizationStatus = () => {
             </Box>
 
         </Paper>
-
     );
 
 };

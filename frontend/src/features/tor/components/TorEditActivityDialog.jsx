@@ -72,7 +72,6 @@ const TorEditActivityDialog = ({
 
 
     return (
-
         <Dialog
             open={open}
             onClose={loading ? undefined : onClose}
@@ -88,9 +87,10 @@ const TorEditActivityDialog = ({
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                >
+                    sx={{
+                        color: "text.secondary",
+                        mb: 2
+                    }}>
                     Changes the activity {activity?.activityCode}. The approved TOR stays as it was approved; the change is recorded in its history.
                 </Typography>
 
@@ -155,7 +155,6 @@ const TorEditActivityDialog = ({
             </DialogActions>
 
         </Dialog>
-
     );
 
 };

@@ -81,7 +81,6 @@ const GenderDistribution = ({
 
 
     return (
-
         <Box
             sx={{
                 width: "100%"
@@ -108,7 +107,9 @@ const GenderDistribution = ({
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     Total Beneficiaries
                 </Typography>
@@ -131,7 +132,6 @@ const GenderDistribution = ({
 
             </Box>
 
-
             {/* =========================================
                 GENDER BREAKDOWN
             ========================================= */}
@@ -146,7 +146,6 @@ const GenderDistribution = ({
                         item.icon;
 
                     return (
-
                         <Box
                             key={item.label}
                         >
@@ -199,7 +198,9 @@ const GenderDistribution = ({
 
 
                                     <Typography
-                                        fontWeight={600}
+                                        sx={{
+                                            fontWeight: 600
+                                        }}
                                     >
                                         {item.label}
                                     </Typography>
@@ -215,7 +216,9 @@ const GenderDistribution = ({
                                 >
 
                                     <Typography
-                                        fontWeight={800}
+                                        sx={{
+                                            fontWeight: 800
+                                        }}
                                     >
                                         {
                                             item.value.toLocaleString()
@@ -225,7 +228,9 @@ const GenderDistribution = ({
 
                                     <Typography
                                         variant="body2"
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         {
                                             item.percentage
@@ -235,7 +240,6 @@ const GenderDistribution = ({
                                 </Stack>
 
                             </Stack>
-
 
                             {/* PROGRESS */}
 
@@ -274,13 +278,11 @@ const GenderDistribution = ({
                             </Box>
 
                         </Box>
-
                     );
 
                 })}
 
             </Stack>
-
 
             {/* =========================================
                 EMPTY STATE
@@ -290,12 +292,11 @@ const GenderDistribution = ({
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
                     sx={{
+                        color: "text.secondary",
                         mt: 3,
                         textAlign: "center"
-                    }}
-                >
+                    }}>
                     No beneficiary gender data
                     available yet.
                 </Typography>
@@ -303,7 +304,6 @@ const GenderDistribution = ({
             )}
 
         </Box>
-
     );
 
 };

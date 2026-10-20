@@ -61,7 +61,9 @@ const FormSection = ({
                         {title && (
                             <Typography
                                 variant="h6"
-                                fontWeight={700}
+                                sx={{
+                                    fontWeight: 700
+                                }}
                             >
                                 {title}
                             </Typography>
@@ -70,9 +72,10 @@ const FormSection = ({
                         {subtitle && (
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: 0.5 }}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    mt: 0.5
+                                }}>
                                 {subtitle}
                             </Typography>
                         )}

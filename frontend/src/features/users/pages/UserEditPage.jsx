@@ -306,7 +306,6 @@ const UserEditPage = () => {
     // ==========================================
 
     return (
-
         <Box>
 
             {/* ==================================
@@ -336,7 +335,9 @@ const UserEditPage = () => {
 
                     <Typography
                         variant="h5"
-                        fontWeight={700}
+                        sx={{
+                            fontWeight: 700
+                        }}
                     >
                         Edit User
                     </Typography>
@@ -344,7 +345,9 @@ const UserEditPage = () => {
 
                     <Typography
                         variant="body2"
-                        color="text.secondary"
+                        sx={{
+                            color: "text.secondary"
+                        }}
                     >
                         Update user information and access.
                     </Typography>
@@ -352,7 +355,6 @@ const UserEditPage = () => {
                 </Box>
 
             </Box>
-
 
             {/* ==================================
                 FORM
@@ -506,7 +508,6 @@ const UserEditPage = () => {
             </Card>
 
         </Box>
-
     );
 
 };

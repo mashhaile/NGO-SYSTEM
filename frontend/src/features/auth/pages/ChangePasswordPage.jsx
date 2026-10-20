@@ -209,22 +209,24 @@ const ChangePasswordPage = () => {
             autoComplete={autoComplete}
             value={form[name]}
             onChange={handleChange}
-            InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                        <IconButton
-                            aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
-                            onClick={() =>
-                                setShowPasswords(value => !value)
-                            }
-                            edge="end"
-                        >
-                            {showPasswords
-                                ? <VisibilityOff />
-                                : <Visibility />}
-                        </IconButton>
-                    </InputAdornment>
-                )
+            slotProps={{
+                input: {
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton
+                                aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
+                                onClick={() =>
+                                    setShowPasswords(value => !value)
+                                }
+                                edge="end"
+                            >
+                                {showPasswords
+                                    ? <VisibilityOff />
+                                    : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    )
+                }
             }}
         />
 
@@ -232,7 +234,6 @@ const ChangePasswordPage = () => {
 
 
     return (
-
         <PageContainer>
 
             <PageHeader
@@ -303,7 +304,9 @@ const ChangePasswordPage = () => {
 
                             <Typography
                                 variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 {RULE_TEXT}
                             </Typography>
@@ -327,7 +330,6 @@ const ChangePasswordPage = () => {
             </Box>
 
         </PageContainer>
-
     );
 
 };

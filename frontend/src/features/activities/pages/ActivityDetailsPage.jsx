@@ -349,7 +349,6 @@ const ActivityDetailsPage = () => {
     // =================================================
 
     return (
-
         <PageContainer>
 
             <PageHeader
@@ -359,7 +358,6 @@ const ActivityDetailsPage = () => {
                     "Activity record"
                 }
             />
-
 
             {/* ACTIONS */}
 
@@ -404,7 +402,6 @@ const ActivityDetailsPage = () => {
 
             </PageCard>
 
-
             {/* ACTIVITY */}
 
             <PageCard>
@@ -436,12 +433,13 @@ const ActivityDetailsPage = () => {
                                                     key={tor._id}
                                                     component="button"
                                                     underline="hover"
-                                                    fontWeight={600}
-                                                    sx={{ textAlign: "left" }}
                                                     onClick={() =>
                                                         navigate(`/tors/${tor._id}`)
                                                     }
-                                                >
+                                                    sx={{
+                                                        fontWeight: 600,
+                                                        textAlign: "left"
+                                                    }}>
                                                     {tor.torNumber} – {tor.title} ({tor.status})
                                                 </Link>
                                             ))}
@@ -525,7 +523,6 @@ const ActivityDetailsPage = () => {
 
             </PageCard>
 
-
             {/* DATE AND LOCATION */}
 
             <PageCard>
@@ -566,7 +563,6 @@ const ActivityDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
-
 
             {/* RECORD */}
 
@@ -612,9 +608,7 @@ const ActivityDetailsPage = () => {
 
             </PageCard>
 
-
             {backButton}
-
 
             <ConfirmDeleteDialog
                 open={openDelete}
@@ -627,7 +621,6 @@ const ActivityDetailsPage = () => {
             />
 
         </PageContainer>
-
     );
 
 };

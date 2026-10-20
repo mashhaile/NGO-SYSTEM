@@ -514,7 +514,6 @@ const OrganizationTable = ({
     // =================================================
 
     return (
-
         <>
 
             <TableContainer
@@ -651,7 +650,6 @@ const OrganizationTable = ({
 
 
                                     return (
-
                                         <TableRow
                                             key={id}
                                             hover
@@ -689,12 +687,11 @@ const OrganizationTable = ({
 
                                                             <Typography
                                                                 variant="caption"
-                                                                color="text.secondary"
                                                                 sx={{
+                                                                    color: "text.secondary",
                                                                     display: "block",
                                                                     mt: 0.25
-                                                                }}
-                                                            >
+                                                                }}>
 
                                                                 Code:{" "}
 
@@ -712,7 +709,6 @@ const OrganizationTable = ({
 
                                             </TableCell>
 
-
                                             {/* =============================
                                                 EMAIL
                                             ============================= */}
@@ -727,7 +723,6 @@ const OrganizationTable = ({
 
                                             </TableCell>
 
-
                                             {/* =============================
                                                 PHONE
                                             ============================= */}
@@ -741,7 +736,6 @@ const OrganizationTable = ({
                                                 }
 
                                             </TableCell>
-
 
                                             {/* =============================
                                                 PLAN
@@ -763,7 +757,6 @@ const OrganizationTable = ({
                                                 />
 
                                             </TableCell>
-
 
                                             {/* =============================
                                                 STATUS
@@ -798,7 +791,6 @@ const OrganizationTable = ({
                                                 />
 
                                             </TableCell>
-
 
                                             {/* =============================
                                                 ACTIONS
@@ -1035,7 +1027,6 @@ const OrganizationTable = ({
                                             </TableCell>
 
                                         </TableRow>
-
                                     );
 
                                 }
@@ -1047,7 +1038,6 @@ const OrganizationTable = ({
                 </Table>
 
             </TableContainer>
-
 
             {/* =================================================
                 CONFIRMATION DIALOG
@@ -1273,7 +1263,6 @@ const OrganizationTable = ({
             </Dialog>
 
         </>
-
     );
 
 };

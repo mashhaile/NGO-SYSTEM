@@ -445,7 +445,6 @@ const SuperAdminDashboardPage = () => {
     if (loading) {
 
         return (
-
             <Box
                 sx={{
                     minHeight: "60vh",
@@ -463,13 +462,14 @@ const SuperAdminDashboardPage = () => {
 
                 <Typography
                     variant="body2"
-                    color="text.secondary"
+                    sx={{
+                        color: "text.secondary"
+                    }}
                 >
                     Loading platform analytics...
                 </Typography>
 
             </Box>
-
         );
 
     }
@@ -564,7 +564,6 @@ const SuperAdminDashboardPage = () => {
     // =================================================
 
     return (
-
         <Box
             sx={{
                 minHeight: "100%",
@@ -610,7 +609,6 @@ const SuperAdminDashboardPage = () => {
                 </Typography>
 
             </Box>
-
 
             {/* =========================================
                 ORGANIZATION OVERVIEW
@@ -736,7 +734,6 @@ const SuperAdminDashboardPage = () => {
 
             </Box>
 
-
             {/* =========================================
                 PLATFORM OVERVIEW
             ========================================= */}
@@ -836,7 +833,6 @@ const SuperAdminDashboardPage = () => {
                 </Grid>
 
             </Box>
-
 
             {/* =========================================
                 SUBSCRIPTIONS
@@ -944,7 +940,6 @@ const SuperAdminDashboardPage = () => {
 
             </Box>
 
-
             {/* =========================================
                 MAIN CONTENT
             ========================================= */}
@@ -989,7 +984,9 @@ const SuperAdminDashboardPage = () => {
                                 ? (
 
                                     <Typography
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         No organization data available.
                                     </Typography>
@@ -1254,7 +1251,9 @@ const SuperAdminDashboardPage = () => {
                         >
 
                             <Typography
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Active subscriptions
                             </Typography>
@@ -1284,7 +1283,9 @@ const SuperAdminDashboardPage = () => {
                         >
 
                             <Typography
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Expired subscriptions
                             </Typography>
@@ -1318,7 +1319,9 @@ const SuperAdminDashboardPage = () => {
                         >
 
                             <Typography
-                                color="text.secondary"
+                                sx={{
+                                    color: "text.secondary"
+                                }}
                             >
                                 Without subscription
                             </Typography>
@@ -1378,7 +1381,9 @@ const SuperAdminDashboardPage = () => {
                                 ? (
 
                                     <Typography
-                                        color="text.secondary"
+                                        sx={{
+                                            color: "text.secondary"
+                                        }}
                                     >
                                         No recent activities found.
                                     </Typography>
@@ -1492,7 +1497,6 @@ const SuperAdminDashboardPage = () => {
             </Grid>
 
         </Box>
-
     );
 
 };
