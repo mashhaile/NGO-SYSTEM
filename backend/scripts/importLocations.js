@@ -27,7 +27,9 @@ require("dotenv").config();
 
 const path = require("path");
 const mongoose = require("mongoose");
-const XLSX = require("xlsx");
+const {
+    readWorkbookRows
+} = require("../utils/excelRows");
 
 const AdminArea =
     require("../models/AdminArea");
@@ -190,7 +192,7 @@ const importLocations = async () => {
         DEFAULT_FILE;
 
     const workbook =
-        XLSX.readFile(filePath);
+        await readWorkbookRows(filePath);
 
 
     await mongoose.connect(
@@ -205,7 +207,7 @@ const importLocations = async () => {
     for (const config of LEVELS) {
 
         const sheet =
-            workbook.Sheets[config.sheet];
+            workbook[config.sheet];
 
         if (!sheet) {
             throw new Error(
@@ -215,7 +217,7 @@ const importLocations = async () => {
 
 
         const rows =
-            XLSX.utils.sheet_to_json(sheet);
+            sheet;
 
 
         const operations =

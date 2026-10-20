@@ -1,7 +1,8 @@
 import axios from "axios";
 
 import {
-    getToken
+    getToken,
+    removeToken
 } from "./storageService";
 
 
@@ -132,6 +133,71 @@ axiosClient.interceptors.request.use(
 
     }
 
+);
+
+
+// =====================================================
+// RESPONSE INTERCEPTOR
+// =====================================================
+//
+// 401 (not a login attempt): the session ended, e.g. the
+// password was changed or reset, or the token expired.
+// Clear it and go to the login page with the reason.
+//
+// 403 PASSWORD_CHANGE_REQUIRED: the user signed in with
+// a temporary password and must change it first.
+//
+// =====================================================
+
+axiosClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+
+        const status =
+            error?.response?.status;
+
+        const code =
+            error?.response?.data?.code;
+
+        const url =
+            String(error?.config?.url || "");
+
+        const path =
+            window.location.pathname;
+
+        if (
+            status === 403 &&
+            code === "PASSWORD_CHANGE_REQUIRED" &&
+            path !== "/account/password"
+        ) {
+
+            window.location.assign("/account/password");
+
+        }
+        else if (
+            status === 401 &&
+            !url.includes("/auth/login") &&
+            getToken()
+        ) {
+
+            removeToken();
+
+            if (!path.startsWith("/login")) {
+
+                const reason =
+                    code === "PASSWORD_CHANGED"
+                        ? "password-changed"
+                        : "session-ended";
+
+                window.location.assign(`/login?reason=${reason}`);
+
+            }
+
+        }
+
+        return Promise.reject(error);
+
+    }
 );
 
 

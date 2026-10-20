@@ -75,6 +75,24 @@ export const deleteUserApi = async (
 
 
 // ==========================================
+// RESET PASSWORD (returns a temporary password)
+// ==========================================
+
+export const resetUserPasswordApi = async (
+    id
+) => {
+
+    const response =
+        await axiosClient.post(
+            `/users/${id}/reset-password`
+        );
+
+    return response.data;
+
+};
+
+
+// ==========================================
 // USER LOOKUP
 // ==========================================
 //

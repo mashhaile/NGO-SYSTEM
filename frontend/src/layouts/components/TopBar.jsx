@@ -14,6 +14,7 @@ import {
 import {
     NotificationsNone,
     Logout,
+    LockReset,
     Menu as MenuIcon
 } from "@mui/icons-material";
 
@@ -672,6 +673,36 @@ const TopBar = ({
 
 
                     <Divider />
+
+
+                    {/* CHANGE PASSWORD */}
+
+                    <MenuItem
+
+                        onClick={() => {
+                            handleClose();
+                            navigate("/account/password");
+                        }}
+
+                        sx={{
+                            py: 1.25
+                        }}
+
+                    >
+
+                        <LockReset
+
+                            fontSize="small"
+
+                            sx={{
+                                mr: 1.25
+                            }}
+
+                        />
+
+                        Change Password
+
+                    </MenuItem>
 
 
                     {/* LOGOUT */}

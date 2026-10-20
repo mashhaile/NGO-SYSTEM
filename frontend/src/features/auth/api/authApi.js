@@ -34,3 +34,14 @@ export const getCurrentUserApi = async () => {
     return response.data;
 
 };
+
+export const changePasswordApi = async (data) => {
+
+    const response = await axiosClient.post(
+        "/auth/change-password",
+        data
+    );
+
+    return response.data;
+
+};

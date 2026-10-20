@@ -12,7 +12,6 @@
     "binary-extensions": "^2.3.0",
     "body-parser": "^2.3.0",
     "brace-expansion": "^5.0.7",
-    "braces": "^3.0.3",
     "bson": "^7.3.1",
     "buffer-equal-constant-time": "^1.0.1",
     "buffer-from": "^1.1.2",
@@ -20,7 +19,6 @@
     "bytes": "^3.1.2",
     "call-bind-apply-helpers": "^1.0.2",
     "call-bound": "^1.0.4",
-    "chokidar": "^3.6.0",
     "concat-stream": "^2.0.0",
     "content-disposition": "^1.1.0",
     "content-type": "^1.0.5",
@@ -96,7 +94,6 @@
     "node-addon-api": "^8.9.0",
     "node-cron": "^4.6.0",
     "node-gyp-build": "^4.8.4",
-    "nodemon": "^3.1.14",
     "normalize-path": "^3.0.0",
     "object-assign": "^4.1.1",
     "object-inspect": "^1.13.4",
@@ -145,8 +142,7 @@
     "vary": "^1.1.2",
     "webidl-conversions": "^7.0.0",
     "whatwg-url": "^14.2.0",
-    "wrappy": "^1.0.2",
-    "xlsx": "^0.18.5"
+    "wrappy": "^1.0.2"
   },
   "scripts": {
     "start": "node server.js",
@@ -155,5 +151,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }

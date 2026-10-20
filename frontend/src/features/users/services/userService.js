@@ -3,8 +3,20 @@ import {
     createUserApi,
     updateUserApi,
     deleteUserApi,
+    resetUserPasswordApi,
     getStaffLookupApi
 } from "../api/userApi";
+
+
+// ==========================================
+// RESET PASSWORD
+// ==========================================
+
+export const resetUserPasswordService = async (id) => {
+
+    return await resetUserPasswordApi(id);
+
+};
 
 
 // ==========================================

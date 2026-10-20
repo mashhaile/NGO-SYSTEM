@@ -17,13 +17,15 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    Tooltip,
     Typography
 } from "@mui/material";
 
 import {
     Add,
     Edit,
-    Delete
+    Delete,
+    LockReset
 } from "@mui/icons-material";
 
 import {
@@ -36,8 +38,16 @@ import {
 
 import {
     getUsersService,
-    deleteUserService
+    deleteUserService,
+    resetUserPasswordService
 } from "../services/userService";
+
+import ResetPasswordDialog
+    from "../components/ResetPasswordDialog";
+
+import {
+    useAuth
+} from "../../auth";
 
 
 // ==========================================
@@ -53,6 +63,15 @@ const UserListPage = () => {
     const [loading, setLoading] = useState(true);
 
     const [error, setError] = useState(null);
+
+    const [resetUser, setResetUser] = useState(null);
+
+    const {
+        user: currentUser
+    } = useAuth();
+
+    const currentUserId =
+        String(currentUser?.id || currentUser?._id || "");
 
 
     // ==========================================
@@ -477,6 +496,22 @@ const UserListPage = () => {
                                             </IconButton>
 
 
+                                            {String(user._id || user.id) !== currentUserId && (
+
+                                                <Tooltip title="Reset password">
+                                                    <IconButton
+                                                        color="warning"
+                                                        onClick={() =>
+                                                            setResetUser(user)
+                                                        }
+                                                    >
+                                                        <LockReset />
+                                                    </IconButton>
+                                                </Tooltip>
+
+                                            )}
+
+
                                             <IconButton
                                                 color="error"
                                                 onClick={() =>
@@ -505,6 +540,13 @@ const UserListPage = () => {
                 </TableContainer>
 
             </Card>
+
+
+            <ResetPasswordDialog
+                user={resetUser}
+                resetFn={resetUserPasswordService}
+                onClose={() => setResetUser(null)}
+            />
 
         </Box>
 

@@ -27,7 +27,8 @@ import SuperAdminRoute
 // ==========================================================
 
 import {
-    LoginPage
+    LoginPage,
+    ChangePasswordPage
 } from "../features/auth";
 
 
@@ -358,6 +359,18 @@ const AppRoutes = () => {
                             to="/dashboard"
                             replace
                         />
+                    }
+                />
+
+
+                {/* ==================================================
+                    MY ACCOUNT
+                ================================================== */}
+
+                <Route
+                    path="/account/password"
+                    element={
+                        <ChangePasswordPage />
                     }
                 />
 

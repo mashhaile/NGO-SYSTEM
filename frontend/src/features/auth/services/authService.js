@@ -1,7 +1,8 @@
 import {
     loginApi,
     registerOrganizationApi,
-    getCurrentUserApi
+    getCurrentUserApi,
+    changePasswordApi
 } from "../api/authApi";
 
 
@@ -44,6 +45,24 @@ export const registerOrganizationService = async (data) => {
 export const getCurrentUserService = async () => {
 
     return await getCurrentUserApi();
+
+};
+
+
+
+// Returns { user, token }. The old token stops working,
+// so the new one is stored right away.
+
+export const changePasswordService = async (data) => {
+
+    const response =
+        await changePasswordApi(data);
+
+    setToken(
+        response.data.token
+    );
+
+    return response.data;
 
 };
 

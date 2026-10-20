@@ -10,219 +10,253 @@ import {
 
 
 import {
-    loginThunk
-} from "../store";
-
-
-import {
-    selectAuth
-} from "../store";
-
-
-import {
-    useNavigate
+    useNavigate,
+    useSearchParams
 } from "react-router-dom";
 
 
 import {
-    TextField,
-    Button,
+    Alert,
     Box,
+    Button,
+    IconButton,
+    InputAdornment,
     Paper,
-    Typography,
-    Alert
+    TextField,
+    Typography
 } from "@mui/material";
 
 
-
-const LoginPage = ()=>{
-
-
-const dispatch = useDispatch();
-
-const navigate = useNavigate();
+import {
+    Visibility,
+    VisibilityOff
+} from "@mui/icons-material";
 
 
-const {
-    loading,
-    error,
-    isAuthenticated
-} = useSelector(selectAuth);
+import {
+    loginThunk,
+    selectAuth
+} from "../store";
 
 
 
-const [form,setForm]=useState({
+// Why the user was sent back to this page
+// (set by the API client when a session ends).
 
-    email:"",
-    password:""
-
-});
-
-
-
-const handleChange=(e)=>{
-
-setForm({
-
-...form,
-
-[e.target.name]:
-e.target.value
-
-});
-
+const REASONS = {
+    "password-changed":
+        "Your password was changed. Please sign in again.",
+    "session-ended":
+        "Your session has ended. Please sign in again."
 };
 
 
 
-const handleSubmit=(e)=>{
+// =====================================================
+// LOGIN PAGE
+// =====================================================
 
-e.preventDefault();
+const LoginPage = () => {
 
+    const dispatch =
+        useDispatch();
 
-dispatch(
-    loginThunk(form)
-)
-.then((result)=>{
+    const navigate =
+        useNavigate();
 
-    if(result.meta.requestStatus==="fulfilled"){
+    const [searchParams] =
+        useSearchParams();
 
-        navigate("/");
+    const {
+        loading,
+        error
+    } = useSelector(selectAuth);
 
-    }
+    const [form, setForm] =
+        useState({
+            email: "",
+            password: ""
+        });
 
-});
+    const [showPassword, setShowPassword] =
+        useState(false);
 
+    const reasonMessage =
+        REASONS[searchParams.get("reason")];
 
-};
 
+    const handleChange = (e) => {
 
+        setForm(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
 
-return (
+    };
 
-<Box
 
-sx={{
+    const handleSubmit = (e) => {
 
-height:"100vh",
+        e.preventDefault();
 
-display:"flex",
+        dispatch(
+            loginThunk(form)
+        )
+            .then((result) => {
 
-justifyContent:"center",
+                if (result.meta.requestStatus !== "fulfilled") {
+                    return;
+                }
 
-alignItems:"center"
-
-}}
-
->
-
-
-<Paper
-
-sx={{
-
-padding:4,
-
-width:400
-
-}}
-
->
-
-
-<Typography
-variant="h5"
-mb={3}
->
-
-NGO SaaS Login
-
-</Typography>
-
-
-
-{error &&
-
-<Alert severity="error">
-
-{error}
-
-</Alert>
-
-}
-
-
-
-<form onSubmit={handleSubmit}>
-
-
-<TextField
-
-fullWidth
-
-label="Email"
-
-name="email"
-
-margin="normal"
-
-value={form.email}
-
-onChange={handleChange}
-
-/>
-
-
-
-<TextField
-
-fullWidth
-
-label="Password"
-
-name="password"
-
-type="password"
-
-margin="normal"
-
-value={form.password}
-
-onChange={handleChange}
-
-/>
-
-
-
-<Button
-
-fullWidth
-
-variant="contained"
-
-type="submit"
-
-disabled={loading}
-
-sx={{mt:2}}
-
->
-
-{loading ? "Logging in..." : "Login"}
-
-</Button>
-
-
-</form>
-
-
-</Paper>
-
-
-</Box>
-
-);
-
+                // Temporary password from an admin reset
+
+                navigate(
+                    result.payload?.user?.mustChangePassword
+                        ? "/account/password"
+                        : "/"
+                );
+
+            });
+
+    };
+
+
+    return (
+
+        <Box
+            sx={{
+                minHeight: "100vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                bgcolor: "background.default",
+                px: 2
+            }}
+        >
+
+            <Paper
+                elevation={0}
+                sx={{
+                    p: {
+                        xs: 3,
+                        sm: 4
+                    },
+                    width: "100%",
+                    maxWidth: 420,
+                    borderRadius: 3,
+                    border: "1px solid",
+                    borderColor: "divider"
+                }}
+            >
+
+                <Typography
+                    variant="h5"
+                    fontWeight={700}
+                >
+                    NGO Management System
+                </Typography>
+
+                <Typography
+                    color="text.secondary"
+                    sx={{ mt: 0.5, mb: 3 }}
+                >
+                    Sign in to continue
+                </Typography>
+
+
+                {reasonMessage && !error && (
+
+                    <Alert
+                        severity="info"
+                        sx={{ mb: 2 }}
+                    >
+                        {reasonMessage}
+                    </Alert>
+
+                )}
+
+
+                {error && (
+
+                    <Alert
+                        severity="error"
+                        sx={{ mb: 2 }}
+                    >
+                        {error}
+                    </Alert>
+
+                )}
+
+
+                <form onSubmit={handleSubmit}>
+
+                    <TextField
+                        fullWidth
+                        label="Email"
+                        name="email"
+                        type="email"
+                        autoComplete="username"
+                        margin="normal"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
+                    />
+
+                    <TextField
+                        fullWidth
+                        label="Password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        margin="normal"
+                        value={form.password}
+                        onChange={handleChange}
+                        required
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        onClick={() =>
+                                            setShowPassword(value => !value)
+                                        }
+                                        edge="end"
+                                    >
+                                        {showPassword
+                                            ? <VisibilityOff />
+                                            : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}
+                    />
+
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        type="submit"
+                        size="large"
+                        disabled={loading}
+                        sx={{ mt: 2 }}
+                    >
+                        {loading ? "Signing in..." : "Sign in"}
+                    </Button>
+
+                </form>
+
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 3 }}
+                >
+                    Forgot your password? Ask your organization administrator to reset it.
+                </Typography>
+
+            </Paper>
+
+        </Box>
+
+    );
 
 };
 

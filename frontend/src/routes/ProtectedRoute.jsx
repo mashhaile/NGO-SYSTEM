@@ -1,4 +1,7 @@
-import { Navigate } from "react-router-dom";
+import {
+    Navigate,
+    useLocation
+} from "react-router-dom";
 
 import {
     CircularProgress,
@@ -17,11 +20,17 @@ const ProtectedRoute = ({ children }) => {
 
     const {
 
+        user,
+
         isAuthenticated,
 
         initialized
 
     } = useAuth();
+
+
+    const location =
+        useLocation();
 
 
 
@@ -58,6 +67,27 @@ const ProtectedRoute = ({ children }) => {
 
                 replace
 
+            />
+
+        );
+
+    }
+
+
+
+    // Temporary password from an admin reset:
+    // nothing else until it is changed
+
+    if (
+        user?.mustChangePassword &&
+        location.pathname !== "/account/password"
+    ) {
+
+        return (
+
+            <Navigate
+                to="/account/password"
+                replace
             />
 
         );
