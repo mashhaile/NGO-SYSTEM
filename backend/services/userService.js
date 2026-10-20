@@ -2,6 +2,11 @@ const bcrypt = require("bcrypt");
 
 const User = require("../models/user");
 
+const {
+    assertStrongPassword,
+    getPasswordProblem
+} = require("../utils/password");
+
 const ApiError =
     require("../utils/apiError");
 
@@ -257,6 +262,8 @@ const createOrganizationUser = async (
     // ==========================================
     // HASH PASSWORD
     // ==========================================
+
+    assertStrongPassword(password);
 
     const hashedPassword =
         await bcrypt.hash(
@@ -557,17 +564,9 @@ const updateOrganizationUser = async (
         )
     ) {
 
-        if (
-            !userData.password ||
-            userData.password.length < 6
-        ) {
-
-            throw new ApiError(
-                "Password must be at least 6 characters.",
-                400
-            );
-
-        }
+        assertStrongPassword(
+            userData.password
+        );
 
 
         user.password =

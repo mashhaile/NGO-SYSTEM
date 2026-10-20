@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+    resetUserPasswordController,
     createUserController,
     getUsersController,
     updateUserController,
@@ -115,6 +116,28 @@ router.put(
     ),
 
     updateUserController
+
+);
+
+
+
+// ==========================================
+// RESET PASSWORD (temporary password, shown once)
+// ==========================================
+
+router.post(
+
+    "/:id/reset-password",
+
+    authMiddleware,
+
+    subscriptionMiddleware,
+
+    authorize(
+        "user.update"
+    ),
+
+    resetUserPasswordController
 
 );
 

@@ -173,8 +173,44 @@ const getUserDetails = async (
 
 
 
+// ==========================================
+// RESET ANY USER PASSWORD (super admin)
+// ==========================================
+
+const resetUserPassword = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const result =
+            await require("../services/passwordResetService")
+                .resetAnyUserPassword(
+                    req.params.id,
+                    req.user.userId
+                );
+
+        res.json({
+            success: true,
+            message: "Temporary password created. Share it with the user; they must change it at next login.",
+            data: result
+        });
+
+    }
+    catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+
 module.exports = {
 
+    resetUserPassword,
 
     createUser,
 

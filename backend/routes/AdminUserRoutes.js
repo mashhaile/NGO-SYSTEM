@@ -74,6 +74,23 @@ router.get(
 );
 
 
+// Reset any user's password (temporary password, shown once)
+
+router.post(
+
+    "/:id/reset-password",
+
+    authMiddleware,
+
+    authorize(
+        "admin.user.update"
+    ),
+
+    controller.resetUserPassword
+
+);
+
+
 
 
 module.exports =

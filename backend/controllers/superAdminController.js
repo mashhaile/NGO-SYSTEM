@@ -1,4 +1,9 @@
 const bcrypt = require("bcrypt");
+
+const {
+    assertStrongPassword,
+    getPasswordProblem
+} = require("../utils/password");
 const User = require("../models/user");
 
 const { USER_STATUS } = require("../config/constants"); 
@@ -46,6 +51,16 @@ const createOrganizationAdmin = async (req,res)=>{
 
         }
 
+
+        const passwordProblem =
+            getPasswordProblem(password);
+
+        if (passwordProblem) {
+            return res.status(400).json({
+                success: false,
+                message: passwordProblem
+            });
+        }
 
         const hashedPassword =
             await bcrypt.hash(

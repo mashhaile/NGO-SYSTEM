@@ -1,28 +1,14 @@
 const {
-    registerOrganization,
     login,
+    changePassword,
     getCurrentUser,
 } = require("../services/authService");
 
-// REGISTER ORGANIZATION
-const registerOrganizationController = async (req, res) => {
-    try {
-        const result = await registerOrganization(req.body);
 
-        res.status(201).json({
-            success: true,
-            message: "Organization registered successfully",
-            data: result,
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message,
-        });
-    }
-};
+// Organization sign-up is POST /api/v1/organizations
+// (organizationController.createOrganization).
 
-// LOGIN 
+
 const loginController = async (req, res) => {
     try {
         const result = await login(req.body);
@@ -33,13 +19,33 @@ const loginController = async (req, res) => {
             data: result,
         });
     } catch (error) {
-        res.status(401).json({
+        // 401 wrong credentials, 423 locked, 403 inactive
+        res.status(error.statusCode || 401).json({
             success: false,
             message: error.message,
         });
     }
 };
-//Current user
+
+
+const changePasswordController = async (req, res, next) => {
+    try {
+        const result = await changePassword(
+            req.user.userId,
+            req.body || {}
+        );
+
+        res.json({
+            success: true,
+            message: "Password changed successfully",
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 const meController = async (req, res) => {
     try {
         const user = await getCurrentUser(req.user.userId);
@@ -55,8 +61,10 @@ const meController = async (req, res) => {
         });
     }
 };
+
+
 module.exports = {
-    registerOrganizationController,
     loginController,
+    changePasswordController,
     meController,
 };

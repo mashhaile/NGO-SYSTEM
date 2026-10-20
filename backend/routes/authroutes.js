@@ -2,16 +2,23 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    registerOrganizationController,
     loginController,
+    changePasswordController,
     meController,
 } = require("../controllers/authController");
+
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Register organization (public)
-router.post("/register-organization", registerOrganizationController);
+
 router.post("/login", loginController);
+
 router.get("/me", authMiddleware, meController);
+
+// Signed-in user changes their own password
+// (body: currentPassword, newPassword).
+
+router.post("/change-password", authMiddleware, changePasswordController);
+
 
 // TEST ROUTE (protected)
 router.get("/test", authMiddleware, (req, res) => {
@@ -21,5 +28,6 @@ router.get("/test", authMiddleware, (req, res) => {
         user: req.user,
     });
 });
+
 
 module.exports = router;

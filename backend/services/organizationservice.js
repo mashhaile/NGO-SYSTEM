@@ -4,6 +4,11 @@ const mongoose =
 const bcrypt =
     require("bcrypt");
 
+const {
+    assertStrongPassword,
+    getPasswordProblem
+} = require("../utils/password");
+
 
 const Organization =
     require("../models/organization");
@@ -569,6 +574,8 @@ const createOrganization = async (
         // =============================================
         // HASH ADMIN PASSWORD
         // =============================================
+
+        assertStrongPassword(admin.password);
 
         const hashedPassword =
             await bcrypt.hash(

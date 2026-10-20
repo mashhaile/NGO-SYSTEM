@@ -1,6 +1,11 @@
 const bcrypt =
 require("bcrypt");
 
+const {
+    assertStrongPassword,
+    getPasswordProblem
+} = require("../utils/password");
+
 
 const User =
 require("../models/user");
@@ -107,6 +112,8 @@ const createUser = async (
 
 
 
+
+    assertStrongPassword(password);
 
     const hashedPassword =
         await bcrypt.hash(

@@ -1,5 +1,10 @@
 const bcrypt = require("bcrypt");
 
+const {
+    assertStrongPassword,
+    getPasswordProblem
+} = require("../utils/password");
+
 const User =
     require("../models/user");
 
@@ -242,6 +247,16 @@ const createUserController = async (
         // ==========================================
         // HASH PASSWORD
         // ==========================================
+
+        const passwordProblem =
+            getPasswordProblem(password);
+
+        if (passwordProblem) {
+            return res.status(400).json({
+                success: false,
+                message: passwordProblem
+            });
+        }
 
         const hashedPassword =
             await bcrypt.hash(
@@ -1065,7 +1080,45 @@ const deleteUserController = async (
 // EXPORTS
 // ==========================================
 
+// ==========================================
+// RESET USER PASSWORD (organization admin)
+// ==========================================
+
+const resetUserPasswordController = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const result =
+            await require("../services/passwordResetService")
+                .resetOrganizationUserPassword(
+                    req.user.organizationId,
+                    req.params.id,
+                    req.user.userId
+                );
+
+        res.json({
+            success: true,
+            message: "Temporary password created. Share it with the user; they must change it at next login.",
+            data: result
+        });
+
+    }
+    catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+
 module.exports = {
+
+    resetUserPasswordController,
 
     createUserController,
 

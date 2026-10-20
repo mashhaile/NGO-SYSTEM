@@ -1,6 +1,11 @@
 const bcrypt =
     require("bcrypt");
 
+const {
+    assertStrongPassword,
+    getPasswordProblem
+} = require("../utils/password");
+
 const Organization =
     require("../models/organization");
 
@@ -453,6 +458,8 @@ const createOrganization = async (
 
     }
 
+
+    assertStrongPassword(adminPassword);
 
     const hashedPassword =
         await bcrypt.hash(

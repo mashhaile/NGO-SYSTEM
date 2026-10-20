@@ -197,6 +197,68 @@ const authMiddleware = async (
 
 
         // ==========================================
+        // PASSWORD CHANGED SINCE THIS TOKEN
+        // ==========================================
+        //
+        // A change or admin reset ends older sessions.
+        // (iat is in seconds; allow 1s for rounding.)
+        //
+        // ==========================================
+
+        if (
+            user.passwordChangedAt &&
+            decoded.iat &&
+            decoded.iat * 1000 + 1000 <
+                new Date(user.passwordChangedAt).getTime()
+        ) {
+
+            return res.status(401).json({
+
+                success: false,
+
+                code: "PASSWORD_CHANGED",
+
+                message:
+                    "Your password was changed. Please sign in again."
+
+            });
+
+        }
+
+
+        // ==========================================
+        // TEMPORARY PASSWORD MUST BE CHANGED
+        // ==========================================
+
+        if (user.mustChangePassword) {
+
+            const path =
+                String(req.originalUrl || "").split("?")[0];
+
+            const allowed = [
+                "/api/v1/auth/me",
+                "/api/v1/auth/change-password"
+            ];
+
+            if (!allowed.includes(path)) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    code: "PASSWORD_CHANGE_REQUIRED",
+
+                    message:
+                        "Please change your temporary password before continuing."
+
+                });
+
+            }
+
+        }
+
+
+        // ==========================================
         // USER STATUS
         // ==========================================
 

@@ -98,6 +98,53 @@ const userSchema = new mongoose.Schema(
 
         default:null
 
+    },
+
+
+    // ==========================================
+    // PASSWORD SECURITY
+    // ==========================================
+
+    // Failed logins in a row; reset on success.
+
+    failedLoginAttempts: {
+
+        type:Number,
+
+        default:0
+
+    },
+
+    // While in the future, login is refused.
+
+    lockUntil: {
+
+        type:Date,
+
+        default:null
+
+    },
+
+    // Set by an admin reset: the user must choose a new
+    // password before using the system.
+
+    mustChangePassword: {
+
+        type:Boolean,
+
+        default:false
+
+    },
+
+    // Tokens issued before this are no longer accepted
+    // (logs out other sessions after a change / reset).
+
+    passwordChangedAt: {
+
+        type:Date,
+
+        default:null
+
     }
 
 
