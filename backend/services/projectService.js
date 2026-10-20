@@ -1,3 +1,4 @@
+const escapeRegex = require("../utils/escapeRegex");
 const Project =
     require("../models/Project");
 
@@ -366,7 +367,7 @@ const getProjects = async (
                 projectCode: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"
@@ -380,7 +381,7 @@ const getProjects = async (
                 name: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"

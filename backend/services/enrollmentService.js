@@ -1,5 +1,11 @@
 const Enrollment = require("../models/enrollment");
 
+const Beneficiary = require("../models/Beneficiary");
+
+const Program = require("../models/program");
+
+const escapeRegex = require("../utils/escapeRegex");
+
 const {
 
 buildSearch
@@ -220,25 +226,46 @@ isDeleted:false
 
 
 
-Object.assign(
+// Search matches the beneficiary (name / number), the
+// program (name / code) or the enrollment remarks.
 
-filter,
+const searchText =
+String(search || "").trim();
 
-buildSearch(
+if(searchText.length >= 2){
 
-search,
+const regex =
+new RegExp(escapeRegex(searchText),"i");
 
-[
+const [beneficiaryIds, programIds] =
+await Promise.all([
 
-"remarks",
-
-"exitReason"
-
+Beneficiary.find({
+organization:organizationId,
+$or:[
+{firstName:regex},
+{lastName:regex},
+{beneficiaryNumber:regex}
 ]
+}).distinct("_id"),
 
-)
+Program.find({
+organization:organizationId,
+$or:[
+{name:regex},
+{programCode:regex}
+]
+}).distinct("_id")
 
-);
+]);
+
+filter.$or = [
+{beneficiary:{$in:beneficiaryIds}},
+{program:{$in:programIds}},
+...buildSearch(searchText,["remarks","exitReason"]).$or
+];
+
+}
 
 
 

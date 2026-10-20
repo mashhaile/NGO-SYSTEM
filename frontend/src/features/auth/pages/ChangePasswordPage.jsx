@@ -51,24 +51,10 @@ import {
 
 
 
-// Same rule as the backend (utils/password.js)
-
-const RULE_TEXT =
-    "At least 8 characters, with at least one letter and one number.";
-
-const checkStrength = (password) => {
-
-    if (password.length < 8) {
-        return "Password must be at least 8 characters.";
-    }
-
-    if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-        return "Password must contain at least one letter and one number.";
-    }
-
-    return null;
-
-};
+import {
+    PASSWORD_RULE_TEXT as RULE_TEXT,
+    getPasswordProblem as checkStrength
+} from "../../../utils/passwordRule";
 
 
 

@@ -171,9 +171,10 @@ const DashboardLayout = () => {
 
                     <Box
                         sx={{
+                            // TopBar height + gap above the page title
                             height: {
-                                xs: 64,
-                                sm: 72
+                                xs: 64 + 16,
+                                sm: 72 + 24
                             }
                         }}
                     />

@@ -1,3 +1,4 @@
+const escapeRegex = require("../utils/escapeRegex");
 const ActivityRun =
     require("../models/ActivityRun");
 
@@ -349,7 +350,7 @@ const getActivityRuns = async (
                 name: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"
@@ -363,7 +364,7 @@ const getActivityRuns = async (
                 runCode: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"

@@ -13,6 +13,10 @@ import {
 import { Save } from "@mui/icons-material";
 
 import {
+    AppDatePicker
+} from "../../../components/ui";
+
+import {
     getProgramsLookupService,
     getBeneficiariesLookupService
 } from "../services/lookupService";
@@ -197,7 +201,10 @@ const EnrollmentForm = ({
         getOptionLabel={(option)=>
             option
             ?
-            `${option.beneficiaryNumber} - ${option.fullName}`
+            `${option.beneficiaryNumber} - ${
+                option.fullName ||
+                [option.firstName, option.lastName].filter(Boolean).join(" ")
+            }`
             :
             ""
         }
@@ -234,22 +241,17 @@ const EnrollmentForm = ({
                 <Grid
                     size={{ xs: 12, md: 6 }}>
 
-                    <TextField
-                        fullWidth
-                        type="date"
+                    <AppDatePicker
                         label="Enrollment Date"
-                        value={formData.enrollmentDate}
-                        onChange={(e) =>
+                        value={formData.enrollmentDate || null}
+                        onChange={(date) =>
                             changeField(
                                 "enrollmentDate",
-                                e.target.value
+                                date
+                                    ? date.format("YYYY-MM-DD")
+                                    : ""
                             )
                         }
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true
-                            }
-                        }}
                     />
 
                 </Grid>

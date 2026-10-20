@@ -1,4 +1,9 @@
 import {
+    PASSWORD_RULE_TEXT,
+    getPasswordProblem
+} from "../../../utils/passwordRule";
+
+import {
     useState
 } from "react";
 
@@ -241,10 +246,13 @@ const OrganizationCreatePage = () => {
             }
 
 
-            if (adminPassword.length < 6) {
+            const passwordProblem =
+                getPasswordProblem(adminPassword);
+
+            if (passwordProblem) {
 
                 setValidationError(
-                    "Administrator password must be at least 6 characters."
+                    `Administrator password: ${passwordProblem}`
                 );
 
                 return;
@@ -671,7 +679,7 @@ const OrganizationCreatePage = () => {
                                 onChange={handleChange}
                                 required
                                 fullWidth
-                                helperText="Minimum 6 characters"
+                                helperText={PASSWORD_RULE_TEXT}
                             />
 
                         </Grid>

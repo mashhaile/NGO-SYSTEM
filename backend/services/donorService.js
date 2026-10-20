@@ -1,3 +1,4 @@
+const escapeRegex = require("../utils/escapeRegex");
 const Donor = require("../models/donor");
 
 
@@ -99,35 +100,35 @@ const getDonors = async (
 
             {
                 name: {
-                    $regex: search,
+                    $regex: escapeRegex(search),
                     $options: "i"
                 }
             },
 
             {
                 email: {
-                    $regex: search,
+                    $regex: escapeRegex(search),
                     $options: "i"
                 }
             },
 
             {
                 phone: {
-                    $regex: search,
+                    $regex: escapeRegex(search),
                     $options: "i"
                 }
             },
 
             {
                 country: {
-                    $regex: search,
+                    $regex: escapeRegex(search),
                     $options: "i"
                 }
             },
 
             {
                 contactPerson: {
-                    $regex: search,
+                    $regex: escapeRegex(search),
                     $options: "i"
                 }
             }

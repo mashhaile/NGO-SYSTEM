@@ -42,6 +42,11 @@ import {
     deleteCustomFieldService
 } from "../services/customFieldService";
 
+import {
+    PageContainer,
+    PageHeader
+} from "../../../components/ui";
+
 
 // ==========================================================
 // MODULES
@@ -200,57 +205,21 @@ const CustomFieldListPage = () => {
     // ======================================================
 
     return (
-        <Box>
+        <PageContainer>
 
             {/* ==================================================
                 HEADER
             ================================================== */}
 
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 3
-                }}
-            >
-
-                <Box>
-
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        Custom Fields Management
-                    </Typography>
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary",
-                            mt: 0.5
-                        }}>
-                        Create and manage custom fields for your
-                        organization.
-                    </Typography>
-
-                </Box>
-
-
-                <Button
-    variant="contained"
-    startIcon={<Add />}
-    onClick={() =>
-        navigate(
-            "/settings/custom-fields/create"
-        )
-    }
->
-    Create Custom Field
-</Button>
-            </Box>
+            <PageHeader
+                title="Custom Fields"
+                subtitle="Extra fields your organization adds to the standard forms."
+                action={() =>
+                    navigate("/settings/custom-fields/create")
+                }
+                actionLabel="Create Custom Field"
+                actionIcon={<Add />}
+            />
 
             {/* ==================================================
                 FILTER
@@ -502,7 +471,7 @@ const CustomFieldListPage = () => {
 
             </Card>
 
-        </Box>
+        </PageContainer>
     );
 
 };

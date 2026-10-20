@@ -2,481 +2,274 @@ import {
     useEffect
 } from "react";
 
-
 import {
     useNavigate,
     useParams
 } from "react-router-dom";
-
 
 import {
     useDispatch,
     useSelector
 } from "react-redux";
 
-
-
 import {
-
-    Box,
-
-    Card,
-
-    CardContent,
-
-    Typography,
-
-    Stack,
-
-    Button,
-
-    Divider
-
+    Stack
 } from "@mui/material";
 
-
-
 import {
-    ArrowBack
+    ArrowBack,
+    Edit
 } from "@mui/icons-material";
-
-
 
 import {
     getEnrollmentByIdThunk
 } from "../store";
 
+import {
+    PageContainer,
+    PageHeader,
+    PageCard,
+    FormSection,
+    InfoRow,
+    AppButton,
+    StatusChip,
+    LoadingState
+} from "../../../components/ui";
 
+import useAuth
+    from "../../auth/hooks/useAuth";
 
+import {
+    hasPermission
+} from "../../tor/utils/torPermissions";
 
 
+const formatDate = (value) =>
+    value
+        ? new Date(value).toLocaleDateString()
+        : "-";
 
 
+// ==========================================
+// ENROLLMENT DETAILS PAGE
+// ==========================================
 
+const EnrollmentDetailsPage = () => {
 
-const EnrollmentDetailsPage = ()=>{
+    const { id } = useParams();
 
+    const navigate = useNavigate();
 
-const {
+    const dispatch = useDispatch();
 
-    id
+    const { user } = useAuth();
 
-}=useParams();
+    const {
+        current,
+        loading,
+        error
+    } = useSelector(
+        state => state.enrollments
+    );
 
 
+    useEffect(() => {
 
-const navigate = useNavigate();
+        dispatch(
+            getEnrollmentByIdThunk(id)
+        );
 
+    }, [dispatch, id]);
 
-const dispatch = useDispatch();
 
+    // The store may still hold another enrollment
+    // while this one loads.
 
+    const enrollment =
+        current && String(current._id) === String(id)
+            ? current
+            : null;
 
 
+    if (!enrollment) {
 
+        return (
 
+            <PageContainer>
 
+                <PageHeader
+                    title="Enrollment Details"
+                    action={() => navigate("/enrollments")}
+                    actionLabel="Back"
+                    actionIcon={<ArrowBack />}
+                />
 
+                <PageCard>
 
-const {
+                    {loading || !error
+                        ? (
+                            <LoadingState message="Loading enrollment..." />
+                        )
+                        : (
+                            <FormSection title="Record Not Found">
+                                <InfoRow
+                                    label="Message"
+                                    value={String(error)}
+                                />
+                            </FormSection>
+                        )}
 
-    current,
+                </PageCard>
 
-    loading
+            </PageContainer>
 
-}
+        );
 
-=
+    }
 
-useSelector(
 
-    state=>state.enrollments
+    const beneficiary =
+        enrollment.beneficiary || {};
 
-);
+    const program =
+        enrollment.program || {};
 
 
+    return (
 
+        <PageContainer>
 
+            <PageHeader
+                title="Enrollment Details"
+                subtitle={
+                    [beneficiary.firstName, beneficiary.lastName]
+                        .filter(Boolean)
+                        .join(" ") +
+                    (program.name ? ` — ${program.name}` : "")
+                }
+                action={() => navigate("/enrollments")}
+                actionLabel="Back"
+                actionIcon={<ArrowBack />}
+            />
 
 
+            {hasPermission(user, "enrollment.update") && (
 
+                <PageCard>
 
+                    <FormSection>
 
-useEffect(()=>{
+                        <Stack
+                            direction={{
+                                xs: "column",
+                                sm: "row"
+                            }}
+                            spacing={1.5}
+                        >
 
+                            <AppButton
+                                variant="contained"
+                                startIcon={<Edit />}
+                                onClick={() =>
+                                    navigate(`/enrollments/${id}/edit`)
+                                }
+                            >
+                                Edit Enrollment
+                            </AppButton>
 
-dispatch(
+                        </Stack>
 
-    getEnrollmentByIdThunk(id)
+                    </FormSection>
 
-);
+                </PageCard>
 
+            )}
 
 
-},[dispatch,id]);
+            <PageCard>
 
+                <FormSection title="Beneficiary">
 
+                    <InfoRow
+                        label="Name"
+                        value={
+                            [beneficiary.firstName, beneficiary.lastName]
+                                .filter(Boolean)
+                                .join(" ")
+                        }
+                    />
 
+                    <InfoRow
+                        label="Beneficiary Number"
+                        value={beneficiary.beneficiaryNumber}
+                    />
 
+                </FormSection>
 
+            </PageCard>
 
 
+            <PageCard>
 
+                <FormSection title="Program">
 
-if(loading || !current){
+                    <InfoRow
+                        label="Program"
+                        value={program.name}
+                    />
 
+                    <InfoRow
+                        label="Program Code"
+                        value={program.programCode}
+                    />
 
-return (
+                </FormSection>
 
-<Typography>
+            </PageCard>
 
-Loading...
 
-</Typography>
+            <PageCard>
 
-);
+                <FormSection title="Enrollment">
 
+                    <InfoRow
+                        label="Status"
+                        value={
+                            <StatusChip status={enrollment.status} />
+                        }
+                    />
 
-}
+                    <InfoRow
+                        label="Enrollment Date"
+                        value={formatDate(enrollment.enrollmentDate)}
+                    />
 
+                    <InfoRow
+                        label="Completion Date"
+                        value={formatDate(enrollment.completionDate)}
+                    />
 
+                    {enrollment.exitReason && (
+                        <InfoRow
+                            label="Exit Reason"
+                            value={enrollment.exitReason}
+                        />
+                    )}
 
+                    <InfoRow
+                        label="Remarks"
+                        value={enrollment.remarks}
+                    />
 
+                </FormSection>
 
+            </PageCard>
 
+        </PageContainer>
 
-
-
-return (
-    <Box>
-
-        <Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
-
-        direction="row"
-
-        >
-
-
-
-        <Typography
-
-        variant="h4"
-
-        sx={{
-            fontWeight: "700"
-        }}
-
-        >
-
-        Enrollment Details
-
-        </Typography>
-
-
-
-
-
-
-        <Button
-
-        variant="outlined"
-
-        startIcon={<ArrowBack/>}
-
-        onClick={()=>navigate("/enrollments")}
-
-        >
-
-        Back
-
-        </Button>
-
-
-
-
-
-
-        </Stack>
-
-        <Card>
-
-
-
-        <CardContent>
-
-
-
-        <Typography
-            variant="h6"
-            sx={{
-                fontWeight: "700",
-                mb: 2
-            }}>
-
-        Beneficiary Information
-
-        </Typography>
-
-
-
-
-
-        <Typography>
-
-        Name:
-
-        {" "}
-
-        {
-
-        current.beneficiary?.firstName
-
-        }
-
-        {" "}
-
-        {
-
-        current.beneficiary?.lastName
-
-        }
-
-        </Typography>
-
-
-
-
-
-        <Typography>
-
-        Beneficiary Number:
-
-        {" "}
-
-        {
-
-        current.beneficiary?.beneficiaryNumber
-
-        }
-
-        </Typography>
-
-
-
-
-
-
-
-        <Divider sx={{my:3}}/>
-
-
-
-
-
-
-
-
-
-        <Typography
-            variant="h6"
-            sx={{
-                fontWeight: "700",
-                mb: 2
-            }}>
-
-        Program Information
-
-        </Typography>
-
-
-
-
-
-
-
-        <Typography>
-
-        Program:
-
-        {" "}
-
-        {
-
-        current.program?.name
-
-        }
-
-        </Typography>
-
-
-
-
-
-        <Typography>
-
-        Program Code:
-
-        {" "}
-
-        {
-
-        current.program?.programCode
-
-        }
-
-        </Typography>
-
-
-
-
-
-
-
-        <Divider sx={{my:3}}/>
-
-
-
-
-
-
-
-
-        <Typography
-            variant="h6"
-            sx={{
-                fontWeight: "700",
-                mb: 2
-            }}>
-
-        Enrollment Information
-
-        </Typography>
-
-
-
-
-
-
-
-        <Typography>
-
-        Status:
-
-        {" "}
-
-        {
-
-        current.status
-
-        }
-
-        </Typography>
-
-
-
-
-
-
-        <Typography>
-
-        Enrollment Date:
-
-        {" "}
-
-        {
-
-        current.enrollmentDate
-
-        ?
-
-        new Date(
-
-        current.enrollmentDate
-
-        ).toLocaleDateString()
-
-        :
-
-        "-"
-
-        }
-
-        </Typography>
-
-
-
-
-
-
-
-        <Typography>
-
-        Completion Date:
-
-        {" "}
-
-        {
-
-        current.completionDate
-
-        ?
-
-        new Date(
-
-        current.completionDate
-
-        ).toLocaleDateString()
-
-        :
-
-        "-"
-
-        }
-
-        </Typography>
-
-
-
-
-
-
-
-        <Typography>
-
-        Remarks:
-
-        {" "}
-
-        {
-
-        current.remarks || "-"
-
-        }
-
-        </Typography>
-
-
-
-
-
-
-
-        </CardContent>
-
-
-
-        </Card>
-
-    </Box>
-);
-
-
+    );
 
 };
-
-
-
-
 
 
 export default EnrollmentDetailsPage;

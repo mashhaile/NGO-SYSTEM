@@ -1,5 +1,6 @@
 import {
-    Link
+    Link,
+    useNavigate
 } from "react-router-dom";
 
 import {
@@ -8,7 +9,6 @@ import {
     Card,
     CardContent,
     Chip,
-    CircularProgress,
     Divider,
     Stack,
     Typography
@@ -28,7 +28,17 @@ import {
 // LOOKUP LIST PAGE
 // ==========================================================
 
+import {
+    PageContainer,
+    PageHeader,
+    LoadingState
+} from "../../../components/ui";
+
+
 const LookupListPage = () => {
+
+    const navigate =
+        useNavigate();
 
     const {
         data,
@@ -133,25 +143,9 @@ const LookupListPage = () => {
     if (isLoading) {
 
         return (
-            <Box>
-
-                <Stack sx={{ alignItems: "center", justifyContent: "center", py: 8 }}
-                >
-
-                    <CircularProgress />
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary",
-                            mt: 2
-                        }}>
-                        Loading lookup values...
-                    </Typography>
-
-                </Stack>
-
-            </Box>
+            <PageContainer>
+                <LoadingState message="Loading lookup values..." />
+            </PageContainer>
         );
 
     }
@@ -164,52 +158,15 @@ const LookupListPage = () => {
     if (isError) {
 
         return (
-            <Box>
+            <PageContainer>
 
-                <Stack sx={{ justifyContent: "space-between", alignItems: {
-                        xs: "flex-start",
-                        sm: "center"
-                    }, mb: 3 }}
-                    direction={{
-                        xs: "column",
-                        sm: "row"
-                    }}
-                    spacing={2}
-                >
-
-                    <Box>
-
-                        <Typography
-                            variant="h4"
-                            sx={{
-                                fontWeight: 700
-                            }}
-                        >
-                            Lookup Management
-                        </Typography>
-
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                color: "text.secondary"
-                            }}
-                        >
-                            Manage reusable lookup values by module and category.
-                        </Typography>
-
-                    </Box>
-
-
-                    <Button
-                        component={Link}
-                        to="/lookups/create"
-                        variant="contained"
-                        startIcon={<Add />}
-                    >
-                        Add Lookup
-                    </Button>
-
-                </Stack>
+                <PageHeader
+                    title="Lookup Management"
+                    subtitle="Reusable dropdown values, by module and category."
+                    action={() => navigate("/lookups/create")}
+                    actionLabel="Add Lookup"
+                    actionIcon={<Add />}
+                />
 
                 <Card>
 
@@ -242,7 +199,7 @@ const LookupListPage = () => {
 
                 </Card>
 
-            </Box>
+            </PageContainer>
         );
 
     }
@@ -253,57 +210,19 @@ const LookupListPage = () => {
     // ======================================================
 
     return (
-        <Box>
+        <PageContainer>
 
             {/* ==================================================
                 HEADER
             ================================================== */}
 
-            <Stack sx={{ justifyContent: "space-between", alignItems: {
-                    xs: "flex-start",
-                    sm: "center"
-                }, mb: 3 }}
-                direction={{
-                    xs: "column",
-                    sm: "row"
-                }}
-                spacing={2}
-            >
-
-                <Box>
-
-                    <Typography
-                        variant="h4"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        Lookup Management
-                    </Typography>
-
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-                        Manage reusable dropdown values by module and category.
-                    </Typography>
-
-                </Box>
-
-
-                <Button
-                    component={Link}
-                    to="/lookups/create"
-                    variant="contained"
-                    startIcon={<Add />}
-                >
-                    Add Lookup
-                </Button>
-
-            </Stack>
+            <PageHeader
+                title="Lookup Management"
+                subtitle="Reusable dropdown values, by module and category."
+                action={() => navigate("/lookups/create")}
+                actionLabel="Add Lookup"
+                actionIcon={<Add />}
+            />
 
             {/* ==================================================
                 SUMMARY
@@ -831,7 +750,7 @@ const LookupListPage = () => {
 
             )}
 
-        </Box>
+        </PageContainer>
     );
 
 };

@@ -31,27 +31,42 @@ const theme = createTheme({
 
         },
 
+        // light = pale background (chips, alerts), dark = text
+        // on that background, lighter = very pale panels.
+
         success: {
 
-            main: "#15803D"
+            main: "#15803D",
+            light: "#DCFCE7",
+            dark: "#166534",
+            lighter: "#F0FDF4"
 
         },
 
         warning: {
 
-            main: "#D97706"
+            main: "#D97706",
+            light: "#FEF3C7",
+            dark: "#92400E",
+            lighter: "#FFFBEB"
 
         },
 
         error: {
 
-            main: "#DC2626"
+            main: "#DC2626",
+            light: "#FEE2E2",
+            dark: "#991B1B",
+            lighter: "#FEF2F2"
 
         },
 
         info: {
 
-            main: "#2563EB"
+            main: "#2563EB",
+            light: "#DBEAFE",
+            dark: "#1E40AF",
+            lighter: "#EFF6FF"
 
         },
 

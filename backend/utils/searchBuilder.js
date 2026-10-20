@@ -1,3 +1,4 @@
+const escapeRegex = require("./escapeRegex");
 const buildSearch = (
     search = "",
     fields = []
@@ -16,7 +17,7 @@ const buildSearch = (
 
 
     const regex = new RegExp(
-        value,
+        escapeRegex(value),
         "i"
     );
 

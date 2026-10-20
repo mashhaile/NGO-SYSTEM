@@ -1,4 +1,9 @@
 import {
+    PASSWORD_RULE_TEXT,
+    getPasswordProblem
+} from "../../../utils/passwordRule";
+
+import {
     useState
 } from "react";
 
@@ -121,10 +126,13 @@ const UserCreatePage = () => {
         }
 
 
-        if (formData.password.length < 6) {
+        const passwordProblem =
+            getPasswordProblem(formData.password);
+
+        if (passwordProblem) {
 
             toast.error(
-                "Password must be at least 6 characters"
+                passwordProblem
             );
 
             return;
@@ -304,7 +312,7 @@ const UserCreatePage = () => {
                             onChange={handleChange}
                             fullWidth
                             required
-                            helperText="Minimum 6 characters"
+                            helperText={PASSWORD_RULE_TEXT}
                         />
 
 

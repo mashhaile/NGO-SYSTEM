@@ -1,23 +1,13 @@
 import {
     useEffect,
+    useMemo,
     useState
 } from "react";
 
 import {
-    Box,
-    Button,
-    Card,
-    CardContent,
+    Alert,
     Chip,
-    CircularProgress,
-    IconButton,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Tooltip,
+    Stack,
     Typography
 } from "@mui/material";
 
@@ -37,6 +27,17 @@ import {
 } from "react-toastify";
 
 import {
+    PageContainer,
+    PageHeader,
+    PageCard,
+    SearchToolbar,
+    DataTable,
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
+} from "../../../components/ui";
+
+import {
     getUsersService,
     deleteUserService,
     resetUserPasswordService
@@ -49,6 +50,39 @@ import {
     useAuth
 } from "../../auth";
 
+import {
+    hasPermission
+} from "../../tor/utils/torPermissions";
+
+
+const ROLE_OPTIONS = [
+    {
+        value: "organization_admin",
+        label: "Organization Admin"
+    },
+    {
+        value: "data_entry",
+        label: "Data Entry"
+    },
+    {
+        value: "viewer",
+        label: "Viewer"
+    }
+];
+
+
+const roleLabel = (role) =>
+    role
+        ? role
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, char => char.toUpperCase())
+        : "-";
+
+
+const isLocked = (user) =>
+    Boolean(user.lockUntil) &&
+    new Date(user.lockUntil) > new Date();
+
 
 // ==========================================
 // USER LIST PAGE
@@ -58,14 +92,6 @@ const UserListPage = () => {
 
     const navigate = useNavigate();
 
-    const [users, setUsers] = useState([]);
-
-    const [loading, setLoading] = useState(true);
-
-    const [error, setError] = useState(null);
-
-    const [resetUser, setResetUser] = useState(null);
-
     const {
         user: currentUser
     } = useAuth();
@@ -73,483 +99,344 @@ const UserListPage = () => {
     const currentUserId =
         String(currentUser?.id || currentUser?._id || "");
 
+    const [users, setUsers] = useState([]);
 
-    // ==========================================
-    // LOAD USERS
-    // ==========================================
+    const [loading, setLoading] = useState(true);
 
-    const loadUsers = async () => {
+    const [error, setError] = useState("");
 
-        try {
+    const [search, setSearch] = useState("");
 
-            setLoading(true);
+    const [role, setRole] = useState("");
 
-            setError(null);
+    const [resetUser, setResetUser] = useState(null);
 
-            const response =
-                await getUsersService();
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
-            if (response.success) {
+    const [deleting, setDeleting] = useState(false);
 
-                setUsers(
-                    response.data || []
-                );
+    // Bumped to reload after a change.
 
-            } else {
-
-                setError(
-                    response.message ||
-                    "Failed to load users"
-                );
-
-            }
-
-        }
-        catch (error) {
-
-            console.error(
-                "Load users error:",
-                error
-            );
-
-            setError(
-                error.response?.data?.message ||
-                error.message ||
-                "Failed to load users"
-            );
-
-        }
-        finally {
-
-            setLoading(false);
-
-        }
-
-    };
+    const [reloadKey, setReloadKey] = useState(0);
 
 
     // ==========================================
-    // INITIAL LOAD
+    // LOAD
     // ==========================================
 
     useEffect(() => {
 
-        loadUsers();
+        let cancelled = false;
 
-    }, []);
+        getUsersService()
+
+            .then(response => {
+
+                if (!cancelled) {
+                    setUsers(response.data || []);
+                    setError("");
+                    setLoading(false);
+                }
+
+            })
+
+            .catch(err => {
+
+                if (!cancelled) {
+                    setError(
+                        err.response?.data?.message ||
+                        "Failed to load users."
+                    );
+                    setLoading(false);
+                }
+
+            });
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, [reloadKey]);
+
+
+    const rows = useMemo(() => {
+
+        const text =
+            search.trim().toLowerCase();
+
+        return users.filter(user =>
+            (!role || user.role === role) &&
+            (
+                !text ||
+                [user.name, user.email]
+                    .some(value =>
+                        String(value || "").toLowerCase().includes(text)
+                    )
+            )
+        );
+
+    }, [users, search, role]);
 
 
     // ==========================================
-    // DELETE / DEACTIVATE USER
+    // DEACTIVATE
     // ==========================================
 
-    const handleDelete = async (user) => {
+    const handleDelete = async () => {
 
-        const confirmed =
-            window.confirm(
-                `Are you sure you want to deactivate "${user.name}"?`
-            );
-
-        if (!confirmed) {
-
-            return;
-
-        }
-
+        setDeleting(true);
 
         try {
 
-            const response =
-                await deleteUserService(
-                    user._id || user.id
-                );
+            await deleteUserService(
+                deleteTarget._id || deleteTarget.id
+            );
+
+            toast.success("User deactivated");
+
+            setDeleteTarget(null);
+
+            setReloadKey(key => key + 1);
+
+        }
+        catch (err) {
+
+            toast.error(
+                err.response?.data?.message ||
+                "Failed to deactivate the user."
+            );
+
+            setDeleteTarget(null);
+
+        }
+        finally {
+
+            setDeleting(false);
+
+        }
+
+    };
 
 
-            if (response.success) {
+    const canUpdate =
+        hasPermission(currentUser, "user.update");
 
-                toast.success(
-                    "User deactivated successfully"
-                );
+    const canDelete =
+        hasPermission(currentUser, "user.delete");
 
-                loadUsers();
 
-            } else {
+    const columns = [
 
-                toast.error(
-                    response.message ||
-                    "Failed to deactivate user"
+        {
+            field: "name",
+            headerName: "Name",
+            flex: 1.2,
+            minWidth: 180,
+            renderCell: (params) => (
+                <Typography
+                    variant="body2"
+                    sx={{
+                        fontWeight: 600,
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center"
+                    }}
+                >
+                    {params.value}
+                </Typography>
+            )
+        },
+
+        {
+            field: "email",
+            headerName: "Email",
+            flex: 1.4,
+            minWidth: 220
+        },
+
+        {
+            field: "role",
+            headerName: "Role",
+            minWidth: 160,
+            valueGetter: (value) =>
+                roleLabel(value)
+        },
+
+        {
+            field: "status",
+            headerName: "Status",
+            minWidth: 170,
+            renderCell: (params) => (
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", height: "100%" }}>
+                    <StatusChip status={params.value} />
+                    {isLocked(params.row) && (
+                        <Chip
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                            label="Locked"
+                            title="Too many wrong passwords. Unlocks automatically, or reset the password."
+                        />
+                    )}
+                    {params.row.mustChangePassword && (
+                        <Chip
+                            size="small"
+                            variant="outlined"
+                            label="Temp password"
+                            title="Must choose a new password at next sign in"
+                        />
+                    )}
+                </Stack>
+            )
+        },
+
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 140,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => {
+
+                const row = params.row;
+
+                const id =
+                    String(row._id || row.id);
+
+                const isSelf =
+                    id === currentUserId;
+
+                return (
+
+                    <>
+
+                        {canUpdate && (
+                            <AppIconButton
+                                icon={<Edit fontSize="small" />}
+                                tooltip="Edit user"
+                                onClick={() =>
+                                    navigate(`/users/${id}/edit`)
+                                }
+                            />
+                        )}
+
+                        {canUpdate && !isSelf && (
+                            <AppIconButton
+                                icon={<LockReset fontSize="small" />}
+                                tooltip="Reset password"
+                                color="warning"
+                                onClick={() =>
+                                    setResetUser(row)
+                                }
+                            />
+                        )}
+
+                        {canDelete && !isSelf && (
+                            <AppIconButton
+                                icon={<Delete fontSize="small" />}
+                                tooltip="Deactivate user"
+                                color="error"
+                                onClick={() =>
+                                    setDeleteTarget(row)
+                                }
+                            />
+                        )}
+
+                    </>
+
                 );
 
             }
-
-        }
-        catch (error) {
-
-            console.error(
-                "Deactivate user error:",
-                error
-            );
-
-            toast.error(
-                error.response?.data?.message ||
-                error.message ||
-                "Failed to deactivate user"
-            );
-
         }
 
-    };
+    ];
 
-
-    // ==========================================
-    // ROLE LABEL
-    // ==========================================
-
-    const getRoleLabel = (role) => {
-
-        if (!role) {
-
-            return "-";
-
-        }
-
-        return role
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, char =>
-                char.toUpperCase()
-            );
-
-    };
-
-
-    // ==========================================
-    // STATUS COLOR
-    // ==========================================
-
-    const getStatusColor = (status) => {
-
-        if (
-            status === "active" ||
-            status === "ACTIVE"
-        ) {
-
-            return "success";
-
-        }
-
-        return "default";
-
-    };
-
-
-    // ==========================================
-    // LOADING
-    // ==========================================
-
-    if (loading) {
-
-        return (
-
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    minHeight: "300px"
-                }}
-            >
-
-                <CircularProgress />
-
-            </Box>
-
-        );
-
-    }
-
-
-    // ==========================================
-    // PAGE
-    // ==========================================
 
     return (
-        <Box>
 
-            {/* ==================================
-                HEADER
-            ================================== */}
+        <PageContainer>
 
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: {
-                        xs: "flex-start",
-                        sm: "center"
-                    },
-                    flexDirection: {
-                        xs: "column",
-                        sm: "row"
-                    },
-                    gap: 2,
-                    mb: 3
+            <PageHeader
+                title="User Management"
+                subtitle="Manage users and access within your organization."
+                {...(
+                    hasPermission(currentUser, "user.create")
+                        ? {
+                            action: () =>
+                                navigate("/users/create"),
+                            actionLabel: "Create User",
+                            actionIcon: <Add />
+                        }
+                        : {}
+                )}
+            />
+
+
+            <SearchToolbar
+                search={search}
+                onSearch={setSearch}
+                onReset={() => {
+                    setSearch("");
+                    setRole("");
                 }}
-            >
-
-                <Box>
-
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        User Management
-                    </Typography>
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-                        Manage users and access within your organization.
-                    </Typography>
-
-                </Box>
-
-
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={() =>
-                        navigate("/users/create")
+                filters={[
+                    {
+                        key: "role",
+                        label: "Role",
+                        value: role,
+                        onChange: setRole,
+                        options: ROLE_OPTIONS
                     }
-                >
-                    Create User
-                </Button>
+                ]}
+            />
 
-            </Box>
-
-            {/* ==================================
-                ERROR
-            ================================== */}
 
             {error && (
-
-                <Card
-                    sx={{
-                        mb: 3,
-                        border: "1px solid",
-                        borderColor: "error.light"
-                    }}
-                >
-
-                    <CardContent>
-
-                        <Typography
-                            color="error"
-                        >
-                            {error}
-                        </Typography>
-
-                    </CardContent>
-
-                </Card>
-
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {error}
+                </Alert>
             )}
 
-            {/* ==================================
-                USER TABLE
-            ================================== */}
 
-            <Card>
+            <PageCard>
 
-                <TableContainer>
+                <DataTable
+                    rows={rows}
+                    columns={columns}
+                    loading={loading}
+                />
 
-                    <Table>
+            </PageCard>
 
-                        <TableHead>
-
-                            <TableRow>
-
-                                <TableCell>
-                                    Name
-                                </TableCell>
-
-                                <TableCell>
-                                    Email
-                                </TableCell>
-
-                                <TableCell>
-                                    Role
-                                </TableCell>
-
-                                <TableCell>
-                                    Status
-                                </TableCell>
-
-                                <TableCell align="right">
-                                    Actions
-                                </TableCell>
-
-                            </TableRow>
-
-                        </TableHead>
-
-
-                        <TableBody>
-
-                            {users.length === 0 ? (
-
-                                <TableRow>
-
-                                    <TableCell
-                                        colSpan={5}
-                                        align="center"
-                                    >
-
-                                        <Typography
-                                            sx={{
-                                                color: "text.secondary",
-                                                py: 4
-                                            }}>
-                                            No users found.
-                                        </Typography>
-
-                                    </TableCell>
-
-                                </TableRow>
-
-                            ) : (
-
-                                users.map((user) => (
-
-                                    <TableRow
-                                        key={
-                                            user._id ||
-                                            user.id
-                                        }
-                                        hover
-                                    >
-
-                                        <TableCell>
-
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: 600
-                                                }}
-                                            >
-                                                {user.name}
-                                            </Typography>
-
-                                        </TableCell>
-
-
-                                        <TableCell>
-                                            {user.email}
-                                        </TableCell>
-
-
-                                        <TableCell>
-
-                                            {getRoleLabel(
-                                                user.role
-                                            )}
-
-                                        </TableCell>
-
-
-                                        <TableCell>
-
-                                            <Chip
-                                                label={
-                                                    getRoleLabel(
-                                                        user.status
-                                                    )
-                                                }
-                                                color={
-                                                    getStatusColor(
-                                                        user.status
-                                                    )
-                                                }
-                                                size="small"
-                                            />
-
-                                        </TableCell>
-
-
-                                        <TableCell align="right">
-
-                                            <IconButton
-                                                color="primary"
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/users/${
-                                                            user._id ||
-                                                            user.id
-                                                        }/edit`
-                                                    )
-                                                }
-                                            >
-
-                                                <Edit />
-
-                                            </IconButton>
-
-
-                                            {String(user._id || user.id) !== currentUserId && (
-
-                                                <Tooltip title="Reset password">
-                                                    <IconButton
-                                                        color="warning"
-                                                        onClick={() =>
-                                                            setResetUser(user)
-                                                        }
-                                                    >
-                                                        <LockReset />
-                                                    </IconButton>
-                                                </Tooltip>
-
-                                            )}
-
-
-                                            <IconButton
-                                                color="error"
-                                                onClick={() =>
-                                                    handleDelete(
-                                                        user
-                                                    )
-                                                }
-                                            >
-
-                                                <Delete />
-
-                                            </IconButton>
-
-                                        </TableCell>
-
-                                    </TableRow>
-
-                                ))
-
-                            )}
-
-                        </TableBody>
-
-                    </Table>
-
-                </TableContainer>
-
-            </Card>
 
             <ResetPasswordDialog
                 user={resetUser}
                 resetFn={resetUserPasswordService}
-                onClose={() => setResetUser(null)}
+                onClose={() => {
+                    setResetUser(null);
+                    setReloadKey(key => key + 1);
+                }}
             />
 
-        </Box>
+
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Deactivate User"
+                message={
+                    deleteTarget
+                        ? `Deactivate "${deleteTarget.name}"? They will no longer be able to sign in.`
+                        : ""
+                }
+                loading={deleting}
+                onClose={() =>
+                    !deleting && setDeleteTarget(null)
+                }
+                onConfirm={handleDelete}
+            />
+
+        </PageContainer>
+
     );
 
 };

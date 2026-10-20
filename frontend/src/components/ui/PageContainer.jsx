@@ -23,17 +23,6 @@ const PageContainer = ({
 
                 mx: "auto",
 
-                px: {
-                    xs: 1.5,
-                    sm: 2,
-                    md: 3
-                },
-
-                pt: {
-                    xs: 2,
-                    md: 3
-                },
-
                 pb: {
                     xs: 3,
                     sm: 4,

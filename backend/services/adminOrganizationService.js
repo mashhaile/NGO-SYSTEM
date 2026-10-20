@@ -1,3 +1,4 @@
+const escapeRegex = require("../utils/escapeRegex");
 const bcrypt =
     require("bcrypt");
 
@@ -1023,7 +1024,7 @@ const getOrganizations = async (query = {}) => {
 
         const searchRegex =
             new RegExp(
-                search.trim(),
+                escapeRegex(search.trim()),
                 "i"
             );
 

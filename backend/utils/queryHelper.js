@@ -1,3 +1,4 @@
+const escapeRegex = require("./escapeRegex");
 const mongoose = require("mongoose");
 
 
@@ -279,7 +280,7 @@ const queryHelper = async ({
                         [field]: {
 
                             $regex:
-                                search,
+                                escapeRegex(search),
 
                             $options:
                                 "i"

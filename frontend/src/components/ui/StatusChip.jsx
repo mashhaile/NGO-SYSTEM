@@ -99,7 +99,11 @@ const StatusChip = ({
     return (
         <Chip
             label={
-                status || "Unknown"
+                status
+                    ? String(status)
+                        .replace(/_/g, " ")
+                        .replace(/^\w/, char => char.toUpperCase())
+                    : "Unknown"
             }
 
             size={size}
@@ -115,7 +119,7 @@ const StatusChip = ({
                 fontSize: "0.75rem",
 
                 border: "1px solid",
-                borderColor: "divider",
+                borderColor: "transparent",
 
                 "& .MuiChip-label": {
                     px: 1.25

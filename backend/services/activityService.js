@@ -1,3 +1,4 @@
+const escapeRegex = require("../utils/escapeRegex");
 const Activity = require("../models/Activity");
 const Project = require("../models/Project");
 const ActivityRun = require("../models/ActivityRun");
@@ -326,7 +327,7 @@ const getActivities = async (
                 activityCode: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"
@@ -340,7 +341,7 @@ const getActivities = async (
                 name: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"
@@ -354,7 +355,7 @@ const getActivities = async (
                 facilitator: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"
@@ -368,7 +369,7 @@ const getActivities = async (
                 location: {
 
                     $regex:
-                        search,
+                        escapeRegex(search),
 
                     $options:
                         "i"

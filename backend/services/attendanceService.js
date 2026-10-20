@@ -1,3 +1,4 @@
+const escapeRegex = require("../utils/escapeRegex");
 const Attendance = require("../models/Attendance");
 const AttendanceRecord = require("../models/AttendanceRecord");
 const ActivityRun = require("../models/ActivityRun");
@@ -115,7 +116,7 @@ const getAttendances = async (
 
             {
                 sessionTitle: {
-                    $regex: search,
+                    $regex: escapeRegex(search),
                     $options: "i"
                 }
             }

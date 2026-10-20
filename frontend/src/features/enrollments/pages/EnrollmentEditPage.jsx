@@ -1,308 +1,150 @@
 import {
-    useEffect
+    useEffect,
+    useState
 } from "react";
-
 
 import {
     useNavigate,
     useParams
 } from "react-router-dom";
 
-
 import {
     useDispatch,
     useSelector
 } from "react-redux";
 
-
-
 import {
-
-    Box,
-
-    Card,
-
-    CardContent,
-
-    Typography,
-
-    Stack,
-
-    Button
-
+    Alert
 } from "@mui/material";
-
-
 
 import {
     ArrowBack
 } from "@mui/icons-material";
 
-
-
 import EnrollmentForm
-from "../components/EnrollmentForm";
-
-
+    from "../components/EnrollmentForm";
 
 import {
-
     getEnrollmentByIdThunk,
-
     updateEnrollmentThunk
-
 } from "../store";
 
+import {
+    PageContainer,
+    PageHeader,
+    PageCard,
+    LoadingState
+} from "../../../components/ui";
 
 
+// ==========================================
+// ENROLLMENT EDIT PAGE
+// ==========================================
 
+const EnrollmentEditPage = () => {
 
+    const { id } = useParams();
 
+    const navigate = useNavigate();
 
+    const dispatch = useDispatch();
 
+    const {
+        current,
+        loading
+    } = useSelector(
+        state => state.enrollments
+    );
 
-const EnrollmentEditPage = ()=>{
+    const [saveError, setSaveError] =
+        useState("");
 
 
+    useEffect(() => {
 
-const {
+        dispatch(
+            getEnrollmentByIdThunk(id)
+        );
 
-    id
+    }, [dispatch, id]);
 
-}=useParams();
 
+    const enrollment =
+        current && String(current._id) === String(id)
+            ? current
+            : null;
 
 
-const navigate = useNavigate();
+    const handleSubmit = async (data) => {
 
+        setSaveError("");
 
-const dispatch = useDispatch();
+        try {
 
+            await dispatch(
+                updateEnrollmentThunk({
+                    id,
+                    data
+                })
+            ).unwrap();
 
+            navigate(`/enrollments/${id}`);
 
+        }
+        catch (error) {
 
+            setSaveError(
+                typeof error === "string"
+                    ? error
+                    : error?.message || "Failed to save the enrollment."
+            );
 
+        }
 
+    };
 
 
+    return (
 
-const {
+        <PageContainer>
 
-    current,
+            <PageHeader
+                title="Edit Enrollment"
+                subtitle="Update the program, dates or status"
+                action={() =>
+                    navigate(`/enrollments/${id}`)
+                }
+                actionLabel="Back"
+                actionIcon={<ArrowBack />}
+            />
 
-    loading
+            {saveError && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {saveError}
+                </Alert>
+            )}
 
-}
+            <PageCard>
 
-=
-
-useSelector(
-
-    state=>state.enrollments
-
-);
-
-
-
-
-
-
-
-
-
-useEffect(()=>{
-
-
-dispatch(
-
-    getEnrollmentByIdThunk(id)
-
-);
-
-
-
-},[dispatch,id]);
-
-
-
-
-
-
-
-
-
-const handleSubmit = async(data)=>{
-
-
-try{
-
-
-await dispatch(
-
-    updateEnrollmentThunk({
-
-        id,
-
-        data
-
-    })
-
-).unwrap();
-
-
-
-
-
-navigate("/enrollments");
-
-
-
-}
-
-catch(error){
-
-
-console.error(
-
-"Update enrollment error:",
-
-error
-
-);
-
-
-
-}
-
-
+                {enrollment
+                    ? (
+                        <EnrollmentForm
+                            initialData={enrollment}
+                            onSubmit={handleSubmit}
+                            loading={loading}
+                        />
+                    )
+                    : (
+                        <LoadingState message="Loading enrollment..." />
+                    )}
+
+            </PageCard>
+
+        </PageContainer>
+
+    );
 
 };
-
-
-
-
-
-
-
-
-
-if(!current){
-
-
-return (
-
-<Typography>
-
-Loading...
-
-</Typography>
-
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-return (
-    <Box>
-
-        <Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
-
-        direction="row"
-
-        >
-
-
-
-
-        <Typography
-
-        variant="h4"
-
-        sx={{
-            fontWeight: "700"
-        }}
-
-        >
-
-        Edit Enrollment
-
-        </Typography>
-
-
-
-
-
-
-        <Button
-
-        variant="outlined"
-
-        startIcon={<ArrowBack/>}
-
-        onClick={()=>navigate("/enrollments")}
-
-        >
-
-        Back
-
-        </Button>
-
-
-
-
-
-        </Stack>
-
-        <Card>
-
-
-
-        <CardContent>
-
-
-
-        <EnrollmentForm
-
-
-        initialData={current}
-
-
-        onSubmit={handleSubmit}
-
-
-        loading={loading}
-
-
-        />
-
-
-
-
-
-        </CardContent>
-
-
-
-        </Card>
-
-    </Box>
-);
-
-
-
-};
-
-
-
-
 
 
 export default EnrollmentEditPage;
