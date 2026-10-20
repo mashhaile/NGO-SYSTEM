@@ -1001,11 +1001,8 @@ const OrganizationSettingsPage = () => {
                     SAVE BUTTON
                 ================================== */}
 
-                <Stack
+                <Stack sx={{ justifyContent: "flex-end", mt: 3, mb: 5 }}
                     direction="row"
-                    justifyContent="flex-end"
-                    mt={3}
-                    mb={5}
                 >
 
                     <Button

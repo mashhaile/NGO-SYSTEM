@@ -106,8 +106,7 @@ const Charts = ({
                 <Stack
                     direction="row"
                     spacing={1.5}
-                    alignItems="center"
-                    sx={{
+                    sx={{ alignItems: "center",
                         mb: 3
                     }}
                 >
@@ -173,8 +172,7 @@ const Charts = ({
                 <Stack
                     direction="row"
                     spacing={1.5}
-                    alignItems="center"
-                    sx={{
+                    sx={{ alignItems: "center",
                         mb: 3
                     }}
                 >

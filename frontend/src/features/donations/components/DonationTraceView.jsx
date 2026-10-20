@@ -91,11 +91,10 @@ const nameOf = (item) =>
 const CountChips = ({ items }) =>
     items?.length
         ? (
-            <Stack
+            <Stack sx={{ flexWrap: "wrap" }}
                 direction="row"
                 spacing={1}
                 useFlexGap
-                flexWrap="wrap"
             >
                 {items.map(item => (
                     <Chip
@@ -197,8 +196,7 @@ const DonationTraceView = ({
 
                 <Stack
                     direction="row"
-                    justifyContent="space-between"
-                    sx={{ mb: 1 }}
+                    sx={{ justifyContent: "space-between", mb: 1 }}
                 >
                     <Typography variant="body2" fontWeight={600}>
                         Utilization

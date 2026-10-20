@@ -121,15 +121,9 @@ return (
 
 
 
-<Stack
+<Stack sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}
 
 direction="row"
-
-justifyContent="space-between"
-
-alignItems="center"
-
-mb={3}
 
 >
 

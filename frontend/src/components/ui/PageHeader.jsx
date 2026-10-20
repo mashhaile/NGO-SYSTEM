@@ -32,16 +32,17 @@ const PageHeader = ({
         >
 
             <Stack
+                sx={{
+                    justifyContent: "space-between",
+                    alignItems: {
+                        xs: "stretch",
+                        sm: "center"
+                    }
+                }}
+
                 direction={{
                     xs: "column",
                     sm: "row"
-                }}
-
-                justifyContent="space-between"
-
-                alignItems={{
-                    xs: "stretch",
-                    sm: "center"
                 }}
 
                 spacing={2}

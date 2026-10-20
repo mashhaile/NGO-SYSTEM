@@ -153,18 +153,15 @@ const GenderDistribution = ({
 
                             <Stack
                                 direction="row"
-                                alignItems="center"
-                                justifyContent="space-between"
-                                sx={{
+                                sx={{ alignItems: "center", justifyContent: "space-between",
                                     mb: 1
                                 }}
                             >
 
                                 {/* LABEL */}
 
-                                <Stack
+                                <Stack sx={{ alignItems: "center" }}
                                     direction="row"
-                                    alignItems="center"
                                     spacing={1.2}
                                 >
 
@@ -212,10 +209,9 @@ const GenderDistribution = ({
 
                                 {/* VALUE */}
 
-                                <Stack
+                                <Stack sx={{ alignItems: "center" }}
                                     direction="row"
                                     spacing={1}
-                                    alignItems="center"
                                 >
 
                                     <Typography

@@ -29,10 +29,7 @@ const AppPagination = ({
 
             spacing={2}
 
-            alignItems="center"
-            justifyContent="center"
-
-            sx={{
+            sx={{ alignItems: "center", justifyContent: "center",
                 py: 2
             }}
         >

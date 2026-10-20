@@ -135,10 +135,7 @@ const LookupListPage = () => {
         return (
             <Box>
 
-                <Stack
-                    alignItems="center"
-                    justifyContent="center"
-                    py={8}
+                <Stack sx={{ alignItems: "center", justifyContent: "center", py: 8 }}
                 >
 
                     <CircularProgress />
@@ -168,18 +165,15 @@ const LookupListPage = () => {
         return (
             <Box>
 
-                <Stack
+                <Stack sx={{ justifyContent: "space-between", alignItems: {
+                        xs: "flex-start",
+                        sm: "center"
+                    }, mb: 3 }}
                     direction={{
                         xs: "column",
                         sm: "row"
                     }}
-                    justifyContent="space-between"
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center"
-                    }}
                     spacing={2}
-                    mb={3}
                 >
 
                     <Box>
@@ -259,18 +253,15 @@ const LookupListPage = () => {
                 HEADER
             ================================================== */}
 
-            <Stack
+            <Stack sx={{ justifyContent: "space-between", alignItems: {
+                    xs: "flex-start",
+                    sm: "center"
+                }, mb: 3 }}
                 direction={{
                     xs: "column",
                     sm: "row"
                 }}
-                justifyContent="space-between"
-                alignItems={{
-                    xs: "flex-start",
-                    sm: "center"
-                }}
                 spacing={2}
-                mb={3}
             >
 
                 <Box>
@@ -309,13 +300,12 @@ const LookupListPage = () => {
                 SUMMARY
             ================================================== */}
 
-            <Stack
+            <Stack sx={{ mb: 3 }}
                 direction={{
                     xs: "column",
                     sm: "row"
                 }}
                 spacing={2}
-                mb={3}
             >
 
                 <Card sx={{ flex: 1 }}>
@@ -427,10 +417,8 @@ const LookupListPage = () => {
 
                     <CardContent>
 
-                        <Stack
-                            alignItems="center"
+                        <Stack sx={{ alignItems: "center", py: 6 }}
                             spacing={1}
-                            py={6}
                         >
 
                             <Typography
@@ -515,15 +503,13 @@ const LookupListPage = () => {
 
                                     <CardContent>
 
-                                        <Stack
+                                        <Stack sx={{ justifyContent: "space-between", alignItems: {
+                                                xs: "flex-start",
+                                                sm: "center"
+                                            } }}
                                             direction={{
                                                 xs: "column",
                                                 sm: "row"
-                                            }}
-                                            justifyContent="space-between"
-                                            alignItems={{
-                                                xs: "flex-start",
-                                                sm: "center"
                                             }}
                                             spacing={2}
                                         >
@@ -553,10 +539,9 @@ const LookupListPage = () => {
                                             </Box>
 
 
-                                            <Stack
+                                            <Stack sx={{ flexWrap: "wrap" }}
                                                 direction="row"
                                                 spacing={1}
-                                                flexWrap="wrap"
                                                 useFlexGap
                                             >
 
@@ -737,10 +722,9 @@ const LookupListPage = () => {
                                                                         }}
                                                                     >
 
-                                                                        <Stack
+                                                                        <Stack sx={{ alignItems: "center" }}
                                                                             direction="row"
                                                                             spacing={1}
-                                                                            alignItems="center"
                                                                         >
 
                                                                             <Chip

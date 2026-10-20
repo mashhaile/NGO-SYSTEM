@@ -674,7 +674,10 @@ const BeneficiaryAllocationEntry = ({
             }}
         >
 
-            <Stack
+            <Stack sx={{ alignItems: {
+                    xs: "stretch",
+                    sm: "center"
+                } }}
                 direction={{
                     xs: "column",
                     sm: "row"
@@ -682,10 +685,6 @@ const BeneficiaryAllocationEntry = ({
                 spacing={{
                     xs: 1,
                     sm: 2
-                }}
-                alignItems={{
-                    xs: "stretch",
-                    sm: "center"
                 }}
             >
 
@@ -900,17 +899,15 @@ const BeneficiaryCard = ({
                 }}
             >
 
-                <Stack
+                <Stack sx={{ alignItems: {
+                        xs: "flex-start",
+                        sm: "center"
+                    }, justifyContent: "space-between" }}
                     direction={{
                         xs: "column",
                         sm: "row"
                     }}
                     spacing={1.5}
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center"
-                    }}
-                    justifyContent="space-between"
                 >
 
                     <Box>
@@ -1108,17 +1105,15 @@ const ServiceItemCard = ({
                 }}
             >
 
-                <Stack
+                <Stack sx={{ alignItems: {
+                        xs: "flex-start",
+                        sm: "center"
+                    }, justifyContent: "space-between" }}
                     direction={{
                         xs: "column",
                         sm: "row"
                     }}
                     spacing={1}
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center"
-                    }}
-                    justifyContent="space-between"
                 >
 
                     <Box>
@@ -1367,17 +1362,15 @@ const ServiceDeliveryCard = ({
                 }}
             >
 
-                <Stack
+                <Stack sx={{ alignItems: {
+                        xs: "flex-start",
+                        sm: "center"
+                    }, justifyContent: "space-between" }}
                     direction={{
                         xs: "column",
                         sm: "row"
                     }}
                     spacing={1.5}
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center"
-                    }}
-                    justifyContent="space-between"
                 >
 
                     <Box>
@@ -2109,11 +2102,10 @@ const ServiceDeliveryReportDetails = ({
                         Quantity by Unit
                     </Typography>
 
-                    <Stack
+                    <Stack sx={{ flexWrap: "wrap" }}
                         direction="row"
                         spacing={1}
                         useFlexGap
-                        flexWrap="wrap"
                     >
 
                         {quantityByUnit.map(

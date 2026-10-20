@@ -170,17 +170,15 @@ const DonationTracePage = () => {
 
             <PageCard sx={{ mb: 3 }}>
 
-                <Stack
+                <Stack sx={{ alignItems: {
+                        xs: "flex-start",
+                        sm: "center"
+                    }, justifyContent: "space-between" }}
                     direction={{
                         xs: "column",
                         sm: "row"
                     }}
                     spacing={2}
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center"
-                    }}
-                    justifyContent="space-between"
                 >
 
                     <AppButton

@@ -132,7 +132,7 @@ const DonorSharePage = () => {
 
                 <PageCard>
 
-                    <Stack spacing={2} alignItems="center" sx={{ py: 3, textAlign: "center" }}>
+                    <Stack spacing={2} sx={{ alignItems: "center", py: 3, textAlign: "center" }}>
 
                         <LockOutlined color="action" fontSize="large" />
 
@@ -255,12 +255,10 @@ const DonorSharePage = () => {
                             sm: "row"
                         }}
                         spacing={2}
-                        alignItems={{
+                        sx={{ alignItems: {
                             xs: "flex-start",
                             sm: "center"
-                        }}
-                        justifyContent="space-between"
-                        sx={{ mb: 2 }}
+                        }, justifyContent: "space-between", mb: 2 }}
                     >
 
                         <Box>

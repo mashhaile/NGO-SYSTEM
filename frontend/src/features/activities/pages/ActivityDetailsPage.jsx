@@ -488,11 +488,10 @@ const ActivityDetailsPage = () => {
                         value={
                             targetGroups.length
                                 ? (
-                                    <Stack
+                                    <Stack sx={{ flexWrap: "wrap" }}
                                         direction="row"
                                         spacing={1}
                                         useFlexGap
-                                        flexWrap="wrap"
                                     >
                                         {targetGroups.map(group => (
                                             <Chip

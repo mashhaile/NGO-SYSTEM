@@ -310,10 +310,8 @@ const EnrollmentForm = ({
 
             </Grid>
 
-            <Stack
+            <Stack sx={{ justifyContent: "flex-end", mt: 3 }}
                 direction="row"
-                justifyContent="flex-end"
-                mt={3}
             >
 
                 <Button

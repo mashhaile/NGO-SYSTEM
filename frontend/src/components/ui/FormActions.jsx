@@ -23,15 +23,12 @@ const FormActions = ({
                 xs: "column-reverse",
                 sm: "row"
             }}
-            justifyContent={
-                align === "left"
+            spacing={1}
+            sx={[{ justifyContent: align === "left"
                     ? "flex-start"
                     : align === "center"
                     ? "center"
-                    : "flex-end"
-            }
-            spacing={1}
-            sx={sx}
+                    : "flex-end" }, ...(Array.isArray(sx) ? sx : [sx])]}
         >
             {children}
 

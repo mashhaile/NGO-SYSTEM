@@ -2106,10 +2106,9 @@ const LookupCreatePage = () => {
 
                                                     <MenuItem disabled>
 
-                                                        <Stack
+                                                        <Stack sx={{ alignItems: "center" }}
                                                             direction="row"
                                                             spacing={1}
-                                                            alignItems="center"
                                                         >
 
                                                             <CircularProgress
@@ -2307,10 +2306,9 @@ const LookupCreatePage = () => {
                                                                 Allowed Units
                                                             </Typography>
 
-                                                            <Stack
+                                                            <Stack sx={{ flexWrap: "wrap" }}
                                                                 direction="row"
                                                                 spacing={0.75}
-                                                                flexWrap="wrap"
                                                                 useFlexGap
                                                             >
 
@@ -2379,15 +2377,13 @@ const LookupCreatePage = () => {
                                 VALUES HEADER
                             ================================================== */}
 
-                            <Stack
+                            <Stack sx={{ justifyContent: "space-between", alignItems: {
+                                    xs: "flex-start",
+                                    sm: "center"
+                                } }}
                                 direction={{
                                     xs: "column",
                                     sm: "row"
-                                }}
-                                justifyContent="space-between"
-                                alignItems={{
-                                    xs: "flex-start",
-                                    sm: "center"
                                 }}
                             >
 
@@ -2434,7 +2430,10 @@ const LookupCreatePage = () => {
                                             index
                                         ) => (
 
-                                            <Stack
+                                            <Stack sx={{ alignItems: {
+                                                    xs: "stretch",
+                                                    md: "center"
+                                                } }}
                                                 key={
                                                     index
                                                 }
@@ -2443,10 +2442,6 @@ const LookupCreatePage = () => {
                                                     md: "row"
                                                 }}
                                                 spacing={2}
-                                                alignItems={{
-                                                    xs: "stretch",
-                                                    md: "center"
-                                                }}
                                             >
 
                                                 <TextField

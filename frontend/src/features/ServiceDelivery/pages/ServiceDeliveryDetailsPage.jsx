@@ -819,10 +819,9 @@ const SummaryCard = ({
             }}
         >
 
-            <Stack
+            <Stack sx={{ alignItems: "center" }}
                 direction="row"
                 spacing={2}
-                alignItems="center"
             >
 
                 <Box
@@ -2718,17 +2717,15 @@ const ServiceDeliveryDetailsPage = () => {
                     }}
                 >
 
-                    <Stack
+                    <Stack sx={{ alignItems: {
+                            xs: "flex-start",
+                            sm: "center"
+                        }, justifyContent: "space-between" }}
                         direction={{
                             xs: "column",
                             sm: "row"
                         }}
                         spacing={2}
-                        alignItems={{
-                            xs: "flex-start",
-                            sm: "center"
-                        }}
-                        justifyContent="space-between"
                     >
 
                         <AppButton
@@ -2746,8 +2743,7 @@ const ServiceDeliveryDetailsPage = () => {
                         <Stack
                             direction="row"
                             spacing={1}
-                            alignItems="center"
-                            sx={{
+                            sx={{ alignItems: "center",
                                 flexWrap: "wrap",
                                 rowGap: 1
                             }}
@@ -2968,10 +2964,9 @@ const ServiceDeliveryDetailsPage = () => {
                         size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
-                        <Stack
+                        <Stack sx={{ alignItems: "center" }}
                             direction="row"
                             spacing={1}
-                            alignItems="center"
                         >
 
                             <CalendarMonth
@@ -2998,10 +2993,9 @@ const ServiceDeliveryDetailsPage = () => {
                         size={{ xs: 12, sm: 6, md: 3 }}
                     >
 
-                        <Stack
+                        <Stack sx={{ alignItems: "center" }}
                             direction="row"
                             spacing={1}
-                            alignItems="center"
                         >
 
                             <LocationOn
@@ -3349,17 +3343,14 @@ const ServiceDeliveryDetailsPage = () => {
                                                         }}
                                                     >
 
-                                                        <Stack
+                                                        <Stack sx={{ justifyContent: "space-between", alignItems: "center" }}
                                                             direction="row"
                                                             spacing={1.5}
-                                                            justifyContent="space-between"
-                                                            alignItems="center"
                                                         >
 
-                                                            <Stack
+                                                            <Stack sx={{ alignItems: "center" }}
                                                                 direction="row"
                                                                 spacing={1.5}
-                                                                alignItems="center"
                                                             >
 
                                                                 <People
@@ -3510,13 +3501,12 @@ const ServiceDeliveryDetailsPage = () => {
                                                                                             }}
                                                                                         >
 
-                                                                                            <Stack
+                                                                                            <Stack sx={{ justifyContent: "space-between" }}
                                                                                                 direction={{
                                                                                                     xs: "column",
                                                                                                     sm: "row"
                                                                                                 }}
                                                                                                 spacing={1}
-                                                                                                justifyContent="space-between"
                                                                                             >
 
                                                                                                 <Box>
@@ -4122,13 +4112,12 @@ const ServiceDeliveryDetailsPage = () => {
                                             }}
                                         >
 
-                                            <Stack
+                                            <Stack sx={{ justifyContent: "space-between" }}
                                                 direction={{
                                                     xs: "column",
                                                     md: "row"
                                                 }}
                                                 spacing={2}
-                                                justifyContent="space-between"
                                             >
 
                                                 <Box>
@@ -4551,8 +4540,7 @@ const ServiceDeliveryDetailsPage = () => {
 
             <Stack
                 direction="row"
-                justifyContent="flex-start"
-                sx={{
+                sx={{ justifyContent: "flex-start",
                     mt: 3,
                     mb: 5
                 }}

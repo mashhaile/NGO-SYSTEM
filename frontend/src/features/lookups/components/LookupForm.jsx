@@ -751,9 +751,8 @@ const LookupForm = ({
 
                 {/* SAVE */}
 
-                <Stack
+                <Stack sx={{ justifyContent: "flex-end" }}
                     direction="row"
-                    justifyContent="flex-end"
                 >
 
                     <Button

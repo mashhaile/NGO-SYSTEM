@@ -750,10 +750,7 @@ const LookupEditPage = () => {
 
         return (
 
-            <Stack
-                alignItems="center"
-                justifyContent="center"
-                py={8}
+            <Stack sx={{ alignItems: "center", justifyContent: "center", py: 8 }}
             >
 
                 <CircularProgress />
@@ -841,17 +838,15 @@ const LookupEditPage = () => {
 
             {/* HEADER */}
 
-            <Stack
+            <Stack sx={{ alignItems: {
+                    xs: "flex-start",
+                    sm: "center"
+                }, mb: 3 }}
                 direction={{
                     xs: "column",
                     sm: "row"
                 }}
-                alignItems={{
-                    xs: "flex-start",
-                    sm: "center"
-                }}
                 spacing={2}
-                mb={3}
             >
 
                 <Button

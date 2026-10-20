@@ -44,18 +44,16 @@ const SearchToolbar = ({
             }}
         >
 
-            <Stack
+            <Stack sx={{ alignItems: {
+                    xs: "stretch",
+                    md: "center"
+                } }}
                 direction={{
                     xs: "column",
                     md: "row"
                 }}
 
                 spacing={1.5}
-
-                alignItems={{
-                    xs: "stretch",
-                    md: "center"
-                }}
             >
 
                 <TextField

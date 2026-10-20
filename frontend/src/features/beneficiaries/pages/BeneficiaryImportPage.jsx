@@ -541,14 +541,12 @@ const BeneficiaryImportPage = () => {
                         ACTIONS
                     ====================================== */}
 
-                    <Stack
+                    <Stack sx={{ justifyContent: "flex-end" }}
 
                         direction={{
                             xs: "column-reverse",
                             sm: "row"
                         }}
-
-                        justifyContent="flex-end"
 
                         spacing={2}
 

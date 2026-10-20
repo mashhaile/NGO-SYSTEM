@@ -19,16 +19,12 @@ const SectionHeader = ({
                 sm: "row"
             }}
 
-            justifyContent="space-between"
-
-            alignItems={{
-                xs: "flex-start",
-                sm: "center"
-            }}
-
             spacing={1.5}
 
-            sx={{
+            sx={{ justifyContent: "space-between", alignItems: {
+                xs: "flex-start",
+                sm: "center"
+            },
                 mb: 2.5,
                 ...sx
             }}

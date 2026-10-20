@@ -39,7 +39,10 @@ const Footer = () => {
             }}
         >
 
-            <Stack
+            <Stack sx={{ alignItems: {
+                    xs: "center",
+                    sm: "center"
+                }, justifyContent: "space-between" }}
 
                 direction={{
                     xs: "column",
@@ -47,13 +50,6 @@ const Footer = () => {
                 }}
 
                 spacing={1}
-
-                alignItems={{
-                    xs: "center",
-                    sm: "center"
-                }}
-
-                justifyContent="space-between"
 
             >
 

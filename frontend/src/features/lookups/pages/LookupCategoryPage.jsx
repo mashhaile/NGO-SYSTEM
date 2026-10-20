@@ -1857,10 +1857,9 @@ const LookupCategoryPage = () => {
                         </Box>
 
 
-                        <Stack
+                        <Stack sx={{ flexWrap: "wrap" }}
                             direction="row"
                             spacing={1}
-                            flexWrap="wrap"
                         >
 
                             <Chip
@@ -1920,15 +1919,13 @@ const LookupCategoryPage = () => {
 
                         {/* HEADER */}
 
-                        <Stack
+                        <Stack sx={{ justifyContent: "space-between", alignItems: {
+                                xs: "flex-start",
+                                sm: "center"
+                            } }}
                             direction={{
                                 xs: "column",
                                 sm: "row"
-                            }}
-                            justifyContent="space-between"
-                            alignItems={{
-                                xs: "flex-start",
-                                sm: "center"
                             }}
                             spacing={2}
                         >
@@ -2390,9 +2387,8 @@ const LookupCategoryPage = () => {
                                         />
 
 
-                                        <Stack
+                                        <Stack sx={{ alignItems: "center" }}
                                             direction="row"
-                                            alignItems="center"
                                             spacing={1}
                                         >
 
@@ -2508,9 +2504,7 @@ const LookupCategoryPage = () => {
 
                         {loading && (
 
-                            <Stack
-                                alignItems="center"
-                                py={6}
+                            <Stack sx={{ alignItems: "center", py: 6 }}
                             >
 
                                 <CircularProgress />
@@ -3012,9 +3006,8 @@ const LookupCategoryPage = () => {
                                                                 />
 
 
-                                                                <Stack
+                                                                <Stack sx={{ alignItems: "center" }}
                                                                     direction="row"
-                                                                    alignItems="center"
                                                                     spacing={1}
                                                                 >
 
@@ -3115,15 +3108,13 @@ const LookupCategoryPage = () => {
                                                                 spacing={2}
                                                             >
 
-                                                                <Stack
+                                                                <Stack sx={{ justifyContent: "space-between", alignItems: {
+                                                                        xs: "flex-start",
+                                                                        sm: "center"
+                                                                    } }}
                                                                     direction={{
                                                                         xs: "column",
                                                                         sm: "row"
-                                                                    }}
-                                                                    justifyContent="space-between"
-                                                                    alignItems={{
-                                                                        xs: "flex-start",
-                                                                        sm: "center"
                                                                     }}
                                                                     spacing={2}
                                                                 >
@@ -3226,10 +3217,9 @@ const LookupCategoryPage = () => {
                                                                                 </Typography>
 
 
-                                                                                <Stack
+                                                                                <Stack sx={{ flexWrap: "wrap" }}
                                                                                     direction="row"
                                                                                     spacing={0.75}
-                                                                                    flexWrap="wrap"
                                                                                     useFlexGap
                                                                                 >
 
@@ -3302,15 +3292,13 @@ const LookupCategoryPage = () => {
                                                                 <Divider />
 
 
-                                                                <Stack
+                                                                <Stack sx={{ justifyContent: "space-between", alignItems: {
+                                                                        xs: "stretch",
+                                                                        sm: "center"
+                                                                    } }}
                                                                     direction={{
                                                                         xs: "column",
                                                                         sm: "row"
-                                                                    }}
-                                                                    justifyContent="space-between"
-                                                                    alignItems={{
-                                                                        xs: "stretch",
-                                                                        sm: "center"
                                                                     }}
                                                                     spacing={2}
                                                                 >

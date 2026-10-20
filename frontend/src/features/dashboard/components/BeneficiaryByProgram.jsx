@@ -389,8 +389,7 @@ const BeneficiaryByProgram = ({
                             <Stack
                                 direction="row"
                                 spacing={1}
-                                alignItems="center"
-                                sx={{
+                                sx={{ alignItems: "center",
                                     mb: 1.5
                                 }}
                             >
@@ -549,10 +548,8 @@ const BeneficiaryByProgram = ({
                                 TARGET
                             ================================= */}
 
-                            <Stack
+                            <Stack sx={{ justifyContent: "space-between", alignItems: "center" }}
                                 direction="row"
-                                justifyContent="space-between"
-                                alignItems="center"
                             >
 
                                 <Typography
@@ -581,9 +578,7 @@ const BeneficiaryByProgram = ({
 
                             <Stack
                                 direction="row"
-                                justifyContent="space-between"
-                                alignItems="center"
-                                sx={{
+                                sx={{ justifyContent: "space-between", alignItems: "center",
                                     mt: 0.5
                                 }}
                             >

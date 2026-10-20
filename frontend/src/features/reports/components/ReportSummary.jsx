@@ -613,9 +613,8 @@ const DistributionValue = ({
 
     return (
 
-        <Stack
+        <Stack sx={{ mt: 1.5 }}
             spacing={1}
-            mt={1.5}
         >
 
             {
@@ -809,11 +808,8 @@ const ObjectValue = ({
 
         return (
 
-            <Stack
+            <Stack sx={{ flexWrap: "wrap", gap: 0.75, mt: 1 }}
                 direction="row"
-                flexWrap="wrap"
-                gap={0.75}
-                mt={1}
             >
 
                 {

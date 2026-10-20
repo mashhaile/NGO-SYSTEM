@@ -1,314 +1,508 @@
 import {
     useEffect,
     useState
-}
-from "react";
+} from "react";
 
 
 import {
     useNavigate
-}
-from "react-router-dom";
+} from "react-router-dom";
 
 
 import {
-    useDispatch,
-    useSelector
-}
-from "react-redux";
-
-
-import {
-
+    Alert,
     Box,
-
-    Button,
-
-    Stack,
-
-    TextField,
-
+    Link,
     Typography
-
-}
-from "@mui/material";
+} from "@mui/material";
 
 
 import {
-    Add
-}
-from "@mui/icons-material";
-
-
-import ActivityTable
-from "../components/ActivityTable";
+    Add,
+    Delete,
+    Edit,
+    Visibility
+} from "@mui/icons-material";
 
 
 import {
-    getActivitiesThunk
-}
-from "../store";
+    PageContainer,
+    PageHeader,
+    PageCard,
+    SearchToolbar,
+    DataTable,
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
+} from "../../../components/ui";
 
 
+import useAuth
+    from "../../auth/hooks/useAuth";
 
 
+import {
+    getActivitiesApi,
+    deleteActivityApi
+} from "../api/activityApi";
 
 
+import {
+    hasPermission
+} from "../../tor/utils/torPermissions";
 
-const ActivityListPage=()=>{
 
 
+const toOptions = (values) =>
+    values.map(value => ({
+        value,
+        label: value
+    }));
 
-const navigate=useNavigate();
 
+const STATUS_OPTIONS = toOptions([
+    "Planned",
+    "Ongoing",
+    "Completed",
+    "Cancelled"
+]);
 
-const dispatch=useDispatch();
 
+const TYPE_OPTIONS = toOptions([
+    "Training",
+    "Workshop",
+    "Seminar",
+    "Meeting",
+    "Conference",
+    "Awareness Campaign",
+    "Field Visit",
+    "Monitoring Visit",
+    "Assessment",
+    "Distribution",
+    "Community Dialogue",
+    "Other"
+]);
 
 
+const formatDate = (value) =>
+    value
+        ? new Date(value).toLocaleDateString()
+        : "-";
 
-const {
 
-    data=[],
+const errorMessage = (error, fallback) =>
+    error?.response?.data?.message ||
+    error?.message ||
+    fallback;
 
-    loading,
 
-    pagination
 
-}
+// =====================================================
+// ACTIVITY LIST PAGE
+// =====================================================
 
-=
-useSelector(
+const ActivityListPage = () => {
 
-state=>state.activities
+    const navigate =
+        useNavigate();
 
-);
+    const {
+        user
+    } = useAuth();
 
+    const [search, setSearch] =
+        useState("");
 
+    const [status, setStatus] =
+        useState("");
 
+    const [activityType, setActivityType] =
+        useState("");
 
+    const [paginationModel, setPaginationModel] =
+        useState({
+            page: 0,
+            pageSize: 10
+        });
 
+    const [deleteTarget, setDeleteTarget] =
+        useState(null);
 
-const [search,setSearch]=useState("");
+    const [deleting, setDeleting] =
+        useState(false);
 
+    // Bumped to reload the list after a delete.
 
+    const [reloadKey, setReloadKey] =
+        useState(0);
 
+    const [result, setResult] =
+        useState({
+            rows: [],
+            total: 0,
+            loading: true,
+            error: ""
+        });
 
 
+    // =================================================
+    // LOAD
+    // =================================================
 
-useEffect(()=>{
+    useEffect(() => {
 
+        let cancelled = false;
 
-dispatch(
+        const timer =
+            setTimeout(() => {
 
-getActivitiesThunk({
+                getActivitiesApi({
+                    search: search.trim(),
+                    status: status || undefined,
+                    activityType: activityType || undefined,
+                    page: paginationModel.page + 1,
+                    limit: paginationModel.pageSize
+                })
 
-page:1,
+                    .then(response => {
 
-limit:10,
+                        if (!cancelled) {
+                            setResult({
+                                rows: response.data?.data || [],
+                                total: response.data?.pagination?.total || 0,
+                                loading: false,
+                                error: ""
+                            });
+                        }
 
-search
+                    })
 
-})
+                    .catch(error => {
 
-);
+                        if (!cancelled) {
+                            setResult(prev => ({
+                                ...prev,
+                                loading: false,
+                                error: errorMessage(
+                                    error,
+                                    "Failed to load activities."
+                                )
+                            }));
+                        }
 
+                    });
 
+            }, 300);
 
-},[dispatch,search]);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
 
-
-
-
-
-
-
-
-
-return(
-
-
-
-<Box>
-
-
-
-
-
-<Stack
-
-
-direction="row"
-
-
-justifyContent="space-between"
-
-
-alignItems="center"
-
-
-mb={3}
-
-
->
-
-
-
-<Box>
-
-
-<Typography
-
-
-variant="h4"
-
-
-fontWeight="700"
-
-
->
-
-
-Activities
-
-
-</Typography>
-
-
-
-<Typography
-
-
-color="text.secondary"
-
-
->
-
-
-Manage program activities
-
-
-</Typography>
-
-
-</Box>
-
-
-
-
-
-
-
-
-
-<Button
-
-
-variant="contained"
-
-
-startIcon={<Add/>}
-
-
-onClick={()=>navigate("/activities/create")}
-
-
->
-
-
-Create Activity
-
-
-</Button>
-
-
-
-
-
-</Stack>
-
-
-
-
-
-
-
-
-
-<Stack
-
-
-direction={{xs:"column",md:"row"}}
-
-
-spacing={2}
-
-
-mb={3}
-
-
->
-
-
-
-<TextField
-
-
-label="Search activities"
-
-
-fullWidth
-
-
-value={search}
-
-
-onChange={(e)=>
-
-setSearch(e.target.value)
-
-}
-
-
-/>
-
-
-
-</Stack>
-
-
-
-
-
-
-
-
-
-<ActivityTable
-
-
-data={data}
-
-
-loading={loading}
-
-
-/>
-
-
-
-
-
-</Box>
-
-
-
-);
-
-
+    }, [search, status, activityType, paginationModel, reloadKey]);
+
+
+    // =================================================
+    // DELETE
+    // =================================================
+
+    const handleDelete = async () => {
+
+        setDeleting(true);
+
+        try {
+
+            await deleteActivityApi(deleteTarget._id);
+
+            setDeleteTarget(null);
+
+            setReloadKey(key => key + 1);
+
+        }
+        catch (error) {
+
+            setDeleteTarget(null);
+
+            setResult(prev => ({
+                ...prev,
+                error: errorMessage(
+                    error,
+                    "Failed to delete the activity."
+                )
+            }));
+
+        }
+        finally {
+
+            setDeleting(false);
+
+        }
+
+    };
+
+
+    const resetPage = () =>
+        setPaginationModel(prev => ({
+            ...prev,
+            page: 0
+        }));
+
+
+    const canUpdate =
+        hasPermission(user, "activity.update");
+
+    const canDelete =
+        hasPermission(user, "activity.delete");
+
+
+    const columns = [
+
+        {
+            field: "name",
+            headerName: "Activity",
+            flex: 1.5,
+            minWidth: 230,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5 }}>
+                    <Link
+                        component="button"
+                        underline="hover"
+                        fontWeight={600}
+                        sx={{ textAlign: "left" }}
+                        onClick={() =>
+                            navigate(`/activities/${params.row._id}`)
+                        }
+                    >
+                        {params.value || "-"}
+                    </Link>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                        {params.row.activityCode}
+                    </Typography>
+                </Box>
+            )
+        },
+
+        {
+            field: "project",
+            headerName: "Project",
+            flex: 1.2,
+            minWidth: 200,
+            sortable: false,
+            renderCell: (params) =>
+                params.value
+                    ? (
+                        <Box sx={{ lineHeight: 1.3, py: 0.5 }}>
+                            <Typography variant="body2">
+                                {params.value.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                                {params.value.projectCode}
+                            </Typography>
+                        </Box>
+                    )
+                    : "-"
+        },
+
+        {
+            field: "activityType",
+            headerName: "Type",
+            minWidth: 150
+        },
+
+        {
+            field: "activityDate",
+            headerName: "Date",
+            minWidth: 120,
+            valueGetter: (value) =>
+                formatDate(value)
+        },
+
+        {
+            field: "region",
+            headerName: "Location",
+            flex: 1,
+            minWidth: 160,
+            valueGetter: (value, row) =>
+                [row.woreda, row.zone, row.region]
+                    .filter(Boolean)
+                    .join(", ") || "-"
+        },
+
+        {
+            field: "targetParticipants",
+            headerName: "Target",
+            minWidth: 90,
+            align: "right",
+            headerAlign: "right"
+        },
+
+        {
+            field: "status",
+            headerName: "Status",
+            minWidth: 120,
+            renderCell: (params) => (
+                <StatusChip
+                    status={params.value}
+                />
+            )
+        },
+
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 140,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+
+                <>
+
+                    <AppIconButton
+                        icon={<Visibility fontSize="small" />}
+                        tooltip="View activity"
+                        onClick={() =>
+                            navigate(`/activities/${params.row._id}`)
+                        }
+                    />
+
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip="Edit activity"
+                            onClick={() =>
+                                navigate(`/activities/${params.row._id}/edit`)
+                            }
+                        />
+                    )}
+
+                    {canDelete && (
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip="Delete activity"
+                            color="error"
+                            onClick={() =>
+                                setDeleteTarget(params.row)
+                            }
+                        />
+                    )}
+
+                </>
+
+            )
+        }
+
+    ];
+
+
+    return (
+
+        <PageContainer>
+
+            <PageHeader
+                title="Activities"
+                subtitle="Program activities and trainings. New activities are usually created from an approved TOR."
+                {...(
+                    hasPermission(user, "activity.create")
+                        ? {
+                            action: () =>
+                                navigate("/activities/create"),
+                            actionLabel: "Create Activity",
+                            actionIcon: <Add />
+                        }
+                        : {}
+                )}
+            />
+
+
+            <SearchToolbar
+                search={search}
+                onSearch={(value) => {
+                    setSearch(value);
+                    resetPage();
+                }}
+                onReset={() => {
+                    setSearch("");
+                    setStatus("");
+                    setActivityType("");
+                    resetPage();
+                }}
+                filters={[
+                    {
+                        key: "activityType",
+                        label: "Type",
+                        value: activityType,
+                        onChange: (value) => {
+                            setActivityType(value);
+                            resetPage();
+                        },
+                        options: TYPE_OPTIONS
+                    },
+                    {
+                        key: "status",
+                        label: "Status",
+                        value: status,
+                        onChange: (value) => {
+                            setStatus(value);
+                            resetPage();
+                        },
+                        options: STATUS_OPTIONS
+                    }
+                ]}
+            />
+
+
+            {result.error && (
+
+                <Alert
+                    severity="error"
+                    sx={{ mb: 3 }}
+                >
+                    {result.error}
+                </Alert>
+
+            )}
+
+
+            <PageCard>
+
+                <DataTable
+                    rows={result.rows}
+                    columns={columns}
+                    loading={result.loading}
+                    paginationMode="server"
+                    rowCount={result.total}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    getRowHeight={() => "auto"}
+                    onRowDoubleClick={(params) =>
+                        navigate(`/activities/${params.row._id}`)
+                    }
+                />
+
+            </PageCard>
+
+
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Delete Activity"
+                message={
+                    deleteTarget
+                        ? `Delete "${deleteTarget.name}"? This cannot be undone.`
+                        : ""
+                }
+                loading={deleting}
+                onClose={() =>
+                    !deleting && setDeleteTarget(null)
+                }
+                onConfirm={handleDelete}
+            />
+
+        </PageContainer>
+
+    );
 
 };
-
 
 
 export default ActivityListPage;

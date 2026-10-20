@@ -354,13 +354,9 @@ const AttendanceForm = ({
 
             </Grid>
 
-            <Stack
-
-                mt={4}
+            <Stack sx={{ mt: 4, justifyContent: "flex-end" }}
 
                 direction="row"
-
-                justifyContent="flex-end"
 
             >
 

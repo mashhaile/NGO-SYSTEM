@@ -69,13 +69,12 @@ const GenderChart = ({ data = {} }) => {
             }}
         >
 
-            <Stack
+            <Stack sx={{ alignItems: "center" }}
                 direction={{
                     xs: "column",
                     md: "row"
                 }}
                 spacing={4}
-                alignItems="center"
             >
 
 
@@ -220,16 +219,13 @@ const GenderChart = ({ data = {} }) => {
                         }}
                     >
 
-                        <Stack
+                        <Stack sx={{ justifyContent: "space-between", alignItems: "center" }}
                             direction="row"
-                            justifyContent="space-between"
-                            alignItems="center"
                         >
 
-                            <Stack
+                            <Stack sx={{ alignItems: "center" }}
                                 direction="row"
                                 spacing={1.5}
-                                alignItems="center"
                             >
 
                                 <Box
@@ -288,16 +284,13 @@ const GenderChart = ({ data = {} }) => {
                         }}
                     >
 
-                        <Stack
+                        <Stack sx={{ justifyContent: "space-between", alignItems: "center" }}
                             direction="row"
-                            justifyContent="space-between"
-                            alignItems="center"
                         >
 
-                            <Stack
+                            <Stack sx={{ alignItems: "center" }}
                                 direction="row"
                                 spacing={1.5}
-                                alignItems="center"
                             >
 
                                 <Box

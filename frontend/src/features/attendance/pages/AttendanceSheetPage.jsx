@@ -565,13 +565,11 @@ const AttendanceSheetPage = () => {
 
                 </Typography>
 
-                <Stack
+                <Stack sx={{ flexWrap: "wrap" }}
 
                     direction="row"
 
                     spacing={1}
-
-                    flexWrap="wrap"
 
                     useFlexGap
 

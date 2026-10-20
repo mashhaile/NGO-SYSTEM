@@ -374,10 +374,9 @@ const BeneficiaryImport = () => {
                     HEADER
                 ===================================== */}
 
-                <Stack
+                <Stack sx={{ alignItems: "center" }}
                     direction="row"
                     spacing={2}
-                    alignItems="center"
                 >
 
                     <Button

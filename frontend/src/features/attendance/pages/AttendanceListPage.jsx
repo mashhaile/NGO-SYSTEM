@@ -182,13 +182,9 @@ actionIcon={<Add/>}
 
 
 
-<Stack
+<Stack sx={{ justifyContent: "flex-end", mb: 2 }}
 
 direction="row"
-
-justifyContent="flex-end"
-
-mb={2}
 
 >
 

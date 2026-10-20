@@ -532,27 +532,24 @@ const TorDetailsPage = () => {
                     }}
                 >
 
-                    <Stack
+                    <Stack sx={{ alignItems: {
+                            xs: "stretch",
+                            md: "center"
+                        }, justifyContent: "space-between" }}
                         direction={{
                             xs: "column",
                             md: "row"
                         }}
                         spacing={1.5}
-                        alignItems={{
-                            xs: "stretch",
-                            md: "center"
-                        }}
-                        justifyContent="space-between"
                     >
 
-                        <Stack
+                        <Stack sx={{ flexWrap: "wrap" }}
                             direction={{
                                 xs: "column",
                                 sm: "row"
                             }}
                             spacing={1.5}
                             useFlexGap
-                            flexWrap="wrap"
                         >
 
                             {actions.canCreateActivity && (
@@ -644,10 +641,9 @@ const TorDetailsPage = () => {
 
                         </Stack>
 
-                        <Stack
+                        <Stack sx={{ alignItems: "center" }}
                             direction="row"
                             spacing={1}
-                            alignItems="center"
                         >
 
                             <Typography
@@ -697,10 +693,9 @@ const TorDetailsPage = () => {
                         value={
                             tor.activity
                                 ? (
-                                    <Stack
+                                    <Stack sx={{ alignItems: "center" }}
                                         direction="row"
                                         spacing={0.5}
-                                        alignItems="center"
                                     >
 
                                         <Link

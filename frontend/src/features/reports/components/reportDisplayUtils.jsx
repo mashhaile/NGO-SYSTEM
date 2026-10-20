@@ -419,17 +419,15 @@ export const SectionHeader = ({
 }) => {
     return (
         <Box sx={{ mb: 2 }}>
-            <Stack
+            <Stack sx={{ alignItems: {
+                    xs: "flex-start",
+                    sm: "center"
+                }, justifyContent: "space-between" }}
                 direction={{
                     xs: "column",
                     sm: "row"
                 }}
                 spacing={1}
-                alignItems={{
-                    xs: "flex-start",
-                    sm: "center"
-                }}
-                justifyContent="space-between"
             >
                 <Box>
                     <Typography

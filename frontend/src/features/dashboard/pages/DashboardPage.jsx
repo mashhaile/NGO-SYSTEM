@@ -91,9 +91,8 @@ const DashboardPage = () => {
                 }}
             >
 
-                <Stack
+                <Stack sx={{ alignItems: "center" }}
                     spacing={2}
-                    alignItems="center"
                 >
 
                     <CircularProgress
@@ -236,8 +235,7 @@ const DashboardPage = () => {
             <Stack
                 direction="row"
                 spacing={1.5}
-                alignItems="center"
-                sx={{
+                sx={{ alignItems: "center",
                     mb: 2.5
                 }}
             >
@@ -334,8 +332,7 @@ const DashboardPage = () => {
             <Stack
                 direction="row"
                 spacing={1.5}
-                alignItems="center"
-                sx={{
+                sx={{ alignItems: "center",
                     mb: 2.5
                 }}
             >

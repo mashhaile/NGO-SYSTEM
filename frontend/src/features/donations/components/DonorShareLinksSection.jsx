@@ -331,12 +331,10 @@ const DonorShareLinksSection = ({
                         sm: "row"
                     }}
                     spacing={2}
-                    alignItems={{
+                    sx={{ alignItems: {
                         xs: "flex-start",
                         sm: "center"
-                    }}
-                    justifyContent="space-between"
-                    sx={{ mb: 2 }}
+                    }, justifyContent: "space-between", mb: 2 }}
                 >
 
                     <Typography variant="body2" color="text.secondary">
