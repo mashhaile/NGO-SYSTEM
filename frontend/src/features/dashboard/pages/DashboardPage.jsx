@@ -189,6 +189,11 @@ const DashboardPage = () => {
 
         height: "100%",
 
+        // Lets charts shrink with their column instead of
+        // stretching the page wider.
+
+        minWidth: 0,
+
         borderRadius: 3,
 
         border:
@@ -533,7 +538,8 @@ const DashboardPage = () => {
                     ========================================== */}
 
                     <Grid
-                        size={{ xs: 12, lg: 4 }}
+                        size={{ xs: 12 }}
+                        sx={{ minWidth: 0 }}
                     >
 
                         <Paper
@@ -583,7 +589,8 @@ const DashboardPage = () => {
                     ========================================== */}
 
                     <Grid
-                        size={{ xs: 12, lg: 8 }}
+                        size={{ xs: 12 }}
+                        sx={{ minWidth: 0 }}
                     >
 
                         <Paper
@@ -675,6 +682,7 @@ const DashboardPage = () => {
 
                     <Grid
                         size={{ xs: 12, lg: 6 }}
+                        sx={{ minWidth: 0 }}
                     >
 
                         <Paper
@@ -728,6 +736,7 @@ const DashboardPage = () => {
 
                     <Grid
                         size={{ xs: 12, lg: 6 }}
+                        sx={{ minWidth: 0 }}
                     >
 
                         <Paper

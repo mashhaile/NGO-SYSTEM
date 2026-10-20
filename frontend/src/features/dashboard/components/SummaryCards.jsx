@@ -126,6 +126,7 @@ const SummaryCards = ({
 
                             <Grid
                                 size={{ xs: 12, sm: 6, md: 4, lg: 2 }}
+                                sx={{ minWidth: 0 }}
                                 key={
                                     card.title
                                 }

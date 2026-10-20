@@ -140,6 +140,8 @@ const DashboardLayout = () => {
 
                         width: "100%",
 
+                        minWidth: 0,
+
                         boxSizing: "border-box",
 
                         px: {
