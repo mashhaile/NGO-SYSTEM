@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -345,14 +347,6 @@ app.use(
 
 // ================= Test / Health Routes =================
 
-app.get("/", (req, res) => {
-
-    res.json({
-        message: "NGO SaaS API is running"
-    });
-
-});
-
 app.get("/health", (req, res) => {
 
     res.json({
@@ -360,6 +354,61 @@ app.get("/health", (req, res) => {
     });
 
 });
+
+
+// Unknown API paths: JSON 404 (never the frontend page)
+
+app.use("/api", (req, res) => {
+
+    res.status(404).json({
+        success: false,
+        message: "API route not found"
+    });
+
+});
+
+
+// ================= Frontend (single-service deploy) =================
+// When the frontend has been built (frontend/dist), the API also serves
+// it, so one Render Web Service hosts the whole system on one URL.
+// Any non-API GET returns index.html so client-side routes such as
+// /share/donor/:token work on refresh or when opened from a link.
+
+const frontendDist =
+    path.join(__dirname, "..", "frontend", "dist");
+
+const frontendIndex =
+    path.join(frontendDist, "index.html");
+
+if (fs.existsSync(frontendIndex)) {
+
+    app.use(
+        express.static(frontendDist, {
+            index: false,
+            maxAge: "1h"
+        })
+    );
+
+    app.get(/^(?!\/api\/).*/, (req, res) => {
+
+        res.setHeader("Cache-Control", "no-cache");
+
+        res.sendFile(frontendIndex);
+
+    });
+
+}
+else {
+
+    app.get("/", (req, res) => {
+
+        res.json({
+            message: "NGO SaaS API is running"
+        });
+
+    });
+
+}
 
 
 // ================= Error Middleware =================
