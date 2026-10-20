@@ -23,6 +23,7 @@ import {
 
 
 import {
+    PageHeader,
     PageCard,
     FormSection,
     FormGrid,
@@ -543,6 +544,11 @@ const EnterpriseMemberEditPage = () => {
             }}
         >
 
+            <PageHeader
+                title="Edit Enterprise Member"
+                subtitle="Update the member's role and dates"
+            />
+
             {/* =================================================
                 ERROR
             ================================================= */}
@@ -581,7 +587,7 @@ const EnterpriseMemberEditPage = () => {
             <PageCard>
 
                 <FormSection
-                    title="Edit Enterprise Member"
+                    title="Member Details"
                 >
 
                     <FormGrid>

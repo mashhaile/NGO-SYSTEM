@@ -123,6 +123,11 @@ const extractArray = response => {
 // EDIT PAGE
 // ==========================================================
 
+import {
+    PageHeader
+} from "../../../components/ui";
+
+
 const LookupEditPage = () => {
 
     const {
@@ -835,53 +840,13 @@ const LookupEditPage = () => {
 
             {/* HEADER */}
 
-            <Stack sx={{ alignItems: {
-                    xs: "flex-start",
-                    sm: "center"
-                }, mb: 3 }}
-                direction={{
-                    xs: "column",
-                    sm: "row"
-                }}
-                spacing={2}
-            >
-
-                <Button
-                    component={Link}
-                    to="/lookups"
-                    startIcon={<ArrowBack />}
-                    disabled={
-                        updateMutation.isPending
-                    }
-                >
-                    Back to Lookups
-                </Button>
-
-
-                <Box>
-
-                    <Typography
-                        variant="h4"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        Edit Lookup
-                    </Typography>
-
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-                        Update the lookup value, code, category, or status.
-                    </Typography>
-
-                </Box>
-
-            </Stack>
+            <PageHeader
+                title="Edit Lookup"
+                subtitle="Update the lookup value, code, category, or status."
+                action={() => navigate("/lookups")}
+                actionLabel="Back"
+                actionIcon={<ArrowBack />}
+            />
 
             {/* FORM */}
 

@@ -23,6 +23,7 @@ import {
 
 
 import {
+    PageHeader,
     PageCard,
     FormSection,
     FormGrid,
@@ -340,6 +341,11 @@ const EnterpriseMemberCreatePage = () => {
             }}
         >
 
+            <PageHeader
+                title="Add Enterprise Member"
+                subtitle="Add a beneficiary to this enterprise"
+            />
+
             {/* =================================================
                 ERROR
             ================================================= */}
@@ -378,7 +384,7 @@ const EnterpriseMemberCreatePage = () => {
             <PageCard>
 
                 <FormSection
-                    title="Add Enterprise Member"
+                    title="Member Details"
                 >
 
                     <FormGrid>

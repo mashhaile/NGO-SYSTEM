@@ -1,3 +1,7 @@
+import {
+    PageHeader
+} from "../../../components/ui";
+
 
 import {
     useState
@@ -547,54 +551,16 @@ const CustomFieldCreatePage = () => {
                 HEADER
             ================================================== */}
 
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    mb: 3
-                }}
-            >
-
-                <Button
-                    startIcon={
-                        <ArrowBack />
-                    }
-                    onClick={() =>
+            <PageHeader
+                title="Create Custom Field"
+                subtitle="Add a custom field to an organization module."
+                action={() =>
                         navigate(
                             "/settings/custom-fields"
-                        )
-                    }
-                >
-                    Back
-                </Button>
-
-
-                <Box>
-
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        Create Custom Field
-                    </Typography>
-
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-                        Add a custom field to an
-                        organization module.
-                    </Typography>
-
-                </Box>
-
-            </Box>
+                        )}
+                actionLabel="Back"
+                actionIcon={<ArrowBack />}
+            />
 
             {/* ==================================================
                 FORM

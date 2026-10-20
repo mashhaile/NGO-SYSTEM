@@ -1,4 +1,8 @@
 import {
+    PageHeader
+} from "../../../components/ui";
+
+import {
     useEffect,
     useState
 } from "react";
@@ -757,54 +761,18 @@ const CustomFieldEditPage = () => {
                 HEADER
             ================================================== */}
 
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    mb: 3
-                }}
-            >
-
-                <Button
-                    startIcon={
-                        <ArrowBack />
-                    }
-                    onClick={() =>
+            <PageHeader
+                title="Edit Custom Field"
+                subtitle="Update the custom field configuration."
+                action={() =>
                         navigate(
                             "/settings/custom-fields"
                         )
                     }
                     disabled={saving}
-                >
-                    Back
-                </Button>
-
-
-                <Box>
-
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        Edit Custom Field
-                    </Typography>
-
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-                        Update the custom field configuration.
-                    </Typography>
-
-                </Box>
-
-            </Box>
+                actionLabel="Back"
+                actionIcon={<ArrowBack />}
+            />
 
             {/* ==================================================
                 FORM

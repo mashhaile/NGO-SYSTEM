@@ -127,6 +127,21 @@ const EMPTY_FORM = {
 // PAGE
 // =====================================================
 
+// "activityRuns" -> "Activity Runs", "storageMB" -> "Storage (MB)"
+
+const LABELS = {
+    storageMB: "Storage (MB)",
+    apiAccess: "API Access",
+    aiReports: "AI Reports"
+};
+
+const labelFor = (key) =>
+    LABELS[key] ||
+    key
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/^\w/, char => char.toUpperCase());
+
+
 const PlanListPage = () => {
 
     const [
@@ -799,7 +814,7 @@ const PlanListPage = () => {
                                                     variant="body2"
                                                 >
                                                     <strong>
-                                                        {key}:
+                                                        {labelFor(key)}:
                                                     </strong>{" "}
 
                                                     {value === -1
@@ -863,7 +878,7 @@ const PlanListPage = () => {
 
                                                     <Chip
                                                         key={key}
-                                                        label={`${key}: ${
+                                                        label={`${labelFor(key)}: ${
                                                             value
                                                                 ? "Yes"
                                                                 : "No"

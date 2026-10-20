@@ -1,4 +1,8 @@
 import {
+    PageHeader
+} from "../../../components/ui";
+
+import {
     PASSWORD_RULE_TEXT,
     getPasswordProblem
 } from "../../../utils/passwordRule";
@@ -17,7 +21,6 @@ import {
     MenuItem,
     Select,
     TextField,
-    Typography
 } from "@mui/material";
 
 import {
@@ -211,49 +214,14 @@ const UserCreatePage = () => {
                 HEADER
             ================================== */}
 
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    mb: 3
-                }}
-            >
-
-                <Button
-                    startIcon={<ArrowBack />}
-                    onClick={() =>
-                        navigate("/users")
-                    }
-                >
-                    Back
-                </Button>
-
-
-                <Box>
-
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        Create User
-                    </Typography>
-
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-                        Add a new organization user.
-                    </Typography>
-
-                </Box>
-
-            </Box>
+            <PageHeader
+                title="Create User"
+                subtitle="Add a new organization user."
+                action={() =>
+                        navigate("/users")}
+                actionLabel="Back"
+                actionIcon={<ArrowBack />}
+            />
 
             {/* ==================================
                 FORM

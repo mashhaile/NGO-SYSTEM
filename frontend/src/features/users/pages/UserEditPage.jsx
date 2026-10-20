@@ -1,4 +1,8 @@
 import {
+    PageHeader
+} from "../../../components/ui";
+
+import {
     useEffect,
     useState
 } from "react";
@@ -14,7 +18,6 @@ import {
     MenuItem,
     Select,
     TextField,
-    Typography
 } from "@mui/material";
 
 import {
@@ -312,49 +315,14 @@ const UserEditPage = () => {
                 HEADER
             ================================== */}
 
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    mb: 3
-                }}
-            >
-
-                <Button
-                    startIcon={<ArrowBack />}
-                    onClick={() =>
-                        navigate("/users")
-                    }
-                >
-                    Back
-                </Button>
-
-
-                <Box>
-
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            fontWeight: 700
-                        }}
-                    >
-                        Edit User
-                    </Typography>
-
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-                        Update user information and access.
-                    </Typography>
-
-                </Box>
-
-            </Box>
+            <PageHeader
+                title="Edit User"
+                subtitle="Update user information and access."
+                action={() =>
+                        navigate("/users")}
+                actionLabel="Back"
+                actionIcon={<ArrowBack />}
+            />
 
             {/* ==================================
                 FORM
