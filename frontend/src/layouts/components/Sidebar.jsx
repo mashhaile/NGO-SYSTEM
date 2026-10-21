@@ -72,8 +72,6 @@ import PERMISSIONS
     from "../../constants/permissions";
 
 
-import axiosClient
-    from "../../services/axiosClient";
 import {
     getOrganizationsApi
 } from "../../features/superadmin/api/organizationApi";

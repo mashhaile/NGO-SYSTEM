@@ -132,9 +132,7 @@ const DynamicField = ({
     switch (field.type) {
 
         case "text":
-
         case "email":
-
         case "phone":
 
             return (
@@ -181,7 +179,6 @@ const DynamicField = ({
         // ==================================================
 
         case "number":
-
         case "currency":
 
             return (

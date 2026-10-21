@@ -50,6 +50,180 @@ import RecentActivity
     from "../components/RecentActivity";
 
 
+/* ======================================================
+   SECTION HEADER
+====================================================== */
+
+const SectionHeader = ({
+    icon,
+    title,
+    subtitle
+}) => {
+
+    return (
+        <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ alignItems: "center",
+                mb: 2.5
+            }}
+        >
+
+            <Box
+                sx={{
+
+                    width: 42,
+
+                    height: 42,
+
+                    borderRadius: 2.5,
+
+                    display: "flex",
+
+                    alignItems: "center",
+
+                    justifyContent: "center",
+
+                    backgroundColor:
+                        "#f0fdf4",
+
+                    color:
+                        "primary.main",
+
+                    flexShrink: 0
+
+                }}
+            >
+
+                {icon}
+
+            </Box>
+
+            <Box
+                sx={{
+                    minWidth: 0
+                }}
+            >
+
+                <Typography
+                    variant="h6"
+                    sx={{
+                        fontWeight: 800,
+                        color:
+                            "text.primary",
+                        lineHeight: 1.2
+                    }}
+                >
+
+                    {title}
+
+                </Typography>
+
+
+                {subtitle && (
+
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: "text.secondary",
+                            mt: 0.45
+                        }}>
+
+                        {subtitle}
+
+                    </Typography>
+
+                )}
+
+            </Box>
+
+        </Stack>
+    );
+
+};
+
+
+/* ======================================================
+   CHART HEADER
+====================================================== */
+
+const ChartHeader = ({
+    icon,
+    title,
+    subtitle
+}) => {
+
+    return (
+        <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ alignItems: "center",
+                mb: 2.5
+            }}
+        >
+
+            <Box
+                sx={{
+
+                    width: 40,
+
+                    height: 40,
+
+                    borderRadius: 2.5,
+
+                    display: "flex",
+
+                    alignItems: "center",
+
+                    justifyContent: "center",
+
+                    backgroundColor:
+                        "#f0fdf4",
+
+                    color:
+                        "primary.main"
+
+                }}
+            >
+
+                {icon}
+
+            </Box>
+
+            <Box>
+
+                <Typography
+                    sx={{
+                        fontWeight: 800
+                    }}
+                >
+
+                    {title}
+
+                </Typography>
+
+
+                <Typography
+                    variant="caption"
+                    sx={{
+                        color: "text.secondary"
+                    }}
+                >
+
+                    {subtitle}
+
+                </Typography>
+
+            </Box>
+
+        </Stack>
+    );
+
+};
+
+
+
+
 const DashboardPage = () => {
 
     const dispatch =
@@ -216,178 +390,6 @@ const DashboardPage = () => {
                 "0 8px 28px rgba(15, 23, 42, 0.07)"
 
         }
-
-    };
-
-
-    /* ======================================================
-       SECTION HEADER
-    ====================================================== */
-
-    const SectionHeader = ({
-        icon,
-        title,
-        subtitle
-    }) => {
-
-        return (
-            <Stack
-                direction="row"
-                spacing={1.5}
-                sx={{ alignItems: "center",
-                    mb: 2.5
-                }}
-            >
-
-                <Box
-                    sx={{
-
-                        width: 42,
-
-                        height: 42,
-
-                        borderRadius: 2.5,
-
-                        display: "flex",
-
-                        alignItems: "center",
-
-                        justifyContent: "center",
-
-                        backgroundColor:
-                            "#f0fdf4",
-
-                        color:
-                            "primary.main",
-
-                        flexShrink: 0
-
-                    }}
-                >
-
-                    {icon}
-
-                </Box>
-
-                <Box
-                    sx={{
-                        minWidth: 0
-                    }}
-                >
-
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            fontWeight: 800,
-                            color:
-                                "text.primary",
-                            lineHeight: 1.2
-                        }}
-                    >
-
-                        {title}
-
-                    </Typography>
-
-
-                    {subtitle && (
-
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                color: "text.secondary",
-                                mt: 0.45
-                            }}>
-
-                            {subtitle}
-
-                        </Typography>
-
-                    )}
-
-                </Box>
-
-            </Stack>
-        );
-
-    };
-
-
-    /* ======================================================
-       CHART HEADER
-    ====================================================== */
-
-    const ChartHeader = ({
-        icon,
-        title,
-        subtitle
-    }) => {
-
-        return (
-            <Stack
-                direction="row"
-                spacing={1.5}
-                sx={{ alignItems: "center",
-                    mb: 2.5
-                }}
-            >
-
-                <Box
-                    sx={{
-
-                        width: 40,
-
-                        height: 40,
-
-                        borderRadius: 2.5,
-
-                        display: "flex",
-
-                        alignItems: "center",
-
-                        justifyContent: "center",
-
-                        backgroundColor:
-                            "#f0fdf4",
-
-                        color:
-                            "primary.main"
-
-                    }}
-                >
-
-                    {icon}
-
-                </Box>
-
-                <Box>
-
-                    <Typography
-                        sx={{
-                            fontWeight: 800
-                        }}
-                    >
-
-                        {title}
-
-                    </Typography>
-
-
-                    <Typography
-                        variant="caption"
-                        sx={{
-                            color: "text.secondary"
-                        }}
-                    >
-
-                        {subtitle}
-
-                    </Typography>
-
-                </Box>
-
-            </Stack>
-        );
 
     };
 

@@ -482,38 +482,7 @@ const getDetailAllocation = (
 // =====================================================
 // GET SERVICE ITEM ALLOCATIONS
 // =====================================================
-
-const getServiceItemAllocations = (
-    beneficiary,
-    serviceItemId
-) => {
-
-    if (
-        !beneficiary ||
-        !Array.isArray(
-            beneficiary?.allocations
-        )
-    ) {
-
-        return [];
-
-    }
-
-    return beneficiary.allocations.filter(
-        (
-            allocation
-        ) =>
-            String(
-                getAllocationServiceItemId(
-                    allocation
-                )
-            ) ===
-            String(
-                serviceItemId
-            )
-    );
-
-};
+
 
 
 // =====================================================

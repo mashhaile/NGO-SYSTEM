@@ -7,8 +7,7 @@ import {
     MenuItem,
     Select,
     Tooltip,
-    Typography,
-    Stack
+    Typography
 } from "@mui/material";
 
 import { Delete } from "@mui/icons-material";

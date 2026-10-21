@@ -1485,8 +1485,7 @@ const normalizeDonationOptions = (
                     "";
 
 
-                let label =
-                    "";
+                let label;
 
 
                 if (

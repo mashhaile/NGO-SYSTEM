@@ -917,15 +917,6 @@ const BeneficiaryDetailsPage = () => {
                                             );
 
 
-                                        const definition =
-                                            customFields.find(
-                                                item =>
-                                                    String(
-                                                        item?._id ||
-                                                        item?.id
-                                                    ) ===
-                                                    String(fieldId)
-                                            );
 
 
                                         return (

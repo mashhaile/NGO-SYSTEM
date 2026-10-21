@@ -638,15 +638,9 @@ const OrganizationTable = ({
                                         normalizedStatus ===
                                         "active";
 
+
 
-                                    const isSuspended =
-                                        normalizedStatus ===
-                                        "suspended";
-
-
-                                    const isInactive =
-                                        normalizedStatus ===
-                                        "inactive";
+
 
 
                                     return (

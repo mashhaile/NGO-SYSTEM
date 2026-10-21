@@ -87,6 +87,135 @@ import {
 // SUPER ADMIN ORGANIZATION DETAILS
 // =====================================================
 
+// =================================================
+// SECTION
+// =================================================
+
+const Section = ({
+    title,
+    subtitle,
+    children
+}) => (
+
+    <Paper
+        elevation={0}
+        sx={{
+            p: {
+                xs: 2,
+                sm: 3
+            },
+            mb: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2
+        }}
+    >
+
+        <Box
+            sx={{
+                mb: 2.5
+            }}
+        >
+
+            <Typography
+                variant="h6"
+                sx={{
+                    fontWeight: 700
+                }}
+            >
+
+                {title}
+
+            </Typography>
+
+
+            {
+                subtitle && (
+
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: "text.secondary",
+                            mt: 0.5
+                        }}>
+
+                        {subtitle}
+
+                    </Typography>
+
+                )
+            }
+
+        </Box>
+
+
+        <Divider
+            sx={{
+                mb: 3
+            }}
+        />
+
+
+        {children}
+
+    </Paper>
+
+);
+
+
+// =================================================
+// FIELD
+// =================================================
+
+const Field = ({
+    label,
+    value,
+    children
+}) => (
+
+    <Box>
+
+        <Typography
+            variant="caption"
+            sx={{
+                color: "text.secondary",
+                display: "block",
+                mb: 0.5,
+                fontWeight: 600
+            }}>
+
+            {label}
+
+        </Typography>
+
+
+        {
+            children || (
+
+                <Typography
+                    variant="body1"
+                    sx={{
+                        fontWeight: 500,
+                        wordBreak: "break-word"
+                    }}
+                >
+
+                    {
+                        value || "—"
+                    }
+
+                </Typography>
+
+            )
+        }
+
+    </Box>
+
+);
+
+
+
+
 const OrganizationDetailsPage = () => {
 
     const {
@@ -1230,133 +1359,6 @@ const isTrialing =
         );
 
     }
-
-
-    // =================================================
-    // SECTION
-    // =================================================
-
-    const Section = ({
-        title,
-        subtitle,
-        children
-    }) => (
-
-        <Paper
-            elevation={0}
-            sx={{
-                p: {
-                    xs: 2,
-                    sm: 3
-                },
-                mb: 3,
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: 2
-            }}
-        >
-
-            <Box
-                sx={{
-                    mb: 2.5
-                }}
-            >
-
-                <Typography
-                    variant="h6"
-                    sx={{
-                        fontWeight: 700
-                    }}
-                >
-
-                    {title}
-
-                </Typography>
-
-
-                {
-                    subtitle && (
-
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                color: "text.secondary",
-                                mt: 0.5
-                            }}>
-
-                            {subtitle}
-
-                        </Typography>
-
-                    )
-                }
-
-            </Box>
-
-
-            <Divider
-                sx={{
-                    mb: 3
-                }}
-            />
-
-
-            {children}
-
-        </Paper>
-
-    );
-
-
-    // =================================================
-    // FIELD
-    // =================================================
-
-    const Field = ({
-        label,
-        value,
-        children
-    }) => (
-
-        <Box>
-
-            <Typography
-                variant="caption"
-                sx={{
-                    color: "text.secondary",
-                    display: "block",
-                    mb: 0.5,
-                    fontWeight: 600
-                }}>
-
-                {label}
-
-            </Typography>
-
-
-            {
-                children || (
-
-                    <Typography
-                        variant="body1"
-                        sx={{
-                            fontWeight: 500,
-                            wordBreak: "break-word"
-                        }}
-                    >
-
-                        {
-                            value || "—"
-                        }
-
-                    </Typography>
-
-                )
-            }
-
-        </Box>
-
-    );
 
 
     // =================================================

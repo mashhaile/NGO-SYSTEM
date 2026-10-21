@@ -1149,38 +1149,7 @@ const getDetailItems = (
 // =====================================================
 // DETAIL ITEM TOTAL
 // =====================================================
-
-const getDetailItemTotal = (
-    detailItem
-) => {
-
-    const quantity =
-        getNumber(
-            detailItem?.quantity,
-            0
-        );
-
-    const unitCost =
-        getNumber(
-            detailItem?.unitCost,
-            0
-        );
-
-    if (
-        detailItem?.totalCost !== undefined &&
-        detailItem?.totalCost !== null
-    ) {
-
-        return getNumber(
-            detailItem.totalCost,
-            quantity * unitCost
-        );
-
-    }
-
-    return quantity * unitCost;
-
-};
+
 
 
 // =====================================================

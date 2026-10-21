@@ -1064,9 +1064,7 @@ const {
                                 )
                             }
                             disabled={
-                                !Boolean(
-                                    form?.isPWD
-                                )
+                                !form?.isPWD
                             }
                             value={
                                 disabilityTypeValue

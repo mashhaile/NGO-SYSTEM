@@ -4,9 +4,7 @@ Box,
 
 Typography,
 
-Paper,
-
-Divider
+Paper
 
 }
 

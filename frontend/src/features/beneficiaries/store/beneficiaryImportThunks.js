@@ -81,7 +81,7 @@ export const downloadBeneficiaryTemplateThunk = createAsyncThunk(
 
 
         }
-        catch(error){
+        catch{
 
 
             return thunkAPI.rejectWithValue(

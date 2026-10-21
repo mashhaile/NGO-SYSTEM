@@ -1322,7 +1322,8 @@ const getOrganizationDetails = async (
             organization:
                 organizationId,
 
-            isDeleted: false
+            // users have no isDeleted flag; count non-deleted
+            isDeleted: { $ne: true }
 
         }),
 
