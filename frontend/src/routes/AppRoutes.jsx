@@ -1,4 +1,9 @@
 import {
+    lazy,
+    Suspense
+} from "react";
+
+import {
     Routes,
     Route,
     Navigate
@@ -11,6 +16,10 @@ import {
 
 import DashboardLayout
     from "../layouts/components/DashboardLayout";
+
+import {
+    LoadingState
+} from "../components/ui";
 
 import ProtectedRoute
     from "./ProtectedRoute";
@@ -27,8 +36,7 @@ import SuperAdminRoute
 // ==========================================================
 
 import {
-    LoginPage,
-    ChangePasswordPage
+    LoginPage
 } from "../features/auth";
 
 
@@ -36,265 +44,135 @@ import {
 // NORMAL DASHBOARD
 // ==========================================================
 
-import DashboardPage
-    from "../features/dashboard/pages/DashboardPage";
 
 
 // ==========================================================
 // SUPER ADMIN
 // ==========================================================
 
-import {
-    SuperAdminDashboardPage,
-    OrganizationListPage,
-    OrganizationCreatePage,
-    OrganizationDetailsPage,
-    OrganizationEditPage,
-    PlanListPage,
-    SubscriptionManagementPage
-} from "../features/superadmin";
 
 
 // ==========================================================
 // ORGANIZATION SETTINGS
 // ==========================================================
 
-import OrganizationSettingsPage
-    from "../features/organizations/pages/OrganizationSettingsPage";
 
 
 // ==========================================================
 // CUSTOM FIELDS
 // ==========================================================
 
-import CustomFieldListPage
-    from "../features/customfields/pages/CustomFieldListPage";
 
-import CustomFieldCreatePage
-    from "../features/customfields/pages/CustomFieldCreatePage";
 
-import CustomFieldEditPage
-    from "../features/customfields/pages/CustomFieldEditPage";
 
 
 // ==========================================================
 // PROGRAMS
 // ==========================================================
 
-import {
-    ProgramListPage,
-    ProgramCreatePage,
-    ProgramDetailsPage,
-    ProgramEditPage
-} from "../features/programs";
 
 
 // ==========================================================
 // BENEFICIARIES
 // ==========================================================
 
-import {
-    BeneficiaryListPage,
-    BeneficiaryCreatePage,
-    BeneficiaryDetailsPage,
-    BeneficiaryEditPage
-} from "../features/beneficiaries";
 
-import BeneficiaryImportPage
-    from "../features/beneficiaries/pages/BeneficiaryImportPage";
 
 
 // ==========================================================
 // ENTERPRISES
 // ==========================================================
 
-import EnterpriseListPage
-    from "../features/enterprise/pages/EnterpriseListPage";
 
-import EnterpriseCreatePage
-    from "../features/enterprise/pages/EnterpriseCreatePage";
 
-import EnterpriseDetailsPage
-    from "../features/enterprise/pages/EnterpriseDetailsPage";
 
-import EnterpriseEditPage
-    from "../features/enterprise/pages/EnterpriseEditPage";
 
-import EnterpriseMemberListPage
-    from "../features/enterprise/pages/EnterpriseMemberListPage";
 
-import EnterpriseMemberCreatePage
-    from "../features/enterprise/pages/EnterpriseMemberCreatePage";
 
-import EnterpriseMemberDetailsPage
-    from "../features/enterprise/pages/EnterpriseMemberDetailsPage";
 
-import EnterpriseMemberEditPage
-    from "../features/enterprise/pages/EnterpriseMemberEditPage";
 
 // ==========================================================
 // PROJECTS
 // ==========================================================
 
-import {
-    ProjectListPage,
-    ProjectCreatePage,
-    ProjectDetailsPage,
-    ProjectEditPage
-} from "../features/projects";
 
 
 // ==========================================================
 // ACTIVITIES
 // ==========================================================
 
-import ActivityListPage
-    from "../features/activities/pages/ActivityListPage";
 
-import ActivityCreatePage
-    from "../features/activities/pages/ActivityCreatePage";
 
-import ActivityDetailsPage
-    from "../features/activities/pages/ActivityDetailsPage";
 
-import ActivityEditPage
-    from "../features/activities/pages/ActivityEditPage";
 
 
 // ==========================================================
 // ACTIVITY RUNS
 // ==========================================================
 
-import {
-    ActivityRunListPage,
-    ActivityRunCreatePage,
-    ActivityRunDetailsPage,
-    ActivityRunEditPage
-} from "../features/activityRuns";
 
 
 // ==========================================================
 // TERMS OF REFERENCE
 // ==========================================================
 
-import {
-    TorListPage,
-    TorCreatePage,
-    TorDetailsPage,
-    TorEditPage
-} from "../features/tor";
 
 
 // ==========================================================
 // ATTENDANCE
 // ==========================================================
 
-import AttendanceListPage
-    from "../features/attendance/pages/AttendanceListPage";
 
-import AttendanceCreatePage
-    from "../features/attendance/pages/AttendanceCreatePage";
 
-import AttendanceEditPage
-    from "../features/attendance/pages/AttendanceEditPage";
 
-import AttendanceSheetPage
-    from "../features/attendance/pages/AttendanceSheetPage";
 
 
 // ==========================================================
 // ENROLLMENTS
 // ==========================================================
 
-import {
-    EnrollmentListPage,
-    EnrollmentCreatePage,
-    EnrollmentDetailsPage,
-    EnrollmentEditPage
-} from "../features/enrollments";
 
 
 // ==========================================================
 // SERVICE DELIVERY
 // ==========================================================
 
-import {
-    ServiceDeliveryListPage,
-    ServiceDeliveryCreatePage,
-    ServiceDeliveryDetailsPage,
-    ServiceDeliveryEditPage
-} from "../features/ServiceDelivery";
 
 
 // ==========================================================
 // LOOKUPS
 // ==========================================================
 
-import LookupListPage
-    from "../features/lookups/pages/LookupListPage";
 
-import LookupCreatePage
-    from "../features/lookups/pages/LookupCreatePage";
 
-import LookupCategoryPage
-    from "../features/lookups/pages/LookupCategoryPage";
 
-import LookupEditPage
-    from "../features/lookups/pages/LookupEditPage";
 
 
 // ==========================================================
 // USERS
 // ==========================================================
 
-import {
-    UserListPage,
-    UserCreatePage,
-    UserEditPage
-} from "../features/users";
 
 
 // ==========================================================
 // DONORS
 // ==========================================================
 
-import DonorListPage
-    from "../features/donors/pages/DonorListPage";
 
-import DonorCreatePage
-    from "../features/donors/pages/DonorCreatePage";
 
-import DonorDetailsPage
-    from "../features/donors/pages/DonorDetailsPage";
 
-import DonorEditPage
-    from "../features/donors/pages/DonorEditPage";
 
 
 // ==========================================================
 // DONATIONS
 // ==========================================================
 
-import DonationListPage
-    from "../features/donations/pages/DonationListPage";
 
-import DonationCreatePage
-    from "../features/donations/pages/DonationCreatePage";
 
-import DonationDetailsPage
-    from "../features/donations/pages/DonationDetailsPage";
 
-import DonationEditPage
-    from "../features/donations/pages/DonationEditPage";
 
-import DonationTracePage
-    from "../features/donations/pages/DonationTracePage";
 
-import UntracedSpendingPage
-    from "../features/donations/pages/UntracedSpendingPage";
 
-import DonorSharePage
-    from "../features/donations/pages/DonorSharePage";
 
 
 
@@ -302,16 +180,126 @@ import DonorSharePage
 // REPORTS
 // ==========================================================
 
-import ReportsPage
-    from "../features/reports/pages/ReportsPage";
 
 // ==========================================================
 // APP ROUTES
 // ==========================================================
 
+// ==========================================================
+// PAGES (loaded on demand)
+// ==========================================================
+//
+// Each page is its own file, downloaded the first time it
+// is opened. After a new deploy an open tab may ask for a
+// file that no longer exists: reload once to get the new
+// version instead of showing an error.
+//
+const lazyPage = (load) =>
+    lazy(() =>
+        load()
+            .then(module => {
+                sessionStorage.removeItem("page-reload");
+                return module;
+            })
+            .catch(error => {
+                if (!sessionStorage.getItem("page-reload")) {
+                    sessionStorage.setItem("page-reload", "1");
+                    window.location.reload();
+                    return new Promise(() => {});
+                }
+                throw error;
+            })
+    );
+
+const DashboardPage = lazyPage(() => import("../features/dashboard/pages/DashboardPage"));
+const OrganizationSettingsPage = lazyPage(() => import("../features/organizations/pages/OrganizationSettingsPage"));
+const CustomFieldListPage = lazyPage(() => import("../features/customfields/pages/CustomFieldListPage"));
+const CustomFieldCreatePage = lazyPage(() => import("../features/customfields/pages/CustomFieldCreatePage"));
+const CustomFieldEditPage = lazyPage(() => import("../features/customfields/pages/CustomFieldEditPage"));
+const BeneficiaryImportPage = lazyPage(() => import("../features/beneficiaries/pages/BeneficiaryImportPage"));
+const EnterpriseListPage = lazyPage(() => import("../features/enterprise/pages/EnterpriseListPage"));
+const EnterpriseCreatePage = lazyPage(() => import("../features/enterprise/pages/EnterpriseCreatePage"));
+const EnterpriseDetailsPage = lazyPage(() => import("../features/enterprise/pages/EnterpriseDetailsPage"));
+const EnterpriseEditPage = lazyPage(() => import("../features/enterprise/pages/EnterpriseEditPage"));
+const EnterpriseMemberListPage = lazyPage(() => import("../features/enterprise/pages/EnterpriseMemberListPage"));
+const EnterpriseMemberCreatePage = lazyPage(() => import("../features/enterprise/pages/EnterpriseMemberCreatePage"));
+const EnterpriseMemberDetailsPage = lazyPage(() => import("../features/enterprise/pages/EnterpriseMemberDetailsPage"));
+const EnterpriseMemberEditPage = lazyPage(() => import("../features/enterprise/pages/EnterpriseMemberEditPage"));
+const ActivityListPage = lazyPage(() => import("../features/activities/pages/ActivityListPage"));
+const ActivityCreatePage = lazyPage(() => import("../features/activities/pages/ActivityCreatePage"));
+const ActivityDetailsPage = lazyPage(() => import("../features/activities/pages/ActivityDetailsPage"));
+const ActivityEditPage = lazyPage(() => import("../features/activities/pages/ActivityEditPage"));
+const AttendanceListPage = lazyPage(() => import("../features/attendance/pages/AttendanceListPage"));
+const AttendanceCreatePage = lazyPage(() => import("../features/attendance/pages/AttendanceCreatePage"));
+const AttendanceEditPage = lazyPage(() => import("../features/attendance/pages/AttendanceEditPage"));
+const AttendanceSheetPage = lazyPage(() => import("../features/attendance/pages/AttendanceSheetPage"));
+const LookupListPage = lazyPage(() => import("../features/lookups/pages/LookupListPage"));
+const LookupCreatePage = lazyPage(() => import("../features/lookups/pages/LookupCreatePage"));
+const LookupCategoryPage = lazyPage(() => import("../features/lookups/pages/LookupCategoryPage"));
+const LookupEditPage = lazyPage(() => import("../features/lookups/pages/LookupEditPage"));
+const DonorListPage = lazyPage(() => import("../features/donors/pages/DonorListPage"));
+const DonorCreatePage = lazyPage(() => import("../features/donors/pages/DonorCreatePage"));
+const DonorDetailsPage = lazyPage(() => import("../features/donors/pages/DonorDetailsPage"));
+const DonorEditPage = lazyPage(() => import("../features/donors/pages/DonorEditPage"));
+const DonationListPage = lazyPage(() => import("../features/donations/pages/DonationListPage"));
+const DonationCreatePage = lazyPage(() => import("../features/donations/pages/DonationCreatePage"));
+const DonationDetailsPage = lazyPage(() => import("../features/donations/pages/DonationDetailsPage"));
+const DonationEditPage = lazyPage(() => import("../features/donations/pages/DonationEditPage"));
+const DonationTracePage = lazyPage(() => import("../features/donations/pages/DonationTracePage"));
+const UntracedSpendingPage = lazyPage(() => import("../features/donations/pages/UntracedSpendingPage"));
+const DonorSharePage = lazyPage(() => import("../features/donations/pages/DonorSharePage"));
+const ReportsPage = lazyPage(() => import("../features/reports/pages/ReportsPage"));
+const ChangePasswordPage = lazyPage(() => import("../features/auth/pages/ChangePasswordPage"));
+const SuperAdminDashboardPage = lazyPage(() => import("../features/superadmin/pages/SuperAdminDashboardPage"));
+const OrganizationListPage = lazyPage(() => import("../features/superadmin/pages/OrganizationListPage"));
+const OrganizationCreatePage = lazyPage(() => import("../features/superadmin/pages/OrganizationCreatePage"));
+const OrganizationDetailsPage = lazyPage(() => import("../features/superadmin/pages/OrganizationDetailsPage"));
+const OrganizationEditPage = lazyPage(() => import("../features/superadmin/pages/OrganizationEditPage"));
+const PlanListPage = lazyPage(() => import("../features/superadmin/pages/PlanListPage"));
+const SubscriptionManagementPage = lazyPage(() => import("../features/superadmin/pages/SubscriptionManagementPage"));
+const ProgramListPage = lazyPage(() => import("../features/programs/pages/ProgramListPage"));
+const ProgramCreatePage = lazyPage(() => import("../features/programs/pages/ProgramCreatePage"));
+const ProgramDetailsPage = lazyPage(() => import("../features/programs/pages/ProgramDetailsPage"));
+const ProgramEditPage = lazyPage(() => import("../features/programs/pages/ProgramEditPage"));
+const BeneficiaryListPage = lazyPage(() => import("../features/beneficiaries/pages/BeneficiaryListPage"));
+const BeneficiaryCreatePage = lazyPage(() => import("../features/beneficiaries/pages/BeneficiaryCreatePage"));
+const BeneficiaryDetailsPage = lazyPage(() => import("../features/beneficiaries/pages/BeneficiaryDetailsPage"));
+const BeneficiaryEditPage = lazyPage(() => import("../features/beneficiaries/pages/BeneficiaryEditPage"));
+const ProjectListPage = lazyPage(() => import("../features/projects/pages/projectListPage"));
+const ProjectCreatePage = lazyPage(() => import("../features/projects/pages/projectCreatePage"));
+const ProjectDetailsPage = lazyPage(() => import("../features/projects/pages/projectDetailsPage"));
+const ProjectEditPage = lazyPage(() => import("../features/projects/pages/projectEditPage"));
+const ActivityRunListPage = lazyPage(() => import("../features/activityRuns/pages/ActivityRunListPage"));
+const ActivityRunCreatePage = lazyPage(() => import("../features/activityRuns/pages/ActivityRunCreatePage"));
+const ActivityRunDetailsPage = lazyPage(() => import("../features/activityRuns/pages/ActivityRunDetailsPage"));
+const ActivityRunEditPage = lazyPage(() => import("../features/activityRuns/pages/ActivityRunEditPage"));
+const TorListPage = lazyPage(() => import("../features/tor/pages/TorListPage"));
+const TorCreatePage = lazyPage(() => import("../features/tor/pages/TorCreatePage"));
+const TorDetailsPage = lazyPage(() => import("../features/tor/pages/TorDetailsPage"));
+const TorEditPage = lazyPage(() => import("../features/tor/pages/TorEditPage"));
+const EnrollmentListPage = lazyPage(() => import("../features/enrollments/pages/EnrollmentListPage"));
+const EnrollmentCreatePage = lazyPage(() => import("../features/enrollments/pages/EnrollmentCreatePage"));
+const EnrollmentDetailsPage = lazyPage(() => import("../features/enrollments/pages/EnrollmentDetailsPage"));
+const EnrollmentEditPage = lazyPage(() => import("../features/enrollments/pages/EnrollmentEditPage"));
+const ServiceDeliveryListPage = lazyPage(() => import("../features/ServiceDelivery/pages/ServiceDeliveryListPage"));
+const ServiceDeliveryCreatePage = lazyPage(() => import("../features/ServiceDelivery/pages/ServiceDeliveryCreatePage"));
+const ServiceDeliveryDetailsPage = lazyPage(() => import("../features/ServiceDelivery/pages/ServiceDeliveryDetailsPage"));
+const ServiceDeliveryEditPage = lazyPage(() => import("../features/ServiceDelivery/pages/ServiceDeliveryEditPage"));
+const UserListPage = lazyPage(() => import("../features/users/pages/UserListPage"));
+const UserCreatePage = lazyPage(() => import("../features/users/pages/UserCreatePage"));
+const UserEditPage = lazyPage(() => import("../features/users/pages/UserEditPage"));
+
+
+const PageFallback = () => (
+    <LoadingState message="Loading..." />
+);
+
+
 const AppRoutes = () => {
 
     return (
+
+        <Suspense fallback={<PageFallback />}>
 
         <Routes>
 
@@ -1103,6 +1091,8 @@ const AppRoutes = () => {
             />
 
         </Routes>
+
+        </Suspense>
 
     );
 
