@@ -60,7 +60,10 @@ const DETAIL_POPULATE = [
     { path: "createdBy", select: USER_FIELDS },
     { path: "submittedBy", select: USER_FIELDS },
     { path: "approvedBy", select: USER_FIELDS },
-    { path: "history.by", select: USER_FIELDS }
+    { path: "history.by", select: USER_FIELDS },
+    { path: "revision.requestedBy", select: USER_FIELDS },
+    { path: "revision.submittedBy", select: USER_FIELDS },
+    { path: "versions.approvedBy", select: USER_FIELDS }
 ];
 
 
@@ -903,5 +906,16 @@ module.exports = {
     deleteBudget,
     submitBudget,
     approveBudget,
-    returnBudget
+    returnBudget,
+
+    // Shared with budgetRevisionService
+    internals: {
+        validateYears,
+        normalizeContent,
+        assertWithinProgram,
+        findBudget,
+        historyEntry,
+        roundMoney,
+        money
+    }
 };

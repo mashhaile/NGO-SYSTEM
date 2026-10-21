@@ -126,6 +126,67 @@ const historySchema =
     );
 
 
+// =====================================================
+// REVISIONS
+// =====================================================
+//
+// An approved budget is changed through a revision, kept
+// on the same record so expenses stay linked to their
+// lines (line _ids are kept):
+//
+//   revision  - the proposed figures while they are
+//               prepared / reviewed (Draft / Submitted /
+//               Returned). The approved figures stay in
+//               force meanwhile.
+//   versions  - the figures each approved version had,
+//               saved when a revision replaces them.
+//
+// =====================================================
+
+const REVISION_STATUS = {
+    DRAFT: "Draft",
+    SUBMITTED: "Submitted",
+    RETURNED: "Returned"
+};
+
+const revisionSchema =
+    new mongoose.Schema(
+        {
+            status: { type: String, enum: Object.values(REVISION_STATUS), default: REVISION_STATUS.DRAFT },
+            reason: { type: String, trim: true, default: "" },
+            reviewComment: { type: String, default: "" },
+            startYear: { type: Number, required: true },
+            endYear: { type: Number, required: true },
+            yearlyAmounts: { type: [yearAmountSchema], default: [] },
+            lines: { type: [budgetLineSchema], default: [] },
+            totalAmount: { type: Number, default: 0 },
+            requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            requestedAt: { type: Date, default: null },
+            submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            submittedAt: { type: Date, default: null }
+        },
+        { _id: false }
+    );
+
+const versionSchema =
+    new mongoose.Schema(
+        {
+            version: Number,
+            startYear: Number,
+            endYear: Number,
+            yearlyAmounts: { type: [yearAmountSchema], default: [] },
+            lines: { type: [budgetLineSchema], default: [] },
+            totalAmount: Number,
+            approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            approvedAt: { type: Date, default: null },
+            // when the next version replaced it, and why
+            replacedAt: { type: Date, default: null },
+            replacedBecause: { type: String, default: "" }
+        },
+        { _id: false }
+    );
+
+
 const BudgetSchema =
     new mongoose.Schema(
         {
@@ -256,6 +317,18 @@ const BudgetSchema =
                 default: []
             },
 
+            // Pending change to an approved budget (see REVISIONS)
+            revision: {
+                type: revisionSchema,
+                default: null
+            },
+
+            // Earlier approved versions
+            versions: {
+                type: [versionSchema],
+                default: []
+            },
+
             createdBy: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "User",
@@ -315,3 +388,4 @@ module.exports =
 module.exports.BUDGET_STATUS = BUDGET_STATUS;
 module.exports.BUDGET_LEVEL = BUDGET_LEVEL;
 module.exports.BUDGET_CATEGORIES = BUDGET_CATEGORIES;
+module.exports.REVISION_STATUS = REVISION_STATUS;

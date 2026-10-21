@@ -87,9 +87,22 @@ const returnBudgetSchema =
     });
 
 
+// Editing a revision: same figures as an update, plus the reason
+
+const updateRevisionSchema =
+    Joi.object({
+        reason: Joi.string().trim().allow("").max(1000),
+        startYear: fiscalYear,
+        endYear: fiscalYear,
+        yearlyAmounts: Joi.array().items(yearAmount),
+        lines: Joi.array().items(line).max(200)
+    }).min(1);
+
+
 module.exports = {
     createBudgetSchema,
     updateBudgetSchema,
     approveBudgetSchema,
-    returnBudgetSchema
+    returnBudgetSchema,
+    updateRevisionSchema
 };

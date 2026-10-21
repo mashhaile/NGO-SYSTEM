@@ -15,7 +15,8 @@ const {
     createBudgetSchema,
     updateBudgetSchema,
     approveBudgetSchema,
-    returnBudgetSchema
+    returnBudgetSchema,
+    updateRevisionSchema
 } = require("../validators/budgetValidator");
 
 
@@ -55,6 +56,28 @@ router.post("/:id/submit", ...base, authorize(PERMISSIONS.BUDGET_UPDATE), contro
 router.post("/:id/approve", ...base, authorize(PERMISSIONS.BUDGET_APPROVE), validate(approveBudgetSchema), controller.approveBudget);
 
 router.post("/:id/return", ...base, authorize(PERMISSIONS.BUDGET_APPROVE), validate(returnBudgetSchema), controller.returnBudget);
+
+
+// Revisions of approved budgets
+//
+// POST   /budgets/:id/revision          start (copy of the approved figures)
+// PUT    /budgets/:id/revision          edit figures / reason (Draft / Returned)
+// DELETE /budgets/:id/revision          cancel (Draft / Returned)
+// POST   /budgets/:id/revision/submit   -> Submitted (reason required)
+// POST   /budgets/:id/revision/approve  becomes the budget, version + 1 (budget.approve)
+// POST   /budgets/:id/revision/return   back to the author (budget.approve, comment)
+
+router.post("/:id/revision", ...base, authorize(PERMISSIONS.BUDGET_UPDATE), controller.startRevision);
+
+router.put("/:id/revision", ...base, authorize(PERMISSIONS.BUDGET_UPDATE), validate(updateRevisionSchema), controller.updateRevision);
+
+router.delete("/:id/revision", ...base, authorize(PERMISSIONS.BUDGET_UPDATE), controller.cancelRevision);
+
+router.post("/:id/revision/submit", ...base, authorize(PERMISSIONS.BUDGET_UPDATE), controller.submitRevision);
+
+router.post("/:id/revision/approve", ...base, authorize(PERMISSIONS.BUDGET_APPROVE), validate(approveBudgetSchema), controller.approveRevision);
+
+router.post("/:id/revision/return", ...base, authorize(PERMISSIONS.BUDGET_APPROVE), validate(returnBudgetSchema), controller.returnRevision);
 
 
 module.exports = router;

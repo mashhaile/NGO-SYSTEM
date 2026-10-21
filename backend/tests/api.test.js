@@ -775,6 +775,132 @@ test("reports: exports work for reports without a custom layout", { skip }, asyn
 
 
 // =====================================================
+// BUDGET REVISIONS
+// =====================================================
+//
+// Budget one (approved, v1): Personnel 2026 = 400,000 with
+// 150,000 spent; Training 2026 = 200,000 with 150,000 spent.
+// Program budget: 1,000,000 a year.
+//
+// =====================================================
+
+const revisedLines = (budget, change) =>
+    budget.lines.map(line => ({
+        _id: line._id,
+        category: line.category,
+        description: line.description,
+        amounts: line.amounts.map(item => ({
+            fiscalYear: item.fiscalYear,
+            amount: change(line, item.fiscalYear, item.amount)
+        }))
+    }));
+
+
+test("revisions: protect spending, ceiling and require a reason", { skip }, async () => {
+
+    const fin = state.financeToken;
+    const id = state.budgetOneId;
+
+    const started = await api("POST", `/budgets/${id}/revision`, { token: fin });
+    assert.equal(started.status, 201, started.data?.message);
+    assert.equal(started.data.data.revision.status, "Draft");
+    assert.equal(started.data.data.status, "Approved", "the approved figures stay in force");
+
+    assert.equal((await api("POST", `/budgets/${id}/revision`, { token: fin })).status, 409, "only one revision at a time");
+
+    const budget = started.data.data;
+    const set = (lines, extra = {}) => api("PUT", `/budgets/${id}/revision`, { token: fin, body: { lines, ...extra } });
+    const submit = () => api("POST", `/budgets/${id}/revision/submit`, { token: fin });
+
+    // Below what is spent
+    await set(revisedLines(budget, (line, year, amount) => (line.category === "Personnel" && year === 2026 ? 100000 : amount)), { reason: "Cut personnel" });
+    const belowSpent = await submit();
+    assert.equal(belowSpent.status, 400);
+    assert.match(belowSpent.data.message, /already spent/);
+
+    // Removing a line that has expenses
+    const withoutTraining =
+        revisedLines(budget, (line, year, amount) => amount).filter(line => line.category !== "Training & Workshops");
+    await set(withoutTraining);
+    const removed = await submit();
+    assert.equal(removed.status, 400);
+    assert.match(removed.data.message, /cannot be removed/);
+
+    // Over the program ceiling (1,000,000 in 2026)
+    await set(revisedLines(budget, (line, year, amount) => (line.category === "Personnel" && year === 2026 ? 2000000 : amount)));
+    assert.equal((await submit()).status, 400);
+
+    // A reason is required
+    await set(revisedLines(budget, (line, year, amount) => (line.category === "Personnel" && year === 2026 ? 450000 : amount)), { reason: "" });
+    assert.equal((await submit()).status, 400);
+
+});
+
+
+test("revisions: approval makes a new version and keeps expenses linked", { skip }, async () => {
+
+    const fin = state.financeToken;
+    const de = state.dataEntryToken;
+    const id = state.budgetOneId;
+
+    const before = (await api("GET", `/budgets/${id}`, { token: fin })).data.data;
+    const personnelId = before.lines.find(line => line.category === "Personnel")._id;
+
+    await api("PUT", `/budgets/${id}/revision`, { token: fin, body: { reason: "Second facilitator from April" } });
+    assert.equal((await api("POST", `/budgets/${id}/revision/submit`, { token: fin })).status, 200);
+
+    // Data entry cannot approve
+    assert.equal((await api("POST", `/budgets/${id}/revision/approve`, { token: de, body: {} })).status, 403);
+
+    const approved = await api("POST", `/budgets/${id}/revision/approve`, { token: fin, body: { comment: "OK" } });
+    assert.equal(approved.status, 200, approved.data?.message);
+
+    const after = approved.data.data;
+    assert.equal(after.version, 2);
+    assert.equal(after.revision, null);
+    assert.equal(after.versions.length, 1);
+    assert.equal(after.versions[0].version, 1);
+    assert.equal(after.versions[0].replacedBecause, "Second facilitator from April");
+
+    const personnel = after.summary.lines.find(line => line.category === "Personnel");
+    assert.equal(String(personnel._id), String(personnelId), "line id kept, so expenses stay attached");
+    const year = personnel.amounts.find(item => item.fiscalYear === 2026);
+    assert.equal(year.amount, 450000);
+    assert.equal(year.spent, 150000);
+    assert.equal(year.remaining, 300000);
+
+    // Old figures are kept in the version
+    const oldPersonnel = after.versions[0].lines.find(line => line.category === "Personnel");
+    assert.equal(oldPersonnel.amounts.find(item => item.fiscalYear === 2026).amount, 400000);
+
+});
+
+
+test("revisions: return and cancel", { skip }, async () => {
+
+    const fin = state.financeToken;
+    const id = state.budgetOneId;
+
+    assert.equal((await api("POST", `/budgets/${id}/revision`, { token: fin })).status, 201);
+    await api("PUT", `/budgets/${id}/revision`, { token: fin, body: { reason: "Try a change" } });
+    await api("POST", `/budgets/${id}/revision/submit`, { token: fin });
+
+    // Submitted revisions cannot be edited or cancelled
+    assert.equal((await api("PUT", `/budgets/${id}/revision`, { token: fin, body: { reason: "x y z" } })).status, 409);
+
+    assert.equal((await api("POST", `/budgets/${id}/revision/return`, { token: fin, body: {} })).status, 400, "comment required");
+    const returned = await api("POST", `/budgets/${id}/revision/return`, { token: fin, body: { comment: "Not needed now" } });
+    assert.equal(returned.data.data.revision.status, "Returned");
+
+    const cancelled = await api("DELETE", `/budgets/${id}/revision`, { token: fin });
+    assert.equal(cancelled.status, 200);
+    assert.equal(cancelled.data.data.revision, null);
+    assert.equal(cancelled.data.data.version, 2, "cancelling changes nothing");
+
+});
+
+
+// =====================================================
 // ERROR CODES + SEARCH
 // =====================================================
 

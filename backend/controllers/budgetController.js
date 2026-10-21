@@ -1,5 +1,7 @@
 const budgetService = require("../services/budgetService");
 
+const revisionService = require("../services/budgetRevisionService");
+
 
 // Thin handlers: errors go to the central error handler,
 // which picks the HTTP status (utils/errorStatus).
@@ -67,6 +69,38 @@ module.exports = {
     returnBudget: handle(
         req => budgetService.returnBudget(req.params.id, org(req), user(req), req.body.comment),
         { message: "Budget returned for changes" }
+    ),
+
+    // Revisions of approved budgets
+
+    startRevision: handle(
+        req => revisionService.startRevision(req.params.id, org(req), user(req)),
+        { status: 201, message: "Revision started" }
+    ),
+
+    updateRevision: handle(
+        req => revisionService.updateRevision(req.params.id, req.body, org(req), user(req)),
+        { message: "Revision saved" }
+    ),
+
+    cancelRevision: handle(
+        req => revisionService.cancelRevision(req.params.id, org(req), user(req)),
+        { message: "Revision cancelled" }
+    ),
+
+    submitRevision: handle(
+        req => revisionService.submitRevision(req.params.id, org(req), user(req)),
+        { message: "Revision submitted for approval" }
+    ),
+
+    approveRevision: handle(
+        req => revisionService.approveRevision(req.params.id, org(req), user(req), req.body.comment),
+        { message: "Revision approved" }
+    ),
+
+    returnRevision: handle(
+        req => revisionService.returnRevision(req.params.id, org(req), user(req), req.body.comment),
+        { message: "Revision returned for changes" }
     )
 
 };
