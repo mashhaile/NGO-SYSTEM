@@ -76,8 +76,12 @@ until purchase orders exist).
   a revision (new figures + reason -> submit -> approve); the old
   figures are kept as a version, expenses stay attached. Budget page
   shows current vs proposed and the version history. Not deployed yet.
-- Next: restyle old list pages (Programs, Projects, Donors, ...) to the
-  Budgets / Expenses / Activities list layout.
+- List pages restyled (DONE, not deployed): Programs, Projects, Donors,
+  Donations, Service Deliveries, Attendance, Beneficiaries, Enterprises,
+  Enterprise Members now use the Budgets / Activities layout. Shared
+  helpers: hooks/useServerList, utils/permissions, utils/apiError.
+  Donations and Service Deliveries APIs have no paging / search, so those
+  two filter in the browser (fine for now; add server paging if they grow).
 - Live TOR-000001 has currency "150000": set it to ETB on next deploy.
 
 ## Remaining
