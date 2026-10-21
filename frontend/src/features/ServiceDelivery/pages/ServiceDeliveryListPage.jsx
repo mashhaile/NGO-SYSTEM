@@ -1,519 +1,384 @@
 import {
     useEffect,
+    useMemo,
     useState
 } from "react";
-
-
-import {
-    useDispatch,
-    useSelector
-} from "react-redux";
-
 
 import {
     useNavigate
 } from "react-router-dom";
 
+import {
+    Alert,
+    Box,
+    Link,
+    Typography
+} from "@mui/material";
 
 import {
-    Add
+    Add,
+    Delete,
+    Edit,
+    Visibility
 } from "@mui/icons-material";
-
 
 import {
     PageContainer,
     PageHeader,
-    StatsCards,
+    PageCard,
     SearchToolbar,
-    PageCard
+    DataTable,
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
 } from "../../../components/ui";
 
-
-import ServiceDeliveryTable
-    from "../components/serviceDeliveryTable";
-
+import useAuth
+    from "../../auth/hooks/useAuth";
 
 import {
-    getServiceDeliveries
-} from "../store";
+    getServiceDeliveriesApi,
+    deleteServiceDeliveryApi
+} from "../api/serviceDeliveryApi";
+
+import {
+    getProgramsLookupApi
+} from "../../programs/api/lookupApi";
+
+import { hasPermission } from "../../../utils/permissions";
+import { getApiErrorMessage } from "../../../utils/apiError";
+
+
+const STATUS_OPTIONS =
+    ["Delivered", "Cancelled"].map(value => ({ value, label: value }));
+
+const formatMoney = (value) => {
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount > 0
+        ? `ETB ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : "-";
+};
+
+const lookupName = (item) =>
+    !item ? "" : typeof item === "string" ? item : item.value || item.name || item.label || "";
+
+const personName = (person) => {
+    if (!person || typeof person === "string") return person || "";
+    const full = [person.firstName, person.lastName].filter(Boolean).join(" ");
+    return person.fullName || full || person.name || person.beneficiaryNumber || "";
+};
+
+const beneficiaryNames = (row) => {
+    const list = Array.isArray(row.beneficiaries) ? row.beneficiaries : [];
+    const names = list.map(item => personName(item?.beneficiary || item)).filter(Boolean);
+    if (names.length === 0 && row.beneficiary) names.push(personName(row.beneficiary));
+    return names;
+};
+
+const serviceNames = (row) =>
+    [...new Set((row.items || []).map(item => lookupName(item?.serviceType)).filter(Boolean))];
+
+const idOf = (value) => (value && typeof value === "object" ? value._id : value);
+
+const summarize = (names, shown = 2) =>
+    names.length === 0
+        ? "-"
+        : names.length > shown
+            ? `${names.slice(0, shown).join(", ")} +${names.length - shown} more`
+            : names.join(", ");
 
 
 // =====================================================
-// PAGE
+// SERVICE DELIVERY LIST PAGE
 // =====================================================
+// The API returns all deliveries, so search, filters and
+// paging happen here.
 
 const ServiceDeliveryListPage = () => {
 
-    const dispatch =
-        useDispatch();
+    const navigate = useNavigate();
+
+    const { user } = useAuth();
+
+    const [search, setSearch] = useState("");
+    const [program, setProgram] = useState("");
+    const [status, setStatus] = useState("");
+    const [programOptions, setProgramOptions] = useState([]);
+
+    const [paginationModel, setPaginationModel] =
+        useState({ page: 0, pageSize: 10 });
+
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
+    // Bumped to reload after a delete
+    const [reloadKey, setReloadKey] = useState(0);
+
+    const [result, setResult] =
+        useState({ rows: [], loading: true, error: "" });
 
 
-    const navigate =
-        useNavigate();
+    useEffect(() => {
+        getProgramsLookupApi()
+            .then(({ data }) => setProgramOptions(
+                (data?.data || []).map(item => ({ value: item._id, label: item.name }))
+            ))
+            .catch(() => setProgramOptions([]));
+    }, []);
 
-
-    const {
-        serviceDeliveries = [],
-        loading,
-        pagination
-    } = useSelector(
-        (state) =>
-            state.serviceDelivery
-    );
-
-
-    const [
-        search,
-        setSearch
-    ] = useState("");
-
-
-    const [
-        page,
-        setPage
-    ] = useState(1);
-
-
-    const [
-        limit,
-        setLimit
-    ] = useState(10);
-
-
-    // =================================================
-    // LOAD DATA
-    // =================================================
 
     useEffect(() => {
 
-        const timer =
-            setTimeout(
-                () => {
+        let cancelled = false;
 
-                    dispatch(
-                        getServiceDeliveries(
-                            {
-                                search:
-                                    search.trim(),
+        getServiceDeliveriesApi()
+            .then(({ data: response }) => {
+                if (!cancelled) setResult({ rows: response.data || [], loading: false, error: "" });
+            })
+            .catch(error => {
+                if (!cancelled) {
+                    setResult(prev => ({
+                        ...prev,
+                        loading: false,
+                        error: getApiErrorMessage(error, "Failed to load service deliveries.")
+                    }));
+                }
+            });
 
-                                page,
+        return () => {
+            cancelled = true;
+        };
 
-                                limit
-                            }
-                        )
-                    );
-
-                },
-                500
-            );
-
-
-        return () =>
-            clearTimeout(
-                timer
-            );
-
-    }, [
-        dispatch,
-        search,
-        page,
-        limit
-    ]);
+    }, [reloadKey]);
 
 
-    // =================================================
-    // SEARCH
-    // =================================================
-
-    const handleSearch = (
-        value
-    ) => {
-
-        setSearch(
-            value
+    const rows = useMemo(() => {
+        const term = search.trim().toLowerCase();
+        return result.rows.filter(row =>
+            (!program || idOf(row.program) === program) &&
+            (!status || (row.status || "Delivered") === status) &&
+            (!term || [
+                row.deliveryNumber,
+                lookupName(row.program),
+                lookupName(row.project),
+                lookupName(row.activity),
+                ...beneficiaryNames(row),
+                ...serviceNames(row)
+            ].some(value => String(value || "").toLowerCase().includes(term)))
         );
+    }, [result.rows, search, program, status]);
 
 
-        setPage(
-            1
-        );
+    const handleDelete = async () => {
 
-    };
+        setDeleting(true);
 
-
-    // =================================================
-    // RESET SEARCH
-    // =================================================
-
-    const resetSearch = () => {
-
-        setSearch(
-            ""
-        );
-
-
-        setPage(
-            1
-        );
-
-    };
-
-
-    // =================================================
-    // LIMIT
-    // =================================================
-
-    const handleLimitChange = (
-        value
-    ) => {
-
-        const normalizedLimit =
-            Number(
-                value
-            );
-
-
-        if (
-            !Number.isFinite(
-                normalizedLimit
-            ) ||
-            normalizedLimit <= 0
-        ) {
-
-            return;
-
+        try {
+            await deleteServiceDeliveryApi(deleteTarget._id);
+            setDeleteTarget(null);
+            setReloadKey(key => key + 1);
+        }
+        catch (error) {
+            setDeleteTarget(null);
+            setResult(prev => ({
+                ...prev,
+                error: getApiErrorMessage(error, "Failed to delete the service delivery.")
+            }));
+        }
+        finally {
+            setDeleting(false);
         }
 
-
-        setLimit(
-            normalizedLimit
-        );
-
-
-        setPage(
-            1
-        );
-
     };
 
 
-    // =================================================
-    // PAGINATION
-    // =================================================
+    const resetPage = () =>
+        setPaginationModel(prev => ({ ...prev, page: 0 }));
 
-    const totalPages =
-        Number(
-            pagination?.totalPages || 0
-        );
+    const filterChange = (setter) => (value) => { setter(value); resetPage(); };
 
-
-    const currentPage =
-        Number(
-            pagination?.page ||
-            page
-        );
+    const canUpdate = hasPermission(user, "service.update");
+    const canDelete = hasPermission(user, "service.delete");
 
 
-    const hasPagination =
-        totalPages > 1;
+    const columns = [
 
+        {
+            field: "deliveryNumber",
+            headerName: "Delivery",
+            minWidth: 140,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5 }}>
+                    <Link
+                        component="button"
+                        underline="hover"
+                        sx={{ fontWeight: 600, textAlign: "left" }}
+                        onClick={() => navigate(`/service-deliveries/${params.row._id}`)}
+                    >
+                        {params.value || "-"}
+                    </Link>
+                    {params.row.deliveryDate && (
+                        <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                            {new Date(params.row.deliveryDate).toLocaleDateString()}
+                        </Typography>
+                    )}
+                </Box>
+            )
+        },
 
-    const canGoPrevious =
-        currentPage > 1;
+        {
+            field: "beneficiaries",
+            headerName: "Beneficiaries",
+            flex: 1.2,
+            minWidth: 170,
+            sortable: false,
+            valueGetter: (value, row) => summarize(beneficiaryNames(row))
+        },
 
+        {
+            field: "project",
+            headerName: "Project / Activity",
+            flex: 1.2,
+            minWidth: 170,
+            sortable: false,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Typography variant="body2">
+                        {lookupName(params.row.activity) || lookupName(params.row.project) || "-"}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                        {params.row.activity
+                            ? lookupName(params.row.project)
+                            : lookupName(params.row.program)}
+                    </Typography>
+                </Box>
+            )
+        },
 
-    const canGoNext =
-        totalPages > 0 &&
-        currentPage < totalPages;
+        {
+            field: "items",
+            headerName: "Services",
+            flex: 1.1,
+            minWidth: 150,
+            sortable: false,
+            valueGetter: (value, row) => summarize(serviceNames(row))
+        },
 
+        {
+            field: "totalAmount",
+            headerName: "Value",
+            minWidth: 125,
+            align: "right",
+            headerAlign: "right",
+            valueGetter: (value) => formatMoney(value)
+        },
 
-    const handlePrevious = () => {
+        {
+            field: "status",
+            headerName: "Status",
+            minWidth: 110,
+            renderCell: (params) => <StatusChip status={params.value || "Delivered"} />
+        },
 
-        if (
-            !canGoPrevious
-        ) {
-
-            return;
-
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 140,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <>
+                    <AppIconButton
+                        icon={<Visibility fontSize="small" />}
+                        tooltip="View delivery"
+                        onClick={() => navigate(`/service-deliveries/${params.row._id}`)}
+                    />
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip="Edit delivery"
+                            onClick={() => navigate(`/service-deliveries/${params.row._id}/edit`)}
+                        />
+                    )}
+                    {canDelete && (
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip="Delete delivery"
+                            color="error"
+                            onClick={() => setDeleteTarget(params.row)}
+                        />
+                    )}
+                </>
+            )
         }
 
+    ];
 
-        setPage(
-            currentPage - 1
-        );
-
-    };
-
-
-    const handleNext = () => {
-
-        if (
-            !canGoNext
-        ) {
-
-            return;
-
-        }
-
-
-        setPage(
-            currentPage + 1
-        );
-
-    };
-
-
-    // =================================================
-    // STATISTICS
-    // =================================================
-
-    const totalDeliveries =
-        Number(
-            pagination?.total ?? 0
-        );
-
-
-    const currentRecords =
-        serviceDeliveries.length;
-
-
-    const deliveredRecords =
-        serviceDeliveries.filter(
-            (item) =>
-                item?.status ===
-                "Delivered"
-        ).length;
-
-
-    // =================================================
-    // PAGE
-    // =================================================
 
     return (
 
         <PageContainer>
 
             <PageHeader
-
                 title="Service Deliveries"
-
-                subtitle="Manage delivered services to beneficiaries"
-
-                action={() =>
-                    navigate(
-                        "/service-deliveries/create"
-                    )
-                }
-
-                actionLabel="Create Delivery"
-
-                actionIcon={
-                    <Add />
-                }
-
+                subtitle="Services and support given to beneficiaries, with their value."
+                {...(
+                    hasPermission(user, "service.create")
+                        ? {
+                            action: () => navigate("/service-deliveries/create"),
+                            actionLabel: "Create Delivery",
+                            actionIcon: <Add />
+                        }
+                        : {}
+                )}
             />
-
-
-            {/* =================================================
-                STATISTICS
-            ================================================= */}
-
-            <StatsCards
-
-                items={[
-
-                    {
-                        label:
-                            "Total Deliveries",
-
-                        value:
-                            totalDeliveries
-                    },
-
-
-                    {
-                        label:
-                            "Current Records",
-
-                        value:
-                            currentRecords
-                    },
-
-
-                    {
-                        label:
-                            "Delivered",
-
-                        value:
-                            deliveredRecords
-                    }
-
-                ]}
-
-            />
-
-
-            {/* =================================================
-                SEARCH
-            ================================================= */}
 
             <SearchToolbar
-
-                search={
-                    search
-                }
-
-                onSearch={
-                    handleSearch
-                }
-
-                onReset={
-                    resetSearch
-                }
-
+                search={search}
+                onSearch={filterChange(setSearch)}
+                onReset={() => {
+                    setSearch("");
+                    setProgram("");
+                    setStatus("");
+                    resetPage();
+                }}
                 filters={[
-
-                    {
-                        key:
-                            "limit",
-
-                        label:
-                            "Rows",
-
-                        value:
-                            limit,
-
-                        onChange:
-                            handleLimitChange,
-
-                        options: [
-
-                            {
-                                value:
-                                    10,
-
-                                label:
-                                    "10"
-                            },
-
-
-                            {
-                                value:
-                                    25,
-
-                                label:
-                                    "25"
-                            },
-
-
-                            {
-                                value:
-                                    50,
-
-                                label:
-                                    "50"
-                            }
-
-                        ]
-
-                    }
-
+                    { key: "program", label: "Program", value: program, onChange: filterChange(setProgram), options: programOptions },
+                    { key: "status", label: "Status", value: status, onChange: filterChange(setStatus), options: STATUS_OPTIONS }
                 ]}
-
             />
 
-
-            {/* =================================================
-                TABLE
-            ================================================= */}
+            {result.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {result.error}
+                </Alert>
+            )}
 
             <PageCard>
-
-                <ServiceDeliveryTable
-
-                    data={
-                        serviceDeliveries
-                    }
-
-                    loading={
-                        loading
-                    }
-
+                <DataTable
+                    rows={rows}
+                    columns={columns}
+                    loading={result.loading}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    getRowHeight={() => "auto"}
+                    onRowDoubleClick={(params) => navigate(`/service-deliveries/${params.row._id}`)}
                 />
-
             </PageCard>
 
-
-            {/* =================================================
-                PAGINATION
-            ================================================= */}
-
-            {
-                hasPagination && (
-
-                    <div
-                        style={{
-                            marginTop: 20,
-                            marginBottom: 40,
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            gap: 20
-                        }}
-                    >
-
-                        <button
-
-                            type="button"
-
-                            disabled={
-                                !canGoPrevious ||
-                                loading
-                            }
-
-                            onClick={
-                                handlePrevious
-                            }
-
-                        >
-                            Previous
-                        </button>
-
-
-                        <strong>
-
-                            Page{" "}
-
-                            {currentPage}
-
-                            {" "}of{" "}
-
-                            {totalPages}
-
-                        </strong>
-
-
-                        <button
-
-                            type="button"
-
-                            disabled={
-                                !canGoNext ||
-                                loading
-                            }
-
-                            onClick={
-                                handleNext
-                            }
-
-                        >
-                            Next
-                        </button>
-
-                    </div>
-
-                )
-            }
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Delete Service Delivery"
+                message={
+                    deleteTarget
+                        ? `Delete delivery ${deleteTarget.deliveryNumber || ""}? This cannot be undone.`
+                        : ""
+                }
+                loading={deleting}
+                onClose={() => !deleting && setDeleteTarget(null)}
+                onConfirm={handleDelete}
+            />
 
         </PageContainer>
 
