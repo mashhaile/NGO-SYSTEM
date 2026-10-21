@@ -72,7 +72,13 @@ until purchase orders exist).
 - Step 3 DONE: reports "Budget vs Actual" (by project / line, burn rate,
   over-budget lines) and "Spending by Donor" in Reports > Financial,
   with PDF / Excel / CSV. Not deployed yet.
-- Step 4: budget revisions (versions).
+- Step 4 DONE: budget revisions. An approved budget is changed through
+  a revision (new figures + reason -> submit -> approve); the old
+  figures are kept as a version, expenses stay attached. Budget page
+  shows current vs proposed and the version history. Not deployed yet.
+- Next: restyle old list pages (Programs, Projects, Donors, ...) to the
+  Budgets / Expenses / Activities list layout.
+- Live TOR-000001 has currency "150000": set it to ETB on next deploy.
 
 ## Remaining
 

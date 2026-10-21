@@ -51,6 +51,9 @@ import {
 import TorReviewDialog
     from "../../tor/components/TorReviewDialog";
 
+import BudgetRevisionPanel
+    from "../components/BudgetRevisionPanel";
+
 import {
     getExpensesApi
 } from "../../expenses/api/expenseApi";
@@ -293,6 +296,13 @@ const BudgetDetailsPage = () => {
                     {budget.description && <InfoRow label="Description" value={budget.description} />}
                 </FormSection>
             </PageCard>
+
+
+            {/* REVISIONS (approved budgets only) */}
+
+            {budget.status === BUDGET_STATUS.APPROVED && (
+                <BudgetRevisionPanel budget={budget} user={user} navigate={navigate} onChanged={load} />
+            )}
 
 
             {/* PROGRAM: allocation */}

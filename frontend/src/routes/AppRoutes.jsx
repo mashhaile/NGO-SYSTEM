@@ -966,6 +966,15 @@ const AppRoutes = () => {
                     }
                 />
 
+                <Route
+                    path="/budgets/:id/revise"
+                    element={
+                        <PermissionRoute permission="budget.update">
+                            <BudgetFormPage />
+                        </PermissionRoute>
+                    }
+                />
+
 
                 {/* ==================================================
                     EXPENSES

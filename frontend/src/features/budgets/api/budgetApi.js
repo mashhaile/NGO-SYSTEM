@@ -31,6 +31,27 @@ export const returnBudgetApi = async (id, comment) =>
     (await axiosClient.post(`/budgets/${id}/return`, { comment })).data?.data;
 
 
+// Revisions of approved budgets
+
+export const startRevisionApi = async (id) =>
+    (await axiosClient.post(`/budgets/${id}/revision`)).data?.data;
+
+export const updateRevisionApi = async (id, data) =>
+    (await axiosClient.put(`/budgets/${id}/revision`, data)).data?.data;
+
+export const cancelRevisionApi = async (id) =>
+    (await axiosClient.delete(`/budgets/${id}/revision`)).data?.data;
+
+export const submitRevisionApi = async (id) =>
+    (await axiosClient.post(`/budgets/${id}/revision/submit`)).data?.data;
+
+export const approveRevisionApi = async (id, comment = "") =>
+    (await axiosClient.post(`/budgets/${id}/revision/approve`, { comment })).data?.data;
+
+export const returnRevisionApi = async (id, comment) =>
+    (await axiosClient.post(`/budgets/${id}/revision/return`, { comment })).data?.data;
+
+
 // Programs / projects for the pickers
 
 export const getProgramOptionsApi = async () =>

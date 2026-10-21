@@ -5,6 +5,7 @@ import {
 } from "react";
 
 import {
+    useLocation,
     useNavigate,
     useParams
 } from "react-router-dom";
@@ -42,6 +43,7 @@ import {
     getBudgetsApi,
     createBudgetApi,
     updateBudgetApi,
+    updateRevisionApi,
     getProgramOptionsApi,
     getProjectOptionsApi,
     getApiErrorMessage
@@ -111,6 +113,10 @@ const BudgetFormPage = () => {
 
     const isEdit = Boolean(id);
 
+    // /budgets/:id/revise edits the pending revision of an
+    // approved budget (figures + reason), not the budget itself
+    const isRevise = useLocation().pathname.endsWith("/revise");
+
     const navigate = useNavigate();
 
     const [form, setForm] = useState(emptyForm);
@@ -144,6 +150,7 @@ const BudgetFormPage = () => {
 
                 if (budget) {
                     setExisting(budget);
+                    const source = isRevise && budget.revision ? budget.revision : budget;
                     setForm({
                         level: budget.level,
                         program: budget.program?._id || "",
@@ -151,10 +158,11 @@ const BudgetFormPage = () => {
                         name: budget.name,
                         description: budget.description || "",
                         currency: budget.currency,
-                        startYear: String(budget.startYear),
-                        endYear: String(budget.endYear),
-                        yearlyAmounts: budget.yearlyAmounts || [],
-                        lines: (budget.lines || []).map(line => ({
+                        startYear: String(source.startYear),
+                        endYear: String(source.endYear),
+                        yearlyAmounts: source.yearlyAmounts || [],
+                        reason: budget.revision?.reason || "",
+                        lines: (source.lines || []).map(line => ({
                             _id: line._id,
                             category: line.category,
                             description: line.description || "",
@@ -177,7 +185,7 @@ const BudgetFormPage = () => {
             cancelled = true;
         };
 
-    }, [id, isEdit]);
+    }, [id, isEdit, isRevise]);
 
 
     const years = useMemo(() => {
@@ -301,7 +309,7 @@ const BudgetFormPage = () => {
             return;
         }
 
-        if (!form.name.trim()) {
+        if (!isRevise && !form.name.trim()) {
             setError("Enter a name for the budget.");
             return;
         }
@@ -341,8 +349,12 @@ const BudgetFormPage = () => {
 
         try {
 
+            const { startYear, endYear, yearlyAmounts, lines } = payload;
+
             const saved =
-                isEdit
+                isRevise
+                    ? await updateRevisionApi(id, { reason: form.reason || "", startYear, endYear, ...(yearlyAmounts ? { yearlyAmounts } : { lines }) })
+                    : isEdit
                     ? await updateBudgetApi(id, payload)
                     : await createBudgetApi({
                         ...payload,
@@ -367,7 +379,7 @@ const BudgetFormPage = () => {
 
     const header = (
         <PageHeader
-            title={isEdit ? "Edit Budget" : "New Budget"}
+            title={isRevise ? "Revise Budget" : isEdit ? "Edit Budget" : "New Budget"}
             subtitle={
                 isEdit
                     ? existing?.budgetCode
@@ -390,7 +402,20 @@ const BudgetFormPage = () => {
         );
     }
 
-    if (isEdit && existing && !EDITABLE_STATUSES.includes(existing.status)) {
+    if (isRevise && existing && (!existing.revision || !["Draft", "Returned"].includes(existing.revision.status))) {
+        return (
+            <PageContainer>
+                {header}
+                <Alert severity="info">
+                    {existing.revision
+                        ? `The revision is ${existing.revision.status.toLowerCase()} and can no longer be edited.`
+                        : "This budget has no revision in progress. Start one from the budget page."}
+                </Alert>
+            </PageContainer>
+        );
+    }
+
+    if (isEdit && !isRevise && existing && !EDITABLE_STATUSES.includes(existing.status)) {
         return (
             <PageContainer>
                 {header}
@@ -473,6 +498,7 @@ const BudgetFormPage = () => {
                         <AppTextField
                             label="Budget name"
                             required
+                            disabled={isRevise}
                             value={form.name}
                             onChange={(e) => change({ name: e.target.value })}
                         />
@@ -480,6 +506,7 @@ const BudgetFormPage = () => {
                         <AppSelect
                             label="Currency"
                             required
+                            disabled={isRevise}
                             options={CURRENCY_OPTIONS}
                             value={form.currency}
                             onChange={(e) => change({ currency: e.target.value })}
@@ -508,8 +535,23 @@ const BudgetFormPage = () => {
                     </FormGrid>
 
                     <Box sx={{ mt: 2 }}>
+                        {isRevise && (
+                            <Box sx={{ mb: 2 }}>
+                                <AppTextField
+                                    label="Reason for this revision"
+                                    required
+                                    multiline
+                                    rows={2}
+                                    placeholder="e.g. Second facilitator from April; venue costs higher than planned"
+                                    value={form.reason || ""}
+                                    onChange={(e) => change({ reason: e.target.value })}
+                                    helperText="Required before submitting. Shown in the budget's version history."
+                                />
+                            </Box>
+                        )}
                         <AppTextField
                             label="Description"
+                            disabled={isRevise}
                             multiline
                             rows={2}
                             value={form.description}
@@ -555,7 +597,7 @@ const BudgetFormPage = () => {
                 <FormActions
                     onCancel={() => navigate(isEdit ? `/budgets/${id}` : "/budgets")}
                     onSubmit={handleSave}
-                    submitLabel={isEdit ? "Save Changes" : "Create Budget"}
+                    submitLabel={isRevise ? "Save Revision" : isEdit ? "Save Changes" : "Create Budget"}
                     submitLoading={saving}
                 />
 
