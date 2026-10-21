@@ -217,6 +217,16 @@ const BudgetSchema =
                 default: 1
             },
 
+            // Bumped inside the transaction that approves or
+            // voids an expense on this budget, so two approvals
+            // at the same moment conflict (one is retried and
+            // sees the other's amount) instead of both passing
+            // the remaining-budget check.
+            chargeVersion: {
+                type: Number,
+                default: 0
+            },
+
             reviewComment: {
                 type: String,
                 default: ""

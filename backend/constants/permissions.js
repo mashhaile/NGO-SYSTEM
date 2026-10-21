@@ -386,7 +386,28 @@ const PERMISSIONS = {
     // Approve or return submitted budgets
 
     BUDGET_APPROVE:
-        "budget.approve"
+        "budget.approve",
+
+
+    // =====================================================
+    // EXPENSES (charged to project budget lines)
+    // =====================================================
+
+    EXPENSE_CREATE:
+        "expense.create",
+
+    EXPENSE_READ:
+        "expense.read",
+
+    EXPENSE_UPDATE:
+        "expense.update",
+
+    EXPENSE_DELETE:
+        "expense.delete",
+
+    // Approve / return / void
+    EXPENSE_APPROVE:
+        "expense.approve"
 
 };
 

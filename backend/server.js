@@ -345,6 +345,11 @@ app.use(
 );
 
 app.use(
+    "/api/v1/expenses",
+    require("./routes/expenseRoutes")
+);
+
+app.use(
     "/api/v1/donation-trace",
     require("./routes/donationTraceRoutes")
 );

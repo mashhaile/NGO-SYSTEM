@@ -118,6 +118,13 @@ const PERMISSIONS = {
     BUDGET_DELETE: "budget.delete",
     BUDGET_APPROVE: "budget.approve",
 
+    // Expenses
+    EXPENSE_CREATE: "expense.create",
+    EXPENSE_READ: "expense.read",
+    EXPENSE_UPDATE: "expense.update",
+    EXPENSE_DELETE: "expense.delete",
+    EXPENSE_APPROVE: "expense.approve",
+
 
     // ================================
     // Attendance

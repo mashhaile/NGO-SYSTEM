@@ -22,6 +22,10 @@ const {
     fiscalYearLabel
 } = require("../utils/fiscalYear");
 
+const {
+    totalsByLine
+} = require("./expenseService");
+
 
 // =====================================================
 // RULES
@@ -402,33 +406,74 @@ const assertWithinProgram = async (budget) => {
 
 
 // Budget / Committed / Spent / Remaining per year (and per
-// line). Committed and Spent are 0 until expenses and
-// procurement are recorded against budget lines.
+// line):
+//   Spent     = approved expenses
+//   Pending   = draft / submitted / returned expenses (shown,
+//               not deducted)
+//   Committed = purchase orders (procurement, later): 0
+//   Remaining = Budget - Committed - Spent
 
-const withActuals = (items) =>
-    items.map(item => ({
-        ...item,
-        committed: 0,
-        spent: 0,
-        remaining: item.amount
-    }));
+const withActuals = (items, actualsFor) =>
+    items.map(item => {
+        const { spent = 0, pending = 0 } = actualsFor(item.fiscalYear) || {};
+        return {
+            ...item,
+            committed: 0,
+            spent,
+            pending,
+            remaining: roundMoney(item.amount - spent)
+        };
+    });
+
+
+// Sum of { spent, pending } over every line for a year
+
+const yearActuals = (totals, lineIds) => (year) =>
+    lineIds.reduce(
+        (sum, lineId) => {
+            const entry = totals[String(lineId)]?.[year];
+            return entry
+                ? { spent: roundMoney(sum.spent + entry.spent), pending: roundMoney(sum.pending + entry.pending) }
+                : sum;
+        },
+        { spent: 0, pending: 0 }
+    );
 
 
 const buildSummary = async (budget) => {
 
-    const years = withActuals(yearTotals(budget));
+    const programId = budget.program._id || budget.program;
+
+    const projects =
+        budget.level === BUDGET_LEVEL.PROGRAM
+            ? await projectBudgetsOf(budget.organization, programId)
+            : [];
+
+    // Expenses are charged to project budget lines; a program
+    // budget's spending is the sum over its project budgets.
+    const sourceBudgets = budget.level === BUDGET_LEVEL.PROGRAM ? projects : [budget];
+
+    const totals =
+        await totalsByLine(budget.organization, sourceBudgets.map(item => item._id));
+
+    const lineIds =
+        sourceBudgets.flatMap(item => (item.lines || []).map(line => line._id));
+
+    const years = withActuals(yearTotals(budget), yearActuals(totals, lineIds));
+
+    const sum = (key) => roundMoney(years.reduce((total, item) => total + item[key], 0));
 
     const summary = {
         years,
         totalAmount: budget.totalAmount,
         totalCommitted: 0,
-        totalSpent: 0,
-        totalRemaining: budget.totalAmount
+        totalSpent: sum("spent"),
+        totalPending: sum("pending"),
+        totalRemaining: roundMoney(budget.totalAmount - sum("spent"))
     };
 
     if (budget.level === BUDGET_LEVEL.PROGRAM) {
 
-        const projects = await projectBudgetsOf(budget.organization, budget.program._id || budget.program);
         const allocated = allocatedByYear(projects);
 
         summary.allocation = {
@@ -460,16 +505,27 @@ const buildSummary = async (budget) => {
     }
 
     summary.lines =
-        (budget.lines || []).map(line => ({
-            _id: line._id,
-            category: line.category,
-            description: line.description,
-            total: line.total,
-            committed: 0,
-            spent: 0,
-            remaining: line.total,
-            amounts: withActuals(line.amounts || [])
-        }));
+        (budget.lines || []).map(line => {
+
+            const amounts =
+                withActuals(line.amounts || [], year => totals[String(line._id)]?.[year]);
+
+            const spent = roundMoney(amounts.reduce((total, item) => total + item.spent, 0));
+            const pending = roundMoney(amounts.reduce((total, item) => total + item.pending, 0));
+
+            return {
+                _id: line._id,
+                category: line.category,
+                description: line.description,
+                total: line.total,
+                committed: 0,
+                spent,
+                pending,
+                remaining: roundMoney(line.total - spent),
+                amounts
+            };
+
+        });
 
     // Where this project budget sits in its program budget
     const programBudget =

@@ -504,6 +504,7 @@ test("budgets: finance officer approves; approved budgets are locked", { skip },
     assert.ok(created.status < 300, created.data?.message);
 
     const finance = (await login("finance@test.local", "Finance2026x")).data.data.token;
+    state.financeToken = finance;
 
     // Return needs a comment
     assert.equal((await api("POST", `/budgets/${state.budgetOneId}/return`, { token: finance, body: {} })).status, 400);
@@ -532,6 +533,7 @@ test("budgets: finance officer approves; approved budgets are locked", { skip },
 
     // Data entry can read budgets but not create them
     const officer = (await login("officer@test.local", "Officer2026x")).data.data.token;
+    state.dataEntryToken = officer;
     assert.equal((await api("GET", "/budgets", { token: officer })).status, 200);
     assert.equal(
         (await api("POST", "/budgets", {
@@ -543,6 +545,174 @@ test("budgets: finance officer approves; approved budgets are locked", { skip },
 
     // Other organizations cannot see it
     assert.equal((await api("GET", `/budgets/${state.budgetOneId}`, { token: state.tokenB })).status, 404);
+
+});
+
+
+// =====================================================
+// EXPENSES
+// =====================================================
+//
+// Budget one (approved): Personnel 2026 = 400,000,
+// Training & Workshops 2026 = 200,000.
+//
+// =====================================================
+
+const lineOf = async (token, budgetId, category) => {
+    const budget = (await api("GET", `/budgets/${budgetId}`, { token })).data.data;
+    return { budget, line: budget.summary.lines.find(line => line.category === category) };
+};
+
+const newExpense = (token, body) =>
+    api("POST", "/expenses", {
+        token,
+        body: { budget: state.budgetOneId, expenseDate: "2026-03-15", paymentMethod: "Bank Transfer", ...body }
+    });
+
+
+test("expenses: recorded on approved budget lines; spent counts approved only", { skip }, async () => {
+
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const { line: personnel } = await lineOf(de, state.budgetOneId, "Personnel");
+
+    // Program budgets and unapproved budgets cannot be charged
+    assert.equal((await newExpense(de, { budget: state.envelopeId, budgetLine: personnel._id, description: "x x x", amount: 10 })).status, 404);
+
+    // The date must fall inside the budget period
+    assert.equal((await newExpense(de, { budgetLine: personnel._id, expenseDate: "2030-01-10", description: "Out of period", amount: 10 })).status, 400);
+
+    const first = await newExpense(de, { budgetLine: personnel._id, description: "Coordinator salary, March", payee: "Coordinator", amount: 150000 });
+    assert.equal(first.status, 201, first.data?.message);
+    assert.equal(first.data.data.status, "Draft");
+    assert.equal(first.data.data.fiscalYear, 2026);
+    assert.equal(first.data.data.category, "Personnel");
+    state.expenseOne = first.data.data._id;
+
+    // Draft: pending, not spent
+    let { line } = await lineOf(de, state.budgetOneId, "Personnel");
+    assert.equal(line.spent, 0);
+    assert.equal(line.pending, 150000);
+
+    assert.equal((await api("POST", `/expenses/${state.expenseOne}/submit`, { token: de })).status, 200);
+
+    // Data entry cannot approve
+    assert.equal((await api("POST", `/expenses/${state.expenseOne}/approve`, { token: de, body: {} })).status, 403);
+
+    const approved = await api("POST", `/expenses/${state.expenseOne}/approve`, { token: fin, body: {} });
+    assert.equal(approved.status, 200, approved.data?.message);
+    assert.equal(approved.data.data.status, "Approved");
+    assert.equal(approved.data.data.line.remainingAfter, 250000);
+
+    ({ line } = await lineOf(de, state.budgetOneId, "Personnel"));
+    assert.equal(line.spent, 150000);
+    assert.equal(line.pending, 0);
+    assert.equal(line.amounts.find(item => item.fiscalYear === 2026).remaining, 250000);
+
+    // Approved expenses are locked
+    assert.equal((await api("PUT", `/expenses/${state.expenseOne}`, { token: fin, body: { amount: 1 } })).status, 409);
+    assert.equal((await api("DELETE", `/expenses/${state.expenseOne}`, { token: fin })).status, 409);
+
+});
+
+
+test("expenses: over budget needs a deliberate approval with a reason", { skip }, async () => {
+
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const { line: personnel } = await lineOf(de, state.budgetOneId, "Personnel");
+
+    // 250,000 left on Personnel 2026; this is 300,000
+    const big = await newExpense(de, { budgetLine: personnel._id, description: "Consultant fees", amount: 300000 });
+    assert.equal(big.status, 201);
+    assert.equal(big.data.data.line.overBudget, true, "the form can warn before submitting");
+    const id = big.data.data._id;
+
+    assert.equal((await api("POST", `/expenses/${id}/submit`, { token: de })).status, 200, "submitting is allowed");
+
+    const plain = await api("POST", `/expenses/${id}/approve`, { token: fin, body: {} });
+    assert.equal(plain.status, 400);
+    assert.equal(plain.data.errors?.[0]?.code, "OVER_BUDGET");
+
+    const noReason = await api("POST", `/expenses/${id}/approve`, { token: fin, body: { allowOverBudget: true } });
+    assert.equal(noReason.status, 400);
+
+    const ok = await api("POST", `/expenses/${id}/approve`, { token: fin, body: { allowOverBudget: true, comment: "Board approved reallocation" } });
+    assert.equal(ok.status, 200, ok.data?.message);
+    assert.equal(ok.data.data.approvedOverBudget, true);
+
+    const { line } = await lineOf(de, state.budgetOneId, "Personnel");
+    assert.equal(line.amounts.find(item => item.fiscalYear === 2026).remaining, -50000);
+
+    // Voiding gives the money back
+    assert.equal((await api("POST", `/expenses/${id}/void`, { token: fin, body: {} })).status, 400, "a reason is required");
+    const voided = await api("POST", `/expenses/${id}/void`, { token: fin, body: { comment: "Paid from another grant" } });
+    assert.equal(voided.status, 200);
+    assert.equal(voided.data.data.status, "Voided");
+
+    const after = await lineOf(de, state.budgetOneId, "Personnel");
+    assert.equal(after.line.amounts.find(item => item.fiscalYear === 2026).remaining, 250000);
+
+});
+
+
+test("expenses: foreign currency needs a rate; return needs a comment", { skip }, async () => {
+
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const { line: training } = await lineOf(de, state.budgetOneId, "Training & Workshops");
+
+    const noRate = await newExpense(de, { budgetLine: training._id, description: "Venue (USD invoice)", amount: 100, currency: "USD" });
+    assert.equal(noRate.status, 400);
+    assert.match(noRate.data.message, /exchange rate/);
+
+    const usd = await newExpense(de, { budgetLine: training._id, description: "Venue (USD invoice)", amount: 100, currency: "USD", exchangeRate: 57.5 });
+    assert.equal(usd.status, 201, usd.data?.message);
+    assert.equal(usd.data.data.budgetAmount, 5750);
+    assert.equal(usd.data.data.budgetCurrency, "ETB");
+
+    await api("POST", `/expenses/${usd.data.data._id}/submit`, { token: de });
+    assert.equal((await api("POST", `/expenses/${usd.data.data._id}/return`, { token: fin, body: {} })).status, 400);
+    const returned = await api("POST", `/expenses/${usd.data.data._id}/return`, { token: fin, body: { comment: "Attach the invoice number" } });
+    assert.equal(returned.data.data.status, "Returned");
+
+    // Returned can be edited and deleted again
+    assert.equal((await api("PUT", `/expenses/${usd.data.data._id}`, { token: de, body: { referenceNumber: "INV-778" } })).status, 200);
+    assert.equal((await api("DELETE", `/expenses/${usd.data.data._id}`, { token: de })).status, 200);
+
+    // Other organizations cannot see expenses
+    assert.equal((await api("GET", `/expenses/${state.expenseOne}`, { token: state.tokenB })).status, 404);
+
+});
+
+
+test("expenses: two approvals at once cannot both use the last of a line", { skip }, async () => {
+
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const { line: training } = await lineOf(de, state.budgetOneId, "Training & Workshops");
+
+    // 200,000 on Training 2026: each fits alone, not both
+    const ids = [];
+    for (const name of ["Workshop A", "Workshop B"]) {
+        const res = await newExpense(de, { budgetLine: training._id, description: name, amount: 150000 });
+        assert.equal(res.status, 201);
+        await api("POST", `/expenses/${res.data.data._id}/submit`, { token: de });
+        ids.push(res.data.data._id);
+    }
+
+    const results =
+        await Promise.all(ids.map(id => api("POST", `/expenses/${id}/approve`, { token: fin, body: {} })));
+
+    const statuses = results.map(res => res.status).sort();
+    assert.deepEqual(statuses, [200, 400], `got ${statuses.join(", ")}: ${results.map(r => r.data?.message).join(" | ")}`);
+
+    const { line } = await lineOf(de, state.budgetOneId, "Training & Workshops");
+    assert.equal(line.amounts.find(item => item.fiscalYear === 2026).spent, 150000);
+
+    // Program budget shows its projects' spending
+    const program = (await api("GET", `/budgets/${state.envelopeId}`, { token: de })).data.data;
+    assert.equal(program.summary.years.find(item => item.fiscalYear === 2026).spent, 300000);
 
 });
 

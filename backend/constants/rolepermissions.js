@@ -196,7 +196,16 @@ const rolePermissions = {
         PERMISSIONS.BUDGET_READ,
         PERMISSIONS.BUDGET_UPDATE,
         PERMISSIONS.BUDGET_DELETE,
-        PERMISSIONS.BUDGET_APPROVE
+        PERMISSIONS.BUDGET_APPROVE,
+
+
+        // Expenses
+
+        PERMISSIONS.EXPENSE_CREATE,
+        PERMISSIONS.EXPENSE_READ,
+        PERMISSIONS.EXPENSE_UPDATE,
+        PERMISSIONS.EXPENSE_DELETE,
+        PERMISSIONS.EXPENSE_APPROVE
 
     ],
 
@@ -220,6 +229,14 @@ const rolePermissions = {
         PERMISSIONS.BUDGET_UPDATE,
         PERMISSIONS.BUDGET_DELETE,
         PERMISSIONS.BUDGET_APPROVE,
+
+        // Expenses
+
+        PERMISSIONS.EXPENSE_CREATE,
+        PERMISSIONS.EXPENSE_READ,
+        PERMISSIONS.EXPENSE_UPDATE,
+        PERMISSIONS.EXPENSE_DELETE,
+        PERMISSIONS.EXPENSE_APPROVE,
 
         // Donors / Donations
 
@@ -354,7 +371,15 @@ const rolePermissions = {
 
         // Budgets (read)
 
-        PERMISSIONS.BUDGET_READ
+        PERMISSIONS.BUDGET_READ,
+
+
+        // Expenses (record and submit; no approval)
+
+        PERMISSIONS.EXPENSE_CREATE,
+        PERMISSIONS.EXPENSE_READ,
+        PERMISSIONS.EXPENSE_UPDATE,
+        PERMISSIONS.EXPENSE_DELETE
 
     ],
 
@@ -394,7 +419,9 @@ const rolePermissions = {
 
         PERMISSIONS.REPORT_READ,
 
-        PERMISSIONS.BUDGET_READ
+        PERMISSIONS.BUDGET_READ,
+
+        PERMISSIONS.EXPENSE_READ
 
     ]
 
