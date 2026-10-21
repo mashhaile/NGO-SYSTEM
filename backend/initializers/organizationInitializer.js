@@ -3,6 +3,11 @@ const {
 } =
     require("../services/serviceDeliveryUnitService");
 
+const {
+    ensureOrganizationDefaultLookups
+} =
+    require("../services/defaultLookupService");
+
 
 // =====================================================
 // INITIALIZE ORGANIZATION
@@ -36,11 +41,6 @@ const initializeOrganization = async (
 ) => {
 
 
-    console.log(
-    "[ORGANIZATION INITIALIZER] RUNNING FOR:",
-    organizationId
-);
-
     if (!organizationId) {
 
         throw new Error(
@@ -51,6 +51,18 @@ const initializeOrganization = async (
 
 
     await ensureOrganizationServiceDeliveryUnits(
+
+        organizationId,
+
+        userId
+
+    );
+
+
+    // Common lookups. Runs after the units because
+    // Service Types refer to them.
+
+    await ensureOrganizationDefaultLookups(
 
         organizationId,
 

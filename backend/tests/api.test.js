@@ -141,8 +141,8 @@ test.before(async () => {
 
     await dropTestDatabase();
 
-    // Plans are needed for sign-up (free trial)
-    await run(["seeds/planseeder.js"], { MONGO_URI: TEST_URI });
+    // No plan seeding here on purpose: the server must
+    // create the default plans itself on a fresh database.
 
     server = spawn(process.execPath, ["server.js"], {
         cwd: BACKEND,
@@ -159,6 +159,14 @@ test.before(async () => {
         catch {
             await new Promise(r => setTimeout(r, 500));
         }
+    }
+
+    // Startup creates the default plans shortly after connecting
+    state.db = await mongoose.createConnection(TEST_URI).asPromise();
+
+    for (let i = 0; i < 60; i++) {
+        if (await state.db.collection("plans").countDocuments() >= 4) break;
+        await new Promise(r => setTimeout(r, 500));
     }
 
     // Two organizations, each with its own admin
@@ -191,7 +199,93 @@ test.after(async () => {
 
     server?.kill();
 
+    await state.db?.close();
+
     await dropTestDatabase();
+
+});
+
+
+// =====================================================
+// FRESH DATABASE SETUP
+// =====================================================
+
+test("startup: default plans are created on a fresh database", { skip }, async () => {
+
+    const codes =
+        (await state.db.collection("plans").find().toArray()).map(plan => plan.code).sort();
+
+    assert.deepEqual(codes, ["ENTERPRISE", "FREE", "PRO", "STARTER"]);
+
+});
+
+
+test("sign-up: a new organization gets units and common lookups", { skip }, async () => {
+
+    const organization =
+        await state.db.collection("organizations").findOne({ email: "org-a@test.local" });
+
+    const counts = {};
+
+    for (const row of await state.db.collection("lookups").find({ organization: organization._id }).toArray()) {
+        counts[row.category] = (counts[row.category] || 0) + 1;
+    }
+
+    for (const category of [
+        "Gender", "EducationLevel", "Occupation", "MaritalStatus", "DisabilityType", "VulnerableGroup",
+        "EnterpriseType", "OwnershipType", "BusinessSector",
+        "ServiceCategory", "ServiceType", "Unit"
+    ]) {
+        assert.ok(counts[category] > 0, `${category} was not seeded`);
+    }
+
+    assert.equal(counts.Gender, 2);
+
+    // Service types point at a real category and real units
+    const schoolFees =
+        await state.db.collection("lookups").findOne({ organization: organization._id, category: "ServiceType", value: "School Fees" });
+
+    const parent =
+        await state.db.collection("lookups").findOne({ _id: schoolFees.parentLookup });
+
+    assert.equal(parent.value, "Education");
+    assert.ok(schoolFees.allowedUnits.length >= 2);
+
+});
+
+
+test("super admin: a created organization also gets common lookups", { skip }, async () => {
+
+    await run(
+        ["scripts/createSuperAdmin.js", "sa@test.local", "Test Super Admin", "SuperTest2026x"],
+        { MONGO_URI: TEST_URI }
+    );
+
+    const sa = await login("sa@test.local", "SuperTest2026x");
+    assert.equal(sa.status, 200);
+
+    const created = await api("POST", "/admin/organizations", {
+        token: sa.data.data.token,
+        body: {
+            name: "Test Org C",
+            email: "org-c@test.local",
+            phone: "0911000003",
+            country: "Ethiopia",
+            adminName: "Admin C",
+            adminEmail: "admin-c@test.local",
+            adminPassword: "AdminC2026x"
+        }
+    });
+
+    assert.ok(created.status < 300, `${created.status} ${created.data?.message}`);
+
+    const organization =
+        await state.db.collection("organizations").findOne({ email: "org-c@test.local" });
+
+    const categories =
+        await state.db.collection("lookups").distinct("category", { organization: organization._id });
+
+    assert.equal(categories.length, 12, `got: ${categories.join(", ")}`);
 
 });
 

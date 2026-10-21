@@ -241,7 +241,19 @@ app.post("/api/v1/organizations", signupLimiter);
 
 // ================= Database =================
 
-connectDB();
+connectDB().then(async () => {
+
+    // A fresh database gets the default plans (sign-up needs
+    // the Free plan). Existing plans are never changed.
+
+    try {
+        await require("./services/planBootstrap").ensureDefaultPlans();
+    }
+    catch (error) {
+        console.error("Default plan check failed:", error.message);
+    }
+
+});
 
 
 // ================= Background Jobs =================

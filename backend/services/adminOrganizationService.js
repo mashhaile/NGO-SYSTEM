@@ -1,4 +1,8 @@
 const escapeRegex = require("../utils/escapeRegex");
+
+const {
+    initializeOrganization
+} = require("../initializers/organizationInitializer");
 const bcrypt =
     require("bcrypt");
 
@@ -558,6 +562,30 @@ const createOrganization = async (
         console.error(
             "Organization creation audit log failed:",
             auditError
+        );
+
+    }
+
+
+    // Standard units + common lookups (Gender, Education
+    // Level, Service Categories ...). Not fatal: the
+    // organization exists either way, and
+    // scripts/seedDefaultLookups.js can fill it in later.
+
+    try {
+
+        await initializeOrganization(
+            organization._id,
+            actor?.userId || null
+        );
+
+    }
+
+    catch (initError) {
+
+        console.error(
+            "Organization initialization failed:",
+            initError
         );
 
     }

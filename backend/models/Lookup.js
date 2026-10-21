@@ -606,16 +606,6 @@ LookupSchema.pre(
                 this.module
             );
 
-        console.log(
-            "LOOKUP MODEL DEBUG MODULE:",
-            this.module
-        );
-
-        console.log(
-            "LOOKUP MODEL DEBUG CATEGORIES:",
-            categories
-        );
-
 
         if (
             !Array.isArray(categories)
