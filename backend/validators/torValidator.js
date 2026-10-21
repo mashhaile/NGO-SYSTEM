@@ -128,11 +128,15 @@ const torFields = {
 
     venue: text,
 
+    // 3-letter code (ETB, USD, ...): free text let amounts
+    // be typed into it ("ETB5000000")
     currency:
         Joi.string()
             .trim()
-            .max(10)
-            .allow("", null),
+            .uppercase()
+            .pattern(/^[A-Z]{3}$/)
+            .allow("", null)
+            .messages({ "string.pattern.base": "Currency must be a 3-letter code such as ETB or USD." }),
 
     budgetLines:
         Joi.array()

@@ -29,6 +29,10 @@ import {
     AppButton
 } from "../../../components/ui";
 
+import {
+    CURRENCIES
+} from "../../budgets/utils/budgetUtils";
+
 
 import {
     getProjectLookupService
@@ -791,9 +795,15 @@ const TorForm = ({
 
                     <Box sx={{ maxWidth: 200, mb: 2 }}>
 
-                        <AppTextField
+                        {/* A list, not free text: amounts typed here
+                            ended up in the currency ("ETB5000000") */}
+                        <AppSelect
                             label="Currency"
-                            {...textProps("currency")}
+                            value={form.currency || "ETB"}
+                            onChange={(e) => changeField("currency", e.target.value)}
+                            options={[...new Set([form.currency || "ETB", ...CURRENCIES])]
+                                .filter(code => /^[A-Z]{3}$/.test(code))
+                                .map(code => ({ value: code, label: code }))}
                         />
 
                     </Box>
