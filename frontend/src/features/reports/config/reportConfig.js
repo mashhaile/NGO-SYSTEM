@@ -548,6 +548,34 @@ export const reportConfig = {
     },
 
 
+    // Was missing here, so the list showed its code name
+    enterpriseParticipationReport: {
+
+        key:
+            "enterpriseParticipationReport",
+
+        label:
+            "Enterprise Participation Report",
+
+        description:
+            "Enterprise participation and engagement report.",
+
+        category:
+            "Enterprise",
+
+        filters: {
+
+            date:
+                true,
+
+            enterprise:
+                true
+
+        }
+
+    },
+
+
     enterpriseImpactReport: {
 
         key:
@@ -675,6 +703,69 @@ export const reportConfig = {
                 true,
 
             activityRun:
+                true
+
+        }
+
+    },
+
+
+    // Budgets vs approved expenses for one fiscal year
+    // (the year chosen in the period filter)
+
+    budgetVsActualReport: {
+
+        key:
+            "budgetVsActualReport",
+
+        label:
+            "Budget vs Actual",
+
+        description:
+            "Approved project budgets for one fiscal year against approved expenses: by project and line, burn rate (% spent vs % of the year passed) and over-budget lines. Uses this year, or the year of the start date if you pick one.",
+
+        category:
+            "Financial",
+
+        filters: {
+
+            date:
+                true,
+
+            program:
+                true,
+
+            project:
+                true
+
+        }
+
+    },
+
+
+    donorSpendingReport: {
+
+        key:
+            "donorSpendingReport",
+
+        label:
+            "Spending by Donor",
+
+        description:
+            "Approved expenses by donor and donation, and spending not linked to any donation.",
+
+        category:
+            "Financial",
+
+        filters: {
+
+            date:
+                true,
+
+            program:
+                true,
+
+            project:
                 true
 
         }

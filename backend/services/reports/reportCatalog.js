@@ -498,6 +498,52 @@ const reportCatalog = {
 
 
     // =================================================
+    // FINANCE (budgets / expenses)
+    // =================================================
+
+    budgetVsActualReport: {
+
+        name: "Budget vs Actual",
+
+        category: "Financial",
+
+        description:
+            "Approved project budgets for the year against approved expenses: by project and line, burn rate and over-budget lines.",
+
+        periods: [
+            "annual"
+        ],
+
+        generator:
+            reportRegistry.budgetVsActualReport
+
+    },
+
+
+    donorSpendingReport: {
+
+        name: "Spending by Donor",
+
+        category: "Financial",
+
+        description:
+            "Approved expenses by donor and donation, and spending not linked to any donation.",
+
+        periods: [
+            "monthly",
+            "quarterly",
+            "sixmonthly",
+            "annual",
+            "custom"
+        ],
+
+        generator:
+            reportRegistry.donorSpendingReport
+
+    },
+
+
+    // =================================================
     // DASHBOARD
     // =================================================
 

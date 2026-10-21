@@ -19,6 +19,15 @@ import {
 // =====================================================
 
 const CURRENCY_KEYS = [
+    // Finance reports (budgets / expenses)
+    "spent",
+    "pending",
+    "remaining",
+    "totalBudget",
+    "totalSpent",
+    "totalPending",
+    "totalRemaining",
+    "donationAmount",
     "totalSupportValue",
     "supportValue",
     "totalAmount",
@@ -37,6 +46,10 @@ const CURRENCY_KEYS = [
 ];
 
 const PERCENTAGE_KEYS = [
+    // Finance reports (budgets / expenses)
+    "percentSpent",
+    "percentUsed",
+    "percentOfYearPassed",
     "rate",
     "percentage",
     "percent",

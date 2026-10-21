@@ -125,9 +125,13 @@ const generateReport = async (
     // Reporting Period Is Mandatory
     // ---------------------------------------------
 
-    validateReportingPeriod(
-        filters
-    );
+    // Except Budget vs Actual: it is for one fiscal year and
+    // defaults to the current one (or the start date's year).
+    if (reportName !== "budgetVsActualReport") {
+        validateReportingPeriod(
+            filters
+        );
+    }
 
 
     // ---------------------------------------------

@@ -718,6 +718,63 @@ test("expenses: two approvals at once cannot both use the last of a line", { ski
 
 
 // =====================================================
+// FINANCE REPORTS
+// =====================================================
+//
+// By now on budget one (FY 2026): Personnel 150,000 approved
+// (the 300,000 one was voided), Training 150,000 approved.
+//
+// =====================================================
+
+test("reports: budget vs actual and spending by donor", { skip }, async () => {
+
+    const fin = state.financeToken;
+
+    const bva = await api("GET", "/reports/budgetVsActualReport?period=annual&year=2026", { token: fin });
+    assert.equal(bva.status, 200, bva.data?.message);
+    assert.equal(bva.data.data.summary.fiscalYear, "FY 2026");
+    assert.equal(bva.data.data.summary.totalSpent, 300000);
+    assert.equal(bva.data.data.summary.totalBudget, 600000);
+    assert.equal(bva.data.data.summary.percentSpent, 50);
+
+    const personnel = bva.data.data.details.find(row => row.category === "Personnel");
+    assert.equal(personnel.spent, 150000);
+    assert.equal(personnel.remaining, 250000);
+
+    const donors = await api("GET", "/reports/donorSpendingReport?period=annual&year=2026", { token: fin });
+    assert.equal(donors.status, 200, donors.data?.message);
+    assert.equal(donors.data.data.summary.approvedExpenses, 2);
+    assert.equal(donors.data.data.summary.expensesNotLinked, 2);
+
+    // Other organizations see none of it
+    const other = await api("GET", "/reports/budgetVsActualReport?period=annual&year=2026", { token: state.tokenB });
+    assert.equal(other.status, 200);
+    assert.equal(other.data.data.summary.projectBudgets, 0);
+
+});
+
+
+test("reports: exports work for reports without a custom layout", { skip }, async () => {
+
+    // Excel / PDF / CSV were failing for every report except Service
+    // Delivery ("Unsupported report type"). The test org's plan may not
+    // allow every format, so a 403 plan message is fine, a 500 is not.
+    for (const report of ["budgetVsActualReport", "donorSpendingReport", "financialReport", "programReport"]) {
+        for (const format of ["excel", "pdf", "csv"]) {
+            const response = await fetch(`${BASE}/reports/${report}?period=annual&year=2026&format=${format}`, {
+                headers: { Authorization: `Bearer ${state.financeToken}` }
+            });
+            assert.ok(
+                response.status === 200 || response.status === 403,
+                `${report} ${format}: ${response.status} ${await response.text().catch(() => "")}`
+            );
+        }
+    }
+
+});
+
+
+// =====================================================
 // ERROR CODES + SEARCH
 // =====================================================
 

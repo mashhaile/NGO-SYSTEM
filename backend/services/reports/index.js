@@ -13,6 +13,11 @@ const {
 const serviceDeliveryExport =
     require("./exports/servicedeliveryexport");
 
+// Generic Excel / PDF / CSV built from summary, statistics
+// and details (all reports except Service Delivery)
+const genericExport =
+    require("./reportExport");
+
 
 /* =========================================================
    REPORT BUILDERS
@@ -139,6 +144,12 @@ const exportPdf = async ({
     report,
     options = {}
 }) => {
+
+    // No custom builder (only Service Delivery has one):
+    // use the generic exporter for every other report.
+    if (!REPORT_BUILDERS[reportType]) {
+        return genericExport.exportPDF(report, options.context || {});
+    }
 
     const builder =
         getReportBuilder(
@@ -284,6 +295,12 @@ const exportExcel = async ({
     options = {}
 }) => {
 
+    // No custom builder (only Service Delivery has one):
+    // use the generic exporter for every other report.
+    if (!REPORT_BUILDERS[reportType]) {
+        return genericExport.exportExcel(report, options.context || {});
+    }
+
     const builder =
         getReportBuilder(
             reportType
@@ -328,6 +345,12 @@ const exportCsv = async ({
     report,
     options = {}
 }) => {
+
+    // No custom builder (only Service Delivery has one):
+    // use the generic exporter for every other report.
+    if (!REPORT_BUILDERS[reportType]) {
+        return genericExport.exportCSV(report, options.context || {});
+    }
 
     const builder =
         getReportBuilder(

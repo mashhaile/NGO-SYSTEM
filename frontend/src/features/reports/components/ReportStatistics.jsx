@@ -25,6 +25,15 @@ import {
 // =====================================================
 
 const CURRENCY_KEYS = [
+    // Finance reports (budgets / expenses)
+    "spent",
+    "pending",
+    "remaining",
+    "totalBudget",
+    "totalSpent",
+    "totalPending",
+    "totalRemaining",
+    "donationAmount",
     "supportValue",
     "totalSupportValue",
     "serviceValue",
@@ -43,6 +52,10 @@ const CURRENCY_KEYS = [
 ];
 
 const PERCENTAGE_KEYS = [
+    // Finance reports (budgets / expenses)
+    "percentSpent",
+    "percentUsed",
+    "percentOfYearPassed",
     "rate",
     "percentage",
     "percent",
@@ -1323,6 +1336,7 @@ const StatisticBlock = ({
             );
 
         const isSimpleStatistics =
+            columns.length <= 3 &&
             value.every(
                 (
                     row

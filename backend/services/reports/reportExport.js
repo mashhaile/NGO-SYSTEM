@@ -2200,6 +2200,11 @@ const autoFitColumns = (
     worksheet,
     maximumWidth = 42
 ) => {
+    // An empty sheet (e.g. a report with no charts) has no columns
+    if (!Array.isArray(worksheet.columns)) {
+        return;
+    }
+
     worksheet.columns.forEach(
         column => {
             let maxLength = 10;
@@ -2284,12 +2289,19 @@ const addTableSheet = (
             rows[0]
         );
 
+    // Readable headings ("budgetCode" -> "Budget Code"); date
+    // columns shown as dates, not serial numbers / timestamps
+    const isDateColumn = (key) =>
+        rows.some(row => isDate(row[key])) &&
+        rows.every(row => isNil(row[key]) || row[key] === "" || isDate(row[key]));
+
     worksheet.columns =
         columns.map(
             key => ({
-                header: key,
+                header: /[a-z][A-Z]|^[a-z]/.test(key) ? formatLabel(key) : key,
                 key,
-                width: 20
+                width: 20,
+                ...(isDateColumn(key) ? { style: { numFmt: "yyyy-mm-dd" } } : {})
             })
         );
 

@@ -13,7 +13,7 @@ Updated: 2026-10-21
    - Plans: created automatically when the server starts.
    - Organizations created before 2026-10-21 may lack lookups:
      `node scripts/seedDefaultLookups.js --dry-run`, then without it.
-3. Check: `npm test` in `backend/` (28 tests; uses its own temporary
+3. Check: `npm test` in `backend/` (30 tests; uses its own temporary
    database, never your data).
 
 ## Maintenance commands (run in backend/)
@@ -69,7 +69,9 @@ until purchase orders exist).
   currency with rate, concurrency-safe approval). Not deployed yet.
 - Local sample data (home PC): BUD-000001 program + BUD-000002 Empower
   Girls project budget, expenses EXP-000001..006 (all marked "sample").
-- Step 3: reports + warnings (budget vs actual, burn rate, per donor).
+- Step 3 DONE: reports "Budget vs Actual" (by project / line, burn rate,
+  over-budget lines) and "Spending by Donor" in Reports > Financial,
+  with PDF / Excel / CSV. Not deployed yet.
 - Step 4: budget revisions (versions).
 
 ## Remaining

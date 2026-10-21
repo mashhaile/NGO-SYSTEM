@@ -1,5 +1,6 @@
 const Organization = require("../../models/organization");
 const User = require("../../models/user");
+const rolePermissions = require("../../constants/rolepermissions");
 
 
 const buildReportContext = async (req) => {
@@ -48,6 +49,11 @@ const buildReportContext = async (req) => {
 
         role:
             req.user.role,
+
+        // So individual reports can require a permission
+        // (finance reports need budget.read)
+        permissions:
+            rolePermissions[req.user.role] || [],
 
         user,
 

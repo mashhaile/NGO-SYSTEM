@@ -118,6 +118,16 @@ attendanceSummaryReport:
     // =====================================================
 
     dashboardReport:
-        require("./dashboardReport")
+        require("./dashboardReport"),
+
+    // =====================================================
+    // FINANCE (budgets / expenses)
+    // =====================================================
+
+    budgetVsActualReport:
+        require("./budgetVsActualReport"),
+
+    donorSpendingReport:
+        require("./donorSpendingReport")
 
 };
