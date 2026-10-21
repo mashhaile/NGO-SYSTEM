@@ -74,6 +74,11 @@ const STATUS_STYLES = {
     rejected: {
         bgcolor: "error.light",
         color: "error.dark"
+    },
+
+    voided: {
+        bgcolor: "action.hover",
+        color: "text.secondary"
     }
 };
 

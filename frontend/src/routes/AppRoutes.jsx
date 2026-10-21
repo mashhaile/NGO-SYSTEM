@@ -280,6 +280,9 @@ const TorEditPage = lazyPage(() => import("../features/tor/pages/TorEditPage"));
 const BudgetListPage = lazyPage(() => import("../features/budgets/pages/BudgetListPage"));
 const BudgetFormPage = lazyPage(() => import("../features/budgets/pages/BudgetFormPage"));
 const BudgetDetailsPage = lazyPage(() => import("../features/budgets/pages/BudgetDetailsPage"));
+const ExpenseListPage = lazyPage(() => import("../features/expenses/pages/ExpenseListPage"));
+const ExpenseFormPage = lazyPage(() => import("../features/expenses/pages/ExpenseFormPage"));
+const ExpenseDetailsPage = lazyPage(() => import("../features/expenses/pages/ExpenseDetailsPage"));
 const EnrollmentListPage = lazyPage(() => import("../features/enrollments/pages/EnrollmentListPage"));
 const EnrollmentCreatePage = lazyPage(() => import("../features/enrollments/pages/EnrollmentCreatePage"));
 const EnrollmentDetailsPage = lazyPage(() => import("../features/enrollments/pages/EnrollmentDetailsPage"));
@@ -959,6 +962,47 @@ const AppRoutes = () => {
                     element={
                         <PermissionRoute permission="budget.update">
                             <BudgetFormPage />
+                        </PermissionRoute>
+                    }
+                />
+
+
+                {/* ==================================================
+                    EXPENSES
+                ================================================== */}
+
+                <Route
+                    path="/expenses"
+                    element={
+                        <PermissionRoute permission="expense.read">
+                            <ExpenseListPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/expenses/create"
+                    element={
+                        <PermissionRoute permission="expense.create">
+                            <ExpenseFormPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/expenses/:id"
+                    element={
+                        <PermissionRoute permission="expense.read">
+                            <ExpenseDetailsPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/expenses/:id/edit"
+                    element={
+                        <PermissionRoute permission="expense.update">
+                            <ExpenseFormPage />
                         </PermissionRoute>
                     }
                 />

@@ -623,7 +623,7 @@ const updateAttendance = async (
 
         {
 
-            new: true,
+            returnDocument: "after",
 
             runValidators: true
 
@@ -707,7 +707,7 @@ const deleteAttendance = async (
 
         {
 
-            new: true
+            returnDocument: "after"
 
         }
 

@@ -29,6 +29,7 @@ import {
     CheckCircle,
     Delete,
     Edit,
+    ReceiptLong,
     Send,
     Undo
 } from "@mui/icons-material";
@@ -49,6 +50,10 @@ import {
 
 import TorReviewDialog
     from "../../tor/components/TorReviewDialog";
+
+import {
+    getExpensesApi
+} from "../../expenses/api/expenseApi";
 
 import useAuth
     from "../../auth/hooks/useAuth";
@@ -101,6 +106,7 @@ const BudgetDetailsPage = () => {
     const { user } = useAuth();
 
     const [budget, setBudget] = useState(null);
+    const [expenses, setExpenses] = useState([]);
     const [error, setError] = useState("");
     const [actionError, setActionError] = useState("");
     const [busy, setBusy] = useState(false);
@@ -112,9 +118,13 @@ const BudgetDetailsPage = () => {
 
     const load = useCallback(() =>
         getBudgetByIdApi(id)
-            .then(data => {
+            .then(async data => {
                 setBudget(data);
                 setError("");
+                if (data.level === "project") {
+                    const recent = await getExpensesApi({ budget: id, limit: 10 }).catch(() => null);
+                    setExpenses(recent?.data || []);
+                }
             })
             .catch(err => setError(getApiErrorMessage(err, "Failed to load the budget."))),
     [id]);
@@ -188,7 +198,8 @@ const BudgetDetailsPage = () => {
         edit: editable && hasPermission(user, "budget.update"),
         delete: editable && hasPermission(user, "budget.delete"),
         submit: editable && hasPermission(user, "budget.update"),
-        review: budget.status === BUDGET_STATUS.SUBMITTED && hasPermission(user, "budget.approve")
+        review: budget.status === BUDGET_STATUS.SUBMITTED && hasPermission(user, "budget.approve"),
+        recordExpense: !isProgram && budget.status === BUDGET_STATUS.APPROVED && hasPermission(user, "expense.create")
     };
 
 
@@ -213,9 +224,14 @@ const BudgetDetailsPage = () => {
 
             {/* ACTIONS */}
 
-            {(can.edit || can.delete || can.submit || can.review) && (
+            {(can.edit || can.delete || can.submit || can.review || can.recordExpense) && (
                 <PageCard>
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                        {can.recordExpense && (
+                            <AppButton variant="contained" startIcon={<ReceiptLong />} onClick={() => navigate(`/expenses/create?budget=${id}`)}>
+                                Record Expense
+                            </AppButton>
+                        )}
                         {can.edit && (
                             <AppButton variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/budgets/${id}/edit`)}>
                                 Edit
@@ -252,8 +268,8 @@ const BudgetDetailsPage = () => {
                 valueSize="small"
                 items={[
                     { label: "Budget", value: formatMoney(summary.totalAmount, currency) },
-                    { label: "Committed", value: formatMoney(summary.totalCommitted, currency) },
                     { label: "Spent", value: formatMoney(summary.totalSpent, currency) },
+                    { label: "Pending approval", value: formatMoney(summary.totalPending || 0, currency) },
                     { label: "Remaining", value: formatMoney(summary.totalRemaining, currency) }
                 ]}
             />
@@ -383,7 +399,7 @@ const BudgetDetailsPage = () => {
                 <PageCard>
                     <FormSection
                         title="Budget Lines"
-                        subtitle="Spent and Remaining will follow expenses recorded against each line."
+                        subtitle="Spent = approved expenses. Pending = recorded but not yet approved (not deducted)."
                     >
                         <TableContainer sx={tableSx}>
                             <Table size="small">
@@ -395,6 +411,7 @@ const BudgetDetailsPage = () => {
                                         ))}
                                         <TableCell align="right">Budget</TableCell>
                                         <TableCell align="right">Spent</TableCell>
+                                        <TableCell align="right">Pending</TableCell>
                                         <TableCell align="right">Remaining</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -416,7 +433,8 @@ const BudgetDetailsPage = () => {
                                             ))}
                                             <TableCell align="right" sx={{ ...nowrap, fontWeight: 600 }}>{formatMoney(line.total, currency)}</TableCell>
                                             <TableCell align="right" sx={nowrap}>{formatMoney(line.spent, currency)}</TableCell>
-                                            <TableCell align="right" sx={{ ...nowrap, fontWeight: 600 }}>{formatMoney(line.remaining, currency)}</TableCell>
+                                            <TableCell align="right" sx={{ ...nowrap, color: "text.secondary" }}>{formatMoney(line.pending || 0, currency)}</TableCell>
+                                            <TableCell align="right" sx={{ ...nowrap, fontWeight: 600, color: line.remaining < 0 ? "error.main" : "text.primary" }}>{formatMoney(line.remaining, currency)}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -430,6 +448,7 @@ const BudgetDetailsPage = () => {
                                         ))}
                                         <TableCell align="right" sx={{ ...nowrap, fontWeight: 800 }}>{formatMoney(summary.totalAmount, currency)}</TableCell>
                                         <TableCell align="right" sx={{ ...nowrap, fontWeight: 700 }}>{formatMoney(summary.totalSpent, currency)}</TableCell>
+                                        <TableCell align="right" sx={{ ...nowrap, color: "text.secondary" }}>{formatMoney(summary.totalPending || 0, currency)}</TableCell>
                                         <TableCell align="right" sx={{ ...nowrap, fontWeight: 800 }}>{formatMoney(summary.totalRemaining, currency)}</TableCell>
                                     </TableRow>
                                 </TableFooter>
@@ -484,6 +503,65 @@ const BudgetDetailsPage = () => {
                                     This program has no program budget, so nothing limits this project budget.
                                     Create a program budget to set a ceiling per year.
                                 </Alert>
+                            )}
+                    </FormSection>
+                </PageCard>
+            )}
+
+
+            {/* RECENT EXPENSES */}
+
+            {!isProgram && hasPermission(user, "expense.read") && (
+                <PageCard>
+                    <FormSection
+                        title="Recent Expenses"
+                        subtitle={
+                            <span>
+                                Latest expenses charged to this budget.{" "}
+                                <Link component="button" underline="hover" onClick={() => navigate(`/expenses?budget=${id}`)}>
+                                    View all
+                                </Link>
+                            </span>
+                        }
+                    >
+                        {expenses.length === 0
+                            ? (
+                                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                                    No expenses recorded yet.
+                                </Typography>
+                            )
+                            : (
+                                <TableContainer sx={tableSx}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell sx={{ minWidth: 200 }}>Expense</TableCell>
+                                                <TableCell>Date</TableCell>
+                                                <TableCell>Line</TableCell>
+                                                <TableCell align="right">Amount</TableCell>
+                                                <TableCell>Status</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {expenses.map(item => (
+                                                <TableRow key={item._id} hover>
+                                                    <TableCell>
+                                                        <Link component="button" underline="hover" sx={{ textAlign: "left", fontWeight: 600 }} onClick={() => navigate(`/expenses/${item._id}`)}>
+                                                            {item.description}
+                                                        </Link>
+                                                        <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                                                            {item.expenseCode}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell sx={nowrap}>{new Date(item.expenseDate).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{item.category}</TableCell>
+                                                    <TableCell align="right" sx={nowrap}>{formatMoney(item.budgetAmount, item.budgetCurrency)}</TableCell>
+                                                    <TableCell><StatusChip status={item.status} /></TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
                             )}
                     </FormSection>
                 </PageCard>

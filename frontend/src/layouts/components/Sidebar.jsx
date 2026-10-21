@@ -42,6 +42,7 @@ import {
     CardMembership,
     Storefront,
     Savings,
+    ReceiptLong,
     AddBusiness,
     Group
 } from "@mui/icons-material";
@@ -194,6 +195,13 @@ const menuItems = [
         path: "/budgets",
         icon: <Savings />,
         permission: "budget.read"
+    },
+
+    {
+        label: "Expenses",
+        path: "/expenses",
+        icon: <ReceiptLong />,
+        permission: "expense.read"
     },
     
     {

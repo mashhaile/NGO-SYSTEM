@@ -582,7 +582,7 @@ const updateOrganizationStatus = async (
 
             {
 
-                new: true
+                returnDocument: "after"
 
             }
 
