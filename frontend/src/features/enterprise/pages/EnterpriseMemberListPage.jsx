@@ -1,939 +1,305 @@
 import {
-    useEffect
+    useEffect,
+    useState
 } from "react";
-
-
-import {
-    useDispatch,
-    useSelector
-} from "react-redux";
-
 
 import {
     useNavigate
 } from "react-router-dom";
 
+import {
+    Alert,
+    Box,
+    Link,
+    Typography
+} from "@mui/material";
 
 import {
-    Edit,
+    ArrowBack,
     Delete,
+    Edit,
     Visibility
 } from "@mui/icons-material";
-
 
 import {
     PageContainer,
     PageHeader,
     PageCard,
-    FormSection,
-    AppButton,
-    AppIconButton,
-    StatusChip,
+    SearchToolbar,
     DataTable,
-    ErrorState,
-    AppPagination
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
 } from "../../../components/ui";
 
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+import useServerList
+    from "../../../hooks/useServerList";
 
 import {
-    getEnterpriseMembersThunk,
-    deleteEnterpriseMemberThunk
-} from "../store/enterpriseMemberThunks";
-
+    getEnterpriseMembersApi,
+    deleteEnterpriseMemberApi
+} from "../api/enterpriseMemberApi";
 
 import {
-    clearEnterpriseMemberMessage
-} from "../store/enterpriseMemberSlice";
+    getEnterpriseLookupApi
+} from "../api/enterpriseApi";
+
+import { hasPermission } from "../../../utils/permissions";
+import { getApiErrorMessage } from "../../../utils/apiError";
 
 
-// =====================================================
-// LOOKUP DISPLAY
-// =====================================================
+const STATUS_OPTIONS =
+    ["Active", "Inactive"].map(value => ({ value, label: value }));
 
-const getLookupLabel = (
-    lookup,
-    fallback = "-"
-) => {
+const lookupName = (value, fallback = "-") =>
+    !value ? fallback : typeof value === "object" ? value.value || value.label || value.name || fallback : String(value);
 
-    if (
-        lookup === null ||
-        lookup === undefined ||
-        lookup === ""
-    ) {
+const personName = (person) =>
+    !person || typeof person !== "object"
+        ? String(person || "-")
+        : [person.firstName, person.middleName, person.lastName].filter(Boolean).join(" ") || person.beneficiaryNumber || "-";
 
-        return fallback;
+const dateOf = (value) =>
+    value ? new Date(value).toLocaleDateString() : "";
 
-    }
+const enterpriseIdOf = (member) =>
+    member.enterprise?._id || (typeof member.enterprise === "string" ? member.enterprise : member.enterpriseId);
 
-
-    if (
-        typeof lookup === "object"
-    ) {
-
-        return (
-            lookup.value ||
-            lookup.label ||
-            lookup.name ||
-            lookup.code ||
-            fallback
-        );
-
-    }
-
-
-    return String(
-        lookup
-    );
-
-};
-
-
-// =====================================================
-// BENEFICIARY NAME
-// =====================================================
-
-const getBeneficiaryName = (
-    beneficiary
-) => {
-
-    if (!beneficiary) {
-
-        return "Unknown Beneficiary";
-
-    }
-
-
-    if (
-        typeof beneficiary !== "object"
-    ) {
-
-        return String(
-            beneficiary
-        );
-
-    }
-
-
-    const fullName = [
-
-        beneficiary.firstName,
-        beneficiary.middleName,
-        beneficiary.lastName
-
-    ]
-        .filter(Boolean)
-        .join(" ");
-
-
-    return (
-
-        fullName ||
-        beneficiary.beneficiaryNumber ||
-        beneficiary.phone ||
-        beneficiary.email ||
-        "Unknown Beneficiary"
-
-    );
-
-};
-
-
-// =====================================================
-// ENTERPRISE NAME
-// =====================================================
-
-const getEnterpriseName = (
-    enterprise
-) => {
-
-    if (!enterprise) {
-
-        return "Unknown Enterprise";
-
-    }
-
-
-    if (
-        typeof enterprise !== "object"
-    ) {
-
-        return String(
-            enterprise
-        );
-
-    }
-
-
-    return (
-
-        enterprise.name ||
-        enterprise.enterpriseName ||
-        enterprise.businessName ||
-        enterprise.enterpriseNumber ||
-        enterprise.registrationNumber ||
-        "Unknown Enterprise"
-
-    );
-
-};
-
-
-// =====================================================
-// DATE DISPLAY
-// =====================================================
-
-const getDateValue = (
-    value
-) => {
-
-    if (!value) {
-
-        return "—";
-
-    }
-
-
-    const date =
-        new Date(value);
-
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return "—";
-
-    }
-
-
-    return date.toLocaleDateString();
-
-};
+const twoLine = (main, caption) => (
+    <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+        <Typography variant="body2">{main || "-"}</Typography>
+        {caption && (
+            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                {caption}
+            </Typography>
+        )}
+    </Box>
+);
 
 
 // =====================================================
 // ENTERPRISE MEMBER LIST PAGE
 // =====================================================
+// Members of all enterprises. Each enterprise's own
+// member list is at /enterprises/:id/members.
 
 const EnterpriseMemberListPage = () => {
 
-    const dispatch =
-        useDispatch();
+    const navigate = useNavigate();
 
+    const { user } = useAuth();
 
-    const navigate =
-        useNavigate();
+    const [search, setSearch] = useState("");
+    const [enterprise, setEnterprise] = useState("");
+    const [status, setStatus] = useState("");
+    const [enterpriseOptions, setEnterpriseOptions] = useState([]);
 
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
-    // =================================================
-    // REDUX
-    // =================================================
-
-    const {
-
-        members = [],
-
-        pagination = {
-            page: 1,
-            limit: 10,
-            totalRecords: 0,
-            totalActive: 0,
-            totalInactive: 0,
-            totalPages: 0
-        },
-
-        loading = false,
-
-        actionLoading = false,
-
-        error = null,
-
-        successMessage = null
-
-    } = useSelector(
-        state =>
-            state.enterpriseMembers || {}
+    const list = useServerList(
+        getEnterpriseMembersApi,
+        { search, enterprise, status },
+        "Failed to load enterprise members."
     );
 
 
-    // =================================================
-    // LOAD MEMBERS
-    // =================================================
-
     useEffect(() => {
-
-        dispatch(
-            getEnterpriseMembersThunk({
-                page: 1,
-                limit: 10
-            })
-        );
-
-    }, [
-        dispatch
-    ]);
+        getEnterpriseLookupApi()
+            .then(response => setEnterpriseOptions(
+                (Array.isArray(response?.data) ? response.data : []).map(item => ({
+                    value: item._id,
+                    label: item.name || item.enterpriseNumber
+                }))
+            ))
+            .catch(() => setEnterpriseOptions([]));
+    }, []);
 
 
-    // =================================================
-    // CLEAR SUCCESS MESSAGE
-    // =================================================
+    const handleDelete = async () => {
 
-    useEffect(() => {
+        setDeleting(true);
 
-        if (!successMessage) {
-
-            return;
-
+        try {
+            await deleteEnterpriseMemberApi(deleteTarget._id);
+            setDeleteTarget(null);
+            list.reload();
         }
-
-
-        const timer =
-            setTimeout(() => {
-
-                dispatch(
-                    clearEnterpriseMemberMessage()
-                );
-
-            }, 3000);
-
-
-        return () =>
-            clearTimeout(timer);
-
-    }, [
-        successMessage,
-        dispatch
-    ]);
-
-
-    // =================================================
-    // SAFE MEMBERS
-    // =================================================
-
-    const memberList =
-        Array.isArray(members)
-            ? members
-            : [];
-
-
-    // =================================================
-    // PAGINATION
-    // =================================================
-
-    const totalPages =
-        Number(
-            pagination?.totalPages || 0
-        );
-
-
-    const currentPage =
-        Number(
-            pagination?.page || 1
-        );
-
-
-    const totalRecords =
-        Number(
-            pagination?.totalRecords || 0
-        );
-
-
-    const totalActive =
-        Number(
-            pagination?.totalActive || 0
-        );
-
-
-    const totalInactive =
-        Number(
-            pagination?.totalInactive || 0
-        );
-
-
-    const pageSize =
-        Number(
-            pagination?.limit || 10
-        );
-
-
-    // =================================================
-    // PAGE CHANGE
-    // =================================================
-
-    const handlePageChange = (
-        page
-    ) => {
-
-        if (
-            page < 1 ||
-            (
-                totalPages > 0 &&
-                page > totalPages
-            )
-        ) {
-
-            return;
-
+        catch (error) {
+            setDeleteTarget(null);
+            list.setError(getApiErrorMessage(error, "Failed to remove the member."));
         }
-
-
-        dispatch(
-            getEnterpriseMembersThunk({
-                page,
-                limit: pageSize
-            })
-        );
-
-    };
-
-
-    // =================================================
-    // DELETE
-    // =================================================
-
-    const handleDelete = async (
-        memberId
-    ) => {
-
-        if (!memberId) {
-
-            return;
-
-        }
-
-
-        const confirmed =
-            window.confirm(
-                "Are you sure you want to remove this beneficiary from the enterprise?"
-            );
-
-
-        if (!confirmed) {
-
-            return;
-
-        }
-
-
-        const result =
-            await dispatch(
-                deleteEnterpriseMemberThunk(
-                    memberId
-                )
-            );
-
-
-        if (
-            deleteEnterpriseMemberThunk.fulfilled.match(
-                result
-            )
-        ) {
-
-            dispatch(
-                getEnterpriseMembersThunk({
-                    page: currentPage,
-                    limit: pageSize
-                })
-            );
-
+        finally {
+            setDeleting(false);
         }
 
     };
 
 
-    // =================================================
-    // TABLE COLUMNS
-    // =================================================
+    const canUpdate = hasPermission(user, "enterprise.update");
+
+    const filterChange = (setter) => (value) => { setter(value); list.resetPage(); };
+
+    const memberUrl = (row) => `/enterprises/${enterpriseIdOf(row)}/members/${row._id}`;
+
 
     const columns = [
 
         {
-            field: "beneficiaryName",
-            headerName: "Beneficiary",
-            flex: 1,
-            minWidth: 180,
-
-            valueGetter: (
-                value,
-                row
-            ) =>
-                getBeneficiaryName(
-                    row?.beneficiary
-                )
+            field: "beneficiary",
+            headerName: "Member",
+            flex: 1.4,
+            minWidth: 220,
+            sortable: false,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Link
+                        component="button"
+                        underline="hover"
+                        sx={{ fontWeight: 600, textAlign: "left" }}
+                        onClick={() => navigate(memberUrl(params.row))}
+                    >
+                        {personName(params.row.beneficiary)}
+                    </Link>
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                        {params.row.beneficiary?.beneficiaryNumber}
+                    </Typography>
+                </Box>
+            )
         },
 
-
         {
-            field: "beneficiaryNumber",
-            headerName: "Beneficiary Number",
-            flex: 1,
-            minWidth: 160,
-
-            valueGetter: (
-                value,
-                row
-            ) =>
-                row?.beneficiary?.beneficiaryNumber ||
-                "-"
-        },
-
-
-        {
-            field: "enterpriseName",
+            field: "enterprise",
             headerName: "Enterprise",
-            flex: 1,
-            minWidth: 180,
-
-            valueGetter: (
-                value,
-                row
-            ) =>
-                getEnterpriseName(
-                    row?.enterprise
-                )
+            flex: 1.3,
+            minWidth: 200,
+            sortable: false,
+            renderCell: (params) => twoLine(params.row.enterprise?.name, params.row.enterprise?.enterpriseNumber)
         },
-
-
-        {
-            field: "enterpriseNumber",
-            headerName: "Enterprise Number",
-            flex: 1,
-            minWidth: 150,
-
-            valueGetter: (
-                value,
-                row
-            ) =>
-                row?.enterprise?.enterpriseNumber ||
-                "-"
-        },
-
 
         {
             field: "memberRole",
-            headerName: "Member Role",
-            flex: 1,
-            minWidth: 130,
-
-            valueGetter: (
-                value,
-                row
-            ) =>
-                getLookupLabel(
-                    row?.memberRole,
-                    "Member"
-                )
+            headerName: "Role",
+            minWidth: 120,
+            valueGetter: (value) => lookupName(value, "Member")
         },
-
 
         {
             field: "joinedDate",
-            headerName: "Joined Date",
-            flex: 1,
-            minWidth: 130,
-
-            valueGetter: (
-                value,
-                row
-            ) =>
-                getDateValue(
-                    row?.joinedDate
-                )
+            headerName: "Membership",
+            minWidth: 170,
+            sortable: false,
+            renderCell: (params) => twoLine(
+                dateOf(params.row.joinedDate) ? `Joined ${dateOf(params.row.joinedDate)}` : "-",
+                dateOf(params.row.leftDate) ? `Left ${dateOf(params.row.leftDate)}` : ""
+            )
         },
-
-
-        {
-            field: "leftDate",
-            headerName: "Left Date",
-            flex: 1,
-            minWidth: 130,
-
-            valueGetter: (
-                value,
-                row
-            ) =>
-                getDateValue(
-                    row?.leftDate
-                )
-        },
-
 
         {
             field: "status",
             headerName: "Status",
-            width: 120,
-
-            renderCell: (
-                params
-            ) => (
-
-                <StatusChip
-                    status={
-                        getLookupLabel(
-                            params?.row?.status,
-                            "Active"
-                        )
-                    }
-                />
-
-            )
+            minWidth: 110,
+            renderCell: (params) => <StatusChip status={lookupName(params.value, "Active")} />
         },
 
-
-     {
-    field: "actions",
-    headerName: "Actions",
-    width: 150,
-    sortable: false,
-    filterable: false,
-    disableColumnMenu: true,
-    align: "right",
-    headerAlign: "right",
-
-    renderCell: (params) => {
-
-        const member =
-            params?.row || {};
-
-        const memberId =
-            member?._id ||
-            member?.id;
-
-        const enterprise =
-            member?.enterprise;
-
-        const enterpriseId =
-            enterprise?._id ||
-            enterprise?.id ||
-            (
-                typeof enterprise === "string"
-                    ? enterprise
-                    : null
-            ) ||
-            member?.enterpriseId;
-
-        return (
-            <>
-                {/* VIEW */}
-
-                <AppIconButton
-                    icon={
-                        <Visibility />
-                    }
-                    tooltip="View"
-                    disabled={
-                        !memberId ||
-                        !enterpriseId
-                    }
-                    onClick={() => {
-
-                        if (
-                            !memberId ||
-                            !enterpriseId
-                        ) {
-                            console.error(
-                                "Missing enterprise member route data",
-                                {
-                                    memberId,
-                                    enterpriseId,
-                                    member
-                                }
-                            );
-
-                            return;
-                        }
-
-                        navigate(
-                            `/enterprises/${enterpriseId}/members/${memberId}`
-                        );
-
-                    }}
-                />
-
-
-                {/* EDIT */}
-
-                <AppIconButton
-                    icon={
-                        <Edit />
-                    }
-                    tooltip="Edit"
-                    disabled={
-                        actionLoading ||
-                        !memberId ||
-                        !enterpriseId
-                    }
-                    onClick={() => {
-
-                        if (
-                            !memberId ||
-                            !enterpriseId
-                        ) {
-                            return;
-                        }
-
-                        navigate(
-                            `/enterprises/${enterpriseId}/members/${memberId}/edit`
-                        );
-
-                    }}
-                />
-
-
-                {/* DELETE */}
-
-                <AppIconButton
-                    icon={
-                        <Delete />
-                    }
-                    tooltip="Delete"
-                    color="error"
-                    disabled={
-                        actionLoading ||
-                        !memberId
-                    }
-                    onClick={() =>
-                        handleDelete(
-                            memberId
-                        )
-                    }
-                />
-
-            </>
-        );
-
-    }
-
-}
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 140,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <>
+                    <AppIconButton
+                        icon={<Visibility fontSize="small" />}
+                        tooltip="View member"
+                        onClick={() => navigate(memberUrl(params.row))}
+                    />
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip="Edit member"
+                            onClick={() => navigate(`${memberUrl(params.row)}/edit`)}
+                        />
+                    )}
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip="Remove from enterprise"
+                            color="error"
+                            onClick={() => setDeleteTarget(params.row)}
+                        />
+                    )}
+                </>
+            )
+        }
 
     ];
 
-
-    // =================================================
-    // RENDER
-    // =================================================
 
     return (
 
         <PageContainer>
 
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <PageHeader
-    title="Enterprise Members"
-    subtitle="Manage beneficiaries participating in enterprises"
-/>
-
-            {/* =================================================
-                SUMMARY
-            ================================================= */}
-
-            <PageCard>
-
-                <FormSection
-                    title="Enterprise Member Summary"
-                >
-
-                    <StatusChip
-                        status={
-                            `Total: ${totalRecords}`
-                        }
-                    />
-
-
-                    <StatusChip
-                        status={
-                            `Active: ${totalActive}`
-                        }
-                    />
-
-
-                    <StatusChip
-                        status={
-                            `Inactive: ${totalInactive}`
-                        }
-                    />
-
-                </FormSection>
-
-            </PageCard>
-
-
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
-            {
-                error && (
-
-                    <ErrorState
-                        message={
-
-                            typeof error === "object"
-
-                                ? (
-                                    error.message ||
-                                    "Failed to load enterprise members"
-                                )
-
-                                : error
-
-                        }
-                    />
-
-                )
-            }
-
-
-            {/* =================================================
-                SUCCESS
-            ================================================= */}
-
-            {
-                successMessage && (
-
-                    <PageCard>
-
-                        <FormSection>
-
-                            <StatusChip
-                                status={
-                                    successMessage
-                                }
-                            />
-
-                        </FormSection>
-
-                    </PageCard>
-
-                )
-            }
-
-
-            {/* =================================================
-                TABLE
-            ================================================= */}
-
-            <PageCard>
-
-                <FormSection
-                    title="Enterprise Member List"
-                >
-
-                    <DataTable
-
-                        rows={
-                            memberList
-                        }
-
-                        columns={
-                            columns
-                        }
-
-                        loading={
-                            loading
-                        }
-
-                        getRowId={
-                            row =>
-                                row._id
-                        }
-
-                        paginationMode="server"
-
-                        rowCount={
-                            totalRecords
-                        }
-
-                        paginationModel={{
-
-                            page:
-                                Math.max(
-                                    currentPage - 1,
-                                    0
-                                ),
-
-                            pageSize:
-                                pageSize
-
-                        }}
-
-                        onPaginationModelChange={(
-                            model
-                        ) => {
-
-                            const newPage =
-                                model.page + 1;
-
-
-                            const newLimit =
-                                model.pageSize;
-
-
-                            dispatch(
-                                getEnterpriseMembersThunk({
-
-                                    page:
-                                        newPage,
-
-                                    limit:
-                                        newLimit
-
-                                })
-                            );
-
-                        }}
-
-                    />
-
-                </FormSection>
-
-            </PageCard>
-
-
-            {/* =================================================
-                PAGINATION
-            ================================================= */}
-
-            <AppPagination
-
-                page={
-                    currentPage
-                }
-
-                totalPages={
-                    totalPages
-                }
-
-                onChange={
-                    handlePageChange
-                }
-
+                title="Enterprise Members"
+                subtitle="Beneficiaries taking part in enterprises. Add members from an enterprise's page."
+                action={() => navigate("/enterprises")}
+                actionLabel="Enterprises"
+                actionIcon={<ArrowBack />}
             />
 
-
-            {/* =================================================
-                BACK
-            ================================================= */}
-
-            <AppButton
-                variant="outlined"
-                sx={{
-                    mt: 3,
-                    mb: 5
+            <SearchToolbar
+                search={search}
+                onSearch={filterChange(setSearch)}
+                onReset={() => {
+                    setSearch("");
+                    setEnterprise("");
+                    setStatus("");
+                    list.resetPage();
                 }}
-                onClick={() =>
-                    navigate(
-                        "/enterprises"
-                    )
+                filters={[
+                    { key: "enterprise", label: "Enterprise", value: enterprise, onChange: filterChange(setEnterprise), options: enterpriseOptions },
+                    { key: "status", label: "Status", value: status, onChange: filterChange(setStatus), options: STATUS_OPTIONS }
+                ]}
+            />
+
+            {list.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {list.error}
+                </Alert>
+            )}
+
+            <PageCard>
+                <DataTable
+                    rows={list.rows}
+                    columns={columns}
+                    loading={list.loading}
+                    paginationMode="server"
+                    rowCount={list.total}
+                    paginationModel={list.paginationModel}
+                    onPaginationModelChange={list.setPaginationModel}
+                    getRowHeight={() => "auto"}
+                    onRowDoubleClick={(params) => navigate(memberUrl(params.row))}
+                />
+            </PageCard>
+
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Remove Member"
+                message={
+                    deleteTarget
+                        ? `Remove ${personName(deleteTarget.beneficiary)} from ${deleteTarget.enterprise?.name || "the enterprise"}?`
+                        : ""
                 }
-            >
-                Back to Enterprises
-            </AppButton>
+                loading={deleting}
+                onClose={() => !deleting && setDeleteTarget(null)}
+                onConfirm={handleDelete}
+            />
 
         </PageContainer>
 

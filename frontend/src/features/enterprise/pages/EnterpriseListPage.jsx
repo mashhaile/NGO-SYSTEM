@@ -1,50 +1,68 @@
 import {
     useEffect,
-    useState,
-    useCallback
+    useState
 } from "react";
-
-
-import {
-    useDispatch,
-    useSelector
-} from "react-redux";
-
 
 import {
     useNavigate
 } from "react-router-dom";
 
+import {
+    Alert,
+    Box,
+    Link,
+    Typography
+} from "@mui/material";
 
 import {
     Add,
-    Refresh
+    Delete,
+    Edit,
+    Groups,
+    Visibility
 } from "@mui/icons-material";
-
-
-import {
-    getEnterprisesThunk,
-    deleteEnterpriseThunk
-} from "../store/enterpriseThunks";
-
-
-import EnterpriseTable
-    from "../components/EnterpriseTable";
-
 
 import {
     PageContainer,
     PageHeader,
-    StatsCards,
-    SearchToolbar,
     PageCard,
-    EmptyState,
-    LoadingState,
-    AppButton,
-    AppAlert,
-    ActionToolbar,
-    AppPagination
+    SearchToolbar,
+    DataTable,
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
 } from "../../../components/ui";
+
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+import useServerList
+    from "../../../hooks/useServerList";
+
+import {
+    getEnterprisesApi,
+    deleteEnterpriseApi
+} from "../api/enterpriseApi";
+
+import {
+    getLookupsByModuleAndCategoryService
+} from "../../lookups/services/lookupService";
+
+import { hasPermission } from "../../../utils/permissions";
+import { getApiErrorMessage } from "../../../utils/apiError";
+
+
+const listOf = (response) =>
+    Array.isArray(response) ? response
+        : Array.isArray(response?.data?.data) ? response.data.data
+            : Array.isArray(response?.data) ? response.data
+                : [];
+
+const toOptions = (response) =>
+    listOf(response).map(item => ({ value: item._id, label: item.value || item.name }));
+
+const lookupName = (value) =>
+    !value ? "" : typeof value === "object" ? value.value || value.name || "" : String(value);
 
 
 // =====================================================
@@ -53,603 +71,233 @@ import {
 
 const EnterpriseListPage = () => {
 
-    const dispatch =
-        useDispatch();
+    const navigate = useNavigate();
 
+    const { user } = useAuth();
 
-    const navigate =
-        useNavigate();
+    const [search, setSearch] = useState("");
+    const [enterpriseType, setEnterpriseType] = useState("");
+    const [businessSector, setBusinessSector] = useState("");
+    const [options, setOptions] = useState({ types: [], sectors: [] });
 
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
-    // =====================================================
-    // REDUX
-    // =====================================================
+    const list = useServerList(
+        getEnterprisesApi,
+        { search, enterpriseType, businessSector },
+        "Failed to load enterprises."
+    );
 
-    const {
-        enterprises = [],
-        pagination = {},
-        loading = false,
-        actionLoading = false,
-        error = null
-    } =
-        useSelector(
-            (state) =>
-                state.enterprises
-        );
-
-
-    // =====================================================
-    // LOCAL STATE
-    // =====================================================
-
-    const [
-        search,
-        setSearch
-    ] = useState("");
-
-
-    const [
-        page,
-        setPage
-    ] = useState(1);
-
-
-    const [
-        limit,
-        setLimit
-    ] = useState(10);
-
-
-    // =====================================================
-    // LOAD DATA
-    // =====================================================
-
-    const loadData =
-        useCallback(
-            () => {
-
-                dispatch(
-                    getEnterprisesThunk({
-
-                        search,
-
-                        page,
-
-                        limit
-
-                    })
-                );
-
-            },
-            [
-                dispatch,
-                search,
-                page,
-                limit
-            ]
-        );
-
-
-    // =====================================================
-    // SEARCH / PAGINATION LOAD
-    // =====================================================
 
     useEffect(() => {
-
-        const timer =
-            setTimeout(
-                () => {
-
-                    loadData();
-
-                },
-                400
-            );
+        Promise.all([
+            getLookupsByModuleAndCategoryService("Enterprise", "EnterpriseType").catch(() => []),
+            getLookupsByModuleAndCategoryService("Enterprise", "BusinessSector").catch(() => [])
+        ]).then(([types, sectors]) => setOptions({ types: toOptions(types), sectors: toOptions(sectors) }));
+    }, []);
 
 
-        return () => {
+    const handleDelete = async () => {
 
-            clearTimeout(
-                timer
-            );
+        setDeleting(true);
 
-        };
-
-    }, [
-        loadData
-    ]);
-
-
-    // =====================================================
-    // SEARCH
-    // =====================================================
-
-    const handleSearch = (
-        value
-    ) => {
-
-        setSearch(
-            value
-        );
-
-        setPage(
-            1
-        );
-
-    };
-
-
-    // =====================================================
-    // ROW LIMIT
-    // =====================================================
-
-    const handleLimitChange = (
-        value
-    ) => {
-
-        setLimit(
-            Number(value)
-        );
-
-        setPage(
-            1
-        );
-
-    };
-
-
-    // =====================================================
-    // RESET
-    // =====================================================
-
-    const resetSearch = () => {
-
-        setSearch("");
-
-        setPage(1);
-
-    };
-
-
-    // =====================================================
-    // REFRESH
-    // =====================================================
-
-    const handleRefresh = () => {
-
-        loadData();
-
-    };
-
-
-    // =====================================================
-    // DELETE
-    // =====================================================
-
-    const handleDelete = (
-        id
-    ) => {
-
-        const confirmed =
-            window.confirm(
-                "Are you sure you want to delete this enterprise?"
-            );
-
-
-        if (!confirmed) {
-
-            return;
-
+        try {
+            await deleteEnterpriseApi(deleteTarget._id);
+            setDeleteTarget(null);
+            list.reload();
+        }
+        catch (error) {
+            setDeleteTarget(null);
+            list.setError(getApiErrorMessage(error, "Failed to delete the enterprise."));
+        }
+        finally {
+            setDeleting(false);
         }
 
-
-        dispatch(
-            deleteEnterpriseThunk(
-                id
-            )
-        );
-
     };
 
 
-    // =====================================================
-    // SAFE VALUES
-    // =====================================================
+    const canUpdate = hasPermission(user, "enterprise.update");
+    const canDelete = hasPermission(user, "enterprise.delete");
 
-    const enterpriseList =
-        Array.isArray(
-            enterprises
-        )
-            ? enterprises
-            : [];
+    const filterChange = (setter) => (value) => { setter(value); list.resetPage(); };
 
 
-    // =====================================================
-    // STATS
-    // =====================================================
+    const columns = [
 
-    const totalEnterprises =
-        Number(
-            pagination?.totalRecords
-        ) || 0;
+        {
+            field: "name",
+            headerName: "Enterprise",
+            flex: 1.4,
+            minWidth: 220,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Link
+                        component="button"
+                        underline="hover"
+                        sx={{ fontWeight: 600, textAlign: "left" }}
+                        onClick={() => navigate(`/enterprises/${params.row._id}`)}
+                    >
+                        {params.value}
+                    </Link>
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                        {params.row.enterpriseNumber}
+                    </Typography>
+                </Box>
+            )
+        },
 
+        {
+            field: "enterpriseType",
+            headerName: "Type",
+            flex: 1.2,
+            minWidth: 190,
+            sortable: false,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Typography variant="body2">{lookupName(params.row.enterpriseType) || "-"}</Typography>
+                    {lookupName(params.row.ownershipType) && (
+                        <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                            {lookupName(params.row.ownershipType)}
+                        </Typography>
+                    )}
+                </Box>
+            )
+        },
 
-    const currentRecords =
-        enterpriseList.length;
+        {
+            field: "businessSector",
+            headerName: "Sector",
+            flex: 1,
+            minWidth: 150,
+            sortable: false,
+            valueGetter: (value) => lookupName(value) || "-"
+        },
 
+        {
+            field: "phone",
+            headerName: "Phone",
+            minWidth: 130,
+            valueGetter: (value) => value || "-"
+        },
 
-    const backendActiveCount =
-        pagination?.totalActive ??
-        pagination?.activeCount ??
-        pagination?.activeRecords ??
-        pagination?.active;
+        {
+            field: "status",
+            headerName: "Status",
+            minWidth: 110,
+            renderCell: (params) => <StatusChip status={lookupName(params.value) || "Active"} />
+        },
 
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 170,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <>
+                    <AppIconButton
+                        icon={<Visibility fontSize="small" />}
+                        tooltip="View enterprise"
+                        onClick={() => navigate(`/enterprises/${params.row._id}`)}
+                    />
+                    <AppIconButton
+                        icon={<Groups fontSize="small" />}
+                        tooltip="Members"
+                        onClick={() => navigate(`/enterprises/${params.row._id}/members`)}
+                    />
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip="Edit enterprise"
+                            onClick={() => navigate(`/enterprises/${params.row._id}/edit`)}
+                        />
+                    )}
+                    {canDelete && (
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip="Delete enterprise"
+                            color="error"
+                            onClick={() => setDeleteTarget(params.row)}
+                        />
+                    )}
+                </>
+            )
+        }
 
-    const activeCount =
-        backendActiveCount !== undefined &&
-        backendActiveCount !== null
+    ];
 
-            ? Number(
-                backendActiveCount
-            ) || 0
-
-            : enterpriseList.filter(
-                (enterprise) =>
-                    String(
-                        enterprise?.status ??
-                        ""
-                    )
-                        .trim()
-                        .toLowerCase() ===
-                    "active"
-            ).length;
-
-
-    const backendInactiveCount =
-        pagination?.totalInactive ??
-        pagination?.inactiveCount ??
-        pagination?.inactiveRecords ??
-        pagination?.inactive;
-
-
-    const inactiveCount =
-        backendInactiveCount !== undefined &&
-        backendInactiveCount !== null
-
-            ? Number(
-                backendInactiveCount
-            ) || 0
-
-            : enterpriseList.filter(
-                (enterprise) =>
-                    String(
-                        enterprise?.status ??
-                        ""
-                    )
-                        .trim()
-                        .toLowerCase() ===
-                    "inactive"
-            ).length;
-
-
-    // =====================================================
-    // PAGINATION
-    // =====================================================
-
-    const totalPages =
-        Number(
-            pagination?.totalPages
-        ) || 0;
-
-
-    // =====================================================
-    // RENDER
-    // =====================================================
 
     return (
 
         <PageContainer>
 
-
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <PageHeader
-
                 title="Enterprises"
-
-                subtitle={
-                    "Manage beneficiary enterprises"
-                }
-
-                action={() =>
-                    navigate(
-                        "/enterprises/create"
-                    )
-                }
-
-                actionLabel="Add Enterprise"
-
-                actionIcon={
-                    <Add />
-                }
-
+                subtitle="Businesses and cooperatives run by beneficiaries."
+                {...(
+                    hasPermission(user, "enterprise.create")
+                        ? {
+                            action: () => navigate("/enterprises/create"),
+                            actionLabel: "Add Enterprise",
+                            actionIcon: <Add />
+                        }
+                        : {}
+                )}
+                secondaryAction={() => navigate("/enterprise-members")}
+                secondaryActionLabel="All Members"
+                secondaryActionIcon={<Groups />}
             />
-
-
-            {/* =================================================
-                PAGE ACTIONS
-            ================================================= */}
-
-            <PageCard>
-
-                <ActionToolbar>
-
-                    <AppButton
-
-                        variant="outlined"
-
-                        startIcon={
-                            <Refresh />
-                        }
-
-                        onClick={
-                            handleRefresh
-                        }
-
-                        loading={
-                            loading
-                        }
-
-                    >
-
-                        Refresh
-
-                    </AppButton>
-
-                </ActionToolbar>
-
-            </PageCard>
-
-
-            {/* =================================================
-                STATISTICS
-            ================================================= */}
-
-            <StatsCards
-
-                items={[
-
-                    {
-                        label:
-                            "Total Enterprises",
-
-                        value:
-                            totalEnterprises
-                    },
-
-
-                    {
-                        label:
-                            "Current Records",
-
-                        value:
-                            currentRecords
-                    },
-
-
-                    {
-                        label:
-                            "Active",
-
-                        value:
-                            activeCount
-                    },
-
-
-                    {
-                        label:
-                            "Inactive",
-
-                        value:
-                            inactiveCount
-                    }
-
-                ]}
-
-            />
-
-
-            {/* =================================================
-                SEARCH
-            ================================================= */}
 
             <SearchToolbar
-
-                search={
-                    search
-                }
-
-                onSearch={
-                    handleSearch
-                }
-
-                onReset={
-                    resetSearch
-                }
-
+                search={search}
+                onSearch={filterChange(setSearch)}
+                onReset={() => {
+                    setSearch("");
+                    setEnterpriseType("");
+                    setBusinessSector("");
+                    list.resetPage();
+                }}
                 filters={[
-
-                    {
-                        key:
-                            "limit",
-
-                        label:
-                            "Rows",
-
-                        value:
-                            limit,
-
-                        onChange:
-                            handleLimitChange,
-
-                        options: [
-
-                            {
-                                value: 10,
-                                label: "10"
-                            },
-
-                            {
-                                value: 25,
-                                label: "25"
-                            },
-
-                            {
-                                value: 50,
-                                label: "50"
-                            }
-
-                        ]
-
-                    }
-
+                    { key: "enterpriseType", label: "Type", value: enterpriseType, onChange: filterChange(setEnterpriseType), options: options.types },
+                    { key: "businessSector", label: "Sector", value: businessSector, onChange: filterChange(setBusinessSector), options: options.sectors }
                 ]}
-
             />
 
-
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
-            {
-                error && (
-
-                    <AppAlert
-
-                        severity="error"
-
-                        message={
-                            typeof error === "object"
-                                ? (
-                                    error?.message ||
-                                    "Failed to load enterprises"
-                                )
-                                : error
-                        }
-
-                    />
-
-                )
-            }
-
-
-            {/* =================================================
-                TABLE
-            ================================================= */}
+            {list.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {list.error}
+                </Alert>
+            )}
 
             <PageCard>
-
-                {
-                    loading ? (
-
-                        <LoadingState
-                            message={
-                                "Loading enterprises..."
-                            }
-                        />
-
-                    ) : enterpriseList.length === 0 ? (
-
-                        <EmptyState
-
-                            title={
-                                "No enterprises found"
-                            }
-
-                            message={
-                                search
-                                    ? "No enterprises match your search."
-                                    : "Add your first enterprise record."
-                            }
-
-                        />
-
-                    ) : (
-
-                        <EnterpriseTable
-
-                            data={
-                                enterpriseList
-                            }
-
-                            loading={
-                                loading
-                            }
-
-                            onView={(id) =>
-                                navigate(
-                                    `/enterprises/${id}`
-                                )
-                            }
-
-                            onEdit={(id) =>
-                                navigate(
-                                    `/enterprises/${id}/edit`
-                                )
-                            }
-
-                            onDelete={
-                                handleDelete
-                            }
-
-                            actionLoading={
-                                actionLoading
-                            }
-
-                        />
-
-                    )
-                }
-
+                <DataTable
+                    rows={list.rows}
+                    columns={columns}
+                    loading={list.loading}
+                    paginationMode="server"
+                    rowCount={list.total}
+                    paginationModel={list.paginationModel}
+                    onPaginationModelChange={list.setPaginationModel}
+                    getRowHeight={() => "auto"}
+                    onRowDoubleClick={(params) => navigate(`/enterprises/${params.row._id}`)}
+                />
             </PageCard>
 
-
-            {/* =================================================
-                PAGINATION
-            ================================================= */}
-
-            {
-                totalPages > 1 && (
-
-                    <AppPagination
-
-                        page={
-                            page
-                        }
-
-                        count={
-                            totalPages
-                        }
-
-                        onChange={(
-                            _event,
-                            value
-                        ) => {
-
-                            setPage(
-                                value
-                            );
-
-                        }}
-
-                    />
-
-                )
-            }
-
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Delete Enterprise"
+                message={
+                    deleteTarget
+                        ? `Delete ${deleteTarget.enterpriseNumber} "${deleteTarget.name}"? This cannot be undone.`
+                        : ""
+                }
+                loading={deleting}
+                onClose={() => !deleting && setDeleteTarget(null)}
+                onConfirm={handleDelete}
+            />
 
         </PageContainer>
 
