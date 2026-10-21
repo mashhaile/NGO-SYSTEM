@@ -3,3 +3,6 @@
 !.env.example
 node_modules/
 uploads/
+
+# Database backups (personal data, never commit)
+backups/

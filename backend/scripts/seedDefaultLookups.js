@@ -8,7 +8,8 @@
 //   node scripts/seedDefaultLookups.js            (apply)
 //   node scripts/seedDefaultLookups.js --dry-run  (only report)
 //
-// Uses MONGO_URI from .env (or the environment).
+// Uses MONGO_URI from .env. Live database:
+//   node scripts/seedDefaultLookups.js --uri-file .env.atlas --db ngo_system --dry-run
 //
 // Safe to re-run: only EMPTY categories are filled, so an
 // organization's own values are never changed or re-added.
@@ -29,6 +30,11 @@ const {
 const {
     DEFAULT_LOOKUPS
 } = require("../config/defaultLookups");
+
+
+const {
+    connectForScript
+} = require("../utils/scriptConnection");
 
 
 const DRY_RUN = process.argv.includes("--dry-run");
@@ -59,11 +65,7 @@ const emptyCategories = async (organizationId) => {
 
 const main = async () => {
 
-    if (!process.env.MONGO_URI) {
-        throw new Error("MONGO_URI is not set.");
-    }
-
-    await mongoose.connect(process.env.MONGO_URI);
+    await connectForScript();
 
     console.log(`Database: ${mongoose.connection.name}${DRY_RUN ? " (dry run)" : ""}`);
 

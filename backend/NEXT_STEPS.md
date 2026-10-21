@@ -14,7 +14,22 @@ Updated: 2026-10-21
 3. Check: `npm test` in `backend/` (19 tests; uses its own temporary
    database, never your data).
 
-## Done (local only, not yet pushed or deployed)
+## Maintenance commands (run in backend/)
+
+| Task | Command |
+|---|---|
+| Back up local DB | `node scripts/backupDatabase.js` |
+| Back up LIVE DB (read-only) | `node scripts/backupDatabase.js --uri-file .env.atlas --db ngo_system` |
+| Restore (into a NEW db name first) | `node scripts/restoreDatabase.js backups/<folder> --db <new_name>` |
+| Fill missing default lookups (preview) | `node scripts/seedDefaultLookups.js --dry-run` |
+| Same on LIVE (preview / apply) | `node scripts/seedDefaultLookups.js --uri-file .env.atlas --db ngo_system [--dry-run]` |
+| Tests | `npm test` |
+
+Backups land in `backend/backups/` (git-ignored: personal data). Atlas free
+tier has no automatic backups, so run the live backup regularly and copy the
+folder somewhere safe.
+
+## Done and deployed (2026-10-21)
 
 - Group 1: quick fixes (error screen crash, audit log access, debug logs).
 - Group 2: security: change password, admin reset with temporary
@@ -27,13 +42,22 @@ Updated: 2026-10-21
 - Group 4: proper HTTP error codes, code splitting (first load about a
   third of before), lint 117 -> 68, automated tests.
 
-## Remaining
+## Done locally, not yet deployed
 
 - Group 5 (operations):
-  - database backups (Atlas),
-  - seed plans automatically on startup (was missed on Atlas),
-  - review live settings on Render / Atlas.
-  Prepare locally; do not touch Render or Atlas until the owner says so.
+  - new organizations get common lookups (sign-up and super admin);
+    backfill script for existing ones
+  - default plans created at startup if missing (never overwrites)
+  - backup / restore scripts (live backup taken 2026-10-21)
+  - live settings reviewed: production mode, security headers, CORS,
+    rate limits OK
+
+## Remaining
+
+- Live: deploy group 5, then fill PADet / Test org lookups
+  (PADet has no Units / Service Types, so no service delivery yet).
+- Optional: scheduled weekly live backup on this PC.
+- Optional: Render paid tier to avoid the ~1 min wake-up after idle.
 - Optional: move page data loading to React Query (clears the last
   68 lint hints; not bugs).
 - Deploy: push to GitHub and let Render rebuild, only when the owner
