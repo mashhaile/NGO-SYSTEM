@@ -14,7 +14,21 @@ const STATUS_STYLES = {
         color: "success.dark"
     },
 
+    received: {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+
+    delivered: {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+
     pending: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+    pledged: {
         bgcolor: "warning.light",
         color: "warning.dark"
     },

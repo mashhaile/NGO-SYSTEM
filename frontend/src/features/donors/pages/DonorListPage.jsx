@@ -2,493 +2,268 @@ import {
     useState
 } from "react";
 
-
 import {
     useNavigate
 } from "react-router-dom";
 
+import {
+    Alert,
+    Box,
+    Link,
+    Typography
+} from "@mui/material";
 
 import {
-    Add
+    Add,
+    Delete,
+    Edit,
+    Visibility
 } from "@mui/icons-material";
-
-
-import {
-    useDonors
-} from "../hooks/useDonors";
-
-
-import DonorTable
-    from "../components/DonorTable";
-
 
 import {
     PageContainer,
     PageHeader,
-    StatsCards,
-    SearchToolbar,
     PageCard,
-    FormSection,
-    InfoRow,
-    AppButton
+    SearchToolbar,
+    DataTable,
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
 } from "../../../components/ui";
+
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+import useServerList
+    from "../../../hooks/useServerList";
+
+import {
+    getDonorsApi,
+    deleteDonorApi
+} from "../api/donorApi";
+
+import { hasPermission } from "../../../utils/permissions";
+import { getApiErrorMessage } from "../../../utils/apiError";
+
+
+const TYPE_OPTIONS =
+    ["Individual", "Organization", "Government", "NGO", "Corporate", "Foundation"]
+        .map(value => ({ value, label: value }));
+
+const STATUS_OPTIONS =
+    ["Active", "Inactive"].map(value => ({ value, label: value }));
+
+const twoLine = (main, caption) => (
+    <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+        <Typography variant="body2">{main || "-"}</Typography>
+        {caption && (
+            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                {caption}
+            </Typography>
+        )}
+    </Box>
+);
 
 
 // =====================================================
-// PAGE
+// DONOR LIST PAGE
 // =====================================================
 
 const DonorListPage = () => {
 
+    const navigate = useNavigate();
 
-    const navigate =
-        useNavigate();
+    const { user } = useAuth();
 
+    const [search, setSearch] = useState("");
+    const [donorType, setDonorType] = useState("");
+    const [status, setStatus] = useState("");
 
-    // =================================================
-    // STATE
-    // =================================================
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
-    const [
-        search,
-        setSearch
-    ] = useState("");
-
-
-    const [
-        page,
-        setPage
-    ] = useState(1);
+    const list = useServerList(getDonorsApi, { search, donorType, status }, "Failed to load donors.");
 
 
-    const [
-        limit,
-        setLimit
-    ] = useState(10);
+    const handleDelete = async () => {
+
+        setDeleting(true);
+
+        try {
+            await deleteDonorApi(deleteTarget._id);
+            setDeleteTarget(null);
+            list.reload();
+        }
+        catch (error) {
+            setDeleteTarget(null);
+            list.setError(getApiErrorMessage(error, "Failed to delete the donor."));
+        }
+        finally {
+            setDeleting(false);
+        }
+
+    };
 
 
-    // =================================================
-    // DATA
-    // =================================================
+    const canUpdate = hasPermission(user, "donor.update");
+    const canDelete = hasPermission(user, "donor.delete");
 
-    const {
-        data,
-        isLoading,
-        error
-    } = useDonors({
-
-        search,
-
-        page,
-
-        limit
-
-    });
+    const filterChange = (setter) => (value) => { setter(value); list.resetPage(); };
 
 
-    // =================================================
-    // NORMALIZE DATA
-    // =================================================
+    const columns = [
 
-    const donors =
-
-        Array.isArray(
-            data?.data
-        )
-
-            ? data.data
-
-            : Array.isArray(
-                data
+        {
+            field: "name",
+            headerName: "Donor",
+            flex: 1.4,
+            minWidth: 220,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Link
+                        component="button"
+                        underline="hover"
+                        sx={{ fontWeight: 600, textAlign: "left" }}
+                        onClick={() => navigate(`/donors/${params.row._id}`)}
+                    >
+                        {params.value}
+                    </Link>
+                    {params.row.country && (
+                        <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                            {params.row.country}
+                        </Typography>
+                    )}
+                </Box>
             )
+        },
 
-                ? data
+        {
+            field: "donorType",
+            headerName: "Type",
+            minWidth: 130,
+            valueGetter: (value) => value || "-"
+        },
 
-                : [];
+        {
+            field: "contactPerson",
+            headerName: "Contact",
+            flex: 1.3,
+            minWidth: 220,
+            sortable: false,
+            renderCell: (params) => twoLine(params.row.contactPerson || params.row.email, params.row.contactPerson ? params.row.email : "")
+        },
 
+        {
+            field: "phone",
+            headerName: "Phone",
+            minWidth: 150,
+            valueGetter: (value) => value || "-"
+        },
 
-    const pagination =
-        data?.pagination;
+        {
+            field: "status",
+            headerName: "Status",
+            minWidth: 110,
+            renderCell: (params) => <StatusChip status={params.value || "Active"} />
+        },
 
-
-    // =================================================
-    // SEARCH
-    // =================================================
-
-    const handleSearch = (
-        value
-    ) => {
-
-        setSearch(
-            value
-        );
-
-        setPage(
-            1
-        );
-
-    };
-
-
-    // =================================================
-    // LIMIT
-    // =================================================
-
-    const handleLimitChange = (
-        value
-    ) => {
-
-        setLimit(
-            Number(value)
-        );
-
-        setPage(
-            1
-        );
-
-    };
-
-
-    // =================================================
-    // RESET
-    // =================================================
-
-    const resetSearch = () => {
-
-        setSearch("");
-
-        setPage(1);
-
-    };
-
-
-    // =================================================
-    // PAGE CHANGE
-    // =================================================
-
-    const previousPage = () => {
-
-        if (page > 1) {
-
-            setPage(
-                page - 1
-            );
-
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 140,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <>
+                    <AppIconButton
+                        icon={<Visibility fontSize="small" />}
+                        tooltip="View donor"
+                        onClick={() => navigate(`/donors/${params.row._id}`)}
+                    />
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip="Edit donor"
+                            onClick={() => navigate(`/donors/${params.row._id}/edit`)}
+                        />
+                    )}
+                    {canDelete && (
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip="Delete donor"
+                            color="error"
+                            onClick={() => setDeleteTarget(params.row)}
+                        />
+                    )}
+                </>
+            )
         }
 
-    };
+    ];
 
-
-    const nextPage = () => {
-
-        if (
-            pagination &&
-            page < pagination.totalPages
-        ) {
-
-            setPage(
-                page + 1
-            );
-
-        }
-
-    };
-
-
-    // =================================================
-    // STATS
-    // =================================================
-
-    const totalDonors =
-        pagination?.total ||
-        donors.length;
-
-
-    const organizations =
-        donors.filter(
-            donor =>
-                donor?.donorType ===
-                "Organization"
-        ).length;
-
-
-    const individuals =
-        donors.filter(
-            donor =>
-                donor?.donorType ===
-                "Individual"
-        ).length;
-
-
-    // =================================================
-    // RENDER
-    // =================================================
 
     return (
 
         <PageContainer>
 
-
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <PageHeader
-
                 title="Donors"
-
-                subtitle="Manage NGO donors and funding partners"
-
-                action={() =>
-                    navigate(
-                        "/donors/create"
-                    )
-                }
-
-                actionLabel="Add Donor"
-
-                actionIcon={
-                    <Add />
-                }
-
+                subtitle="Donors and funding partners. Donations and projects are linked to a donor."
+                {...(
+                    hasPermission(user, "donor.create")
+                        ? {
+                            action: () => navigate("/donors/create"),
+                            actionLabel: "Add Donor",
+                            actionIcon: <Add />
+                        }
+                        : {}
+                )}
             />
-
-
-            {/* =================================================
-                STATISTICS
-            ================================================= */}
-
-            <StatsCards
-
-                items={[
-
-                    {
-                        label:
-                            "Total Donors",
-
-                        value:
-                            totalDonors
-                    },
-
-                    {
-                        label:
-                            "Organizations",
-
-                        value:
-                            organizations
-                    },
-
-                    {
-                        label:
-                            "Individuals",
-
-                        value:
-                            individuals
-                    }
-
-                ]}
-
-            />
-
-
-            {/* =================================================
-                SEARCH
-            ================================================= */}
 
             <SearchToolbar
-
-                search={
-                    search
-                }
-
-                onSearch={
-                    handleSearch
-                }
-
-                onReset={
-                    resetSearch
-                }
-
+                search={search}
+                onSearch={filterChange(setSearch)}
+                onReset={() => {
+                    setSearch("");
+                    setDonorType("");
+                    setStatus("");
+                    list.resetPage();
+                }}
                 filters={[
-
-                    {
-                        key:
-                            "limit",
-
-                        label:
-                            "Rows",
-
-                        value:
-                            limit,
-
-                        onChange:
-                            handleLimitChange,
-
-                        options: [
-
-                            {
-                                value:
-                                    10,
-
-                                label:
-                                    "10"
-                            },
-
-                            {
-                                value:
-                                    25,
-
-                                label:
-                                    "25"
-                            },
-
-                            {
-                                value:
-                                    50,
-
-                                label:
-                                    "50"
-                            }
-
-                        ]
-
-                    }
-
+                    { key: "donorType", label: "Type", value: donorType, onChange: filterChange(setDonorType), options: TYPE_OPTIONS },
+                    { key: "status", label: "Status", value: status, onChange: filterChange(setStatus), options: STATUS_OPTIONS }
                 ]}
-
             />
 
-
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
-            {
-                error && (
-
-                    <PageCard>
-
-                        <FormSection
-                            title="Unable to Load Donors"
-                        >
-
-                            <InfoRow
-                                label="Error"
-                                value={
-                                    error?.response
-                                        ?.data
-                                        ?.message ||
-                                    error?.message ||
-                                    "Failed to load donors."
-                                }
-                            />
-
-                        </FormSection>
-
-                    </PageCard>
-
-                )
-            }
-
-
-            {/* =================================================
-                TABLE
-            ================================================= */}
+            {list.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {list.error}
+                </Alert>
+            )}
 
             <PageCard>
-
-                <DonorTable
-
-                    data={
-                        donors
-                    }
-
-                    loading={
-                        isLoading
-                    }
-
+                <DataTable
+                    rows={list.rows}
+                    columns={columns}
+                    loading={list.loading}
+                    paginationMode="server"
+                    rowCount={list.total}
+                    paginationModel={list.paginationModel}
+                    onPaginationModelChange={list.setPaginationModel}
+                    getRowHeight={() => "auto"}
+                    onRowDoubleClick={(params) => navigate(`/donors/${params.row._id}`)}
                 />
-
             </PageCard>
 
-
-            {/* =================================================
-                PAGINATION
-            ================================================= */}
-
-            {
-                pagination &&
-                pagination.totalPages > 1 && (
-
-                    <PageCard>
-
-                        <FormSection>
-
-                            <div
-                                style={{
-                                    display:
-                                        "flex",
-
-                                    alignItems:
-                                        "center",
-
-                                    justifyContent:
-                                        "center",
-
-                                    gap:
-                                        "16px",
-
-                                    flexWrap:
-                                        "wrap"
-                                }}
-                            >
-
-                                <AppButton
-                                    variant="outlined"
-                                    disabled={
-                                        page <= 1
-                                    }
-                                    onClick={
-                                        previousPage
-                                    }
-                                >
-                                    Previous
-                                </AppButton>
-
-
-                                <strong>
-
-                                    Page {
-                                        page
-                                    } of {
-                                        pagination.totalPages
-                                    }
-
-                                </strong>
-
-
-                                <AppButton
-                                    variant="outlined"
-                                    disabled={
-                                        page >=
-                                        pagination.totalPages
-                                    }
-                                    onClick={
-                                        nextPage
-                                    }
-                                >
-                                    Next
-                                </AppButton>
-
-                            </div>
-
-                        </FormSection>
-
-                    </PageCard>
-
-                )
-            }
-
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Delete Donor"
+                message={deleteTarget ? `Delete donor "${deleteTarget.name}"? This cannot be undone.` : ""}
+                loading={deleting}
+                onClose={() => !deleting && setDeleteTarget(null)}
+                onConfirm={handleDelete}
+            />
 
         </PageContainer>
 

@@ -1,45 +1,58 @@
 import {
     useEffect,
-    useState,
-    useCallback
+    useState
 } from "react";
-
-import {
-    useDispatch,
-    useSelector
-} from "react-redux";
 
 import {
     useNavigate
 } from "react-router-dom";
 
 import {
-    Add,
-    UploadFile,
-    Download,
-    Refresh
-} from "@mui/icons-material";
+    Alert,
+    Box,
+    Link,
+    Typography
+} from "@mui/material";
 
 import {
-    getProgramsThunk
-} from "../store";
-
-import ProgramTable
-    from "../components/ProgramTable";
+    Add,
+    Delete,
+    Edit,
+    Visibility
+} from "@mui/icons-material";
 
 import {
     PageContainer,
     PageHeader,
-    StatsCards,
-    SearchToolbar,
     PageCard,
-    EmptyState,
-    LoadingState,
-    AppAlert,
-    AppButton,
-    ActionToolbar,
-    AppPagination
+    SearchToolbar,
+    DataTable,
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
 } from "../../../components/ui";
+
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+import {
+    getProgramsApi,
+    deleteProgramApi
+} from "../api/ProgramApi";
+
+import { hasPermission } from "../../../utils/permissions";
+import { getApiErrorMessage } from "../../../utils/apiError";
+
+
+const STATUS_OPTIONS =
+    ["Planned", "Active", "Completed", "Suspended", "Cancelled"]
+        .map(value => ({ value, label: value }));
+
+const formatDate = (value) =>
+    value ? new Date(value).toLocaleDateString() : "";
+
+const formatNumber = (value) =>
+    value === null || value === undefined || value === "" ? "-" : Number(value).toLocaleString();
 
 
 // =====================================================
@@ -48,471 +61,263 @@ import {
 
 const ProgramListPage = () => {
 
-    const dispatch = useDispatch();
-
     const navigate = useNavigate();
 
+    const { user } = useAuth();
 
-    // =====================================================
-    // REDUX
-    // =====================================================
+    const [search, setSearch] = useState("");
+    const [status, setStatus] = useState("");
 
-    const {
-        programs = [],
-        pagination = {},
-        loading,
-        error
-    } = useSelector(
-        (state) => state.programs
-    );
+    const [paginationModel, setPaginationModel] =
+        useState({ page: 0, pageSize: 10 });
 
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
-    // =====================================================
-    // LOCAL STATE
-    // =====================================================
+    // Bumped to reload after a delete
+    const [reloadKey, setReloadKey] = useState(0);
 
-    const [
-        search,
-        setSearch
-    ] = useState("");
+    const [result, setResult] =
+        useState({ rows: [], total: 0, loading: true, error: "" });
 
-    const [
-        page,
-        setPage
-    ] = useState(1);
-
-    const [
-        limit,
-        setLimit
-    ] = useState(10);
-
-
-    // =====================================================
-    // LOAD DATA
-    // =====================================================
-
-    const loadData = useCallback(() => {
-
-        dispatch(
-            getProgramsThunk({
-
-                search,
-
-                page,
-
-                limit
-
-            })
-        );
-
-    }, [
-        dispatch,
-        search,
-        page,
-        limit
-    ]);
-
-
-    // =====================================================
-    // SEARCH / PAGINATION LOAD
-    // =====================================================
 
     useEffect(() => {
+
+        let cancelled = false;
 
         const timer =
             setTimeout(() => {
 
-                loadData();
+                getProgramsApi({
+                    search: search.trim(),
+                    status: status || undefined,
+                    page: paginationModel.page + 1,
+                    limit: paginationModel.pageSize
+                })
+                    .then(({ data: response }) => {
+                        if (!cancelled) {
+                            setResult({
+                                rows: response.data || [],
+                                total: response.pagination?.total || 0,
+                                loading: false,
+                                error: ""
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        if (!cancelled) {
+                            setResult(prev => ({
+                                ...prev,
+                                loading: false,
+                                error: getApiErrorMessage(error, "Failed to load programs.")
+                            }));
+                        }
+                    });
 
-            }, 400);
-
+            }, 300);
 
         return () => {
-
+            cancelled = true;
             clearTimeout(timer);
-
         };
 
-    }, [
-        loadData
-    ]);
+    }, [search, status, paginationModel, reloadKey]);
 
 
-    // =====================================================
-    // SEARCH
-    // =====================================================
+    const handleDelete = async () => {
 
-    const handleSearch = (value) => {
+        setDeleting(true);
 
-        setSearch(value);
-
-        setPage(1);
-
-    };
-
-
-    // =====================================================
-    // ROW LIMIT
-    // =====================================================
-
-    const handleLimitChange = (value) => {
-
-        setLimit(
-            Number(value)
-        );
-
-        setPage(1);
+        try {
+            await deleteProgramApi(deleteTarget._id);
+            setDeleteTarget(null);
+            setReloadKey(key => key + 1);
+        }
+        catch (error) {
+            setDeleteTarget(null);
+            setResult(prev => ({
+                ...prev,
+                error: getApiErrorMessage(error, "Failed to delete the program.")
+            }));
+        }
+        finally {
+            setDeleting(false);
+        }
 
     };
 
 
-    // =====================================================
-    // RESET SEARCH
-    // =====================================================
+    const resetPage = () =>
+        setPaginationModel(prev => ({ ...prev, page: 0 }));
 
-    const resetSearch = () => {
-
-        setSearch("");
-
-        setPage(1);
-
-    };
+    const canUpdate = hasPermission(user, "program.update");
+    const canDelete = hasPermission(user, "program.delete");
 
 
-    // =====================================================
-    // REFRESH
-    // =====================================================
+    const columns = [
 
-    const handleRefresh = () => {
+        {
+            field: "name",
+            headerName: "Program",
+            flex: 1.6,
+            minWidth: 240,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Link
+                        component="button"
+                        underline="hover"
+                        sx={{ fontWeight: 600, textAlign: "left" }}
+                        onClick={() => navigate(`/programs/${params.row._id}`)}
+                    >
+                        {params.value}
+                    </Link>
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                        {params.row.programCode}
+                    </Typography>
+                </Box>
+            )
+        },
 
-        loadData();
+        {
+            field: "category",
+            headerName: "Category",
+            flex: 1,
+            minWidth: 160,
+            valueGetter: (value) => value || "-"
+        },
 
-    };
+        {
+            field: "startDate",
+            headerName: "Period",
+            minWidth: 190,
+            valueGetter: (value, row) =>
+                [formatDate(row.startDate), formatDate(row.endDate)].filter(Boolean).join(" – ") || "-"
+        },
 
+        {
+            field: "budget",
+            headerName: "Budget",
+            minWidth: 130,
+            align: "right",
+            headerAlign: "right",
+            valueGetter: (value) => formatNumber(value)
+        },
 
-    // =====================================================
-    // EXPORT
-    // =====================================================
+        {
+            field: "targetBeneficiaries",
+            headerName: "Target",
+            minWidth: 100,
+            align: "right",
+            headerAlign: "right",
+            valueGetter: (value) => formatNumber(value)
+        },
 
-    const handleExport = () => {
+        {
+            field: "status",
+            headerName: "Status",
+            minWidth: 120,
+            renderCell: (params) => <StatusChip status={params.value || "Planned"} />
+        },
 
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 140,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <>
+                    <AppIconButton
+                        icon={<Visibility fontSize="small" />}
+                        tooltip="View program"
+                        onClick={() => navigate(`/programs/${params.row._id}`)}
+                    />
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip="Edit program"
+                            onClick={() => navigate(`/programs/${params.row._id}/edit`)}
+                        />
+                    )}
+                    {canDelete && (
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip="Delete program"
+                            color="error"
+                            onClick={() => setDeleteTarget(params.row)}
+                        />
+                    )}
+                </>
+            )
+        }
 
-        // Connect export service later.
+    ];
 
-    };
-
-
-    // =====================================================
-    // STATISTICS
-    // =====================================================
-
-    const totalPrograms =
-        pagination?.totalRecords ??
-        pagination?.total ??
-        0;
-
-
-    const currentRecords =
-        programs.length;
-
-
-    /*
-     * If backend provides totalActive,
-     * use it. Otherwise calculate from
-     * the currently loaded records.
-     */
-
-    const activePrograms =
-        pagination?.totalActive ??
-        programs.filter(
-            (program) =>
-                program.status === "Active"
-        ).length;
-
-
-    // =====================================================
-    // RENDER
-    // =====================================================
 
     return (
 
         <PageContainer>
 
-
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <PageHeader
-
                 title="Programs"
-
-                subtitle={
-                    "Manage NGO programs and activities"
-                }
-
-                action={() =>
-                    navigate(
-                        "/programs/create"
-                    )
-                }
-
-                actionLabel="Add Program"
-
-                actionIcon={
-                    <Add />
-                }
-
+                subtitle="The organization's programs. Projects, activities and budgets belong to a program."
+                {...(
+                    hasPermission(user, "program.create")
+                        ? {
+                            action: () => navigate("/programs/create"),
+                            actionLabel: "Add Program",
+                            actionIcon: <Add />
+                        }
+                        : {}
+                )}
             />
-
-
-            {/* =================================================
-                PAGE ACTIONS
-            ================================================= */}
-
-            <PageCard>
-
-                <ActionToolbar>
-
-                    <AppButton
-                        variant="outlined"
-                        startIcon={
-                            <UploadFile />
-                        }
-                        onClick={() =>
-                            navigate(
-                                "/programs/import"
-                            )
-                        }
-                    >
-                        Import Excel
-                    </AppButton>
-
-
-                    <AppButton
-                        variant="outlined"
-                        startIcon={
-                            <Download />
-                        }
-                        onClick={
-                            handleExport
-                        }
-                    >
-                        Export
-                    </AppButton>
-
-
-                    <AppButton
-                        variant="outlined"
-                        startIcon={
-                            <Refresh />
-                        }
-                        onClick={
-                            handleRefresh
-                        }
-                        loading={
-                            loading
-                        }
-                    >
-                        Refresh
-                    </AppButton>
-
-                </ActionToolbar>
-
-            </PageCard>
-
-
-            {/* =================================================
-                STATISTICS
-            ================================================= */}
-
-            <StatsCards
-
-                items={[
-
-                    {
-                        label:
-                            "Total Programs",
-
-                        value:
-                            totalPrograms
-                    },
-
-                    {
-                        label:
-                            "Current Records",
-
-                        value:
-                            currentRecords
-                    },
-
-                    {
-                        label:
-                            "Active Programs",
-
-                        value:
-                            activePrograms
-                    }
-
-                ]}
-
-            />
-
-
-            {/* =================================================
-                SEARCH
-            ================================================= */}
 
             <SearchToolbar
-
-                search={
-                    search
-                }
-
-                onSearch={
-                    handleSearch
-                }
-
-                onReset={
-                    resetSearch
-                }
-
+                search={search}
+                onSearch={(value) => { setSearch(value); resetPage(); }}
+                onReset={() => {
+                    setSearch("");
+                    setStatus("");
+                    resetPage();
+                }}
                 filters={[
-
-                    {
-                        key:
-                            "limit",
-
-                        label:
-                            "Rows",
-
-                        value:
-                            limit,
-
-                        onChange:
-                            handleLimitChange,
-
-                        options: [
-
-                            {
-                                value: 10,
-                                label: "10"
-                            },
-
-                            {
-                                value: 25,
-                                label: "25"
-                            },
-
-                            {
-                                value: 50,
-                                label: "50"
-                            }
-
-                        ]
-
-                    }
-
+                    { key: "status", label: "Status", value: status, onChange: (value) => { setStatus(value); resetPage(); }, options: STATUS_OPTIONS }
                 ]}
-
             />
 
-
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
-            {error && (
-
-                <AppAlert
-                    severity="error"
-                    message={
-                        error
-                    }
-                />
-
+            {result.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {result.error}
+                </Alert>
             )}
-
-
-            {/* =================================================
-                PROGRAM TABLE
-            ================================================= */}
 
             <PageCard>
-
-                {loading ? (
-
-                    <LoadingState
-                        message={
-                            "Loading programs..."
-                        }
-                    />
-
-                ) : programs.length === 0 ? (
-
-                    <EmptyState
-
-                        title={
-                            "No programs found"
-                        }
-
-                        message={
-                            search
-                                ? "No programs match your search."
-                                : "Add your first program."
-                        }
-
-                    />
-
-                ) : (
-
-                    <ProgramTable
-
-                        data={
-                            programs
-                        }
-
-                        loading={
-                            loading
-                        }
-
-                    />
-
-                )}
-
+                <DataTable
+                    rows={result.rows}
+                    columns={columns}
+                    loading={result.loading}
+                    paginationMode="server"
+                    rowCount={result.total}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    getRowHeight={() => "auto"}
+                    onRowDoubleClick={(params) => navigate(`/programs/${params.row._id}`)}
+                />
             </PageCard>
 
-
-            {/* =================================================
-                PAGINATION
-            ================================================= */}
-
-            {pagination?.totalPages > 1 && (
-
-                <AppPagination
-
-                    page={
-                        page
-                    }
-
-                    count={
-                        pagination.totalPages
-                    }
-
-                    onChange={(
-                        _event,
-                        value
-                    ) => {
-
-                        setPage(
-                            value
-                        );
-
-                    }}
-
-                />
-
-            )}
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Delete Program"
+                message={
+                    deleteTarget
+                        ? `Delete ${deleteTarget.programCode} "${deleteTarget.name}"? This cannot be undone.`
+                        : ""
+                }
+                loading={deleting}
+                onClose={() => !deleting && setDeleteTarget(null)}
+                onConfirm={handleDelete}
+            />
 
         </PageContainer>
 
