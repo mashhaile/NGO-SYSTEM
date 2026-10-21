@@ -1,0 +1,59 @@
+import axiosClient
+    from "../../../services/axiosClient";
+
+
+// =====================================================
+// BUDGETS API
+// =====================================================
+
+export const getBudgetsApi = async (params = {}) =>
+    (await axiosClient.get("/budgets", { params })).data;
+
+export const getBudgetByIdApi = async (id) =>
+    (await axiosClient.get(`/budgets/${id}`)).data?.data;
+
+export const createBudgetApi = async (data) =>
+    (await axiosClient.post("/budgets", data)).data?.data;
+
+export const updateBudgetApi = async (id, data) =>
+    (await axiosClient.put(`/budgets/${id}`, data)).data?.data;
+
+export const deleteBudgetApi = async (id) =>
+    (await axiosClient.delete(`/budgets/${id}`)).data;
+
+export const submitBudgetApi = async (id) =>
+    (await axiosClient.post(`/budgets/${id}/submit`)).data?.data;
+
+export const approveBudgetApi = async (id, comment = "") =>
+    (await axiosClient.post(`/budgets/${id}/approve`, { comment })).data?.data;
+
+export const returnBudgetApi = async (id, comment) =>
+    (await axiosClient.post(`/budgets/${id}/return`, { comment })).data?.data;
+
+
+// Programs / projects for the pickers
+
+export const getProgramOptionsApi = async () =>
+    (await axiosClient.get("/programs/lookup")).data?.data || [];
+
+export const getProjectOptionsApi = async () =>
+    (await axiosClient.get("/projects/lookup")).data?.data || [];
+
+
+export const getApiErrorMessage = (error, fallback) => {
+
+    const data = error?.response?.data;
+
+    const details =
+        Array.isArray(data?.errors)
+            ? data.errors.map(item => item?.message).filter(Boolean)
+            : [];
+
+    return (
+        data?.message ||
+        details.join(" ") ||
+        error?.message ||
+        fallback
+    );
+
+};

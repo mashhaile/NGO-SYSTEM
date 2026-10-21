@@ -403,7 +403,7 @@ const DonorShareLinksSection = ({
                 maxWidth="sm"
             >
 
-                <DialogTitle fontWeight={700}>
+                <DialogTitle sx={{ fontWeight: 700 }}>
                     {newUrl ? "Share Link Created" : "Create Share Link"}
                 </DialogTitle>
 

@@ -49,6 +49,7 @@ const PERMISSIONS = {
 
     USER_ASSIGN_DATA_ENTRY: "user.assign_data_entry",
     USER_ASSIGN_VIEWER: "user.assign_viewer",
+    USER_ASSIGN_FINANCE: "user.assign_finance",
     USER_ASSIGN_ORG_ADMIN: "user.assign_org_admin",
 
 
@@ -109,6 +110,13 @@ const PERMISSIONS = {
     TOR_APPROVE: "tor.approve",
     TOR_CREATE_ACTIVITY: "tor.create_activity",
     TOR_UPDATE_ACTIVITY: "tor.update_activity",
+
+    // Budgets
+    BUDGET_CREATE: "budget.create",
+    BUDGET_READ: "budget.read",
+    BUDGET_UPDATE: "budget.update",
+    BUDGET_DELETE: "budget.delete",
+    BUDGET_APPROVE: "budget.approve",
 
 
     // ================================

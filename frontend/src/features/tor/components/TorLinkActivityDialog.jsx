@@ -105,7 +105,7 @@ const TorLinkActivityDialog = ({
             maxWidth="sm"
         >
 
-            <DialogTitle fontWeight={700}>
+            <DialogTitle sx={{ fontWeight: 700 }}>
                 Link Existing Activity
             </DialogTitle>
 

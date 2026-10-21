@@ -13,7 +13,9 @@ const StatsCards = ({
         xs: 12,
         sm: 6,
         md: 3
-    }
+    },
+    // "small": same compact size for every card (money rows)
+    valueSize
 }) => {
 
     return (
@@ -96,9 +98,18 @@ const StatsCards = ({
 
                             <Typography
                                 variant="h4"
+                                title={String(item.value ?? 0)}
                                 sx={{
                                     fontWeight: 800,
-                                    mt: 0.75
+                                    mt: 0.75,
+                                    // long values (money) get a smaller size so
+                                    // they stay on one line
+                                    ...((valueSize === "small" || String(item.value ?? "").length > 10) && {
+                                        fontSize: { xs: "1.25rem", md: "1.4rem" }
+                                    }),
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis"
                                 }}>
                                 {item.value ?? 0}
                             </Typography>

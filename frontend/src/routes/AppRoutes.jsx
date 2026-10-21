@@ -277,6 +277,9 @@ const TorListPage = lazyPage(() => import("../features/tor/pages/TorListPage"));
 const TorCreatePage = lazyPage(() => import("../features/tor/pages/TorCreatePage"));
 const TorDetailsPage = lazyPage(() => import("../features/tor/pages/TorDetailsPage"));
 const TorEditPage = lazyPage(() => import("../features/tor/pages/TorEditPage"));
+const BudgetListPage = lazyPage(() => import("../features/budgets/pages/BudgetListPage"));
+const BudgetFormPage = lazyPage(() => import("../features/budgets/pages/BudgetFormPage"));
+const BudgetDetailsPage = lazyPage(() => import("../features/budgets/pages/BudgetDetailsPage"));
 const EnrollmentListPage = lazyPage(() => import("../features/enrollments/pages/EnrollmentListPage"));
 const EnrollmentCreatePage = lazyPage(() => import("../features/enrollments/pages/EnrollmentCreatePage"));
 const EnrollmentDetailsPage = lazyPage(() => import("../features/enrollments/pages/EnrollmentDetailsPage"));
@@ -450,7 +453,9 @@ const AppRoutes = () => {
                 <Route
                     path="/settings/organization"
                     element={
-                        <OrganizationSettingsPage />
+                        <PermissionRoute permission="organization.read">
+                            <OrganizationSettingsPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -500,28 +505,36 @@ const AppRoutes = () => {
                 <Route
                     path="/programs"
                     element={
-                        <ProgramListPage />
+                        <PermissionRoute permission="program.read">
+                            <ProgramListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/programs/create"
                     element={
-                        <ProgramCreatePage />
+                        <PermissionRoute permission="program.create">
+                            <ProgramCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/programs/:id"
                     element={
-                        <ProgramDetailsPage />
+                        <PermissionRoute permission="program.read">
+                            <ProgramDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/programs/:id/edit"
                     element={
-                        <ProgramEditPage />
+                        <PermissionRoute permission="program.update">
+                            <ProgramEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -533,35 +546,45 @@ const AppRoutes = () => {
                 <Route
                     path="/beneficiaries"
                     element={
-                        <BeneficiaryListPage />
+                        <PermissionRoute permission="beneficiary.read">
+                            <BeneficiaryListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/beneficiaries/create"
                     element={
-                        <BeneficiaryCreatePage />
+                        <PermissionRoute permission="beneficiary.create">
+                            <BeneficiaryCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/beneficiaries/:id"
                     element={
-                        <BeneficiaryDetailsPage />
+                        <PermissionRoute permission="beneficiary.read">
+                            <BeneficiaryDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/beneficiaries/:id/edit"
                     element={
-                        <BeneficiaryEditPage />
+                        <PermissionRoute permission="beneficiary.update">
+                            <BeneficiaryEditPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/beneficiaries/import"
                     element={
-                        <BeneficiaryImportPage />
+                        <PermissionRoute permission="beneficiary.create">
+                            <BeneficiaryImportPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -573,7 +596,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises"
     element={
-        <EnterpriseListPage />
+        <PermissionRoute permission="enterprise.read">
+            <EnterpriseListPage />
+        </PermissionRoute>
     }
 />
 
@@ -581,7 +606,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises/create"
     element={
-        <EnterpriseCreatePage />
+        <PermissionRoute permission="enterprise.create">
+            <EnterpriseCreatePage />
+        </PermissionRoute>
     }
 />
 
@@ -589,7 +616,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises/:id"
     element={
-        <EnterpriseDetailsPage />
+        <PermissionRoute permission="enterprise.read">
+            <EnterpriseDetailsPage />
+        </PermissionRoute>
     }
 />
 
@@ -597,7 +626,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises/:id/edit"
     element={
-        <EnterpriseEditPage />
+        <PermissionRoute permission="enterprise.update">
+            <EnterpriseEditPage />
+        </PermissionRoute>
     }
 />
 
@@ -609,7 +640,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprise-members"
     element={
-        <EnterpriseMemberListPage />
+        <PermissionRoute permission="enterprise.read">
+            <EnterpriseMemberListPage />
+        </PermissionRoute>
     }
 />
 
@@ -617,7 +650,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprise-members/:id"
     element={
-        <EnterpriseMemberDetailsPage />
+        <PermissionRoute permission="enterprise.read">
+            <EnterpriseMemberDetailsPage />
+        </PermissionRoute>
     }
 />
 
@@ -625,7 +660,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprise-members/:id/edit"
     element={
-        <EnterpriseMemberEditPage />
+        <PermissionRoute permission="enterprise.update">
+            <EnterpriseMemberEditPage />
+        </PermissionRoute>
     }
 />
 
@@ -637,7 +674,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises/:enterpriseId/members"
     element={
-        <EnterpriseMemberListPage />
+        <PermissionRoute permission="enterprise.read">
+            <EnterpriseMemberListPage />
+        </PermissionRoute>
     }
 />
 
@@ -645,7 +684,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises/:enterpriseId/members/create"
     element={
-        <EnterpriseMemberCreatePage />
+        <PermissionRoute permission="enterprise.update">
+            <EnterpriseMemberCreatePage />
+        </PermissionRoute>
     }
 />
 
@@ -653,7 +694,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises/:enterpriseId/members/:memberId"
     element={
-        <EnterpriseMemberDetailsPage />
+        <PermissionRoute permission="enterprise.read">
+            <EnterpriseMemberDetailsPage />
+        </PermissionRoute>
     }
 />
 
@@ -661,7 +704,9 @@ const AppRoutes = () => {
 <Route
     path="/enterprises/:enterpriseId/members/:memberId/edit"
     element={
-        <EnterpriseMemberEditPage />
+        <PermissionRoute permission="enterprise.update">
+            <EnterpriseMemberEditPage />
+        </PermissionRoute>
     }
 />
 
@@ -672,28 +717,36 @@ const AppRoutes = () => {
                 <Route
                     path="/enrollments"
                     element={
-                        <EnrollmentListPage />
+                        <PermissionRoute permission="enrollment.read">
+                            <EnrollmentListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/enrollments/create"
                     element={
-                        <EnrollmentCreatePage />
+                        <PermissionRoute permission="enrollment.create">
+                            <EnrollmentCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/enrollments/:id"
                     element={
-                        <EnrollmentDetailsPage />
+                        <PermissionRoute permission="enrollment.read">
+                            <EnrollmentDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/enrollments/:id/edit"
                     element={
-                        <EnrollmentEditPage />
+                        <PermissionRoute permission="enrollment.update">
+                            <EnrollmentEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -705,28 +758,36 @@ const AppRoutes = () => {
                 <Route
                     path="/projects"
                     element={
-                        <ProjectListPage />
+                        <PermissionRoute permission="project.read">
+                            <ProjectListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/projects/create"
                     element={
-                        <ProjectCreatePage />
+                        <PermissionRoute permission="project.create">
+                            <ProjectCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/projects/:id"
                     element={
-                        <ProjectDetailsPage />
+                        <PermissionRoute permission="project.read">
+                            <ProjectDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/projects/:id/edit"
                     element={
-                        <ProjectEditPage />
+                        <PermissionRoute permission="project.update">
+                            <ProjectEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -738,28 +799,36 @@ const AppRoutes = () => {
                 <Route
                     path="/activities"
                     element={
-                        <ActivityListPage />
+                        <PermissionRoute permission="activity.read">
+                            <ActivityListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/activities/create"
                     element={
-                        <ActivityCreatePage />
+                        <PermissionRoute permission="activity.create">
+                            <ActivityCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/activities/:id"
                     element={
-                        <ActivityDetailsPage />
+                        <PermissionRoute permission="activity.read">
+                            <ActivityDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/activities/:id/edit"
                     element={
-                        <ActivityEditPage />
+                        <PermissionRoute permission="activity.update">
+                            <ActivityEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -771,28 +840,36 @@ const AppRoutes = () => {
                 <Route
                     path="/activity-runs"
                     element={
-                        <ActivityRunListPage />
+                        <PermissionRoute permission="activity_run.read">
+                            <ActivityRunListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/activity-runs/create"
                     element={
-                        <ActivityRunCreatePage />
+                        <PermissionRoute permission="activity_run.create">
+                            <ActivityRunCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/activity-runs/:id"
                     element={
-                        <ActivityRunDetailsPage />
+                        <PermissionRoute permission="activity_run.read">
+                            <ActivityRunDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/activity-runs/:id/edit"
                     element={
-                        <ActivityRunEditPage />
+                        <PermissionRoute permission="activity_run.update">
+                            <ActivityRunEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -847,34 +924,83 @@ const AppRoutes = () => {
 
 
                 {/* ==================================================
+                    BUDGETS
+                ================================================== */}
+
+                <Route
+                    path="/budgets"
+                    element={
+                        <PermissionRoute permission="budget.read">
+                            <BudgetListPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/budgets/create"
+                    element={
+                        <PermissionRoute permission="budget.create">
+                            <BudgetFormPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/budgets/:id"
+                    element={
+                        <PermissionRoute permission="budget.read">
+                            <BudgetDetailsPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/budgets/:id/edit"
+                    element={
+                        <PermissionRoute permission="budget.update">
+                            <BudgetFormPage />
+                        </PermissionRoute>
+                    }
+                />
+
+
+                {/* ==================================================
                     ATTENDANCE
                 ================================================== */}
 
                 <Route
                     path="/attendance"
                     element={
-                        <AttendanceListPage />
+                        <PermissionRoute permission="attendance.read">
+                            <AttendanceListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/attendance/create"
                     element={
-                        <AttendanceCreatePage />
+                        <PermissionRoute permission="attendance.create">
+                            <AttendanceCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/attendance/:id/edit"
                     element={
-                        <AttendanceEditPage />
+                        <PermissionRoute permission="attendance.update">
+                            <AttendanceEditPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/attendance/:id/sheet"
                     element={
-                        <AttendanceSheetPage />
+                        <PermissionRoute permission="attendance.read">
+                            <AttendanceSheetPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -886,28 +1012,36 @@ const AppRoutes = () => {
                 <Route
                     path="/service-deliveries"
                     element={
-                        <ServiceDeliveryListPage />
+                        <PermissionRoute permission="service.read">
+                            <ServiceDeliveryListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/service-deliveries/create"
                     element={
-                        <ServiceDeliveryCreatePage />
+                        <PermissionRoute permission="service.create">
+                            <ServiceDeliveryCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/service-deliveries/:id"
                     element={
-                        <ServiceDeliveryDetailsPage />
+                        <PermissionRoute permission="service.read">
+                            <ServiceDeliveryDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/service-deliveries/:id/edit"
                     element={
-                        <ServiceDeliveryEditPage />
+                        <PermissionRoute permission="service.update">
+                            <ServiceDeliveryEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -957,28 +1091,36 @@ const AppRoutes = () => {
 <Route
     path="/lookups"
     element={
-        <LookupListPage />
+        <PermissionRoute permission="lookup.read">
+            <LookupListPage />
+        </PermissionRoute>
     }
 />
 
 <Route
     path="/lookups/create"
     element={
-        <LookupCreatePage />
+        <PermissionRoute permission="lookup.create">
+            <LookupCreatePage />
+        </PermissionRoute>
     }
 />
 
 <Route
     path="/lookups/module/:module/category/:category"
     element={
-        <LookupCategoryPage />
+        <PermissionRoute permission="lookup.read">
+            <LookupCategoryPage />
+        </PermissionRoute>
     }
 />
 
 <Route
     path="/lookups/:id/edit"
     element={
-        <LookupEditPage />
+        <PermissionRoute permission="lookup.update">
+            <LookupEditPage />
+        </PermissionRoute>
     }
 />
 
@@ -990,28 +1132,36 @@ const AppRoutes = () => {
                 <Route
                     path="/donors"
                     element={
-                        <DonorListPage />
+                        <PermissionRoute permission="donor.read">
+                            <DonorListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/donors/create"
                     element={
-                        <DonorCreatePage />
+                        <PermissionRoute permission="donor.create">
+                            <DonorCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/donors/:id"
                     element={
-                        <DonorDetailsPage />
+                        <PermissionRoute permission="donor.read">
+                            <DonorDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/donors/:id/edit"
                     element={
-                        <DonorEditPage />
+                        <PermissionRoute permission="donor.update">
+                            <DonorEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -1023,42 +1173,54 @@ const AppRoutes = () => {
                 <Route
                     path="/donations"
                     element={
-                        <DonationListPage />
+                        <PermissionRoute permission="donation.read">
+                            <DonationListPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/donations/create"
                     element={
-                        <DonationCreatePage />
+                        <PermissionRoute permission="donation.create">
+                            <DonationCreatePage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/donations/untraced"
                     element={
-                        <UntracedSpendingPage />
+                        <PermissionRoute permission="donation.read">
+                            <UntracedSpendingPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/donations/:id"
                     element={
-                        <DonationDetailsPage />
+                        <PermissionRoute permission="donation.read">
+                            <DonationDetailsPage />
+                        </PermissionRoute>
                     }
                 />
 
                 <Route
                     path="/donations/:id/trace"
                     element={
-                        <DonationTracePage />
+                        <PermissionRoute permission="donation.read">
+                            <DonationTracePage />
+                        </PermissionRoute>
                     }
                 />
 
                                 <Route
                     path="/donations/:id/edit"
                     element={
-                        <DonationEditPage />
+                        <PermissionRoute permission="donation.update">
+                            <DonationEditPage />
+                        </PermissionRoute>
                     }
                 />
 
@@ -1070,7 +1232,9 @@ const AppRoutes = () => {
                 <Route
                     path="/reports"
                     element={
-                        <ReportsPage />
+                        <PermissionRoute permission="report.read">
+                            <ReportsPage />
+                        </PermissionRoute>
                     }
                 />
 

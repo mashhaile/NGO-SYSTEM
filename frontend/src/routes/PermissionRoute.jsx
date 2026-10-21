@@ -1,9 +1,44 @@
 import {
-    Navigate
+    Navigate,
+    useNavigate
 } from "react-router-dom";
 
 import useAuth
     from "../features/auth/hooks/useAuth";
+
+import {
+    PageContainer,
+    ErrorState
+} from "../components/ui";
+
+
+// ==========================================================
+// PERMISSION ROUTE
+// ==========================================================
+//
+// Shows the page only when the user's role has the
+// permission (the API checks it again). Otherwise a clear
+// "no access" message instead of a broken page or a silent
+// jump to the dashboard.
+//
+// ==========================================================
+
+const NoAccess = () => {
+
+    const navigate = useNavigate();
+
+    return (
+        <PageContainer>
+            <ErrorState
+                title="You don't have access to this page"
+                message="Your role does not include this part of the system. Ask your organization administrator if you need it."
+                action={() => navigate("/dashboard")}
+                actionLabel="Go to Dashboard"
+            />
+        </PageContainer>
+    );
+
+};
 
 
 const PermissionRoute = ({
@@ -18,91 +53,33 @@ const PermissionRoute = ({
         initialized
     } = useAuth();
 
-    // ==========================================================
-    // WAIT FOR AUTH INITIALIZATION
-    // ==========================================================
 
-    if (
-        loading ||
-        !initialized
-    ) {
-
+    // Wait for the session to load
+    if (loading || !initialized) {
         return null;
-
     }
 
-
-    // ==========================================================
-    // NOT AUTHENTICATED
-    // ==========================================================
-
-    if (
-        !isAuthenticated ||
-        !user
-    ) {
-
-        return (
-            <Navigate
-                to="/login"
-                replace
-            />
-        );
-
+    if (!isAuthenticated || !user) {
+        return <Navigate to="/login" replace />;
     }
-
-
-    // ==========================================================
-    // USER PERMISSIONS
-    // ==========================================================
 
     const permissions =
         Array.isArray(user.permissions)
             ? user.permissions
             : [];
 
-
-
-
-    // ==========================================================
-    // PERMISSION CHECK
-    // ==========================================================
-
     // "*" = super admin (all permissions)
-
     if (
         permission &&
         !permissions.includes("*") &&
         !permissions.includes(permission)
     ) {
-
-        console.warn(
-            "Permission denied:",
-            permission
-        );
-
-        return (
-            <Navigate
-                to="/dashboard"
-                replace
-            />
-        );
-
+        return <NoAccess />;
     }
-
-
-    // ==========================================================
-    // ALLOWED
-    // ==========================================================
-
-
 
     return children;
 
 };
 
-
-// ==========================================================
-// DEFAULT EXPORT
-// ==========================================================
 
 export default PermissionRoute;

@@ -79,7 +79,7 @@ const TorEditActivityDialog = ({
             maxWidth="sm"
         >
 
-            <DialogTitle fontWeight={700}>
+            <DialogTitle sx={{ fontWeight: 700 }}>
                 Edit Activity Name and Type
             </DialogTitle>
 

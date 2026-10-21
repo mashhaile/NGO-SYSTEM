@@ -459,6 +459,7 @@ test("budgets: program envelope, project allocation and limits", { skip }, async
         }
     });
     assert.equal(two.status, 201);
+    state.budgetTwoId = two.data.data._id;
 
     const over = await api("POST", `/budgets/${two.data.data._id}/submit`, { token });
     assert.equal(over.status, 400);
@@ -506,6 +507,17 @@ test("budgets: finance officer approves; approved budgets are locked", { skip },
 
     // Return needs a comment
     assert.equal((await api("POST", `/budgets/${state.budgetOneId}/return`, { token: finance, body: {} })).status, 400);
+
+    // The program budget (the ceiling) must be approved first
+    const tooEarly = await api("POST", `/budgets/${state.budgetOneId}/approve`, { token: finance, body: {} });
+    assert.equal(tooEarly.status, 400);
+    assert.match(tooEarly.data.message, /program budget/i);
+
+    // The USD draft would block the ETB program budget; remove it
+    assert.equal((await api("DELETE", `/budgets/${state.budgetTwoId}`, { token: finance })).status, 200);
+
+    assert.equal((await api("POST", `/budgets/${state.envelopeId}/submit`, { token: finance })).status, 200);
+    assert.equal((await api("POST", `/budgets/${state.envelopeId}/approve`, { token: finance, body: {} })).status, 200);
 
     const approved = await api("POST", `/budgets/${state.budgetOneId}/approve`, { token: finance, body: { comment: "OK" } });
     assert.equal(approved.status, 200, approved.data?.message);

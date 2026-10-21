@@ -65,6 +65,10 @@ const ROLE_OPTIONS = [
         label: "Data Entry"
     },
     {
+        value: "finance_officer",
+        label: "Finance Officer"
+    },
+    {
         value: "viewer",
         label: "Viewer"
     }

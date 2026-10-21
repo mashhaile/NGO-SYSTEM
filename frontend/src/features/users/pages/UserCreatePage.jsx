@@ -308,6 +308,11 @@ const UserCreatePage = () => {
                                 </MenuItem>
 
 
+                                <MenuItem value="finance_officer">
+                                    Finance Officer
+                                </MenuItem>
+
+
                                 <MenuItem value="viewer">
                                     Viewer
                                 </MenuItem>

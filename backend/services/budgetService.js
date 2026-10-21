@@ -793,8 +793,22 @@ const submitBudget = async (id, organizationId, userId) => {
 
 const approveBudget = async (id, organizationId, userId, comment = "") => {
 
+    const budget = await findBudget(id, organizationId);
+
     // Re-check: other budgets may have changed since submit
-    await assertReadyForReview(await findBudget(id, organizationId));
+    await assertReadyForReview(budget);
+
+    // A project budget draws on its program budget, so that
+    // ceiling must itself be approved first.
+    if (budget.level === BUDGET_LEVEL.PROJECT) {
+        const programBudget = await programBudgetOf(organizationId, budget.program);
+        if (programBudget && programBudget.status !== BUDGET_STATUS.APPROVED) {
+            throw new ApiError(
+                `Approve the program budget ${programBudget.budgetCode} first (it is ${programBudget.status.toLowerCase()}).`,
+                400
+            );
+        }
+    }
 
     return transition({
         id,

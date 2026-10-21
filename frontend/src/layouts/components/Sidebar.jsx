@@ -41,6 +41,7 @@ import {
     Payments,
     CardMembership,
     Storefront,
+    Savings,
     AddBusiness,
     Group
 } from "@mui/icons-material";
@@ -114,73 +115,92 @@ const menuItems = [
     {
         label: "Beneficiaries",
         path: "/beneficiaries",
-        icon: <People />
+        icon: <People />,
+        permission: "beneficiary.read"
     },
 
     {
         label: "Programs",
         path: "/programs",
-        icon: <Folder />
+        icon: <Folder />,
+        permission: "program.read"
     },
 
     {
         label: "Projects",
         path: "/projects",
-        icon: <Assignment />
+        icon: <Assignment />,
+        permission: "project.read"
     },
 
     {
         label: "Activities",
         path: "/activities",
-        icon: <EventNote />
+        icon: <EventNote />,
+        permission: "activity.read"
     },
 
     {
         label: "Activity Runs",
         path: "/activity-runs",
-        icon: <EventAvailable />
+        icon: <EventAvailable />,
+        permission: "activity_run.read"
     },
 
     {
         label: "Terms of Reference",
         path: "/tors",
-        icon: <Description />
+        icon: <Description />,
+        permission: "tor.read"
     },
 
     {
         label: "Attendance",
         path: "/attendance",
-        icon: <FactCheck />
+        icon: <FactCheck />,
+        permission: "attendance.read"
     },
 
     {
         label: "Enrollments",
         path: "/enrollments",
-        icon: <People />
+        icon: <People />,
+        permission: "enrollment.read"
     },
 
     {
         label: "Service Delivery",
         path: "/service-deliveries",
-        icon: <LocalShipping />
+        icon: <LocalShipping />,
+        permission: "service.read"
     },
 
     {
         label: "Donors",
         path: "/donors",
-        icon: <VolunteerActivism />
+        icon: <VolunteerActivism />,
+        permission: "donor.read"
     },
 
     {
         label: "Donations",
         path: "/donations",
-        icon: <AccountBalance />
+        icon: <AccountBalance />,
+        permission: "donation.read"
+    },
+
+    {
+        label: "Budgets",
+        path: "/budgets",
+        icon: <Savings />,
+        permission: "budget.read"
     },
     
     {
         label: "Reports",
         path: "/reports",
-        icon: <Assessment />
+        icon: <Assessment />,
+        permission: "report.read"
     }
     
 ];
@@ -250,7 +270,7 @@ const settingsItems = [
         path: "/settings/custom-fields",
         icon: <Tune />,
         permission:
-            PERMISSIONS.CUSTOM_FIELD_READ
+            PERMISSIONS.CUSTOMFIELD_READ
     }
 
 ];
@@ -745,6 +765,28 @@ const Sidebar = ({
 
 
     /* ======================================================
+       VISIBLE MAIN MENU / ENTERPRISE SECTION
+
+       Same rule as settings: show only what the user's
+       role can open (a finance officer does not see
+       Beneficiaries, Attendance, ...).
+    ====================================================== */
+
+    const can = (permission) =>
+        isSuperAdmin ||
+        !permission ||
+        permissions.includes("*") ||
+        permissions.includes(permission);
+
+    const visibleMenuItems =
+        menuItems.filter(item => can(item.permission));
+
+    const canSeeEnterprises =
+        can("enterprise.read");
+
+
+
+    /* ======================================================
        NAVIGATION CLICK
     ====================================================== */
 
@@ -1037,7 +1079,7 @@ const Sidebar = ({
                 >
 
                     {
-                        menuItems.map(
+                        visibleMenuItems.map(
                             item => (
 
                                 <ListItemButton
@@ -1092,6 +1134,8 @@ const Sidebar = ({
                 {/* ==================================================
                     ENTERPRISE
                 ================================================== */}
+
+                {canSeeEnterprises && (
 
                 <Box
                     sx={{
@@ -1272,6 +1316,8 @@ const Sidebar = ({
                     </List>
 
                 </Box>
+
+                )}
 
 
 

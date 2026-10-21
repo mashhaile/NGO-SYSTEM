@@ -36,7 +36,9 @@ const TorReviewDialog = ({
     loading = false,
     error = "",
     onClose,
-    onConfirm
+    onConfirm,
+    // Wording only: "TOR", "budget", ...
+    entityLabel = "TOR"
 }) => {
 
     const [comment, setComment] =
@@ -58,10 +60,10 @@ const TorReviewDialog = ({
             maxWidth="sm"
         >
 
-            <DialogTitle fontWeight={700}>
+            <DialogTitle sx={{ fontWeight: 700 }}>
                 {isReturn
-                    ? "Return TOR for Revision"
-                    : "Approve TOR"}
+                    ? `Return ${entityLabel} for Revision`
+                    : `Approve ${entityLabel}`}
             </DialogTitle>
 
             <DialogContent>
@@ -73,8 +75,8 @@ const TorReviewDialog = ({
                         mb: 2
                     }}>
                     {isReturn
-                        ? "The author will see your comment and can edit and resubmit the TOR."
-                        : "Approved TORs are locked and can no longer be edited."}
+                        ? `The author will see your comment and can edit and resubmit the ${entityLabel}.`
+                        : `Approved ${entityLabel}s are locked and can no longer be edited.`}
                 </Typography>
 
                 <AppTextField
