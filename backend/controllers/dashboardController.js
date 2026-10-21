@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const dashboardReport = require("../services/reports/dashboardReport");
 
 const getDashboard = async (req, res) => {
@@ -32,10 +37,10 @@ const getDashboard = async (req, res) => {
             error
         );
 
-        return res.status(500).json({
+        return res.status(getErrorStatus(error)).json({
             success: false,
             message:
-                error.message ||
+                getErrorMessage(error) ||
                 "Failed to load dashboard",
             errors: []
         });

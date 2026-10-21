@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const attendanceService = require("../services/attendanceService");
 
 
@@ -37,11 +42,11 @@ const createAttendance = async (req,res)=>{
     catch(error){
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -90,11 +95,11 @@ const getAttendances = async(req,res)=>{
     catch(error){
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -164,11 +169,11 @@ const getAttendanceById = async(req,res)=>{
     catch(error){
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -265,11 +270,11 @@ const saveAttendanceRecords = async(req,res)=>{
 
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -323,11 +328,11 @@ const getAttendanceRecords = async(req,res)=>{
     catch(error){
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -385,11 +390,11 @@ const updateAttendance = async(req,res)=>{
     catch(error){
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -444,11 +449,11 @@ const deleteAttendance = async(req,res)=>{
     catch(error){
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 

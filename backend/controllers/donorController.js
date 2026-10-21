@@ -1,4 +1,9 @@
 const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
+const {
 
     createDonor,
 
@@ -193,12 +198,12 @@ const getDonorsController = async (
         );
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -246,12 +251,12 @@ const getDonorLookupController = async (
         );
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -316,12 +321,12 @@ const getDonorByIdController = async (
         );
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -403,12 +408,12 @@ const updateDonorController = async (
         );
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -488,12 +493,12 @@ const deleteDonorController = async (
         );
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 

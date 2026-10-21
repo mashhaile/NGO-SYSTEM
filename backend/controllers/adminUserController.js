@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const service =
 require("../services/adminUserService");
 
@@ -40,11 +45,11 @@ const createUser = async (
     }
     catch(error){
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -89,11 +94,11 @@ const getUsers = async (
     catch(error){
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -157,11 +162,11 @@ const getUserDetails = async (
     }
     catch(error){
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 

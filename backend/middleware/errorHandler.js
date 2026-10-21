@@ -1,6 +1,11 @@
 const ApiResponse =
     require("../utils/apiresponse");
 
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 
 const errorHandler = (
     err,
@@ -9,23 +14,24 @@ const errorHandler = (
     next
 ) => {
 
-    console.error(
-        err
-    );
-
-
     const statusCode =
-        err.statusCode || 500;
+        getErrorStatus(err);
 
+    // Full details only for real server failures;
+    // client errors are expected and logged briefly.
 
-    const message =
-        err.message ||
-        "Internal Server Error";
+    if (statusCode >= 500) {
+        console.error(err);
+    }
+    else {
+        console.warn(
+            `${statusCode} ${req.method} ${req.originalUrl}: ${err.message}`
+        );
+    }
 
-
-    const errors =
-        err.errors || [];
-
+    if (res.headersSent) {
+        return next(err);
+    }
 
     return ApiResponse.error(
 
@@ -33,9 +39,11 @@ const errorHandler = (
 
         statusCode,
 
-        message,
+        getErrorMessage(err),
 
-        errors
+        err.errors && Array.isArray(err.errors)
+            ? err.errors
+            : []
 
     );
 

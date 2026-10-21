@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const projectService =
     require("../services/projectService");
 
@@ -121,12 +126,12 @@ const getProjects = async (req, res) => {
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -181,12 +186,12 @@ const getProjectById = async (req, res) => {
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -248,12 +253,12 @@ const updateProject = async (req, res) => {
 
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -310,12 +315,12 @@ const deleteProject = async (req, res) => {
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -355,12 +360,12 @@ const getProjectLookup = async (req, res) => {
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 

@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const analyticsService =
 require("../services/superAdminAnalyticsService");
 
@@ -37,11 +42,11 @@ const getPlatformAnalytics = async (
     catch(error){
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 

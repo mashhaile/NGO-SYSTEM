@@ -1,4 +1,9 @@
 const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
+const {
     logActivity
 } = require("../utils/auditLogger");
 
@@ -91,11 +96,11 @@ const createEnrollmentController = async (
     catch(error){
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -158,11 +163,11 @@ const getEnrollmentsController = async (
     catch(error){
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -219,11 +224,11 @@ const getEnrollmentByIdController = async (
     catch(error){
 
 
-        res.status(404).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -306,11 +311,11 @@ const updateEnrollmentController = async (
     catch(error){
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -421,11 +426,11 @@ const deleteEnrollmentController = async (
     catch(error){
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 

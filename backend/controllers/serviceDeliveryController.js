@@ -1,4 +1,9 @@
 const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
+const {
     createServiceDelivery,
     getServiceDeliveries,
     getServiceDeliveryById,
@@ -302,12 +307,12 @@ const createServiceDeliveryController = async (
 
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -349,12 +354,12 @@ const getServiceDeliveriesController = async (
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -394,12 +399,12 @@ const getServiceDeliveryByIdController = async (
 
     catch (error) {
 
-        res.status(404).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -481,12 +486,12 @@ const updateServiceDeliveryController = async (
 
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -567,12 +572,12 @@ const deleteServiceDeliveryController = async (
 
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 

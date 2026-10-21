@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const activityRunService =
     require("../services/activityRunService");
 
@@ -68,13 +73,13 @@ const createActivityRun = async (
 
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:
                 false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -120,13 +125,13 @@ const getActivityRunLookup = async (
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:
                 false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -173,13 +178,13 @@ const getActivityRuns = async (
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:
                 false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -242,13 +247,13 @@ const getActivityRunById = async (
 
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:
                 false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -315,13 +320,13 @@ const updateActivityRun = async (
 
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:
                 false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -386,13 +391,13 @@ const deleteActivityRun = async (
 
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success:
                 false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 

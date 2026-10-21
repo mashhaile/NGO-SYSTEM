@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const service =
 require("../services/notificationService");
 
@@ -41,11 +46,11 @@ const getMyNotifications = async (
     }
     catch(error){
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -95,11 +100,11 @@ async (
     }
     catch(error){
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -151,11 +156,11 @@ const markAsRead = async (
     }
     catch(error){
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 
@@ -202,11 +207,11 @@ const getUnreadCount = async (
     }
     catch(error){
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 

@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const bcrypt = require("bcrypt");
 
 const {
@@ -386,12 +391,12 @@ const createUserController = async (
             error
         );
 
-        return res.status(500).json({
+        return res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -442,12 +447,12 @@ const getUsersController = async (
             error
         );
 
-        return res.status(500).json({
+        return res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -771,12 +776,12 @@ const updateUserController = async (
             error
         );
 
-        return res.status(500).json({
+        return res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -865,12 +870,12 @@ const getStaffLookup = async (
             error
         );
 
-        return res.status(500).json({
+        return res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -1062,12 +1067,12 @@ const deleteUserController = async (
             error
         );
 
-        return res.status(500).json({
+        return res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 

@@ -1,4 +1,9 @@
 const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
+const {
     createCustomField,
     getCustomFields,
     getCustomFieldById,
@@ -37,11 +42,11 @@ const createCustomFieldController = async (
     }
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
-            message: error.message
+            message: getErrorMessage(error)
 
         });
 
@@ -82,11 +87,11 @@ const getCustomFieldsController = async (
     }
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
-            message: error.message
+            message: getErrorMessage(error)
 
         });
 
@@ -139,11 +144,11 @@ const getCustomFieldByIdController = async (
     }
     catch (error) {
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
-            message: error.message
+            message: getErrorMessage(error)
 
         });
 
@@ -188,11 +193,11 @@ const updateCustomFieldController = async (
     }
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
-            message: error.message
+            message: getErrorMessage(error)
 
         });
 
@@ -231,11 +236,11 @@ const deleteCustomFieldController = async (
     }
     catch (error) {
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
-            message: error.message
+            message: getErrorMessage(error)
 
         });
 

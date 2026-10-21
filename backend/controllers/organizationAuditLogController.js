@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const service =
 require("../services/auditLogService");
 
@@ -40,11 +45,11 @@ res.json({
 }
 catch(error){
 
-res.status(500).json({
+res.status(getErrorStatus(error)).json({
 
     success:false,
 
-    message:error.message
+    message:getErrorMessage(error)
 
 });
 
@@ -125,11 +130,11 @@ data:log
 }
 catch(error){
 
-res.status(500).json({
+res.status(getErrorStatus(error)).json({
 
 success:false,
 
-message:error.message
+message:getErrorMessage(error)
 
 });
 

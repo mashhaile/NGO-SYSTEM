@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const bcrypt = require("bcrypt");
 
 const {
@@ -110,10 +115,10 @@ const createOrganizationAdmin = async (req,res)=>{
     }
     catch(error){
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 

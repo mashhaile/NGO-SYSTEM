@@ -1,3 +1,8 @@
+const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
 const Organization = require("../models/organization");
 const User = require("../models/user");
 const Subscription = require("../models/subscription");
@@ -123,11 +128,11 @@ const getAdminDashboard = async (
     catch(error){
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success:false,
 
-            message:error.message
+            message:getErrorMessage(error)
 
         });
 

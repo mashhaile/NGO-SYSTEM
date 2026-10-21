@@ -1,4 +1,9 @@
 const {
+    getErrorStatus,
+    getErrorMessage
+} = require("../utils/errorStatus");
+
+const {
     logActivity
 } = require("../utils/auditLogger");
 
@@ -137,12 +142,12 @@ const getEnterprisesController = async (
         );
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -191,12 +196,12 @@ const getEnterpriseByIdController = async (
         );
 
 
-        res.status(404).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -351,12 +356,12 @@ const deleteEnterpriseController = async (
         );
 
 
-        res.status(400).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -424,12 +429,12 @@ const getEnterpriseLookupController = async (
         );
 
 
-        res.status(500).json({
+        res.status(getErrorStatus(error)).json({
 
             success: false,
 
             message:
-                error.message
+                getErrorMessage(error)
 
         });
 
@@ -481,12 +486,12 @@ const getEnterprisesByBeneficiaryController =
             );
 
 
-            res.status(500).json({
+            res.status(getErrorStatus(error)).json({
 
                 success: false,
 
                 message:
-                    error.message
+                    getErrorMessage(error)
 
             });
 
