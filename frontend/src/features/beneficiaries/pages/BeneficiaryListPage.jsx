@@ -1,494 +1,309 @@
 import {
     useEffect,
-    useState,
-    useCallback
+    useState
 } from "react";
-
-import {
-    useDispatch,
-    useSelector
-} from "react-redux";
 
 import {
     useNavigate
 } from "react-router-dom";
 
 import {
-    Add,
-    UploadFile,
-    Download,
-    Refresh
-} from "@mui/icons-material";
+    Alert,
+    Box,
+    Link,
+    Typography
+} from "@mui/material";
 
 import {
-    getBeneficiariesThunk
-} from "../store";
-
-import BeneficiaryTable
-    from "../components/BeneficiaryTable";
+    Add,
+    Delete,
+    Edit,
+    UploadFile,
+    Visibility
+} from "@mui/icons-material";
 
 import {
     PageContainer,
     PageHeader,
-    StatsCards,
-    SearchToolbar,
     PageCard,
-    EmptyState,
-    LoadingState,
-    AppButton,
-    AppAlert,
-    ActionToolbar,
-    AppPagination
+    SearchToolbar,
+    DataTable,
+    StatusChip,
+    AppIconButton,
+    ConfirmDeleteDialog
 } from "../../../components/ui";
 
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+import useServerList
+    from "../../../hooks/useServerList";
+
+import {
+    getBeneficiariesApi,
+    deleteBeneficiaryApi
+} from "../api/beneficiaryApi";
+
+import {
+    getLookupsByModuleAndCategoryService
+} from "../../lookups/services/lookupService";
+
+import { hasPermission } from "../../../utils/permissions";
+import { getApiErrorMessage } from "../../../utils/apiError";
+
+
+const STATUS_OPTIONS =
+    ["Active", "Inactive"].map(value => ({ value, label: value }));
+
+const listOf = (response) =>
+    Array.isArray(response) ? response
+        : Array.isArray(response?.data?.data) ? response.data.data
+            : Array.isArray(response?.data) ? response.data
+                : [];
+
+const lookupName = (value) =>
+    !value ? "-" : typeof value === "object" ? value.value || value.name || "-" : String(value);
+
+const fullName = (row) =>
+    [row.firstName, row.middleName, row.lastName].filter(Boolean).join(" ") || row.beneficiaryNumber;
+
+
+// =====================================================
+// BENEFICIARY LIST PAGE
+// =====================================================
 
 const BeneficiaryListPage = () => {
 
-    const dispatch = useDispatch();
-
     const navigate = useNavigate();
 
-
-    // =====================================================
-    // REDUX
-    // =====================================================
-
-    const {
-        beneficiaries = [],
-        pagination = {},
-        loading,
-        error
-    } = useSelector(
-        (state) => state.beneficiaries
-    );
-
-
-    // =====================================================
-    // LOCAL STATE
-    // =====================================================
+    const { user } = useAuth();
 
     const [search, setSearch] = useState("");
+    const [gender, setGender] = useState("");
+    const [status, setStatus] = useState("");
+    const [genderOptions, setGenderOptions] = useState([]);
 
-    const [page, setPage] = useState(1);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
-    const [limit, setLimit] = useState(10);
+    const list = useServerList(getBeneficiariesApi, { search, gender, status }, "Failed to load beneficiaries.");
 
-
-    // =====================================================
-    // LOAD DATA
-    // =====================================================
-
-    const loadData = useCallback(() => {
-
-        dispatch(
-            getBeneficiariesThunk({
-                search: search.trim(),
-                page,
-                limit
-            })
-        );
-
-    }, [
-        dispatch,
-        search,
-        page,
-        limit
-    ]);
-
-
-    // =====================================================
-    // SEARCH / PAGINATION LOAD
-    // =====================================================
 
     useEffect(() => {
-
-        const timer = setTimeout(() => {
-
-            loadData();
-
-        }, 400);
-
-
-        return () => {
-
-            clearTimeout(timer);
-
-        };
-
-    }, [loadData]);
+        getLookupsByModuleAndCategoryService("Beneficiary", "Gender")
+            .then(response => setGenderOptions(
+                listOf(response).map(item => ({ value: item._id, label: item.value || item.name }))
+            ))
+            .catch(() => setGenderOptions([]));
+    }, []);
 
 
-    // =====================================================
-    // SEARCH
-    // =====================================================
+    const handleDelete = async () => {
 
-    const handleSearch = (value) => {
+        setDeleting(true);
 
-        setSearch(value);
-
-        setPage(1);
+        try {
+            await deleteBeneficiaryApi(deleteTarget._id);
+            setDeleteTarget(null);
+            list.reload();
+        }
+        catch (error) {
+            setDeleteTarget(null);
+            list.setError(getApiErrorMessage(error, "Failed to delete the beneficiary."));
+        }
+        finally {
+            setDeleting(false);
+        }
 
     };
 
 
-    // =====================================================
-    // ROW LIMIT
-    // =====================================================
+    const canCreate = hasPermission(user, "beneficiary.create");
+    const canUpdate = hasPermission(user, "beneficiary.update");
+    const canDelete = hasPermission(user, "beneficiary.delete");
 
-    const handleLimitChange = (value) => {
-
-        setLimit(
-            Number(value)
-        );
-
-        setPage(1);
-
-    };
+    const filterChange = (setter) => (value) => { setter(value); list.resetPage(); };
 
 
-    // =====================================================
-    // RESET
-    // =====================================================
+    const columns = [
 
-    const resetSearch = () => {
+        {
+            field: "firstName",
+            headerName: "Beneficiary",
+            flex: 1.5,
+            minWidth: 230,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Link
+                        component="button"
+                        underline="hover"
+                        sx={{ fontWeight: 600, textAlign: "left" }}
+                        onClick={() => navigate(`/beneficiaries/${params.row._id}`)}
+                    >
+                        {fullName(params.row)}
+                    </Link>
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                        {params.row.beneficiaryNumber}
+                    </Typography>
+                </Box>
+            )
+        },
 
-        setSearch("");
+        {
+            field: "gender",
+            headerName: "Gender",
+            minWidth: 100,
+            valueGetter: (value) => lookupName(value)
+        },
 
-        setPage(1);
+        {
+            field: "age",
+            headerName: "Age",
+            minWidth: 70,
+            align: "right",
+            headerAlign: "right",
+            valueGetter: (value) => (value || value === 0 ? value : "-")
+        },
 
-    };
+        {
+            field: "phone",
+            headerName: "Phone",
+            minWidth: 130,
+            valueGetter: (value) => value || "-"
+        },
 
+        {
+            field: "region",
+            headerName: "Location",
+            flex: 1.2,
+            minWidth: 190,
+            sortable: false,
+            renderCell: (params) => {
+                const place = [params.row.woreda, params.row.zone].filter(Boolean).join(", ");
+                return (
+                    <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                        <Typography variant="body2">{params.row.region || "-"}</Typography>
+                        {place && (
+                            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                                {place}
+                            </Typography>
+                        )}
+                    </Box>
+                );
+            }
+        },
 
-    // =====================================================
-    // REFRESH
-    // =====================================================
+        {
+            field: "status",
+            headerName: "Status",
+            minWidth: 110,
+            renderCell: (params) => <StatusChip status={params.value || "Active"} />
+        },
 
-    const handleRefresh = () => {
+        {
+            field: "actions",
+            headerName: "Actions",
+            width: 140,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <>
+                    <AppIconButton
+                        icon={<Visibility fontSize="small" />}
+                        tooltip="View beneficiary"
+                        onClick={() => navigate(`/beneficiaries/${params.row._id}`)}
+                    />
+                    {canUpdate && (
+                        <AppIconButton
+                            icon={<Edit fontSize="small" />}
+                            tooltip="Edit beneficiary"
+                            onClick={() => navigate(`/beneficiaries/${params.row._id}/edit`)}
+                        />
+                    )}
+                    {canDelete && (
+                        <AppIconButton
+                            icon={<Delete fontSize="small" />}
+                            tooltip="Delete beneficiary"
+                            color="error"
+                            onClick={() => setDeleteTarget(params.row)}
+                        />
+                    )}
+                </>
+            )
+        }
 
-        loadData();
+    ];
 
-    };
-
-
-    // =====================================================
-    // EXPORT
-    // =====================================================
-
-    const handleExport = () => {
-
-
-        // Connect export service later.
-
-    };
-
-
-    // =====================================================
-    // STATISTICS
-    // =====================================================
-
-    const totalBeneficiaries =
-        Number(
-            pagination?.totalRecords
-        ) || 0;
-
-
-    const currentRecords =
-        beneficiaries.length;
-
-
-    const activeCount =
-        Number(
-            pagination?.totalActive
-        ) || 0;
-
-
-    // =====================================================
-    // RENDER
-    // =====================================================
 
     return (
 
         <PageContainer>
 
-
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <PageHeader
-
                 title="Beneficiaries"
-
-                subtitle={
-                    "Manage beneficiary registration and records"
-                }
-
-                action={() =>
-                    navigate(
-                        "/beneficiaries/create"
-                    )
-                }
-
-                actionLabel="Add Beneficiary"
-
-                actionIcon={
-                    <Add />
-                }
-
+                subtitle="People registered by the organization, with their contact and location."
+                {...(
+                    canCreate
+                        ? {
+                            action: () => navigate("/beneficiaries/create"),
+                            actionLabel: "Add Beneficiary",
+                            actionIcon: <Add />,
+                            secondaryAction: () => navigate("/beneficiaries/import"),
+                            secondaryActionLabel: "Import Excel",
+                            secondaryActionIcon: <UploadFile />
+                        }
+                        : {}
+                )}
             />
-
-
-            {/* =================================================
-                PAGE ACTIONS
-            ================================================= */}
-
-            <PageCard>
-
-                <ActionToolbar>
-
-                    <AppButton
-                        variant="outlined"
-                        startIcon={
-                            <UploadFile />
-                        }
-                        onClick={() =>
-                            navigate(
-                                "/beneficiaries/import"
-                            )
-                        }
-                    >
-                        Import Excel
-                    </AppButton>
-
-
-                    <AppButton
-                        variant="outlined"
-                        startIcon={
-                            <Download />
-                        }
-                        onClick={
-                            handleExport
-                        }
-                    >
-                        Export
-                    </AppButton>
-
-
-                    <AppButton
-                        variant="outlined"
-                        startIcon={
-                            <Refresh />
-                        }
-                        onClick={
-                            handleRefresh
-                        }
-                        loading={
-                            loading
-                        }
-                    >
-                        Refresh
-                    </AppButton>
-
-                </ActionToolbar>
-
-            </PageCard>
-
-
-            {/* =================================================
-                STATISTICS
-            ================================================= */}
-
-            <StatsCards
-
-                items={[
-
-                    {
-                        label:
-                            "Total Beneficiaries",
-
-                        value:
-                            totalBeneficiaries
-                    },
-
-                    {
-                        label:
-                            "Current Records",
-
-                        value:
-                            currentRecords
-                    },
-
-                    {
-                        label:
-                            "Active",
-
-                        value:
-                            activeCount
-                    }
-
-                ]}
-
-            />
-
-
-            {/* =================================================
-                SEARCH
-            ================================================= */}
 
             <SearchToolbar
-
-                search={
-                    search
-                }
-
-                onSearch={
-                    handleSearch
-                }
-
-                onReset={
-                    resetSearch
-                }
-
+                search={search}
+                onSearch={filterChange(setSearch)}
+                onReset={() => {
+                    setSearch("");
+                    setGender("");
+                    setStatus("");
+                    list.resetPage();
+                }}
                 filters={[
-
-                    {
-                        key:
-                            "limit",
-
-                        label:
-                            "Rows",
-
-                        value:
-                            limit,
-
-                        onChange:
-                            handleLimitChange,
-
-                        options: [
-
-                            {
-                                value: 10,
-                                label: "10"
-                            },
-
-                            {
-                                value: 25,
-                                label: "25"
-                            },
-
-                            {
-                                value: 50,
-                                label: "50"
-                            }
-
-                        ]
-
-                    }
-
+                    { key: "gender", label: "Gender", value: gender, onChange: filterChange(setGender), options: genderOptions },
+                    { key: "status", label: "Status", value: status, onChange: filterChange(setStatus), options: STATUS_OPTIONS }
                 ]}
-
             />
 
-
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
-            {error && (
-
-                <AppAlert
-                    severity="error"
-                    message={
-                        error
-                    }
-                />
-
+            {list.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {list.error}
+                </Alert>
             )}
-
-
-            {/* =================================================
-                TABLE
-            ================================================= */}
 
             <PageCard>
-
-                {loading ? (
-
-                    <LoadingState
-                        message={
-                            "Loading beneficiaries..."
-                        }
-                    />
-
-                ) : beneficiaries.length === 0 ? (
-
-                    <EmptyState
-
-                        title={
-                            "No beneficiaries found"
-                        }
-
-                        message={
-                            search
-                                ? "No beneficiaries match your search."
-                                : "Add your first beneficiary record."
-                        }
-
-                    />
-
-                ) : (
-
-                    <BeneficiaryTable
-
-                        data={
-                            beneficiaries
-                        }
-
-                        loading={
-                            loading
-                        }
-
-                    />
-
-                )}
-
+                <DataTable
+                    rows={list.rows}
+                    columns={columns}
+                    loading={list.loading}
+                    paginationMode="server"
+                    rowCount={list.total}
+                    paginationModel={list.paginationModel}
+                    onPaginationModelChange={list.setPaginationModel}
+                    getRowHeight={() => "auto"}
+                    onRowDoubleClick={(params) => navigate(`/beneficiaries/${params.row._id}`)}
+                />
             </PageCard>
 
-
-            {/* =================================================
-                PAGINATION
-            ================================================= */}
-
-            {Number(
-                pagination?.totalPages
-            ) > 1 && (
-
-                <AppPagination
-
-                    page={
-                        page
-                    }
-
-                    count={
-                        Number(
-                            pagination?.totalPages
-                        ) || 1
-                    }
-
-                    onChange={(
-                        _event,
-                        value
-                    ) => {
-
-                        setPage(
-                            value
-                        );
-
-                    }}
-
-                />
-
-            )}
+            <ConfirmDeleteDialog
+                open={Boolean(deleteTarget)}
+                title="Delete Beneficiary"
+                message={
+                    deleteTarget
+                        ? `Delete ${deleteTarget.beneficiaryNumber} "${fullName(deleteTarget)}"? This cannot be undone.`
+                        : ""
+                }
+                loading={deleting}
+                onClose={() => !deleting && setDeleteTarget(null)}
+                onConfirm={handleDelete}
+            />
 
         </PageContainer>
 
