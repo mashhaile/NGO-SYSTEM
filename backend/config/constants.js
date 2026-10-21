@@ -13,6 +13,10 @@ const ROLES = {
     DATA_ENTRY:
         "data_entry",
 
+    // Budgets and (later) expenses: create and approve
+    FINANCE:
+        "finance_officer",
+
     VIEWER:
         "viewer"
 

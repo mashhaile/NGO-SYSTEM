@@ -209,6 +209,8 @@ const createOrganizationUser = async (
 
         ROLES.DATA_ENTRY,
 
+        ROLES.FINANCE,
+
         ROLES.VIEWER
 
     ];
@@ -494,6 +496,8 @@ const updateOrganizationUser = async (
         const allowedRoles = [
 
             ROLES.DATA_ENTRY,
+
+            ROLES.FINANCE,
 
             ROLES.VIEWER
 

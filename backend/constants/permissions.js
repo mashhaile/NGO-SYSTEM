@@ -123,6 +123,9 @@ const PERMISSIONS = {
     USER_ASSIGN_VIEWER:
         "user.assign_viewer",
 
+    USER_ASSIGN_FINANCE:
+        "user.assign_finance",
+
     USER_ASSIGN_ORG_ADMIN:
         "user.assign_org_admin",
 
@@ -360,7 +363,30 @@ const PERMISSIONS = {
     // =====================================================
 
     REPORT_READ:
-        "report.read"
+        "report.read",
+
+
+    // =====================================================
+    // BUDGETS (master budget: program / project, by
+    // fiscal year = calendar year)
+    // =====================================================
+
+    BUDGET_CREATE:
+        "budget.create",
+
+    BUDGET_READ:
+        "budget.read",
+
+    BUDGET_UPDATE:
+        "budget.update",
+
+    BUDGET_DELETE:
+        "budget.delete",
+
+    // Approve or return submitted budgets
+
+    BUDGET_APPROVE:
+        "budget.approve"
 
 };
 

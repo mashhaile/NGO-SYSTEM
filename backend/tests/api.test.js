@@ -372,6 +372,170 @@ test("tenants: an admin cannot reset another organization's user", { skip }, asy
 
 
 // =====================================================
+// BUDGETS
+// =====================================================
+
+const yearly = (pairs) =>
+    Object.entries(pairs).map(([fiscalYear, amount]) => ({ fiscalYear: Number(fiscalYear), amount }));
+
+
+test("budgets: program envelope, project allocation and limits", { skip }, async () => {
+
+    const token = state.tokenA;
+
+    const program = await api("POST", "/programs", { token, body: { name: "Budget Test Program", startDate: "2026-01-01" } });
+    assert.ok(program.status < 300, program.data?.message);
+    const programId = program.data.data._id;
+
+    const project = async (name) => {
+        const res = await api("POST", "/projects", {
+            token,
+            body: { program: programId, name, startDate: "2026-01-01", endDate: "2028-12-31" }
+        });
+        assert.ok(res.status < 300, res.data?.message);
+        return res.data.data._id;
+    };
+
+    state.projectOne = await project("Budget Project One");
+    const projectTwo = await project("Budget Project Two");
+
+    // Program envelope: 1,000,000 a year for 2026-2028
+    const envelope = await api("POST", "/budgets", {
+        token,
+        body: {
+            level: "program", name: "Program Budget 2026-2028", program: programId,
+            startYear: 2026, endYear: 2028, yearlyAmounts: yearly({ 2026: 1000000, 2027: 1000000, 2028: 1000000 })
+        }
+    });
+    assert.equal(envelope.status, 201, envelope.data?.message);
+    assert.equal(envelope.data.data.totalAmount, 3000000);
+    assert.equal(envelope.data.data.status, "Draft");
+    state.envelopeId = envelope.data.data._id;
+
+    // Only one budget per program
+    const duplicate = await api("POST", "/budgets", {
+        token,
+        body: { level: "program", name: "Second Program Budget", program: programId, startYear: 2026, endYear: 2026 }
+    });
+    assert.equal(duplicate.status, 409);
+
+    // Amounts outside the period are refused
+    const outside = await api("POST", "/budgets", {
+        token,
+        body: {
+            level: "project", name: "Out of range", project: projectTwo,
+            startYear: 2026, endYear: 2026,
+            lines: [{ category: "Personnel", amounts: yearly({ 2027: 5 }) }]
+        }
+    });
+    assert.equal(outside.status, 400);
+
+    // Project one: 600,000 in 2026 (lines are summed server-side)
+    const one = await api("POST", "/budgets", {
+        token,
+        body: {
+            level: "project", name: "Project One Budget", project: state.projectOne,
+            startYear: 2026, endYear: 2027,
+            lines: [
+                { category: "Personnel", description: "Coordinator", amounts: yearly({ 2026: 400000, 2027: 400000 }) },
+                { category: "Training & Workshops", amounts: yearly({ 2026: 200000, 2027: 100000 }) }
+            ]
+        }
+    });
+    assert.equal(one.status, 201, one.data?.message);
+    assert.equal(one.data.data.totalAmount, 1100000);
+    assert.equal(String(one.data.data.program._id), programId, "program comes from the project");
+    state.budgetOneId = one.data.data._id;
+
+    assert.equal((await api("POST", `/budgets/${state.budgetOneId}/submit`, { token })).status, 200);
+
+    // Project two asks for 500,000 in 2026: only 400,000 left
+    const two = await api("POST", "/budgets", {
+        token,
+        body: {
+            level: "project", name: "Project Two Budget", project: projectTwo,
+            startYear: 2026, endYear: 2026,
+            lines: [{ category: "Supplies & Materials", amounts: yearly({ 2026: 500000 }) }]
+        }
+    });
+    assert.equal(two.status, 201);
+
+    const over = await api("POST", `/budgets/${two.data.data._id}/submit`, { token });
+    assert.equal(over.status, 400);
+    assert.match(over.data.message, /400,000/);
+
+    // A different currency than the program budget is refused
+    await api("PUT", `/budgets/${two.data.data._id}`, {
+        token,
+        body: { currency: "USD", lines: [{ category: "Supplies & Materials", amounts: yearly({ 2026: 100 }) }] }
+    });
+    const currency = await api("POST", `/budgets/${two.data.data._id}/submit`, { token });
+    assert.equal(currency.status, 400);
+    assert.match(currency.data.message, /ETB/);
+
+    // Program summary shows the allocation per year
+    const details = await api("GET", `/budgets/${state.envelopeId}`, { token });
+    const year2026 = details.data.data.summary.allocation.years.find(item => item.fiscalYear === 2026);
+    assert.equal(year2026.allocated, 600100, "600,000 + 100 (draft budgets count too)");
+    assert.equal(year2026.unallocated, 399900);
+
+    // Fiscal-year filter
+    const in2028 = await api("GET", "/budgets?fiscalYear=2028", { token });
+    assert.deepEqual(in2028.data.data.map(budget => budget.budgetCode), [envelope.data.data.budgetCode]);
+
+});
+
+
+test("budgets: finance officer approves; approved budgets are locked", { skip }, async () => {
+
+    // The Free plan allows 2 users (admin + officer already); give
+    // organization A room for a third, as a plan upgrade would.
+    const orgA = await state.db.collection("organizations").findOne({ email: "org-a@test.local" });
+    await state.db.collection("subscriptions").updateMany(
+        { organization: orgA._id },
+        { $set: { "planSnapshot.limits.users": 10 } }
+    );
+
+    const created = await api("POST", "/users", {
+        token: state.tokenA,
+        body: { name: "Finance Officer", email: "finance@test.local", password: "Finance2026x", role: "finance_officer" }
+    });
+    assert.ok(created.status < 300, created.data?.message);
+
+    const finance = (await login("finance@test.local", "Finance2026x")).data.data.token;
+
+    // Return needs a comment
+    assert.equal((await api("POST", `/budgets/${state.budgetOneId}/return`, { token: finance, body: {} })).status, 400);
+
+    const approved = await api("POST", `/budgets/${state.budgetOneId}/approve`, { token: finance, body: { comment: "OK" } });
+    assert.equal(approved.status, 200, approved.data?.message);
+    assert.equal(approved.data.data.status, "Approved");
+
+    // Locked
+    const edit = await api("PUT", `/budgets/${state.budgetOneId}`, { token: finance, body: { name: "Changed name" } });
+    assert.equal(edit.status, 409);
+
+    // Approving twice is refused
+    assert.equal((await api("POST", `/budgets/${state.budgetOneId}/approve`, { token: finance, body: {} })).status, 409);
+
+    // Data entry can read budgets but not create them
+    const officer = (await login("officer@test.local", "Officer2026x")).data.data.token;
+    assert.equal((await api("GET", "/budgets", { token: officer })).status, 200);
+    assert.equal(
+        (await api("POST", "/budgets", {
+            token: officer,
+            body: { level: "program", name: "Not allowed", program: state.adminAId, startYear: 2026, endYear: 2026 }
+        })).status,
+        403
+    );
+
+    // Other organizations cannot see it
+    assert.equal((await api("GET", `/budgets/${state.budgetOneId}`, { token: state.tokenB })).status, 404);
+
+});
+
+
+// =====================================================
 // ERROR CODES + SEARCH
 // =====================================================
 

@@ -76,6 +76,14 @@ const canAssignRole = (
             );
 
 
+        case ROLES.FINANCE:
+
+            return hasPermission(
+                req,
+                PERMISSIONS.USER_ASSIGN_FINANCE
+            );
+
+
         case ROLES.VIEWER:
 
             return hasPermission(

@@ -44,6 +44,7 @@ const rolePermissions = {
 
         PERMISSIONS.USER_ASSIGN_DATA_ENTRY,
         PERMISSIONS.USER_ASSIGN_VIEWER,
+        PERMISSIONS.USER_ASSIGN_FINANCE,
         PERMISSIONS.USER_ASSIGN_ORG_ADMIN,
 
 
@@ -186,7 +187,63 @@ const rolePermissions = {
 
         // Reports
 
-        PERMISSIONS.REPORT_READ
+        PERMISSIONS.REPORT_READ,
+
+
+        // Budgets
+
+        PERMISSIONS.BUDGET_CREATE,
+        PERMISSIONS.BUDGET_READ,
+        PERMISSIONS.BUDGET_UPDATE,
+        PERMISSIONS.BUDGET_DELETE,
+        PERMISSIONS.BUDGET_APPROVE
+
+    ],
+
+
+
+    // =====================================
+    // FINANCE OFFICER
+    // =====================================
+    //
+    // Prepares and approves budgets, records donors and
+    // donations. Reads the program side it needs to
+    // budget against; does not manage beneficiaries.
+    //
+
+    [ROLES.FINANCE]: [
+
+        // Budgets
+
+        PERMISSIONS.BUDGET_CREATE,
+        PERMISSIONS.BUDGET_READ,
+        PERMISSIONS.BUDGET_UPDATE,
+        PERMISSIONS.BUDGET_DELETE,
+        PERMISSIONS.BUDGET_APPROVE,
+
+        // Donors / Donations
+
+        PERMISSIONS.DONOR_CREATE,
+        PERMISSIONS.DONOR_READ,
+        PERMISSIONS.DONOR_UPDATE,
+        PERMISSIONS.DONATION_CREATE,
+        PERMISSIONS.DONATION_READ,
+        PERMISSIONS.DONATION_UPDATE,
+
+        // Program side (read)
+
+        PERMISSIONS.PROGRAM_READ,
+        PERMISSIONS.PROJECT_READ,
+        PERMISSIONS.ACTIVITY_READ,
+        PERMISSIONS.ACTIVITY_RUN_READ,
+        PERMISSIONS.TOR_READ,
+        PERMISSIONS.SERVICE_READ,
+        PERMISSIONS.LOOKUP_READ,
+
+        // Reports / notifications
+
+        PERMISSIONS.REPORT_READ,
+        PERMISSIONS.NOTIFICATION_READ
 
     ],
 
@@ -292,7 +349,12 @@ const rolePermissions = {
 
         // Reports
 
-        PERMISSIONS.REPORT_READ
+        PERMISSIONS.REPORT_READ,
+
+
+        // Budgets (read)
+
+        PERMISSIONS.BUDGET_READ
 
     ],
 
@@ -330,7 +392,9 @@ const rolePermissions = {
 
         PERMISSIONS.DONATION_READ,
 
-        PERMISSIONS.REPORT_READ
+        PERMISSIONS.REPORT_READ,
+
+        PERMISSIONS.BUDGET_READ
 
     ]
 
