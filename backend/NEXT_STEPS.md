@@ -10,8 +10,10 @@ Updated: 2026-10-21
    - MongoDB must run as a replica set (service delivery uses
      transactions): `scripts/enable-mongo-replica-set.ps1`
    - Locations: `node scripts/importLocations.js`
-   - Plans (if none): `node seeds/planseeder.js`
-3. Check: `npm test` in `backend/` (19 tests; uses its own temporary
+   - Plans: created automatically when the server starts.
+   - Organizations created before 2026-10-21 may lack lookups:
+     `node scripts/seedDefaultLookups.js --dry-run`, then without it.
+3. Check: `npm test` in `backend/` (22 tests; uses its own temporary
    database, never your data).
 
 ## Maintenance commands (run in backend/)
