@@ -13,7 +13,7 @@ Updated: 2026-10-21
    - Plans: created automatically when the server starts.
    - Organizations created before 2026-10-21 may lack lookups:
      `node scripts/seedDefaultLookups.js --dry-run`, then without it.
-3. Check: `npm test` in `backend/` (22 tests; uses its own temporary
+3. Check: `npm test` in `backend/` (24 tests; uses its own temporary
    database, never your data).
 
 ## Maintenance commands (run in backend/)
@@ -53,6 +53,20 @@ folder somewhere safe.
   - backup / restore scripts (live backup taken 2026-10-21)
   - live settings reviewed: production mode, security headers, CORS,
     rate limits OK
+
+## Finance module (in progress, local only)
+
+Decisions: fiscal year = calendar year (Jan–Dec, "FY 2026", NOT Ethiopian);
+currencies ETB + foreign; separate Finance Officer role; procurement later
+(budget formula is Remaining = Budget − Committed − Spent, Committed = 0
+until purchase orders exist).
+
+- Step 1 DONE: master budget (program envelope per year, project budget
+  lines x years, allocation limits, approval, Finance Officer role,
+  Budgets screens). Not deployed yet.
+- Step 2 NEXT: expenses charged to budget lines (fills Spent).
+- Step 3: reports + warnings (budget vs actual, burn rate, per donor).
+- Step 4: budget revisions (versions).
 
 ## Remaining
 
