@@ -79,6 +79,24 @@ const roundMoney = (value) =>
     Math.round(toNumber(value) * 100) / 100;
 
 
+// Money items (Cash Assistance in ETB) have no quantity of
+// their own: 8 x 5,000 ETB is 40,000 ETB, not "8 ETB".
+const {
+    getUnitSemantics
+} = require("../config/serviceDeliveryUnits");
+
+const isMoneyUnit = (unit) => {
+    const type = String(unit?.semanticType || "").toLowerCase();
+    if (type) return type === "monetary";
+    return [unit?.code, unit?.value].some(code => code && getUnitSemantics(code) === "monetary");
+};
+
+const shownQuantity = (item) =>
+    isMoneyUnit(item.unit)
+        ? toNumber(item.totalCost)
+        : toNumber(item.quantity);
+
+
 const fullName = (person) =>
     [
         person?.firstName,
@@ -204,7 +222,7 @@ const traceDonation = async (
             .populate("activity", "activityCode name")
             .populate("activityRun", "runCode name")
             .populate("items.serviceType", "value")
-            .populate("items.unit", "value code")
+            .populate("items.unit", "value code semanticType")
             .sort({ deliveryDate: 1 })
             .lean();
 
@@ -268,7 +286,7 @@ const traceDonation = async (
                     deliveries: 0
                 };
 
-            current.quantity += toNumber(item.quantity);
+            current.quantity += shownQuantity(item);
             current.amount += cost;
             current.deliveries += 1;
 
@@ -338,7 +356,7 @@ const traceDonation = async (
             services:
                 fundedItems.map(item => ({
                     service: item.serviceType?.value || "Service",
-                    quantity: toNumber(item.quantity),
+                    quantity: shownQuantity(item),
                     unit: item.unit?.value || "",
                     amount: roundMoney(item.totalCost)
                 })),
@@ -381,6 +399,30 @@ const traceDonation = async (
             deliveryRows.map(row => [row.id, row])
         );
 
+    // Per delivery: what this donation paid that no one's
+    // own allocation covers, and how many people on it have
+    // no allocation of their own. They share it equally
+    // (only people: households, groups and institutions
+    // are not split among their members).
+    const leftByDelivery = new Map();
+
+    links.forEach(link => {
+        const id = toId(link.serviceDelivery);
+        const row = deliveryRowById.get(id);
+        if (!row || (row.recipientType || "Individual") !== "Individual") return;
+        const current = leftByDelivery.get(id) || { left: row.amount, without: 0 };
+        const allocations = link.allocations || [];
+        if (allocations.length === 0) {
+            current.without += 1;
+        }
+        else {
+            current.left -= allocations
+                .filter(allocation => fundedItemIds.has(toId(allocation.serviceItem)))
+                .reduce((sum, allocation) => sum + toNumber(allocation.allocatedValue), 0);
+        }
+        leftByDelivery.set(id, current);
+    });
+
 
     links.forEach(link => {
 
@@ -407,12 +449,17 @@ const traceDonation = async (
         const beneficiaryId =
             toId(link.beneficiary);
 
+        const share =
+            leftByDelivery.get(toId(link.serviceDelivery));
+
         const value =
-            fundedAllocations.reduce(
-                (sum, allocation) =>
-                    sum + toNumber(allocation.allocatedValue),
-                0
-            );
+            allocations.length === 0
+                ? (share && share.without > 0 ? Math.max(share.left, 0) / share.without : 0)
+                : fundedAllocations.reduce(
+                    (sum, allocation) =>
+                        sum + toNumber(allocation.allocatedValue),
+                    0
+                );
 
         const row =
             deliveryRowById.get(toId(link.serviceDelivery));
@@ -899,7 +946,7 @@ const getUntracedSpending = async (
                     date: delivery.deliveryDate,
                     project: codeName(delivery.project, "projectCode"),
                     service: item.serviceType?.value || "Service",
-                    quantity: toNumber(item.quantity),
+                    quantity: shownQuantity(item),
                     amount,
                     location: locationText(delivery) || delivery.deliveryLocation || ""
                 });

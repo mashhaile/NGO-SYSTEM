@@ -247,7 +247,7 @@ const DonationTraceView = ({
                         empty="No services have been recorded against this donation yet."
                         columns={[
                             { key: "service", label: "Service" },
-                            { key: "quantity", label: "Quantity", align: "right", render: row => `${row.quantity} ${row.unit}`.trim() },
+                            { key: "quantity", label: "Quantity", align: "right", render: row => (row.quantity === row.amount && row.amount > 0 && /^(ETB|USD|EUR|BIRR)$/i.test(String(row.unit || "")) ? "—" : `${Number(row.quantity).toLocaleString("en-US")} ${row.unit}`.trim()) },
                             { key: "deliveries", label: "Deliveries", align: "right" },
                             { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) }
                         ]}
