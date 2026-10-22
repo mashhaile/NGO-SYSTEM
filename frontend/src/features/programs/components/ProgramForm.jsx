@@ -139,6 +139,25 @@ const ProgramForm = ({
 
         event.preventDefault();
 
+        // Required: name and start date (the end, when given,
+        // comes after the start)
+        const missing = [];
+        if (!form.name?.trim()) missing.push("Program Name");
+        if (!form.startDate) missing.push("Start Date");
+
+        if (missing.length) {
+            window.alert("Please complete these required fields:\n\n- " + missing.join("\n- "));
+            return;
+        }
+
+        if (
+            form.endDate &&
+            new Date(form.endDate) <= new Date(form.startDate)
+        ) {
+            window.alert("The end date must be after the start date.");
+            return;
+        }
+
 
         const payload = {
 
@@ -347,6 +366,8 @@ const ProgramForm = ({
                         <AppDatePicker
 
                             label="Start Date"
+
+                            required
 
                             name="startDate"
 

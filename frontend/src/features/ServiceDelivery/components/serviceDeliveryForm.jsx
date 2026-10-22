@@ -2317,6 +2317,96 @@ const ServiceDeliveryForm = ({
         // VALIDATION
         // =====================================================
 
+        // =====================================================
+        // MANDATORY FIELDS
+        //
+        // Everything missing is listed at once, so Save never
+        // just does nothing.
+        // =====================================================
+
+        const missing = [];
+
+        const filled = (value) =>
+            Boolean(
+                normalizeLookupValue(value)
+            );
+
+        const positive = (value) =>
+            value !== "" &&
+            value !== null &&
+            value !== undefined &&
+            Number.isFinite(Number(value)) &&
+            Number(value) > 0;
+
+        if (!formData?.recipientType) missing.push("Recipient Type");
+        if (!formData?.allocationMethod) missing.push("Allocation Method");
+        if (!filled(formData?.program)) missing.push("Program");
+        if (!formData?.deliveryDate) missing.push("Service Delivery Date");
+
+        if (
+            requiresRecipientName &&
+            !String(formData?.recipientName || "").trim()
+        ) {
+            missing.push("Recipient Name");
+        }
+
+        if (
+            formData?.recipientType === "Individual" &&
+            formData?.allocationMethod !== "Unallocated" &&
+            !(Array.isArray(formData?.beneficiaries) && formData.beneficiaries.length)
+        ) {
+            missing.push("Beneficiaries (at least one person)");
+        }
+
+        if (items.length === 0) {
+            missing.push("At least one service item");
+        }
+
+        items.forEach((item, index) => {
+
+            const label = `Service Item ${index + 1}`;
+
+            if (!filled(item?.serviceCategory)) missing.push(`${label}: Service Category`);
+            if (!filled(item?.serviceType)) missing.push(`${label}: Service Type`);
+            if (!positive(item?.quantity)) missing.push(`${label}: Quantity (more than 0)`);
+            if (!filled(item?.unit)) missing.push(`${label}: Unit`);
+
+            if (
+                item?.unitCost === "" ||
+                item?.unitCost === null ||
+                item?.unitCost === undefined ||
+                !Number.isFinite(Number(item.unitCost)) ||
+                Number(item.unitCost) < 0
+            ) {
+                missing.push(`${label}: Unit Cost`);
+            }
+
+            (Array.isArray(item?.detailItems) ? item.detailItems : []).forEach((detail, detailIndex) => {
+                const detailLabel = `${label}, Detail Item ${detailIndex + 1}`;
+                if (!String(detail?.name || "").trim()) missing.push(`${detailLabel}: Name`);
+                if (!positive(detail?.quantity)) missing.push(`${detailLabel}: Quantity (more than 0)`);
+                if (!filled(detail?.unit)) missing.push(`${detailLabel}: Unit`);
+                if (normalizeLookupValue(detail?.allocationUnit) && !positive(detail?.allocationConversionFactor)) {
+                    missing.push(`${detailLabel}: conversion (more than 0)`);
+                }
+            });
+
+        });
+
+        if (
+            missing.length > 0
+        ) {
+
+            window.alert(
+                "Please complete these required fields:\n\n- " +
+                missing.join("\n- ")
+            );
+
+            return;
+
+        }
+
+
         if (
             !formData?.recipientType
         ) {
@@ -3090,6 +3180,8 @@ const ServiceDeliveryForm = ({
 
             component="form"
 
+            noValidate
+
             onSubmit={
                 submitHandler
             }
@@ -3351,6 +3443,9 @@ const ServiceDeliveryForm = ({
                                         {...params}
 
                                         label="Beneficiaries"
+                                        required={
+                                            formData?.recipientType === "Individual"
+                                        }
 
                                         placeholder={
                                             allocationMethod ===

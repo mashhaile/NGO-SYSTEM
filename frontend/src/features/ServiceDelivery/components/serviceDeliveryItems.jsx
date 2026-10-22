@@ -3509,6 +3509,7 @@ const ServiceDeliveryItemRow = ({
 
                 <AppSelect
                     label="Service Category"
+                    required
                     value={
                         serviceCategoryValue
                     }
@@ -3529,6 +3530,7 @@ const ServiceDeliveryItemRow = ({
 
                 <AppSelect
                     label="Service Type"
+                    required
                     value={
                         serviceTypeValue
                     }
@@ -3553,6 +3555,7 @@ const ServiceDeliveryItemRow = ({
 
                 <AppTextField
                     label="Quantity"
+                    required
                     type="number"
                     value={
                         item?.quantity ?? 1
@@ -3578,6 +3581,7 @@ const ServiceDeliveryItemRow = ({
 
                 <AppSelect
                     label="Unit"
+                    required
                     value={
                         unitValue
                     }
@@ -3602,11 +3606,8 @@ const ServiceDeliveryItemRow = ({
 
 
                 <AppTextField
-                    label={
-                        amountUnit
-                            ? "Unit Cost"
-                            : "Unit Cost"
-                    }
+                    label="Unit Cost"
+                    required
                     type="number"
                     value={
                         item?.unitCost ?? 0
@@ -3890,6 +3891,7 @@ const ServiceDeliveryItemRow = ({
 
                                                 <AppTextField
                                                     label="Name"
+                                                    required
                                                     value={
                                                         detailItem?.name ??
                                                         ""
@@ -3908,6 +3910,7 @@ const ServiceDeliveryItemRow = ({
 
                                                 <AppTextField
                                                     label="Quantity"
+                                                    required
                                                     type="number"
                                                     value={
                                                         detailItem?.quantity ??
@@ -3935,6 +3938,7 @@ const ServiceDeliveryItemRow = ({
 
                                                 <AppSelect
                                                     label="Unit"
+                                                    required
                                                     value={
                                                         detailUnitValue
                                                     }
@@ -3956,6 +3960,7 @@ const ServiceDeliveryItemRow = ({
 
                                                 <AppTextField
                                                     label="Unit Cost"
+                                                    required
                                                     type="number"
                                                     value={
                                                         detailItem?.unitCost ??

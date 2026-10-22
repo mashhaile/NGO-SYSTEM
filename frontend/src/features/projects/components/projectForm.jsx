@@ -455,6 +455,28 @@ const ProjectForm = ({
         }
 
 
+        if (!form.startDate || !form.endDate) {
+
+            setFormError(
+                "Start date and end date are required."
+            );
+
+            return;
+
+        }
+
+
+        if (new Date(form.endDate) < new Date(form.startDate)) {
+
+            setFormError(
+                "The end date cannot be before the start date."
+            );
+
+            return;
+
+        }
+
+
         // -------------------------------------------------
         // BUILD PAYLOAD
         // -------------------------------------------------
@@ -849,6 +871,7 @@ const ProjectForm = ({
 
                         <AppDatePicker
                             label="Start Date"
+                            required
                             name="startDate"
                             value={
                                 form.startDate
@@ -870,6 +893,7 @@ const ProjectForm = ({
 
                         <AppDatePicker
                             label="End Date"
+                            required
                             name="endDate"
                             value={
                                 form.endDate

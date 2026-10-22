@@ -1114,6 +1114,7 @@ const DonationForm = ({
 
                         <AppDatePicker
                             label="Donation Date"
+                            required
                             name="donationDate"
                             value={
                                 form.donationDate ||
