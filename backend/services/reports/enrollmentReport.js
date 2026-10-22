@@ -243,151 +243,98 @@ const generate = async (
 
     const enrollments =
         await Enrollment.find(query)
-
-            .populate(
-                "program",
-                "programCode name status"
-            )
-
-            .populate(
-                "beneficiary",
-                "beneficiaryNumber firstName middleName lastName gender dateOfBirth"
-            )
-
-            .sort({
-                enrollmentDate: -1
-            });
+            .populate("program", "programCode name status")
+            .populate({
+                path: "beneficiary",
+                select: "beneficiaryNumber firstName middleName lastName gender dateOfBirth region",
+                populate: { path: "gender", select: "value" }
+            })
+            .sort({ enrollmentDate: -1 })
+            .lean();
 
 
-    const rows =
+    // One flat row per enrollment
+    const genderOf = (beneficiary) =>
+        beneficiary?.gender?.value || (typeof beneficiary?.gender === "string" ? beneficiary.gender : "Unknown");
+
+    const details =
         enrollments.map(enrollment => ({
-
-            id:
-                enrollment._id,
-
-            enrollmentDate:
-                enrollment.enrollmentDate,
-
-            status:
-                enrollment.status,
-
-            completionDate:
-                enrollment.completionDate,
-
-            exitReason:
-                enrollment.exitReason,
-
-            remarks:
-                enrollment.remarks,
-
-            program:
-                enrollment.program
-                    ? {
-
-                        id:
-                            enrollment.program._id,
-
-                        programCode:
-                            enrollment.program.programCode,
-
-                        name:
-                            enrollment.program.name,
-
-                        status:
-                            enrollment.program.status
-
-                    }
-                    : null,
-
-            beneficiary:
-                enrollment.beneficiary
-                    ? {
-
-                        id:
-                            enrollment.beneficiary._id,
-
-                        beneficiaryNumber:
-                            enrollment.beneficiary.beneficiaryNumber,
-
-                        name:
-                            [
-                                enrollment.beneficiary.firstName,
-                                enrollment.beneficiary.middleName,
-                                enrollment.beneficiary.lastName
-                            ]
-                            .filter(Boolean)
-                            .join(" "),
-
-                        gender:
-                            enrollment.beneficiary.gender,
-
-                        dateOfBirth:
-                            enrollment.beneficiary.dateOfBirth
-
-                    }
-                    : null
-
+            beneficiaryNumber: enrollment.beneficiary?.beneficiaryNumber || "-",
+            beneficiary: enrollment.beneficiary
+                ? [enrollment.beneficiary.firstName, enrollment.beneficiary.middleName, enrollment.beneficiary.lastName].filter(Boolean).join(" ")
+                : "-",
+            gender: genderOf(enrollment.beneficiary),
+            region: enrollment.beneficiary?.region || "-",
+            program: enrollment.program?.name || "-",
+            enrollmentDate: enrollment.enrollmentDate,
+            status: enrollment.status,
+            completionDate: enrollment.completionDate || null
         }));
 
 
+    // Totals: status, gender, and per program
     const statusSummary = {};
+    const genderSummary = {};
+    const programs = new Map();
 
-    rows.forEach(row => {
+    for (const row of details) {
+        statusSummary[row.status] = (statusSummary[row.status] || 0) + 1;
+        genderSummary[row.gender] = (genderSummary[row.gender] || 0) + 1;
 
-        statusSummary[row.status] =
-            (statusSummary[row.status] || 0) + 1;
+        if (!programs.has(row.program)) {
+            programs.set(row.program, { program: row.program, enrollments: 0, female: 0, male: 0, active: 0, completed: 0, dropped: 0 });
+        }
+        const program = programs.get(row.program);
+        program.enrollments += 1;
+        if (row.gender === "Female") program.female += 1;
+        if (row.gender === "Male") program.male += 1;
+        if (row.status === "Active") program.active += 1;
+        if (row.status === "Completed") program.completed += 1;
+        if (row.status === "Dropped") program.dropped += 1;
+    }
 
-    });
+    const byProgram = [...programs.values()].sort((a, b) => b.enrollments - a.enrollments);
 
 
     return {
 
-        report:
-            "enrollmentReport",
+        report: "enrollmentReport",
 
-        reportTitle:
-            "Enrollment Report",
+        title: "Enrollment Report",
 
-        generatedAt:
-            new Date(),
+        reportTitle: "Enrollment Report",
+
+        generatedAt: new Date(),
 
         period: {
-
-            startDate:
-                filters.startDate || null,
-
-            endDate:
-                filters.endDate || null,
-
-            year:
-                filters.year || null,
-
-            period:
-                filters.period || null,
-
-            month:
-                filters.month || null,
-
-            quarter:
-                filters.quarter || null,
-
-            half:
-                filters.half || null
-
+            startDate: filters.startDate || null,
+            endDate: filters.endDate || null,
+            year: filters.year || null,
+            period: filters.period || null,
+            month: filters.month || null,
+            quarter: filters.quarter || null,
+            half: filters.half || null
         },
 
         summary: {
-
-            totalEnrollments:
-                rows.length,
-
-            status:
-                statusSummary
-
+            totalEnrollments: details.length,
+            female: genderSummary.Female || 0,
+            male: genderSummary.Male || 0,
+            programs: byProgram.length,
+            status: statusSummary
         },
 
-        data:
-            rows
+        statistics: {
+            byProgram,
+            enrollments: details
+        },
+
+        charts: {
+            enrollmentsByProgram: byProgram.map(item => ({ program: item.program, enrollments: item.enrollments })),
+            enrollmentsByGender: Object.entries(genderSummary).map(([gender, enrollments]) => ({ gender, enrollments }))
+        },
+
+        details
 
     };
 

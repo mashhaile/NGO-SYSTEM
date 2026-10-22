@@ -1,6 +1,10 @@
 const Program = require("../../models/program");
 const Enrollment = require("../../models/enrollment");
 const Donation = require("../../models/donation");
+
+const {
+    formatTotals
+} = require("../budgetFigures");
 const ServiceDelivery = require("../../models/ServiceDelivery");
 
 const {
@@ -77,6 +81,10 @@ const generate = async (
     // =====================================================
     // BUILD PROGRAM REPORT
     // =====================================================
+
+    // Received funding: all programs per currency; ETB per program (charts)
+    const allFunding = {};
+    const etbByProgram = new Map();
 
     for (const program of programs) {
 
@@ -173,6 +181,9 @@ const generate = async (
 
                 isDeleted: false,
 
+                // Received only: a pledge is not funding yet
+                status: "Received",
+
                 ...buildDateFilter(
                     filters,
                     "donationDate"
@@ -216,23 +227,21 @@ const generate = async (
         // TOTAL DONATIONS
         // =================================================
 
+        // Per currency (ETB and EUR are never added together)
+        const fundingByCurrency = {};
+
+        for (const donation of donations) {
+            const currency = donation.currency || "ETB";
+            fundingByCurrency[currency] =
+                (fundingByCurrency[currency] || 0) + Number(donation.amount || 0);
+            allFunding[currency] =
+                (allFunding[currency] || 0) + Number(donation.amount || 0);
+        }
+
+        etbByProgram.set(String(program._id), fundingByCurrency.ETB || 0);
+
         const totalDonations =
-            donations.reduce(
-                (
-                    sum,
-                    donation
-                ) => {
-
-                    return (
-                        sum +
-                        Number(
-                            donation.amount || 0
-                        )
-                    );
-
-                },
-                0
-            );
+            formatTotals(fundingByCurrency);
 
 
         // =================================================
@@ -317,20 +326,7 @@ const generate = async (
 
 
     const totalDonations =
-        report.reduce(
-            (
-                sum,
-                item
-            ) => {
-
-                return (
-                    sum +
-                    item.totalDonations
-                );
-
-            },
-            0
-        );
+        formatTotals(allFunding);
 
 
     const totalServices =
@@ -428,7 +424,7 @@ const generate = async (
                             item.programCode,
 
                         amount:
-                            item.totalDonations
+                            etbByProgram.get(String(item.programId)) || 0
 
                     })
                 ),

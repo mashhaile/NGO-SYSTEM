@@ -171,8 +171,15 @@ const DEFAULT_LOOKUPS = {
 
 // Service Types: parent category + the units they can be
 // delivered in (unit values from config/serviceDeliveryUnits).
+//
+// behavior (allocation to beneficiaries):
+//   CONSUMPTION   (default) the delivered quantity is shared
+//                 out: 10 kits for 10 people = 1 kit each
+//   PARTICIPATION each person takes part in all of it: a
+//                 3-session training = 3 sessions for everyone
 
-const MONEY = ["Amount", "ETB", "Cash"];
+const MONEY = ["ETB"];
+const PARTICIPATION = "PARTICIPATION";
 
 const DEFAULT_SERVICE_TYPES = [
 
@@ -186,7 +193,7 @@ const DEFAULT_SERVICE_TYPES = [
     { category: "Health", value: "Medical Treatment", units: MONEY },
     { category: "Health", value: "Medical Supplies", units: ["Piece", "Set", "Box", "Pack"] },
     { category: "Health", value: "Health Screening", units: ["Session", "Day", "Hour"] },
-    { category: "Health", value: "Health Awareness Session", units: ["Session", "Hour"] },
+    { category: "Health", value: "Health Awareness Session", units: ["Session", "Hour"], behavior: PARTICIPATION },
 
     { category: "Food and Nutrition", value: "Food Assistance", units: ["Kg", "Box", "Pack"] },
     { category: "Food and Nutrition", value: "Nutrition Support", units: ["Kg", "Liter", "Box", "Pack"] },
@@ -197,12 +204,12 @@ const DEFAULT_SERVICE_TYPES = [
     { category: "Emergency Assistance", value: "Cash Assistance", units: MONEY },
     { category: "Shelter and Housing", value: "Shelter Materials", units: ["Box", "Pack", "Piece", "Kg"] },
 
-    { category: "Livelihoods", value: "Livelihood Training", units: ["Session", "Hour", "Set"] },
-    { category: "Capacity Building", value: "Vocational Training", units: ["Session", "Hour", "Set"] },
-    { category: "Capacity Building", value: "Business Skills Training", units: ["Session", "Hour"] },
-    { category: "Youth Development", value: "Youth Skills Training", units: ["Session", "Hour", "Set"] },
+    { category: "Livelihoods", value: "Livelihood Training", units: ["Session", "Hour", "Set"], behavior: PARTICIPATION },
+    { category: "Capacity Building", value: "Vocational Training", units: ["Session", "Hour", "Set"], behavior: PARTICIPATION },
+    { category: "Capacity Building", value: "Business Skills Training", units: ["Session", "Hour"], behavior: PARTICIPATION },
+    { category: "Youth Development", value: "Youth Skills Training", units: ["Session", "Hour", "Set"], behavior: PARTICIPATION },
 
-    { category: "Legal and Documentation", value: "Legal Assistance", units: ["Session", "Hour", "Amount", "ETB"] },
+    { category: "Legal and Documentation", value: "Legal Assistance", units: ["Session", "Hour", "ETB"] },
     { category: "Protection", value: "Child Protection Support", units: ["Session", "Hour", "Piece", "Set"] },
     { category: "Disability Support", value: "Disability Support Equipment", units: ["Piece", "Box", "Set", "Unit"] }
 

@@ -89,6 +89,13 @@ until purchase orders exist).
   services/budgetFigures.js. On the next deploy, after a backup, run on live:
   node scripts/removeOldBudgetFields.js --uri-file .env.atlas --db ngo_system --dry-run
   then without --dry-run.
+- Next deploy, also run on live (each with --dry-run first, after a backup):
+  node scripts/repairDonationLinks.js --uri-file .env.atlas --db ngo_system
+  node scripts/cleanupDefaultLookups.js --uri-file .env.atlas --db ngo_system
+  node scripts/updatePlanLimit.js --plan FREE --limit users --value 5 --uri-file .env.atlas --db ngo_system
+- Local demo data: backups/DEMO-heda-2026-10-22 (logins *@heda-demo.org,
+  password Demo2026pass). Rebuild: node scripts/seedDemoData.js --reset --yes
+  (local only, never on live).
 
 ## Remaining
 

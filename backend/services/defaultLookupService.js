@@ -140,6 +140,7 @@ const ensureOrganizationDefaultLookups = async (
                     allowedUnits: type.units
                         .map(unit => unitIds.get(unit.toLowerCase()))
                         .filter(Boolean),
+                    allocationBehavior: type.behavior || "CONSUMPTION",
                     active: true,
                     createdBy: userId
                 }));

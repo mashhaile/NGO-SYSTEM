@@ -1391,6 +1391,14 @@ const ReportResult = ({
                             }
                         />
 
+                        {/* Row-level details (e.g. one row per project)
+                            when the report has no tables of its own */}
+                        <ReportStatistics
+                            statistics={
+                                detailTables(reportData)
+                            }
+                        />
+
 
                         <ReportCharts
                             charts={
@@ -1405,6 +1413,42 @@ const ReportResult = ({
 
         </Box>
     );
+
+};
+
+
+// =====================================================
+// DETAILS TABLE
+// =====================================================
+// Reports return their rows in "details". Show them as a
+// table (without internal ids) unless the report already
+// shows its own tables in "statistics".
+
+const ID_KEY = /^(_?id|.+Id)$/;
+
+const detailTables = (report) => {
+
+    // Most reports use "details"; some older ones use "data"
+    const details = Array.isArray(report?.details) ? report.details : report?.data;
+
+    if (!Array.isArray(details) || details.length === 0) {
+        return null;
+    }
+
+    const ownTables =
+        Object.values(report?.statistics || {}).some(value => Array.isArray(value) && value.length);
+
+    if (ownTables) {
+        return null;
+    }
+
+    return {
+        details: details.map(row =>
+            row && typeof row === "object"
+                ? Object.fromEntries(Object.entries(row).filter(([key]) => !ID_KEY.test(key)))
+                : row
+        )
+    };
 
 };
 

@@ -149,7 +149,9 @@ const seedOrganizationServiceDeliveryUnits = async (
             !definition ||
             !definition.code ||
             !definition.value ||
-            !definition.semanticType
+            !definition.semanticType ||
+            // duplicates of another unit are not seeded
+            definition.legacy
         ) {
 
             continue;

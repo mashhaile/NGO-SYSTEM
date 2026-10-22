@@ -36,7 +36,8 @@ module.exports = [
 
         limits: {
 
-            users: 2,
+            // admin + data entry + finance officer + 2 more
+            users: 5,
 
             beneficiaries: 100,
 

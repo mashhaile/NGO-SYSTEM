@@ -325,6 +325,42 @@ const validateReferences = async (
 
     }
 
+
+    // ==========================================
+    // FILL IN THE PARENTS
+    // ==========================================
+    // A donation for a run is also for its activity, project
+    // and program. Storing them lets every report find the
+    // donation by program or project.
+
+    const activityId =
+        activity?._id || activityRun?.activity || null;
+
+    let projectId =
+        project?._id || null;
+
+    if (!projectId && activityId) {
+        const parentActivity =
+            activity || await Activity.findById(activityId).select("project");
+        projectId = parentActivity?.project || null;
+    }
+
+    let programId =
+        program?._id || null;
+
+    if (!programId && projectId) {
+        const parentProject =
+            project || await Project.findById(projectId).select("program");
+        programId = parentProject?.program || null;
+    }
+
+    return {
+        program: programId,
+        project: projectId,
+        activity: activityId,
+        activityRun: activityRun?._id || null
+    };
+
 };
 
 
@@ -403,10 +439,11 @@ const createDonation = async (
     userId
 ) => {
 
-    await validateReferences(
-        data,
-        organizationId
-    );
+    const parents =
+        await validateReferences(
+            data,
+            organizationId
+        );
 
 
     const donationCode =
@@ -419,6 +456,8 @@ const createDonation = async (
         await Donation.create({
 
             ...data,
+
+            ...parents,
 
             organization:
                 organizationId,
@@ -617,10 +656,11 @@ const updateDonation = async (
     };
 
 
-    await validateReferences(
-        references,
-        organizationId
-    );
+    const parents =
+        await validateReferences(
+            references,
+            organizationId
+        );
 
 
     // ==========================================
@@ -681,6 +721,10 @@ const updateDonation = async (
 
         }
     );
+
+
+    // Links (with their parents filled in)
+    Object.assign(donation, parents);
 
 
     donation.updatedBy =

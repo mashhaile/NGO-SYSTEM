@@ -31,6 +31,12 @@
 // STANDARD SERVICE DELIVERY UNITS
 // =====================================================
 
+// legacy: true = duplicate of another unit (Amount / Birr /
+// Money / Cash = ETB, Pieces = Piece, Kilogram = Kg, Litre =
+// Liter). Still recognized for old records, but not seeded
+// for organizations (scripts/cleanupDefaultLookups.js hides
+// them in existing ones).
+
 const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
 
     // =================================================
@@ -48,6 +54,10 @@ const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
             "monetary",
 
         isSystemDefault:
+            true,
+
+        // Duplicate of a kept unit: still recognized, not seeded
+        legacy:
             true
     },
 
@@ -76,6 +86,10 @@ const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
             "monetary",
 
         isSystemDefault:
+            true,
+
+        // Duplicate of a kept unit: still recognized, not seeded
+        legacy:
             true
     },
 
@@ -90,6 +104,10 @@ const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
             "monetary",
 
         isSystemDefault:
+            true,
+
+        // Duplicate of a kept unit: still recognized, not seeded
+        legacy:
             true
     },
 
@@ -104,6 +122,10 @@ const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
             "monetary",
 
         isSystemDefault:
+            true,
+
+        // Duplicate of a kept unit: still recognized, not seeded
+        legacy:
             true
     },
 
@@ -137,6 +159,10 @@ const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
             "physical",
 
         isSystemDefault:
+            true,
+
+        // Duplicate of a kept unit: still recognized, not seeded
+        legacy:
             true
     },
 
@@ -179,6 +205,10 @@ const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
             "physical",
 
         isSystemDefault:
+            true,
+
+        // Duplicate of a kept unit: still recognized, not seeded
+        legacy:
             true
     },
 
@@ -207,6 +237,10 @@ const SERVICE_DELIVERY_UNIT_DEFINITIONS = [
             "physical",
 
         isSystemDefault:
+            true,
+
+        // Duplicate of a kept unit: still recognized, not seeded
+        legacy:
             true
     },
 

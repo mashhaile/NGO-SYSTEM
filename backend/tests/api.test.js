@@ -249,7 +249,22 @@ test("sign-up: a new organization gets units and common lookups", { skip }, asyn
         await state.db.collection("lookups").findOne({ _id: schoolFees.parentLookup });
 
     assert.equal(parent.value, "Education");
-    assert.ok(schoolFees.allowedUnits.length >= 2);
+
+    const etb =
+        await state.db.collection("lookups").findOne({ organization: organization._id, category: "Unit", code: "ETB" });
+    assert.ok(schoolFees.allowedUnits.some(id => String(id) === String(etb._id)), "School Fees is paid in ETB");
+
+    // One unit per meaning: no Kilogram / Litre / Pieces / Birr duplicates
+    const units =
+        await state.db.collection("lookups").find({ organization: organization._id, category: "Unit" }).toArray();
+    for (const duplicate of ["Kilogram", "Litre", "Pieces", "Birr", "Money", "Cash", "Amount"]) {
+        assert.ok(!units.some(unit => unit.value === duplicate), `${duplicate} should not be seeded`);
+    }
+
+    // Trainings: each participant takes part in the whole quantity
+    const training =
+        await state.db.collection("lookups").findOne({ organization: organization._id, category: "ServiceType", value: "Business Skills Training" });
+    assert.equal(training.allocationBehavior, "PARTICIPATION");
 
 });
 
@@ -810,6 +825,26 @@ test("budget numbers come only from the Budgets module", { skip }, async () => {
     const dashboard = await api("GET", "/reports/dashboardReport?period=annual&year=2026", { token });
     assert.equal(dashboard.status, 200, dashboard.data?.message);
     assert.equal(dashboard.data.data.statistics.budget.byCurrency.ETB, 3000000);
+
+});
+
+
+test("free plan: 5 users (admin + 4), the 6th is refused", { skip }, async () => {
+
+    // Organization B is on the Free plan with only its admin
+    for (let i = 1; i <= 4; i++) {
+        const res = await api("POST", "/users", {
+            token: state.tokenB,
+            body: { name: `Free User ${i}`, email: `free${i}@test.local`, password: "FreeUser2026x", role: i === 1 ? "finance_officer" : "data_entry" }
+        });
+        assert.ok(res.status < 300, `user ${i}: ${res.status} ${res.data?.message}`);
+    }
+
+    const sixth = await api("POST", "/users", {
+        token: state.tokenB,
+        body: { name: "Free User 5", email: "free5@test.local", password: "FreeUser2026x", role: "viewer" }
+    });
+    assert.ok(sixth.status >= 400 && sixth.status < 500, `6th user: ${sixth.status}`);
 
 });
 
