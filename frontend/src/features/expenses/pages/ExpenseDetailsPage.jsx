@@ -244,7 +244,14 @@ const ExpenseDetailsPage = () => {
                         }
                     />
                     {expense.approvedOverBudget && (
-                        <InfoRow label="Approval" value="Approved over budget (see history for the reason)" />
+                        <InfoRow
+                            label="Approval"
+                            value={
+                                line.remainingAfter >= 0
+                                    ? "Approved over budget at the time; the line has since been covered (budget revised). See history for the reason."
+                                    : "Approved over budget; the line is still over budget. See history for the reason."
+                            }
+                        />
                     )}
                 </FormSection>
             </PageCard>

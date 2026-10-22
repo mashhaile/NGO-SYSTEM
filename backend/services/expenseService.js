@@ -299,6 +299,55 @@ const createExpense = async (data, organizationId, userId) => {
 // LIST
 // =====================================================
 
+// "Over" is decided from the CURRENT budget, not at approval
+// time: lineOverBudget = the approved expenses of this line and
+// year are more than the line's amount now. A revision that
+// adds money (or a voided expense) clears it. approvedOverBudget
+// stays as the record that it was approved over budget.
+const withLineOverBudget = async (organizationId, rows) => {
+
+    const approved = rows.filter(row => row.status === EXPENSE_STATUS.APPROVED && row.budgetLine);
+
+    if (!approved.length) return rows.map(row => ({ ...row, lineOverBudget: false }));
+
+    const budgetIds = [...new Set(approved.map(row => String(row.budget?._id || row.budget)))];
+
+    const [budgets, spent] =
+        await Promise.all([
+            Budget.find({ _id: { $in: budgetIds }, organization: organizationId }).select("lines").lean(),
+            Expense.aggregate([
+                {
+                    $match: {
+                        organization: new mongoose.Types.ObjectId(String(organizationId)),
+                        budget: { $in: budgetIds.map(id => new mongoose.Types.ObjectId(id)) },
+                        isDeleted: false,
+                        status: EXPENSE_STATUS.APPROVED
+                    }
+                },
+                { $group: { _id: { line: "$budgetLine", year: "$fiscalYear" }, total: { $sum: "$budgetAmount" } } }
+            ])
+        ]);
+
+    const lineAmount = new Map();
+    for (const budget of budgets) {
+        for (const line of budget.lines || []) {
+            for (const amount of line.amounts || []) {
+                lineAmount.set(`${line._id}:${amount.fiscalYear}`, Number(amount.amount || 0));
+            }
+        }
+    }
+
+    const lineSpent = new Map(spent.map(row => [`${row._id.line}:${row._id.year}`, row.total]));
+
+    return rows.map(row => {
+        if (row.status !== EXPENSE_STATUS.APPROVED || !row.budgetLine) return { ...row, lineOverBudget: false };
+        const key = `${row.budgetLine}:${row.fiscalYear}`;
+        return { ...row, lineOverBudget: roundMoney(lineSpent.get(key) || 0) > roundMoney(lineAmount.get(key) || 0) + 0.005 };
+    });
+
+};
+
+
 const getExpenses = async (organizationId, query = {}) => {
 
     const page = Math.max(1, Number(query.page) || 1);
@@ -332,7 +381,7 @@ const getExpenses = async (organizationId, query = {}) => {
     const [data, total] =
         await Promise.all([
             Expense.find(filter)
-                .select("expenseCode expenseDate fiscalYear description payee category amount currency budgetAmount budgetCurrency status budget project approvedOverBudget")
+                .select("expenseCode expenseDate fiscalYear description payee category amount currency budgetAmount budgetCurrency status budget budgetLine project approvedOverBudget")
                 .populate("budget", "budgetCode name")
                 .populate("project", "projectCode name")
                 .sort({ expenseDate: -1, createdAt: -1 })
@@ -343,7 +392,7 @@ const getExpenses = async (organizationId, query = {}) => {
         ]);
 
     return {
-        data,
+        data: await withLineOverBudget(organizationId, data),
         pagination: { total, page, limit, pages: Math.ceil(total / limit) }
     };
 

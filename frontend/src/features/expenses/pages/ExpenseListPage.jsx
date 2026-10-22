@@ -236,8 +236,9 @@ const ExpenseListPage = () => {
             renderCell: (params) => (
                 <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", height: "100%" }}>
                     <StatusChip status={params.value} />
-                    {params.row.approvedOverBudget && (
-                        <Chip size="small" color="warning" variant="outlined" label="Over" title="Approved over budget" />
+                    {/* Current state of the line (a budget revision can cover it) */}
+                    {params.row.lineOverBudget && (
+                        <Chip size="small" color="warning" variant="outlined" label="Over" title="Its budget line is over budget now" />
                     )}
                 </Stack>
             )

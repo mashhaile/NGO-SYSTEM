@@ -985,6 +985,21 @@ test("revisions: approval makes a new version and keeps expenses linked", { skip
     const before = (await api("GET", `/budgets/${id}`, { token: fin })).data.data;
     const personnelId = before.lines.find(line => line.category === "Personnel")._id;
 
+    // Before the revision: Personnel 2026 = 400,000 with 150,000 spent.
+    // A 270,000 expense approved over budget puts the line at 420,000.
+    const over = await newExpense(de, { budgetLine: personnelId, description: "Second facilitator, Jan-Mar", amount: 270000 });
+    assert.equal(over.status, 201, over.data?.message);
+    await api("POST", `/expenses/${over.data.data._id}/submit`, { token: de });
+    const overApproved = await api("POST", `/expenses/${over.data.data._id}/approve`, {
+        token: fin, body: { allowOverBudget: true, comment: "Revision to follow" }
+    });
+    assert.equal(overApproved.status, 200, overApproved.data?.message);
+
+    const listed = async () =>
+        (await api("GET", `/expenses?budget=${id}&limit=100`, { token: fin })).data.data
+            .find(item => item._id === over.data.data._id);
+    assert.equal((await listed()).lineOverBudget, true, "over before the revision");
+
     await api("PUT", `/budgets/${id}/revision`, { token: fin, body: { reason: "Second facilitator from April" } });
     assert.equal((await api("POST", `/budgets/${id}/revision/submit`, { token: fin })).status, 200);
 
@@ -1005,8 +1020,14 @@ test("revisions: approval makes a new version and keeps expenses linked", { skip
     assert.equal(String(personnel._id), String(personnelId), "line id kept, so expenses stay attached");
     const year = personnel.amounts.find(item => item.fiscalYear === 2026);
     assert.equal(year.amount, 450000);
-    assert.equal(year.spent, 150000);
-    assert.equal(year.remaining, 300000);
+    assert.equal(year.spent, 420000);
+    assert.equal(year.remaining, 30000);
+
+    // The revision covers it: no longer shown as over (the
+    // over-budget approval is still on record)
+    const now = await listed();
+    assert.equal(now.lineOverBudget, false, "covered by the revision");
+    assert.equal(now.approvedOverBudget, true);
 
     // Old figures are kept in the version
     const oldPersonnel = after.versions[0].lines.find(line => line.category === "Personnel");
