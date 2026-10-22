@@ -313,9 +313,11 @@ const BeneficiaryCreatePage = () => {
 
             ] = await Promise.all([
 
+                // Custom fields must never block the dropdowns
+                // of the form if they cannot be loaded
                 getCustomFieldsByModuleService(
                     "Beneficiary"
-                ),
+                ).catch(() => []),
 
                 loadBeneficiaryLookup(
                     "Gender"

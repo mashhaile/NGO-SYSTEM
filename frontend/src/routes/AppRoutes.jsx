@@ -1107,7 +1107,7 @@ const AppRoutes = () => {
                     path="/settings/custom-fields"
                     element={
                         <PermissionRoute
-                            permission="customfield.read"
+                            permission="customfield.update"
                         >
                             <CustomFieldListPage />
                         </PermissionRoute>
@@ -1144,7 +1144,9 @@ const AppRoutes = () => {
 <Route
     path="/lookups"
     element={
-        <PermissionRoute permission="lookup.read">
+        // Admin only: other roles read lookups for dropdowns,
+        // they do not manage them
+        <PermissionRoute permission="lookup.update">
             <LookupListPage />
         </PermissionRoute>
     }
@@ -1162,7 +1164,7 @@ const AppRoutes = () => {
 <Route
     path="/lookups/module/:module/category/:category"
     element={
-        <PermissionRoute permission="lookup.read">
+        <PermissionRoute permission="lookup.update">
             <LookupCategoryPage />
         </PermissionRoute>
     }

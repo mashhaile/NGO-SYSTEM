@@ -291,6 +291,12 @@ const rolePermissions = {
         PERMISSIONS.LOOKUP_READ,
 
 
+        // Custom field definitions (to fill them in forms;
+        // managing them stays with the admin)
+
+        PERMISSIONS.CUSTOMFIELD_READ,
+
+
         // Programs
 
         PERMISSIONS.PROGRAM_READ,
@@ -390,6 +396,13 @@ const rolePermissions = {
     // =====================================
 
     [ROLES.VIEWER]: [
+
+        // Lookup values and custom field labels, to show records
+        // and filters (read only)
+
+        PERMISSIONS.LOOKUP_READ,
+
+        PERMISSIONS.CUSTOMFIELD_READ,
 
         PERMISSIONS.BENEFICIARY_READ,
 

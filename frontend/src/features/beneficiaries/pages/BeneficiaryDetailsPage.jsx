@@ -365,9 +365,11 @@ const BeneficiaryDetailsPage = () => {
                     id
                 ),
 
+                // Custom fields must never block the dropdowns
+                // of the form if they cannot be loaded
                 getCustomFieldsByModuleService(
                     "Beneficiary"
-                )
+                ).catch(() => [])
 
             ]);
 
