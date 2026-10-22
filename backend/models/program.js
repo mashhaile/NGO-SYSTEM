@@ -70,15 +70,8 @@ const programSchema = new mongoose.Schema(
 
 
 
-    budget:{
-
-        type:Number,
-
-        default:0
-
-    },
-
-
+    // No budget field: a program's budget lives in the
+    // Budgets module (services/budgetFigures.js).
 
     targetBeneficiaries:{
 

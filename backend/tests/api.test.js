@@ -386,6 +386,7 @@ test("budgets: program envelope, project allocation and limits", { skip }, async
     const program = await api("POST", "/programs", { token, body: { name: "Budget Test Program", startDate: "2026-01-01" } });
     assert.ok(program.status < 300, program.data?.message);
     const programId = program.data.data._id;
+    state.budgetProgramId = programId;
 
     const project = async (name) => {
         const res = await api("POST", "/projects", {
@@ -750,6 +751,65 @@ test("reports: budget vs actual and spending by donor", { skip }, async () => {
     const other = await api("GET", "/reports/budgetVsActualReport?period=annual&year=2026", { token: state.tokenB });
     assert.equal(other.status, 200);
     assert.equal(other.data.data.summary.projectBudgets, 0);
+
+});
+
+
+test("budget numbers come only from the Budgets module", { skip }, async () => {
+
+    const token = state.tokenA;
+
+    // A typed budget on the program / project form is ignored
+    const typed = await api("POST", "/programs", {
+        token,
+        body: { name: "Typed Budget Program", startDate: "2026-01-01", budget: 999999 }
+    });
+    assert.ok(typed.status < 300, typed.data?.message);
+    const typedProgram = (await api("GET", `/programs/${typed.data.data._id}`, { token })).data.data;
+    assert.equal(typedProgram.budget, null, "no budget in Budgets = no budget");
+
+    const typedProject = await api("POST", "/projects", {
+        token,
+        body: { program: typed.data.data._id, name: "Typed Budget Project", startDate: "2026-01-01", endDate: "2026-12-31", approvedBudget: 5000 }
+    });
+    assert.ok(typedProject.status < 300, typedProject.data?.message);
+    const typedProjectDetails = (await api("GET", `/projects/${typedProject.data.data._id}`, { token })).data.data;
+    assert.equal(typedProjectDetails.budget, null);
+    assert.equal(typedProjectDetails.approvedBudget, undefined);
+
+    // Program: its approved budget, spent = its projects' approved expenses
+    const program = (await api("GET", `/programs/${state.budgetProgramId}`, { token })).data.data;
+    assert.equal(program.budget.status, "Approved");
+    assert.equal(program.budget.approvedAmount, 3000000);
+    assert.equal(program.budget.spent, 300000);
+    assert.equal(program.budget.remaining, 2700000);
+
+    // Project: same figures on the list and the details page
+    const project = (await api("GET", `/projects/${state.projectOne}`, { token })).data.data;
+    assert.equal(project.budget.budgetId, state.budgetOneId);
+    assert.equal(project.budget.approvedAmount, 1100000);
+    assert.equal(project.budget.spent, 300000);
+
+    const list = (await api("GET", `/projects?program=${state.budgetProgramId}`, { token })).data.data;
+    assert.equal(list.find(item => item._id === state.projectOne).budget.approvedAmount, 1100000);
+
+    const programs = (await api("GET", "/programs?search=Budget%20Test%20Program", { token })).data.data;
+    assert.equal(programs[0].budget.approvedAmount, 3000000);
+
+    // Project report reads the Budgets module too
+    const report = await api("GET", "/reports/projectReport?period=annual&year=2026", { token });
+    assert.equal(report.status, 200, report.data?.message);
+    const row = report.data.data.details.find(item => item.name === "Budget Project One");
+    assert.equal(row.budgetStatus, "Approved");
+    assert.equal(row.approvedBudget, "ETB 1,100,000.00");
+    assert.equal(row.spent, "ETB 300,000.00");
+    assert.equal(report.data.data.details.find(item => item.name === "Typed Budget Project").budgetStatus, "No budget");
+    assert.equal(report.data.data.summary.totalApprovedBudget, "ETB 1,100,000.00");
+
+    // Dashboard: approved program budgets per currency
+    const dashboard = await api("GET", "/reports/dashboardReport?period=annual&year=2026", { token });
+    assert.equal(dashboard.status, 200, dashboard.data?.message);
+    assert.equal(dashboard.data.data.statistics.budget.byCurrency.ETB, 3000000);
 
 });
 

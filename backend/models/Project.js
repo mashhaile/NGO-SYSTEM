@@ -90,15 +90,8 @@ default:null
 
 
 
-approvedBudget:{
-
-type:Number,
-
-default:0,
-
-min:0
-
-},
+// No budget field: a project's budget lives in the
+// Budgets module (services/budgetFigures.js).
 
 
 

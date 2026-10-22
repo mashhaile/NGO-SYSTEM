@@ -310,9 +310,6 @@ const normalizeProgram = (
             description:
                 null,
 
-            budget:
-                null,
-
             targetBeneficiaries:
                 null,
 
@@ -351,11 +348,6 @@ const normalizeProgram = (
         description:
             program.description ||
             null,
-
-        budget:
-            program.budget !== undefined
-                ? program.budget
-                : null,
 
         targetBeneficiaries:
             program.targetBeneficiaries !== undefined
@@ -416,9 +408,6 @@ const normalizeProject = (
             description:
                 null,
 
-            approvedBudget:
-                null,
-
             startDate:
                 null,
 
@@ -453,11 +442,6 @@ const normalizeProject = (
         description:
             project.description ||
             null,
-
-        approvedBudget:
-            project.approvedBudget !== undefined
-                ? project.approvedBudget
-                : null,
 
         startDate:
             project.startDate ||
@@ -1342,7 +1326,7 @@ const generate = async (
                 "program",
 
             select:
-                "name programCode category description budget targetBeneficiaries startDate endDate status"
+                "name programCode category description targetBeneficiaries startDate endDate status"
 
         })
         .lean();
@@ -1402,7 +1386,7 @@ const generate = async (
                         "program",
 
                     select:
-                        "name programCode category description budget targetBeneficiaries startDate endDate status"
+                        "name programCode category description targetBeneficiaries startDate endDate status"
 
                 },
 
@@ -1416,7 +1400,7 @@ const generate = async (
                         "project",
 
                     select:
-                        "name projectCode description donor projectManager approvedBudget startDate endDate status",
+                        "name projectCode description donor projectManager startDate endDate status",
 
                     populate: [
 
@@ -1426,7 +1410,7 @@ const generate = async (
                                 "program",
 
                             select:
-                                "name programCode category description budget targetBeneficiaries startDate endDate status"
+                                "name programCode category description targetBeneficiaries startDate endDate status"
 
                         }
 
@@ -1454,7 +1438,7 @@ const generate = async (
                                 "project",
 
                             select:
-                                "name projectCode description donor projectManager approvedBudget startDate endDate status",
+                                "name projectCode description donor projectManager startDate endDate status",
 
                             populate: [
 
@@ -1464,7 +1448,7 @@ const generate = async (
                                         "program",
 
                                     select:
-                                        "name programCode category description budget targetBeneficiaries startDate endDate status"
+                                        "name programCode category description targetBeneficiaries startDate endDate status"
 
                                 }
 
@@ -1506,7 +1490,7 @@ const generate = async (
                                 "project",
 
                             select:
-                                "name projectCode description donor projectManager approvedBudget startDate endDate status",
+                                "name projectCode description donor projectManager startDate endDate status",
 
                             populate: [
 
@@ -1516,7 +1500,7 @@ const generate = async (
                                         "program",
 
                                     select:
-                                        "name programCode category description budget targetBeneficiaries startDate endDate status"
+                                        "name programCode category description targetBeneficiaries startDate endDate status"
 
                                 }
 
@@ -1530,7 +1514,7 @@ const generate = async (
                                 "program",
 
                             select:
-                                "name programCode category description budget targetBeneficiaries startDate endDate status"
+                                "name programCode category description targetBeneficiaries startDate endDate status"
 
                         }
 

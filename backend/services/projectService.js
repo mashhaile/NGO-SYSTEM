@@ -23,6 +23,29 @@ const {
 // OBJECT ID VALIDATION
 // =====================================================
 
+const {
+    getBudgetFigures
+} = require("./budgetFigures");
+
+
+// Adds the budget from the Budgets module (the only source of
+// budget numbers) to lean project objects.
+const withBudgets = async (organizationId, projects) => {
+
+    const figures =
+        await getBudgetFigures(
+            organizationId,
+            { projectIds: projects.map(project => project._id) }
+        );
+
+    return projects.map(project => ({
+        ...project,
+        budget: figures.projects[String(project._id)] || null
+    }));
+
+};
+
+
 const isValidObjectId = (value) => {
 
     return mongoose.Types.ObjectId.isValid(value);
@@ -233,11 +256,6 @@ const createProject = async (
 
             projectManager:
                 projectManagerId,
-
-            approvedBudget:
-                Number(
-                    data.approvedBudget || 0
-                ),
 
             startDate:
                 data.startDate,
@@ -459,7 +477,9 @@ const getProjects = async (
 
                 .skip(skip)
 
-                .limit(limitNumber),
+                .limit(limitNumber)
+
+                .lean(),
 
 
             Project.countDocuments(
@@ -472,7 +492,7 @@ const getProjects = async (
     return {
 
         data:
-            projects,
+            await withBudgets(organizationId, projects),
 
         pagination: {
 
@@ -517,33 +537,43 @@ const getProjectById = async (
     }
 
 
-    return Project.findOne({
+    const project =
+        await Project.findOne({
 
-        _id:
-            id,
+            _id:
+                id,
 
-        organization:
-            organizationId,
+            organization:
+                organizationId,
 
-        isDeleted:
-            false
+            isDeleted:
+                false
 
-    })
+        })
 
-        .populate(
-            "program",
-            "programCode name"
-        )
+            .populate(
+                "program",
+                "programCode name"
+            )
 
-        .populate(
-            "donor",
-            "name organizationName"
-        )
+            .populate(
+                "donor",
+                "name organizationName"
+            )
 
-        .populate(
-            "projectManager",
-            "name email role status"
-        );
+            .populate(
+                "projectManager",
+                "name email role status"
+            )
+
+            .lean();
+
+    if (!project) return null;
+
+    const [result] =
+        await withBudgets(organizationId, [project]);
+
+    return result;
 
 };
 
@@ -839,18 +869,6 @@ const updateProject = async (
 
         project.status =
             data.status;
-
-    }
-
-
-    if (
-        data.approvedBudget !== undefined
-    ) {
-
-        project.approvedBudget =
-            Number(
-                data.approvedBudget || 0
-            );
 
     }
 

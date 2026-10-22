@@ -27,8 +27,6 @@ const initialState = {
 
     category: "",
 
-    budget: "",
-
     targetBeneficiaries: "",
 
     startDate: "",
@@ -84,9 +82,6 @@ const ProgramForm = ({
 
             category:
                 initialData.category || "",
-
-            budget:
-                initialData.budget ?? "",
 
             targetBeneficiaries:
                 initialData.targetBeneficiaries ?? "",
@@ -155,11 +150,6 @@ const ProgramForm = ({
 
             category:
                 form.category.trim(),
-
-            budget:
-                form.budget === ""
-                    ? 0
-                    : Number(form.budget),
 
             targetBeneficiaries:
                 form.targetBeneficiaries === ""
@@ -304,33 +294,10 @@ const ProgramForm = ({
 
                 <FormSection
                     title="Program Targets"
+                    subtitle="The program's budget is not entered here. Create it in Budgets (amounts per year, with approval)."
                 >
 
                     <FormGrid>
-
-
-                        <AppTextField
-
-                            type="number"
-
-                            label="Budget"
-
-                            value={
-                                form.budget
-                            }
-
-                            onChange={(event) =>
-                                changeField(
-                                    "budget",
-                                    event.target.value
-                                )
-                            }
-
-                            inputProps={{
-                                min: 0
-                            }}
-
-                        />
 
 
                         <AppTextField

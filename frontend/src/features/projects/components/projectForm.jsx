@@ -41,7 +41,6 @@ const initialState = {
     description: "",
     donor: "",
     projectManager: "",
-    approvedBudget: "",
     startDate: "",
     endDate: "",
     status: "Draft"
@@ -309,10 +308,6 @@ const ProjectForm = ({
             projectManager:
                 projectManagerId,
 
-            approvedBudget:
-                initialData.approvedBudget ??
-                "",
-
             startDate:
                 initialData.startDate
                     ? String(
@@ -517,44 +512,6 @@ const ProjectForm = ({
 
             payload.projectManager =
                 projectManagerId;
-
-        }
-
-
-        // -------------------------------------------------
-        // APPROVED BUDGET
-        // -------------------------------------------------
-
-        if (
-            form.approvedBudget !== null &&
-            form.approvedBudget !== undefined &&
-            String(
-                form.approvedBudget
-            ).trim() !== ""
-        ) {
-
-            const budget =
-                Number(
-                    form.approvedBudget
-                );
-
-
-            if (
-                Number.isNaN(budget) ||
-                budget < 0
-            ) {
-
-                setFormError(
-                    "Approved budget must be a valid positive number."
-                );
-
-                return;
-
-            }
-
-
-            payload.approvedBudget =
-                budget;
 
         }
 
@@ -865,36 +822,15 @@ const ProjectForm = ({
 
 
             {/* =================================================
-                FINANCIAL INFORMATION
+                BUDGET (Budgets module only)
             ================================================= */}
 
             <PageCard>
 
                 <FormSection
-                    title="Financial Information"
-                >
-
-                    <FormGrid
-                        columns={1}
-                    >
-
-                        <AppTextField
-                            type="number"
-                            label="Approved Budget"
-                            value={
-                                form.approvedBudget
-                            }
-                            onChange={(e) =>
-                                changeField(
-                                    "approvedBudget",
-                                    e.target.value
-                                )
-                            }
-                        />
-
-                    </FormGrid>
-
-                </FormSection>
+                    title="Budget"
+                    subtitle="The project's budget is not entered here. Create it in Budgets (budget lines per year, with approval); it then shows on the project page."
+                />
 
             </PageCard>
 

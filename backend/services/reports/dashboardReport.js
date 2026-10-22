@@ -1,5 +1,8 @@
+const mongoose = require("mongoose");
 const Beneficiary = require("../../models/Beneficiary");
 const Program = require("../../models/program");
+const Budget = require("../../models/Budget");
+const { formatTotals } = require("../budgetFigures");
 const Donor = require("../../models/donor");
 const Donation = require("../../models/donation");
 const ServiceDelivery = require("../../models/ServiceDelivery");
@@ -434,9 +437,33 @@ const generate = async (
 
 
     // =====================================================
-    // PROGRAM BUDGET
+    // PROGRAM BUDGET (Budgets module: approved program budgets)
     // =====================================================
 
+    const approvedProgramBudgets =
+        await Budget.aggregate([
+            {
+                $match: {
+                    organization: new mongoose.Types.ObjectId(String(organizationId)),
+                    isDeleted: false,
+                    level: Budget.BUDGET_LEVEL.PROGRAM,
+                    status: Budget.BUDGET_STATUS.APPROVED
+                }
+            },
+            { $group: { _id: "$currency", total: { $sum: "$totalAmount" } } }
+        ]);
+
+    // { ETB: 6500000, ... } and "ETB 6,500,000.00"
+    const programBudgetsByCurrency =
+        Object.fromEntries(
+            approvedProgramBudgets.map(row => [row._id, Number(row.total || 0)])
+        );
+
+    const totalProgramBudget =
+        formatTotals(programBudgetsByCurrency);
+
+
+    // Target beneficiaries (set on each program)
     const programBudgetAggregation =
         await Program.aggregate([
 
@@ -456,19 +483,6 @@ const generate = async (
 
                     _id: null,
 
-                    totalBudget: {
-
-                        $sum: {
-
-                            $ifNull: [
-                                "$budget",
-                                0
-                            ]
-
-                        }
-
-                    },
-
                     targetBeneficiaries: {
 
                         $sum: {
@@ -487,18 +501,6 @@ const generate = async (
             }
 
         ]);
-
-
-
-    const totalProgramBudget =
-        programBudgetAggregation.length > 0
-
-            ? Number(
-                programBudgetAggregation[0]
-                    .totalBudget || 0
-            )
-
-            : 0;
 
 
 
@@ -1159,8 +1161,6 @@ const generate = async (
 
                     status: 1,
 
-                    budget: 1,
-
                     targetBeneficiaries: 1,
 
                     startDate: 1,
@@ -1644,6 +1644,9 @@ const generate = async (
 
 
             budget: {
+
+                byCurrency:
+                    programBudgetsByCurrency,
 
                 total:
                     totalProgramBudget,

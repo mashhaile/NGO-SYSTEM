@@ -1,6 +1,12 @@
 const Project = require("../../models/Project");
 
 const {
+    getBudgetFigures,
+    approvedTotalsByCurrency,
+    formatTotals
+} = require("../budgetFigures");
+
+const {
     buildDateFilter
 } = require("./reportFilters");
 
@@ -124,6 +130,29 @@ const generate = async (
 
 
     // =================================================
+    // BUDGETS (from the Budgets module only)
+    // =================================================
+
+    const figures =
+        (await getBudgetFigures(
+            organizationId,
+            { projectIds: projects.map(project => project._id) }
+        )).projects;
+
+    const figureOf = (project) =>
+        figures[String(project._id || project.id)] || null;
+
+    // Approved amount as a number (charts); currency kept separately
+    const approvedOf = (project) =>
+        figureOf(project)?.approvedAmount || 0;
+
+    const money = (figure, amount) =>
+        figure && figure.status === "Approved"
+            ? formatTotals({ [figure.currency]: amount })
+            : "-";
+
+
+    // =================================================
     // ROWS
     // =================================================
 
@@ -217,10 +246,20 @@ const generate = async (
                             }
                             : null,
 
+                    budgetCode:
+                        figureOf(project)?.budgetCode || "-",
+
+                    budgetStatus:
+                        figureOf(project)?.status || "No budget",
+
                     approvedBudget:
-                        Number(
-                            project.approvedBudget || 0
-                        ),
+                        money(figureOf(project), figureOf(project)?.approvedAmount),
+
+                    spent:
+                        money(figureOf(project), figureOf(project)?.spent),
+
+                    remaining:
+                        money(figureOf(project), figureOf(project)?.remaining),
 
                     startDate:
                         project.startDate,
@@ -311,9 +350,7 @@ const generate = async (
 
 
             programSummary[programId].approvedBudget +=
-                Number(
-                    row.approvedBudget || 0
-                );
+                approvedOf(row);
 
         }
     );
@@ -376,9 +413,7 @@ const generate = async (
 
 
             donorSummary[donorId].approvedBudget +=
-                Number(
-                    row.approvedBudget || 0
-                );
+                approvedOf(row);
 
         }
     );
@@ -388,23 +423,16 @@ const generate = async (
     // SUMMARY
     // =================================================
 
+    // Per currency, e.g. "ETB 4,415,000.00" (approved budgets only)
     const totalBudget =
-        rows.reduce(
-            (
-                sum,
-                row
-            ) => {
-
-                return (
-                    sum +
-                    Number(
-                        row.approvedBudget || 0
-                    )
-                );
-
-            },
-            0
+        formatTotals(
+            approvedTotalsByCurrency(
+                rows.map(figureOf)
+            )
         );
+
+    const projectsWithApprovedBudget =
+        rows.filter(row => approvedOf(row) > 0).length;
 
 
     const totalProjects =
@@ -486,6 +514,12 @@ const generate = async (
 
             totalApprovedBudget:
                 totalBudget,
+
+            projectsWithApprovedBudget:
+                projectsWithApprovedBudget,
+
+            projectsWithoutApprovedBudget:
+                totalProjects - projectsWithApprovedBudget,
 
             projectsWithProgram:
                 projectsWithProgram,

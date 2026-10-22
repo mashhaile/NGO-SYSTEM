@@ -27,6 +27,12 @@ import {
     StatusChip
 } from "../../../components/ui";
 
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+import BudgetFigureCard
+    from "../../budgets/components/BudgetFigureCard";
+
 
 // =====================================================
 // PROGRAM DETAILS PAGE
@@ -39,6 +45,8 @@ const ProgramDetailsPage = () => {
     } = useParams();
 
     const navigate = useNavigate();
+
+    const { user } = useAuth();
 
 
     const [
@@ -431,16 +439,6 @@ const ProgramDetailsPage = () => {
                 >
 
                     <InfoRow
-                        label="Budget"
-                        value={
-                            formatNumber(
-                                program.budget
-                            )
-                        }
-                    />
-
-
-                    <InfoRow
                         label="Target Beneficiaries"
                         value={
                             formatNumber(
@@ -452,6 +450,19 @@ const ProgramDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
+
+
+            {/* =================================================
+                BUDGET (Budgets module)
+            ================================================= */}
+
+            <BudgetFigureCard
+                figure={program.budget}
+                level="program"
+                entityId={program._id}
+                user={user}
+                navigate={navigate}
+            />
 
 
             {/* =================================================

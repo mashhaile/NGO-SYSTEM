@@ -83,6 +83,12 @@ until purchase orders exist).
   Donations and Service Deliveries APIs have no paging / search, so those
   two filter in the browser (fine for now; add server paging if they grow).
 - Live TOR-000001 has currency "150000": set it to ETB on next deploy.
+- Budgets module is the ONLY source of budget numbers (DONE, local only):
+  the typed Program "budget" / Project "approvedBudget" fields are gone;
+  lists, detail pages, Project report and Dashboard read
+  services/budgetFigures.js. On the next deploy, after a backup, run on live:
+  node scripts/removeOldBudgetFields.js --uri-file .env.atlas --db ngo_system --dry-run
+  then without --dry-run.
 
 ## Remaining
 

@@ -40,6 +40,9 @@ import {
     deleteProgramApi
 } from "../api/ProgramApi";
 
+import BudgetFigureCell
+    from "../../budgets/components/BudgetFigureCell";
+
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
@@ -197,10 +200,11 @@ const ProgramListPage = () => {
         {
             field: "budget",
             headerName: "Budget",
-            minWidth: 130,
+            minWidth: 160,
             align: "right",
             headerAlign: "right",
-            valueGetter: (value) => formatNumber(value)
+            sortable: false,
+            renderCell: (params) => <BudgetFigureCell figure={params.value} />
         },
 
         {

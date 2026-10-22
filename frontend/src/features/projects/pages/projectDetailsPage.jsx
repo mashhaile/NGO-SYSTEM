@@ -32,6 +32,12 @@ import {
     StatusChip
 } from "../../../components/ui";
 
+import useAuth
+    from "../../auth/hooks/useAuth";
+
+import BudgetFigureCard
+    from "../../budgets/components/BudgetFigureCard";
+
 
 import {
     deleteProjectThunk
@@ -51,6 +57,8 @@ const ProjectDetailsPage = () => {
 
 
     const navigate = useNavigate();
+
+    const { user } = useAuth();
 
 
     const dispatch = useDispatch();
@@ -198,28 +206,6 @@ const ProjectDetailsPage = () => {
         return new Date(
             value
         ).toLocaleDateString();
-
-    };
-
-
-    // =====================================================
-    // FORMAT BUDGET
-    // =====================================================
-
-    const formatBudget = (value) => {
-
-        if (
-            value === null ||
-            value === undefined ||
-            value === ""
-        ) {
-            return "-";
-        }
-
-
-        return Number(
-            value
-        ).toLocaleString();
 
     };
 
@@ -470,15 +456,6 @@ const ProjectDetailsPage = () => {
                     />
 
                     <InfoRow
-                        label="Approved Budget"
-                        value={
-                            formatBudget(
-                                project.approvedBudget
-                            )
-                        }
-                    />
-
-                    <InfoRow
                         label="Start Date"
                         value={
                             formatDate(
@@ -499,6 +476,19 @@ const ProjectDetailsPage = () => {
                 </FormSection>
 
             </PageCard>
+
+
+            {/* =================================================
+                BUDGET (Budgets module)
+            ================================================= */}
+
+            <BudgetFigureCard
+                figure={project.budget}
+                level="project"
+                entityId={project._id}
+                user={user}
+                navigate={navigate}
+            />
 
 
             {/* =================================================

@@ -44,6 +44,9 @@ import {
     getProgramsLookupApi
 } from "../../programs/api/lookupApi";
 
+import BudgetFigureCell
+    from "../../budgets/components/BudgetFigureCell";
+
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
@@ -54,9 +57,6 @@ const STATUS_OPTIONS =
 
 const formatDate = (value) =>
     value ? new Date(value).toLocaleDateString() : "";
-
-const formatNumber = (value) =>
-    value === null || value === undefined || value === "" ? "-" : Number(value).toLocaleString();
 
 const nameOf = (value) =>
     !value ? "-" : typeof value === "string" ? value : value.name || value.organizationName || value.fullName || "-";
@@ -179,7 +179,7 @@ const ProjectListPage = () => {
             field: "name",
             headerName: "Project",
             flex: 1.4,
-            minWidth: 220,
+            minWidth: 190,
             renderCell: (params) => (
                 <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
                     <Link
@@ -201,7 +201,7 @@ const ProjectListPage = () => {
             field: "program",
             headerName: "Program",
             flex: 1.2,
-            minWidth: 180,
+            minWidth: 170,
             sortable: false,
             renderCell: (params) => {
                 const item = params.row.program;
@@ -224,7 +224,7 @@ const ProjectListPage = () => {
             field: "donor",
             headerName: "Donor",
             flex: 0.8,
-            minWidth: 120,
+            minWidth: 100,
             sortable: false,
             valueGetter: (value) => nameOf(value)
         },
@@ -232,24 +232,25 @@ const ProjectListPage = () => {
         {
             field: "startDate",
             headerName: "Period",
-            minWidth: 180,
+            minWidth: 160,
             valueGetter: (value, row) =>
                 [formatDate(row.startDate), formatDate(row.endDate)].filter(Boolean).join(" – ") || "-"
         },
 
         {
-            field: "approvedBudget",
+            field: "budget",
             headerName: "Budget",
-            minWidth: 120,
+            minWidth: 150,
             align: "right",
             headerAlign: "right",
-            valueGetter: (value) => formatNumber(value)
+            sortable: false,
+            renderCell: (params) => <BudgetFigureCell figure={params.value} />
         },
 
         {
             field: "status",
             headerName: "Status",
-            minWidth: 110,
+            minWidth: 100,
             renderCell: (params) => <StatusChip status={params.value || "Draft"} />
         },
 

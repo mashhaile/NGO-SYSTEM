@@ -115,7 +115,12 @@ const BudgetFormPage = () => {
 
     // /budgets/:id/revise edits the pending revision of an
     // approved budget (figures + reason), not the budget itself
-    const isRevise = useLocation().pathname.endsWith("/revise");
+    const location = useLocation();
+    const isRevise = location.pathname.endsWith("/revise");
+
+    // /budgets/create?program=<id> or ?project=<id> (from the
+    // program / project page) preselects what the budget is for
+    const prefillSearch = isEdit ? "" : location.search;
 
     const navigate = useNavigate();
 
@@ -170,6 +175,17 @@ const BudgetFormPage = () => {
                         }))
                     });
                 }
+                else if (prefillSearch) {
+                    const params = new URLSearchParams(prefillSearch);
+                    const project = projectList.find(item => item._id === params.get("project"));
+                    const program = programList.find(item => item._id === params.get("program"));
+                    if (project) {
+                        setForm(prev => ({ ...prev, level: "project", project: project._id, name: `${project.name} Budget` }));
+                    }
+                    else if (program) {
+                        setForm(prev => ({ ...prev, level: "program", program: program._id, name: `${program.name} Program Budget` }));
+                    }
+                }
 
                 setLoading(false);
 
@@ -185,7 +201,7 @@ const BudgetFormPage = () => {
             cancelled = true;
         };
 
-    }, [id, isEdit, isRevise]);
+    }, [id, isEdit, isRevise, prefillSearch]);
 
 
     const years = useMemo(() => {

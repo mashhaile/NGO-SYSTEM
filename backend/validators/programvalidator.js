@@ -20,10 +20,6 @@ const createProgramSchema = Joi.object({
         .allow("")
         .optional(),
 
-    budget: Joi.number()
-        .min(0)
-        .default(0),
-
     targetBeneficiaries: Joi.number()
         .integer()
         .min(0)
@@ -66,9 +62,6 @@ const updateProgramSchema = Joi.object({
 
     category: Joi.string()
         .allow(null, ""),
-
-    budget: Joi.number()
-        .min(0),
 
     targetBeneficiaries: Joi.number()
         .integer()

@@ -8,6 +8,10 @@ const {
 
 const Program = require("../models/program");
 
+const {
+    getBudgetFigures
+} = require("./budgetFigures");
+
 
 // ==========================================
 // GENERATE PROGRAM CODE
@@ -126,9 +130,6 @@ const createProgram = async (
 
         category:
             data.category?.trim() || null,
-
-        budget:
-            Number(data.budget || 0),
 
         targetBeneficiaries:
             Number(
@@ -291,7 +292,6 @@ const getPrograms = async (
                     "status",
                     "startDate",
                     "endDate",
-                    "budget",
                     "targetBeneficiaries"
                 ]
             )
@@ -314,10 +314,20 @@ const getPrograms = async (
     ]);
 
 
+    // Budget from the Budgets module
+    const figures =
+        await getBudgetFigures(
+            organizationId,
+            { programIds: programs.map(program => program._id) }
+        );
+
     return {
 
         data:
-            programs,
+            programs.map(program => ({
+                ...program,
+                budget: figures.programs[String(program._id)] || null
+            })),
 
         pagination: {
 
@@ -372,7 +382,17 @@ const getProgramById = async (
     }
 
 
-    return program;
+    // Budget from the Budgets module (old typed value ignored)
+    const figures =
+        await getBudgetFigures(
+            organizationId,
+            { programIds: [program._id] }
+        );
+
+    return {
+        ...program,
+        budget: figures.programs[String(program._id)] || null
+    };
 
 };
 
@@ -415,6 +435,9 @@ const updateProgram = async (
     delete data.organization;
     delete data.programCode;
 
+    // Budgets are set in the Budgets module only
+    delete data.budget;
+
 
     // Empty endDate => null
 
@@ -428,18 +451,6 @@ const updateProgram = async (
 
 
     // Convert numeric fields
-
-    if (
-        data.budget !== undefined
-    ) {
-
-        data.budget =
-            Number(
-                data.budget || 0
-            );
-
-    }
-
 
     if (
         data.targetBeneficiaries !==

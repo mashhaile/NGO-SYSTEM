@@ -30,11 +30,6 @@ exports.createProjectSchema = Joi.object({
         Joi.string()
             .allow(null),
 
-    approvedBudget:
-        Joi.number()
-            .min(0)
-            .default(0),
-
     startDate:
         Joi.date()
             .required(),
@@ -82,10 +77,6 @@ exports.updateProjectSchema = Joi.object({
     projectManager:
         Joi.string()
             .allow(null),
-
-    approvedBudget:
-        Joi.number()
-            .min(0),
 
     startDate:
         Joi.date(),
