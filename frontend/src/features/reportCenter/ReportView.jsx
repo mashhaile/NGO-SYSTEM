@@ -153,7 +153,7 @@ const SectionChart = ({ chart, rows, columns }) => {
                         <Tooltip formatter={(value) => Number(value).toLocaleString("en-US")} />
                         <Legend />
                         {chart.series.map((key, index) => (
-                            <Bar key={key} dataKey={key} name={label(key)} fill={colors[index % colors.length]} radius={[4, 4, 0, 0]} />
+                            <Bar key={key} dataKey={key} name={label(key)} fill={colors[index % colors.length]} stackId={chart.stacked ? "total" : undefined} radius={chart.stacked && index < chart.series.length - 1 ? 0 : [4, 4, 0, 0]} />
                         ))}
                     </BarChart>
                 )}

@@ -15,7 +15,8 @@
 //   }
 //
 //   column = { key, label, format: "text"|"number"|"money"|"percent"|"date", currency? }
-//   chart  = { type: "bar"|"line"|"pie", x: <column key>, series: [<column key>] }
+//   chart  = { type: "bar"|"line"|"pie", x: <column key>, series: [<column key>], stacked? }
+//            (stacked: the series are parts of one total)
 //   link   = { kind: "beneficiary"|"program"|…, idKey: "id" }
 //            (the screen opens that record's detail report)
 //

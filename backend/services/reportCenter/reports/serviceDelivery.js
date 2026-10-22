@@ -62,6 +62,8 @@ const generate = async (query, context, period) => {
             value: round2(value),
             toPeople: individual ? toPeople : 0,
             toGroups: individual ? 0 : round2(value),
+            toInstitutions: delivery.recipientType === "Institution" ? round2(value) : 0,
+            toHouseholds: ["Household", "Group / Community"].includes(delivery.recipientType) ? round2(value) : 0,
             notGiven: individual ? round2(Math.max(value - toPeople, 0)) : 0
         };
     });
@@ -121,14 +123,16 @@ const generate = async (query, context, period) => {
         const map = new Map();
         for (const row of rows) {
             const key = keyOf(row) || "Not specified";
-            const entry = map.get(key) || { label: key, deliveries: 0, people: new Set(), value: 0, toPeople: 0 };
+            const entry = map.get(key) || { label: key, deliveries: 0, people: new Set(), value: 0, toPeople: 0, toInstitutions: 0, toHouseholds: 0 };
             entry.deliveries += 1;
             entry.value += row.value;
             entry.toPeople += row.toPeople;
+            entry.toInstitutions += row.toInstitutions;
+            entry.toHouseholds += row.toHouseholds;
             for (const person of row.people) entry.people.add(person);
             map.set(key, entry);
         }
-        return [...map.values()].map(entry => ({ ...entry, people: entry.people.size, value: round2(entry.value), toPeople: round2(entry.toPeople) }));
+        return [...map.values()].map(entry => ({ ...entry, people: entry.people.size, value: round2(entry.value), toPeople: round2(entry.toPeople), toInstitutions: round2(entry.toInstitutions), toHouseholds: round2(entry.toHouseholds) }));
     };
 
     const breakdownColumns = (first) => [
@@ -136,22 +140,26 @@ const generate = async (query, context, period) => {
         column("deliveries", "Deliveries", "number"),
         column("people", "People reached", "number"),
         column("value", "Value delivered", "money", { currency: "ETB" }),
-        column("toPeople", "Given to people", "money", { currency: "ETB" })
+        column("toPeople", "Given to people", "money", { currency: "ETB" }),
+        column("toInstitutions", "To institutions", "money", { currency: "ETB" }),
+        column("toHouseholds", "To households and groups", "money", { currency: "ETB" })
     ];
 
     const monthRows = (() => {
         const map = new Map();
         for (const row of rows) {
             const key = monthKey(row.date);
-            const entry = map.get(key) || { key, deliveries: 0, people: new Set(), value: 0, toPeople: 0 };
+            const entry = map.get(key) || { key, deliveries: 0, people: new Set(), value: 0, toPeople: 0, toInstitutions: 0, toHouseholds: 0 };
             entry.deliveries += 1;
             entry.value += row.value;
             entry.toPeople += row.toPeople;
+            entry.toInstitutions += row.toInstitutions;
+            entry.toHouseholds += row.toHouseholds;
             for (const person of row.people) entry.people.add(person);
             map.set(key, entry);
         }
         return [...map.values()].sort((a, b) => a.key.localeCompare(b.key))
-            .map(entry => ({ label: monthName(entry.key), deliveries: entry.deliveries, people: entry.people.size, value: round2(entry.value), toPeople: round2(entry.toPeople) }));
+            .map(entry => ({ label: monthName(entry.key), deliveries: entry.deliveries, people: entry.people.size, value: round2(entry.value), toPeople: round2(entry.toPeople), toInstitutions: round2(entry.toInstitutions), toHouseholds: round2(entry.toHouseholds) }));
     })();
 
     // ---------- funding ----------
@@ -194,7 +202,7 @@ const generate = async (query, context, period) => {
                 column("value", "Value", "money", { currency: "ETB" })
             ], serviceRows, { chart: { type: "bar", x: "label", series: ["value"] }, total: { value: valueDelivered } }),
             section("month", "By month", breakdownColumns("Month"), monthRows,
-                { chart: { type: "line", x: "label", series: ["value", "toPeople"] } }),
+                { chart: { type: "bar", x: "label", series: ["toPeople", "toInstitutions", "toHouseholds"], stacked: true } }),
             section("program", "By program", breakdownColumns("Program"), byRows(row => row.program).sort((a, b) => b.value - a.value)),
             section("project", "By project", breakdownColumns("Project"), byRows(row => row.project).sort((a, b) => b.value - a.value)),
             section("location", "By location", breakdownColumns("Woreda, zone, region"), byRows(row => row.location).sort((a, b) => b.value - a.value)),
