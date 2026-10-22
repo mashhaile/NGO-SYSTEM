@@ -1245,15 +1245,6 @@ const setupExpenses = async () => {
 // 10. TRACE, REPORTS, DASHBOARD, VIEWER
 // =====================================================
 
-const REPORT_FILTERS = () => ({
-    beneficiaryHistoryReport: `&beneficiary=${ids.beneficiaries[0]?.id}`,
-    activityRunReport: `&activityRun=${ids.runs.teachers1}`,
-    activityReport: `&activity=${ids.activities.teachers}`,
-    enterpriseImpactReport: `&enterprise=${ids.enterprises.bakery}`,
-    donorImpactReport: `&donor=${ids.donors.gef}`,
-    programImpactReport: `&program=${ids.programs.edu}`
-});
-
 const setupReports = async () => {
 
     console.log("\n== Donation trace, reports, exports, dashboard, viewer");
@@ -1268,22 +1259,28 @@ const setupReports = async () => {
         if (program.budget?.approvedAmount !== 9200000) throw new Error(`approved ${program.budget?.approvedAmount}`);
     });
 
-    const catalog = await step("Report catalog loads", () => api("GET", "/reports", { token: ids.admin }));
-    const keys = Array.isArray(catalog?.data) ? catalog.data : [];
+    const catalog = await step("Report catalog loads", () => api("GET", "/report-center", { token: ids.admin }));
+    const keys = Array.isArray(catalog?.data) ? catalog.data.map(report => report.key) : [];
     console.log(`  reports in catalog: ${keys.length}`);
 
-    const filters = REPORT_FILTERS();
     for (const key of keys) {
         await step(`Report: ${key}`, async () => {
-            const report = await api("GET", `/reports/${key}?period=annual&year=2026${filters[key] || ""}`, { token: ids.admin });
-            if (!report.data) throw new Error("no data");
+            const report = await api("GET", `/report-center/${key}?period=year&year=2026`, { token: ids.admin });
+            if (!report.data?.summary) throw new Error("no data");
         });
     }
 
-    for (const key of ["projectReport", "budgetVsActualReport", "serviceDeliveryReport", "beneficiaryReport"]) {
+    for (const [kind, id] of [["beneficiary", ids.beneficiaries[0]?.id], ["program", ids.programs.edu], ["activityRun", ids.runs.teachers1], ["enterprise", ids.enterprises.bakery], ["donor", ids.donors.gef]]) {
+        await step(`Detail report: ${kind}`, async () => {
+            const report = await api("GET", `/report-center/detail/${kind}/${id}`, { token: ids.admin });
+            if (!report.data?.summary) throw new Error("no data");
+        });
+    }
+
+    for (const key of ["beneficiaries", "serviceDelivery", "budgets"]) {
         for (const format of ["excel", "pdf", "csv"]) {
             await step(`Export ${key} as ${format}`, async () => {
-                const response = await fetch(`${API}/reports/${key}?period=annual&year=2026&format=${format}`, { headers: { Authorization: `Bearer ${ids.admin}` } });
+                const response = await fetch(`${API}/report-center/${key}?period=year&year=2026&format=${format}`, { headers: { Authorization: `Bearer ${ids.admin}` } });
                 if (response.status !== 200) throw new Error(`${response.status} ${(await response.text()).slice(0, 150)}`);
                 const size = (await response.arrayBuffer()).byteLength;
                 if (size < 200) throw new Error(`file too small (${size} bytes)`);

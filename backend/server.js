@@ -82,8 +82,6 @@ const servicedeliveryRoutes =
 const dashboardRoutes =
     require("./routes/dashboardRoutes");
 
-const reportRoutes =
-    require("./routes/reportRoutes");
 
 const planRoutes =
     require("./routes/planRoutes");
@@ -302,7 +300,7 @@ app.use("/api/v1/service-deliveries", servicedeliveryRoutes);
 
 app.use("/api/v1/dashboard", dashboardRoutes);
 
-app.use("/api/v1/reports", reportRoutes);
+app.use("/api/v1/report-center", require("./routes/reportCenterRoutes"));
 
 app.use("/api/v1/subscriptions", subscriptionRoutes);
 

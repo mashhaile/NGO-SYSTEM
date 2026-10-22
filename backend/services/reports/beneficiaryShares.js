@@ -324,5 +324,6 @@ module.exports = {
     getBeneficiarySupportValue,
     buildDeliveryShares,
     findMemberDeliveryScope,
-    expandToMembers
+    expandToMembers,
+    memberItems
 };

@@ -248,7 +248,8 @@ const DonationEditPage = lazyPage(() => import("../features/donations/pages/Dona
 const DonationTracePage = lazyPage(() => import("../features/donations/pages/DonationTracePage"));
 const UntracedSpendingPage = lazyPage(() => import("../features/donations/pages/UntracedSpendingPage"));
 const DonorSharePage = lazyPage(() => import("../features/donations/pages/DonorSharePage"));
-const ReportsPage = lazyPage(() => import("../features/reports/pages/ReportsPage"));
+const ReportCenterPage = lazyPage(() => import("../features/reportCenter/ReportCenterPage"));
+const ReportDetailPage = lazyPage(() => import("../features/reportCenter/ReportDetailPage"));
 const ChangePasswordPage = lazyPage(() => import("../features/auth/pages/ChangePasswordPage"));
 const SuperAdminDashboardPage = lazyPage(() => import("../features/superadmin/pages/SuperAdminDashboardPage"));
 const OrganizationListPage = lazyPage(() => import("../features/superadmin/pages/OrganizationListPage"));
@@ -1288,7 +1289,16 @@ const AppRoutes = () => {
                     path="/reports"
                     element={
                         <PermissionRoute permission="report.read">
-                            <ReportsPage />
+                            <ReportCenterPage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/reports/detail/:kind/:id"
+                    element={
+                        <PermissionRoute permission="report.read">
+                            <ReportDetailPage />
                         </PermissionRoute>
                     }
                 />

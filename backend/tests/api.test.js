@@ -769,30 +769,30 @@ test("expenses: two approvals at once cannot both use the last of a line", { ski
 //
 // =====================================================
 
-test("reports: budget vs actual and spending by donor", { skip }, async () => {
+test("reports: budget and spending, by category and donor", { skip }, async () => {
 
     const fin = state.financeToken;
 
-    const bva = await api("GET", "/reports/budgetVsActualReport?period=annual&year=2026", { token: fin });
-    assert.equal(bva.status, 200, bva.data?.message);
-    assert.equal(bva.data.data.summary.fiscalYear, "FY 2026");
-    assert.equal(bva.data.data.summary.totalSpent, 300000);
-    assert.equal(bva.data.data.summary.totalBudget, 600000);
-    assert.equal(bva.data.data.summary.percentSpent, 50);
+    const res = await api("GET", "/report-center/budgets?period=year&year=2026", { token: fin });
+    assert.equal(res.status, 200, res.data?.message);
 
-    const personnel = bva.data.data.details.find(row => row.category === "Personnel");
+    const report = res.data.data;
+    const figure = (label) => report.summary.find(item => item.label === label)?.value;
+
+    assert.equal(figure("Budget for FY 2026"), "ETB 600,000.00");
+    assert.equal(figure("Spent"), "ETB 300,000.00");
+
+    const personnel = report.sections.find(item => item.key === "category").rows.find(row => row.label === "Personnel");
     assert.equal(personnel.spent, 150000);
     assert.equal(personnel.remaining, 250000);
 
-    const donors = await api("GET", "/reports/donorSpendingReport?period=annual&year=2026", { token: fin });
-    assert.equal(donors.status, 200, donors.data?.message);
-    assert.equal(donors.data.data.summary.approvedExpenses, 2);
-    assert.equal(donors.data.data.summary.expensesNotLinked, 2);
+    const unlinked = report.sections.find(item => item.key === "donor").rows.find(row => row.label === "Not linked to a donation");
+    assert.equal(unlinked.expenses, 2);
 
     // Other organizations see none of it
-    const other = await api("GET", "/reports/budgetVsActualReport?period=annual&year=2026", { token: state.tokenB });
+    const other = await api("GET", "/report-center/budgets?period=year&year=2026", { token: state.tokenB });
     assert.equal(other.status, 200);
-    assert.equal(other.data.data.summary.projectBudgets, 0);
+    assert.equal(other.data.data.summary.find(item => item.label === "Project budgets").value, 0);
 
 });
 
@@ -838,18 +838,18 @@ test("budget numbers come only from the Budgets module", { skip }, async () => {
     const programs = (await api("GET", "/programs?search=Budget%20Test%20Program", { token })).data.data;
     assert.equal(programs[0].budget.approvedAmount, 3000000);
 
-    // Project report reads the Budgets module too
-    const report = await api("GET", "/reports/projectReport?period=annual&year=2026", { token });
+    // Programs & projects report reads the Budgets module too
+    const report = await api("GET", "/report-center/programs?period=year&year=2026", { token });
     assert.equal(report.status, 200, report.data?.message);
-    const row = report.data.data.details.find(item => item.name === "Budget Project One");
-    assert.equal(row.budgetStatus, "Approved");
-    assert.equal(row.approvedBudget, "ETB 1,100,000.00");
-    assert.equal(row.spent, "ETB 300,000.00");
-    assert.equal(report.data.data.details.find(item => item.name === "Typed Budget Project").budgetStatus, "No budget");
-    assert.equal(report.data.data.summary.totalApprovedBudget, "ETB 1,100,000.00");
+    const row = report.data.data.details.rows.find(item => item.name === "Budget Project One");
+    assert.equal(row.approved, 1100000);
+    assert.equal(row.spentToDate, 300000);
+    assert.equal(row.budgetCurrency, "ETB");
+    assert.equal(report.data.data.details.rows.find(item => item.name === "Typed Budget Project").approved, null);
+    assert.equal(report.data.data.sections[0].rows.find(item => item.name === "Budget Test Program").approved, 3000000);
 
     // Dashboard: approved program budgets per currency
-    const dashboard = await api("GET", "/reports/dashboardReport?period=annual&year=2026", { token });
+    const dashboard = await api("GET", "/dashboard?period=annual&year=2026", { token });
     assert.equal(dashboard.status, 200, dashboard.data?.message);
     assert.equal(dashboard.data.data.statistics.budget.byCurrency.ETB, 3000000);
 
@@ -898,46 +898,15 @@ test("funding: received only, never added across currencies", { skip }, async ()
     assert.equal(dashboard.data.data.summary.totalFunding, 1000000, "ETB received only");
     assert.deepEqual(dashboard.data.data.summary.fundingByCurrency, { ETB: 1000000, EUR: 5000 });
 
-    const financial = await api("GET", "/reports/financialReport?period=annual&year=2026", { token });
-    assert.equal(financial.data.data.summary.totalReceived, "ETB 1,000,000.00 + EUR 5,000.00");
-
-    const donors = await api("GET", "/reports/donorReport?period=annual&year=2026", { token });
-    assert.equal(donors.data.data.summary.totalPledged, "ETB 300,000.00");
-
-});
-
-
-test("reports: attendance summary and donor impact generate (were 500)", { skip }, async () => {
-
-    // attendanceSummaryReport had markdown fences in the code;
-    // donorImpactReport used old field names and crashed on
-    // donations without a program.
-    for (const report of ["attendanceSummaryReport", "donorImpactReport"]) {
-        const res = await api("GET", `/reports/${report}?period=annual&year=2026`, { token: state.tokenA });
-        assert.equal(res.status, 200, `${report}: ${res.data?.message}`);
-    }
+    const donors = await api("GET", "/report-center/donors?period=year&year=2026", { token });
+    assert.equal(donors.status, 200, donors.data?.message);
+    const figure = (label) => donors.data.data.summary.find(item => item.label === label)?.value;
+    assert.equal(figure("Received"), "ETB 1,000,000.00 + EUR 5,000.00");
+    assert.equal(figure("Pledged, not yet received"), "ETB 300,000.00");
 
 });
 
 
-test("reports: exports work for reports without a custom layout", { skip }, async () => {
-
-    // Excel / PDF / CSV were failing for every report except Service
-    // Delivery ("Unsupported report type"). The test org's plan may not
-    // allow every format, so a 403 plan message is fine, a 500 is not.
-    for (const report of ["budgetVsActualReport", "donorSpendingReport", "financialReport", "programReport"]) {
-        for (const format of ["excel", "pdf", "csv"]) {
-            const response = await fetch(`${BASE}/reports/${report}?period=annual&year=2026&format=${format}`, {
-                headers: { Authorization: `Bearer ${state.financeToken}` }
-            });
-            assert.ok(
-                response.status === 200 || response.status === 403,
-                `${report} ${format}: ${response.status} ${await response.text().catch(() => "")}`
-            );
-        }
-    }
-
-});
 
 
 // =====================================================
@@ -1348,35 +1317,102 @@ test("reports: people and enterprises count each person's own share", { skip }, 
 
     const { token, people, item, create, shares } = await serviceDeliverySetup();
 
-    const report = async (name) => {
-        const res = await api("GET", `/reports/${name}?period=annual&year=2026`, { token });
-        assert.equal(res.status, 200, `${name}: ${res.data?.message}`);
-        return res.data.data.summary;
+    const valueReceived = async () => {
+        const res = await api("GET", "/report-center/beneficiaries?period=year&year=2026", { token });
+        assert.equal(res.status, 200, res.data?.message);
+        return res.data.data.summary.find(item => item.label === "Value received").value;
     };
 
-    const before = await report("beneficiaryReport");
+    const before = await valueReceived();
 
     // 3 kits worth 2,250 to 3 people: 750 each, not 2,250 each
     const kits = item("Hygiene Kit", "Set", 3, 750);
     const delivery = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [kits], beneficiaries: shares(kits, 1, 750) });
     assert.ok(delivery.status < 300, delivery.data?.message);
 
-    const after = await report("beneficiaryReport");
-    assert.equal(Math.round((after.totalSupportValue - before.totalSupportValue) * 100) / 100, 2250);
+    const after = await valueReceived();
+    assert.equal(Math.round((after - before) * 100) / 100, 2250);
 
     // two of them run an enterprise: it received 1,500 and 2 kits
     const enterprise = await api("POST", "/enterprises", { token, body: { name: "Test Enterprise", beneficiaries: [people[0], people[1]] } });
     assert.ok(enterprise.status < 300, enterprise.data?.message);
 
-    const impact = await api("GET", `/reports/enterpriseImpactReport?period=annual&year=2026&enterprise=${enterprise.data.data._id}`, { token });
-    assert.equal(impact.status, 200, impact.data?.message);
+    const profile = await api("GET", `/report-center/detail/enterprise/${enterprise.data.data._id}`, { token });
+    assert.equal(profile.status, 200, profile.data?.message);
 
-    const row = impact.data.data.data.find(found => String(found.enterprise.id) === String(enterprise.data.data._id));
-    assert.ok(row, "the enterprise is in the report");
-
-    const fromThisDelivery = row.services.filter(service => String(service.deliveryId) === String(delivery.data.data._id));
+    const support = profile.data.data.sections.find(item => item.key === "support").rows;
+    const fromThisDelivery = support.filter(row => String(row.id) === String(delivery.data.data._id));
     assert.equal(fromThisDelivery.length, 2, "one row per member");
-    assert.equal(fromThisDelivery.reduce((sum, service) => sum + Number(service.totalAmount), 0), 1500);
+    assert.equal(fromThisDelivery.reduce((sum, row) => sum + Number(row.value), 0), 1500);
+
+});
+
+
+test("report center: eight reports, the same figures everywhere, detail reports and files", { skip }, async () => {
+
+    const token = state.tokenA;
+
+    const catalog = await api("GET", "/report-center", { token });
+    assert.equal(catalog.status, 200);
+    assert.deepEqual(catalog.data.data.map(report => report.key),
+        ["overview", "beneficiaries", "programs", "activities", "serviceDelivery", "enterprises", "donors", "budgets"]);
+
+    const run = async (key, extra = "") => {
+        const res = await api("GET", `/report-center/${key}?period=year&year=2026${extra}`, { token });
+        assert.equal(res.status, 200, `${key}: ${res.data?.message}`);
+        assert.ok(Array.isArray(res.data.data.summary) && Array.isArray(res.data.data.sections), key);
+        return res.data.data;
+    };
+
+    const reports = {};
+    for (const report of catalog.data.data) reports[report.key] = await run(report.key);
+
+    const figure = (key, label) => reports[key].summary.find(item => item.label === label)?.value;
+
+    // one figure, one count: the reports agree
+    assert.equal(figure("beneficiaries", "Value received"), figure("serviceDelivery", "Given to people"));
+    assert.equal(figure("overview", "People reached"), figure("beneficiaries", "Reached by services"));
+    assert.equal(figure("overview", "Value delivered"), figure("serviceDelivery", "Value delivered"));
+    assert.equal(figure("programs", "Value delivered"), figure("serviceDelivery", "Value delivered"));
+    assert.ok(figure("serviceDelivery", "Deliveries") > 0, "the earlier tests delivered services");
+
+    // the deliveries' value adds up
+    const delivery = reports.serviceDelivery;
+    const parts = figure("serviceDelivery", "Given to people") + figure("serviceDelivery", "To households, groups, institutions") + figure("serviceDelivery", "Not given out");
+    assert.ok(Math.abs(parts - figure("serviceDelivery", "Value delivered")) < 0.05, `${parts} vs ${figure("serviceDelivery", "Value delivered")}`);
+    assert.equal(delivery.details.rows.length, figure("serviceDelivery", "Deliveries"));
+
+    // a period with nothing in it
+    const emptyRes = await api("GET", "/report-center/serviceDelivery?period=year&year=2001", { token });
+    assert.equal(emptyRes.status, 200);
+    const empty = emptyRes.data.data;
+    assert.equal(empty.summary.find(item => item.label === "Deliveries").value, 0);
+
+    // detail reports open from the rows
+    const person = reports.beneficiaries.details.rows.find(row => row.services > 0);
+    const profile = await api("GET", `/report-center/detail/beneficiary/${person.id}`, { token });
+    assert.equal(profile.status, 200, profile.data?.message);
+    assert.equal(profile.data.data.summary.find(item => item.label === "Value received").value, person.value);
+
+    for (const [kind, row] of [["program", reports.programs.sections[0].rows[0]], ["project", reports.programs.details.rows[0]]]) {
+        const res = await api("GET", `/report-center/detail/${kind}/${row.id}`, { token });
+        assert.equal(res.status, 200, `${kind}: ${res.data?.message}`);
+    }
+
+    assert.equal((await api("GET", "/report-center/detail/beneficiary/64b000000000000000000000", { token })).status, 404);
+    assert.equal((await api("GET", "/report-center/nothing", { token })).status, 404);
+
+    // another organization sees none of it
+    const other = await api("GET", `/report-center/detail/beneficiary/${person.id}`, { token: state.tokenB });
+    assert.equal(other.status, 404);
+
+    // files
+    for (const [format, type] of [["excel", "spreadsheetml"], ["pdf", "application/pdf"], ["csv", "text/csv"]]) {
+        const response = await fetch(`${BASE}/report-center/beneficiaries?period=year&year=2026&format=${format}`, { headers: { Authorization: `Bearer ${token}` } });
+        assert.equal(response.status, 200, format);
+        assert.ok(String(response.headers.get("content-type")).includes(type), `${format}: ${response.headers.get("content-type")}`);
+        assert.ok((await response.arrayBuffer()).byteLength > 100, format);
+    }
 
 });
 
