@@ -1378,7 +1378,7 @@ test("report center: eight reports, the same figures everywhere, detail reports 
 
     // the deliveries' value adds up
     const delivery = reports.serviceDelivery;
-    const parts = figure("serviceDelivery", "Given to people") + figure("serviceDelivery", "To households, groups, institutions") + figure("serviceDelivery", "Not given out");
+    const parts = figure("serviceDelivery", "Given to people") + figure("serviceDelivery", "To institutions") + figure("serviceDelivery", "To households and groups") + figure("serviceDelivery", "Not given out");
     assert.ok(Math.abs(parts - figure("serviceDelivery", "Value delivered")) < 0.05, `${parts} vs ${figure("serviceDelivery", "Value delivered")}`);
     assert.equal(delivery.details.rows.length, figure("serviceDelivery", "Deliveries"));
 

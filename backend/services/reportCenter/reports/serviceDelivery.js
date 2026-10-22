@@ -67,6 +67,17 @@ const generate = async (query, context, period) => {
     });
 
     const total = (key) => round2(rows.reduce((sum, row) => sum + row[key], 0));
+
+    // institutions (a school, a health post) and households / groups
+    // reached as a whole: their value and how many there were
+    const reachedAsWhole = (types) => {
+        const own = rows.filter(row => types.includes(row.delivery.recipientType));
+        const names = new Set(own.map(row => String(row.delivery.recipientName || row.delivery.deliveryNumber).trim().toLowerCase()));
+        return { value: round2(own.reduce((sum, row) => sum + row.value, 0)), count: names.size };
+    };
+    const institutions = reachedAsWhole(["Institution"]);
+    const groups = reachedAsWhole(["Household", "Group / Community"]);
+    const countText = (count, one, many) => `${count} ${count === 1 ? one : many}`;
     const valueDelivered = total("value");
     const people = new Set(links.map(link => link.beneficiaryId));
 
@@ -165,7 +176,10 @@ const generate = async (query, context, period) => {
             summaryItem("People reached", people.size),
             summaryItem("Value delivered", valueDelivered, "money", { currency: "ETB" }),
             summaryItem("Given to people", total("toPeople"), "money", { currency: "ETB", note: `${percent(total("toPeople"), valueDelivered)}% of the value` }),
-            summaryItem("To households, groups, institutions", total("toGroups"), "money", { currency: "ETB" }),
+            summaryItem("Institutions reached", institutions.count, "number", { note: `ETB ${institutions.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }),
+            summaryItem("To institutions", institutions.value, "money", { currency: "ETB", note: countText(institutions.count, "institution", "institutions") }),
+            summaryItem("Households and groups reached", groups.count, "number", { note: `ETB ${groups.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }),
+            summaryItem("To households and groups", groups.value, "money", { currency: "ETB", note: countText(groups.count, "household or group", "households or groups") }),
             summaryItem("Not given out", total("notGiven"), "money", { currency: "ETB", note: "on individual deliveries" }),
             summaryItem("Not linked to a donation", untraced, "money", { currency: "ETB", note: untraced ? "appears in no donor's trace" : "every item is traced" })
         ],
