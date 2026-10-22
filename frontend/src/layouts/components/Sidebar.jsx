@@ -7,6 +7,8 @@ import {
     Typography,
     Box,
     Divider,
+    Collapse,
+    ButtonBase,
     IconButton,
     Select,
     MenuItem,
@@ -40,11 +42,13 @@ import {
     ReceiptLong,
     Group,
     HowToReg,
-    LockOutlined
+    LockOutlined,
+    ExpandMore
 } from "@mui/icons-material";
 
 import {
-    NavLink
+    NavLink,
+    useLocation
 } from "react-router-dom";
 
 import {
@@ -187,6 +191,36 @@ const SECTIONS = [
 
 
 /* ==========================================================
+   COLLAPSED SECTIONS (remembered per browser)
+========================================================== */
+
+const COLLAPSED_KEY = "sidebar.collapsedSections";
+
+const readCollapsed = () => {
+    try {
+        return JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "{}") || {};
+    }
+    catch {
+        return {};
+    }
+};
+
+const saveCollapsed = (value) => {
+    try {
+        localStorage.setItem(COLLAPSED_KEY, JSON.stringify(value));
+    }
+    catch {
+        // storage blocked: the menu still works, it just does not remember
+    }
+};
+
+const isInside = (pathname, item) =>
+    item.exact
+        ? pathname === item.path
+        : pathname === item.path || pathname.startsWith(`${item.path}/`);
+
+
+/* ==========================================================
    STYLES
 ========================================================== */
 
@@ -250,14 +284,22 @@ const navItemSx = {
 };
 
 const sectionTitleSx = {
-    display: "block",
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
     px: 1.5,
+    py: 0.25,
     mb: 0.5,
-    lineHeight: 1.6,
+    borderRadius: 1,
     color: "text.disabled",
-    fontWeight: 700,
-    fontSize: "0.64rem",
-    letterSpacing: "0.09em"
+    "&:hover": { color: "text.secondary" },
+    "& .title": {
+        lineHeight: 1.6,
+        fontWeight: 700,
+        fontSize: "0.64rem",
+        letterSpacing: "0.09em"
+    }
 };
 
 
@@ -271,6 +313,8 @@ const Sidebar = ({
 }) => {
 
     const dispatch = useDispatch();
+
+    const location = useLocation();
 
     const { user } = useAuth();
 
@@ -348,6 +392,36 @@ const Sidebar = ({
             }))
             .filter(section => section.items.length > 0);
 
+    /* ---------------- collapsing sections ---------------- */
+
+    // Open by default; a section the user collapses stays
+    // collapsed. The section of the current page opens by
+    // itself, and can still be collapsed while on that page.
+    const [collapsed, setCollapsed] = useState(readCollapsed);
+    const [collapsedHere, setCollapsedHere] = useState(null);
+
+    const activeTitle =
+        sections.find(section => section.items.some(item => !item.locked && isInside(location.pathname, item)))?.title;
+
+    const hereKey = (title) => `${title}@${location.pathname}`;
+
+    const isOpen = (title) =>
+        title === activeTitle
+            ? collapsedHere !== hereKey(title)
+            : !collapsed[title];
+
+    const toggleSection = (title) => {
+        if (title === activeTitle) {
+            setCollapsedHere(previous => (previous === hereKey(title) ? null : hereKey(title)));
+            return;
+        }
+        setCollapsed(previous => {
+            const next = { ...previous, [title]: !previous[title] };
+            saveCollapsed(next);
+            return next;
+        });
+    };
+
     const handleNavigation = () => {
         if (onMobileClose) onMobileClose();
     };
@@ -423,12 +497,26 @@ const Sidebar = ({
             >
 
                 {sections.map((section, index) => (
-                    <Box key={section.title} sx={{ mt: index === 0 ? 0 : 1.75 }}>
+                    <Box key={section.title} sx={{ mt: index === 0 ? 0 : 1 }}>
 
-                        <Typography variant="overline" sx={sectionTitleSx}>
-                            {section.title}
-                        </Typography>
+                        <ButtonBase
+                            onClick={() => toggleSection(section.title)}
+                            aria-expanded={isOpen(section.title)}
+                            sx={sectionTitleSx}
+                        >
+                            <Typography component="span" className="title" sx={{ textTransform: "uppercase" }}>
+                                {section.title}
+                            </Typography>
+                            <ExpandMore
+                                sx={{
+                                    fontSize: 16,
+                                    transition: "transform .2s ease",
+                                    transform: isOpen(section.title) ? "rotate(180deg)" : "none"
+                                }}
+                            />
+                        </ButtonBase>
 
+                        <Collapse in={isOpen(section.title)} timeout="auto">
                         <List disablePadding>
                             {section.items.map(item => item.locked ? (
                                 <Box
@@ -464,6 +552,7 @@ const Sidebar = ({
                                 </ListItemButton>
                             ))}
                         </List>
+                        </Collapse>
 
                     </Box>
                 ))}
