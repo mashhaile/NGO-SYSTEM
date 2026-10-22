@@ -1,275 +1,152 @@
+const mongoose = require("mongoose");
+
 const Donor = require("../../models/donor");
 const Donation = require("../../models/donation");
 const ServiceDelivery = require("../../models/ServiceDelivery");
+const ServiceDeliveryBeneficiary = require("../../models/ServiceDeliveryBeneficiary");
 
 const {
     COUNTED_DELIVERY_FILTER
 } = require("../../constants/serviceDeliveryStatus");
 
 const {
-    buildCommonFilters
+    buildDateFilter
 } = require("./reportFilters");
 
+const {
+    formatTotals
+} = require("../budgetFigures");
 
 
-// Donor Report
+// =====================================================
+// DONOR REPORT
+// =====================================================
+// Per donor: received and pledged amounts (per currency,
+// never added across currencies), programs and projects
+// supported, services delivered with the donor's money and
+// beneficiaries reached. A delivery counts when it or one of
+// its items names the donor or one of its donations.
 
 const generate = async (
-    filters,
+    filters = {},
     context
 ) => {
 
-    const {
-        organizationId
-    } = context;
+    const { organizationId } = context;
 
+    const donorQuery = { organization: organizationId, isDeleted: false };
 
+    if (mongoose.isValidObjectId(filters.donor)) {
+        donorQuery._id = filters.donor;
+    }
 
-    const donorQuery = {
+    const donors = await Donor.find(donorQuery).sort({ name: 1 }).lean();
 
-        organization: organizationId,
-
-        isDeleted: false,
-
-        ...buildCommonFilters(
-            filters,
-            context
-        )
-
-    };
-
-
-
-    const donors =
-        await Donor.find(
-            donorQuery
-        );
-
-
-
-    const report = [];
-
-
+    const rows = [];
+    const receivedAll = {};
+    const pledgedAll = {};
 
     for (const donor of donors) {
 
         const donations =
             await Donation.find({
-
                 organization: organizationId,
-
                 donor: donor._id,
-
-                isDeleted: false
-
-            })
-            .populate(
-                "program",
-                "name"
-            );
-
-
-
-        const donationIds =
-            donations.map(
-                d => d._id
-            );
-
-
-
-        const servicesDelivered =
-            await ServiceDelivery.countDocuments({
-
-                organization: organizationId,
-
-                donation: {
-                    $in: donationIds
-                },
-
                 isDeleted: false,
-                ...COUNTED_DELIVERY_FILTER
+                status: { $ne: "Cancelled" },
+                ...buildDateFilter(filters, "donationDate")
+            })
+                .populate("program", "name")
+                .populate("project", "name")
+                .lean();
 
-            });
+        const donationIds = donations.map(donation => donation._id);
 
+        const received = {};
+        const pledged = {};
+        for (const donation of donations) {
+            const currency = donation.currency || "ETB";
+            const target = donation.status === "Pledged" ? pledged : received;
+            const all = donation.status === "Pledged" ? pledgedAll : receivedAll;
+            target[currency] = (target[currency] || 0) + Number(donation.amount || 0);
+            all[currency] = (all[currency] || 0) + Number(donation.amount || 0);
+        }
 
+        const deliveries =
+            await ServiceDelivery.find({
+                organization: organizationId,
+                isDeleted: false,
+                ...COUNTED_DELIVERY_FILTER,
+                $or: [
+                    { donation: { $in: donationIds } },
+                    { "items.donation": { $in: donationIds } },
+                    { "items.donor": donor._id }
+                ]
+            })
+                .select("_id beneficiary")
+                .lean();
 
-        const beneficiaries =
-            await ServiceDelivery.distinct(
-
-                "beneficiary",
-
-                {
-
+        const linked =
+            deliveries.length
+                ? await ServiceDeliveryBeneficiary.distinct("beneficiary", {
                     organization: organizationId,
+                    serviceDelivery: { $in: deliveries.map(delivery => delivery._id) }
+                })
+                : [];
 
-                    donation: {
-                        $in: donationIds
-                    },
+        const beneficiaries = new Set([
+            ...linked.map(String),
+            ...deliveries.filter(delivery => delivery.beneficiary).map(delivery => String(delivery.beneficiary))
+        ]);
 
-                    isDeleted: false
+        const supported = [
+            ...new Set(
+                donations
+                    .map(donation => donation.project?.name || donation.program?.name)
+                    .filter(Boolean)
+            )
+        ];
 
-                }
-
-            );
-
-
-
-        report.push({
-
-            donor:
-                donor.name,
-
-            donorType:
-                donor.donorType,
-
-            programs: [
-
-                ...new Set(
-
-                    donations.map(
-                        d => d.program?.name
-                    )
-
-                )
-
-            ],
-
-            totalDonations:
-
-                donations.reduce(
-
-                    (sum, donation) =>
-
-                        sum + donation.amount,
-
-                    0
-
-                ),
-
-            servicesDelivered,
-
-            beneficiariesReached:
-                beneficiaries.length
-
+        rows.push({
+            donor: donor.name,
+            donorType: donor.donorType,
+            country: donor.country || "-",
+            donations: donations.length,
+            received: formatTotals(received),
+            pledged: formatTotals(pledged),
+            supporting: supported.join(", ") || "General",
+            servicesDelivered: deliveries.length,
+            beneficiariesReached: beneficiaries.size,
+            receivedETB: received.ETB || 0
         });
 
     }
 
-
-
     return {
 
-        title:
-            "Donor Report",
-
-
+        title: "Donor Report",
 
         summary: {
-
-            totalDonors:
-                report.length,
-
-            totalDonations:
-
-                report.reduce(
-
-                    (sum, item) =>
-
-                        sum + item.totalDonations,
-
-                    0
-
-                ),
-
-            totalServices:
-
-                report.reduce(
-
-                    (sum, item) =>
-
-                        sum + item.servicesDelivered,
-
-                    0
-
-                ),
-
-            totalBeneficiariesReached:
-
-                report.reduce(
-
-                    (sum, item) =>
-
-                        sum + item.beneficiariesReached,
-
-                    0
-
-                )
-
+            totalDonors: rows.length,
+            totalReceived: formatTotals(receivedAll),
+            totalPledged: formatTotals(pledgedAll),
+            totalServices: rows.reduce((sum, row) => sum + row.servicesDelivered, 0)
         },
-
-
 
         statistics: {},
 
-
-
         charts: {
-
-            donationsByDonor:
-
-                report.map(item => ({
-
-                    donor:
-                        item.donor,
-
-                    amount:
-                        item.totalDonations
-
-                })),
-
-
-
-            beneficiariesByDonor:
-
-                report.map(item => ({
-
-                    donor:
-                        item.donor,
-
-                    beneficiaries:
-                        item.beneficiariesReached
-
-                })),
-
-
-
-            servicesByDonor:
-
-                report.map(item => ({
-
-                    donor:
-                        item.donor,
-
-                    services:
-                        item.servicesDelivered
-
-                }))
-
+            receivedByDonor: rows.map(row => ({ donor: `${row.donor} (ETB)`, amount: row.receivedETB })),
+            beneficiariesByDonor: rows.map(row => ({ donor: row.donor, beneficiaries: row.beneficiariesReached }))
         },
 
-
-
-        details:
-            report
+        details: rows.map(({ receivedETB, ...row }) => row)
 
     };
 
 };
 
 
-
 module.exports = {
-
     generate
-
 };

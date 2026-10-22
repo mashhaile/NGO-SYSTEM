@@ -16,6 +16,14 @@ import {
 } from "@mui/icons-material";
 
 
+// Received funding in other currencies, e.g. "+ EUR 15,000"
+// (never added to the ETB figure)
+const otherCurrencies = (byCurrency = {}) =>
+    Object.entries(byCurrency)
+        .filter(([currency, amount]) => currency !== "ETB" && amount)
+        .map(([currency, amount]) => `+ ${currency} ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(amount)}`)
+        .join("  ");
+
 const SummaryCards = ({
     summary = {}
 }) => {
@@ -51,9 +59,12 @@ const SummaryCards = ({
         },
 
         {
-            title: "Total Funding",
+            title: "Total Funding (received)",
             value:
                 summary.totalFunding || 0,
+            prefix: "ETB ",
+            caption:
+                otherCurrencies(summary.fundingByCurrency),
             icon: AccountBalance,
             accent: "#065f46",
             background: "#ecfdf5"
@@ -294,6 +305,12 @@ const SummaryCards = ({
                                             }
                                         >
 
+                                            {card.prefix && (
+                                                <Box component="span" sx={{ fontSize: "0.7em", fontWeight: 700, mr: 0.5 }}>
+                                                    {card.prefix.trim()}
+                                                </Box>
+                                            )}
+
                                             {
                                                 formatValue(
                                                     card.value
@@ -301,6 +318,15 @@ const SummaryCards = ({
                                             }
 
                                         </Typography>
+
+                                        {card.caption && (
+                                            <Typography
+                                                variant="caption"
+                                                sx={{ color: "text.secondary", display: "block", mt: 0.25 }}
+                                            >
+                                                {card.caption}
+                                            </Typography>
+                                        )}
 
 
                                         {/* =========================

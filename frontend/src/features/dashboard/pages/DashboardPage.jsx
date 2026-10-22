@@ -696,7 +696,7 @@ const DashboardPage = () => {
                                 title="Funding Trend"
 
                                 subtitle={
-                                    "Financial support over time"
+                                    "Received ETB donations per month"
                                 }
 
                             />

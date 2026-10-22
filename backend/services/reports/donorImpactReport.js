@@ -133,7 +133,8 @@ const generate = async (
 
         // Given, per currency
         const given = {};
-        for (const donation of donations) {
+        // Given = received (a pledge is not money yet)
+        for (const donation of donations.filter(item => item.status === "Received")) {
             const currency = donation.currency || "ETB";
             given[currency] = round((given[currency] || 0) + Number(donation.amount || 0));
             allGiven[currency] = round((allGiven[currency] || 0) + Number(donation.amount || 0));

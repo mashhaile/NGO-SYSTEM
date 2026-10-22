@@ -814,6 +814,37 @@ test("budget numbers come only from the Budgets module", { skip }, async () => {
 });
 
 
+test("funding: received only, never added across currencies", { skip }, async () => {
+
+    const token = state.tokenB;
+
+    const donor = await api("POST", "/donors", { token, body: { name: "Currency Test Donor", donorType: "Foundation" } });
+    assert.ok(donor.status < 300, donor.data?.message);
+
+    const donation = (title, amount, currency, status) =>
+        api("POST", "/donations", {
+            token,
+            body: { donor: donor.data.data._id, title, amount, currency, status, donationDate: "2026-03-01" }
+        });
+
+    assert.ok((await donation("ETB grant", 1000000, "ETB", "Received")).status < 300);
+    assert.ok((await donation("EUR grant", 5000, "EUR", "Received")).status < 300);
+    assert.ok((await donation("ETB pledge", 300000, "ETB", "Pledged")).status < 300);
+
+    const dashboard = await api("GET", "/dashboard?period=annual&year=2026", { token });
+    assert.equal(dashboard.status, 200, dashboard.data?.message);
+    assert.equal(dashboard.data.data.summary.totalFunding, 1000000, "ETB received only");
+    assert.deepEqual(dashboard.data.data.summary.fundingByCurrency, { ETB: 1000000, EUR: 5000 });
+
+    const financial = await api("GET", "/reports/financialReport?period=annual&year=2026", { token });
+    assert.equal(financial.data.data.summary.totalReceived, "ETB 1,000,000.00 + EUR 5,000.00");
+
+    const donors = await api("GET", "/reports/donorReport?period=annual&year=2026", { token });
+    assert.equal(donors.data.data.summary.totalPledged, "ETB 300,000.00");
+
+});
+
+
 test("reports: attendance summary and donor impact generate (were 500)", { skip }, async () => {
 
     // attendanceSummaryReport had markdown fences in the code;

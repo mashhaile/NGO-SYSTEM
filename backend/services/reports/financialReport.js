@@ -4,177 +4,88 @@ const {
     buildDateFilter
 } = require("./reportFilters");
 
+const {
+    formatTotals
+} = require("../budgetFigures");
 
 
-// Financial Report
+// =====================================================
+// FINANCIAL REPORT (donations received per month)
+// =====================================================
+// Received donations only (pledged = not yet received,
+// cancelled = never). Amounts in different currencies are
+// never added together: one row per month and currency,
+// totals per currency. Charts use ETB (the base currency).
 
 const generate = async (
     filters,
     context
 ) => {
 
-    const {
-        organizationId
-    } = context;
+    const { organizationId } = context;
 
-
-
-    const monthly = await Donation.aggregate([
-
-        {
-            $match: {
-
-                organization: organizationId,
-
-                isDeleted: false,
-
-                ...buildDateFilter(
-                    filters,
-                    "donationDate"
-                )
-
-            }
-
-        },
-
-        {
-            $group: {
-
-                _id: {
-
-                    year: {
-                        $year: "$donationDate"
-                    },
-
-                    month: {
-                        $month: "$donationDate"
-                    }
-
-                },
-
-                totalAmount: {
-                    $sum: "$amount"
-                },
-
-                totalDonations: {
-                    $sum: 1
+    const monthly =
+        await Donation.aggregate([
+            {
+                $match: {
+                    organization: organizationId,
+                    isDeleted: false,
+                    status: "Received",
+                    ...buildDateFilter(filters, "donationDate")
                 }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$donationDate" },
+                        month: { $month: "$donationDate" },
+                        currency: { $ifNull: ["$currency", "ETB"] }
+                    },
+                    totalAmount: { $sum: "$amount" },
+                    totalDonations: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1, "_id.currency": 1 } }
+        ]);
 
-            }
+    const details =
+        monthly.map(item => ({
+            year: item._id.year,
+            month: item._id.month,
+            currency: item._id.currency,
+            totalDonations: item.totalDonations,
+            amount: formatTotals({ [item._id.currency]: item.totalAmount })
+        }));
 
-        },
+    const totals = {};
+    for (const item of monthly) {
+        totals[item._id.currency] = (totals[item._id.currency] || 0) + item.totalAmount;
+    }
 
-        {
-            $sort: {
-
-                "_id.year": 1,
-
-                "_id.month": 1
-
-            }
-
-        }
-
-    ]);
-
-
-
-    const details = monthly.map(item => ({
-
-        year:
-            item._id.year,
-
-        month:
-            item._id.month,
-
-        totalAmount:
-            item.totalAmount,
-
-        totalDonations:
-            item.totalDonations
-
-    }));
-
-
-
-    const grandTotal =
-        details.reduce(
-
-            (sum, item) =>
-
-                sum + item.totalAmount,
-
-            0
-
-        );
-
-
+    const etbMonths = monthly.filter(item => item._id.currency === "ETB");
 
     return {
 
-        title:
-            "Financial Report",
-
-
+        title: "Financial Report",
 
         summary: {
-
-            totalMonths:
-                details.length,
-
-            totalDonations:
-
-                details.reduce(
-
-                    (sum, item) =>
-
-                        sum + item.totalDonations,
-
-                    0
-
-                ),
-
-            grandTotal
-
+            totalMonths: new Set(monthly.map(item => `${item._id.year}-${item._id.month}`)).size,
+            totalDonations: monthly.reduce((sum, item) => sum + item.totalDonations, 0),
+            totalReceived: formatTotals(totals)
         },
-
-
 
         statistics: {},
 
-
-
         charts: {
-
-            monthlyFunding:
-
-                details.map(item => ({
-
-                    label:
-                        `${item.month}/${item.year}`,
-
-                    amount:
-                        item.totalAmount
-
-                })),
-
-
-
-            monthlyDonations:
-
-                details.map(item => ({
-
-                    label:
-                        `${item.month}/${item.year}`,
-
-                    donations:
-                        item.totalDonations
-
-                }))
-
+            monthlyFunding: etbMonths.map(item => ({
+                label: `${item._id.month}/${item._id.year} (ETB)`,
+                amount: item.totalAmount
+            })),
+            monthlyDonations: details.map(item => ({
+                label: `${item.month}/${item.year} ${item.currency}`,
+                donations: item.totalDonations
+            }))
         },
-
-
 
         details
 
@@ -183,9 +94,6 @@ const generate = async (
 };
 
 
-
 module.exports = {
-
     generate
-
 };

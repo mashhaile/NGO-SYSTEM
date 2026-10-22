@@ -1,4 +1,8 @@
 import {
+    currentFiscalYear
+} from "../../../utils/fiscalYear";
+
+import {
     createSlice
 } from "@reduxjs/toolkit";
 
@@ -18,13 +22,17 @@ import {
 // INITIAL FILTERS
 // =====================================================
 
+// Reports open on the current fiscal year (Jan-Dec) so a
+// report can be generated without picking dates first.
+const thisYear = currentFiscalYear();
+
 const initialFilters = {
 
     startDate:
-        null,
+        `${thisYear}-01-01`,
 
     endDate:
-        null,
+        `${thisYear}-12-31`,
 
     program:
         "",

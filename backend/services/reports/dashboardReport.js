@@ -329,6 +329,9 @@ const generate = async (
     // FUNDING TOTAL
     // =====================================================
 
+    // Received donations only (pledged = not yet funding,
+    // cancelled = never), added up PER CURRENCY: ETB and EUR
+    // amounts must never be summed together.
     const fundingAggregation =
         await Donation.aggregate([
 
@@ -337,7 +340,9 @@ const generate = async (
 
                     organization: organizationId,
 
-                    isDeleted: false
+                    isDeleted: false,
+
+                    status: "Received"
 
                 }
 
@@ -346,7 +351,7 @@ const generate = async (
             {
                 $group: {
 
-                    _id: null,
+                    _id: { $ifNull: ["$currency", "ETB"] },
 
                     total: {
 
@@ -369,14 +374,16 @@ const generate = async (
 
 
 
+    // { ETB: 8350000, EUR: 15000 }
+    const fundingByCurrency =
+        Object.fromEntries(
+            fundingAggregation.map(row => [row._id, Number(row.total || 0)])
+        );
+
+    // The card shows ETB (the base currency); other
+    // currencies are listed with it
     const totalFunding =
-        fundingAggregation.length > 0
-
-            ? Number(
-                fundingAggregation[0].total || 0
-            )
-
-            : 0;
+        fundingByCurrency.ETB || 0;
 
 
 
@@ -1264,6 +1271,7 @@ const generate = async (
     // FUNDING TREND
     // =====================================================
 
+    // Received ETB donations only (one currency per chart)
     const monthlyFunding =
         await Donation.aggregate([
 
@@ -1273,6 +1281,10 @@ const generate = async (
                     organization: organizationId,
 
                     isDeleted: false,
+
+                    status: "Received",
+
+                    currency: "ETB",
 
                     donationDate: {
 
@@ -1549,6 +1561,8 @@ const generate = async (
             totalDonors,
 
             totalFunding,
+
+            fundingByCurrency,
 
             totalServices,
 
