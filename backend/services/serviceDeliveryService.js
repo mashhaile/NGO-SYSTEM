@@ -1492,6 +1492,123 @@ const validateItemDonation = async (
 
 
 // ======================================================
+// DONATION BALANCE
+// ======================================================
+// An item charged to a donation uses that donation's
+// money. A delivered delivery cannot charge a donation
+// more than it has left (counted the same way as the
+// donation's "Where did it go?" trace), and a cancelled
+// donation pays for nothing.
+
+const validateDonationBalances = async (
+    items,
+    organizationId,
+    {
+        deliveryDonation = null,
+        status = DEFAULT_SERVICE_DELIVERY_STATUS,
+        excludeDeliveryId = null
+    } = {}
+) => {
+
+    // a cancelled delivery uses no money
+    if (
+        status === SERVICE_DELIVERY_STATUS.CANCELLED
+    ) {
+        return;
+    }
+
+    // what this delivery charges each donation
+    const charged =
+        new Map();
+
+    for (const item of items || []) {
+        const donationId =
+            String(item?.donation || deliveryDonation || "");
+        if (!donationId) continue;
+        charged.set(
+            donationId,
+            (charged.get(donationId) || 0) +
+            Number(item.totalCost || Number(item.quantity || 0) * Number(item.unitCost || 0))
+        );
+    }
+
+    for (const [donationId, amount] of charged) {
+
+        if (!mongoose.Types.ObjectId.isValid(donationId)) continue;
+
+        const donation =
+            await Donation.findOne({
+                _id: donationId,
+                organization: organizationId,
+                isDeleted: false
+            })
+                .select("donationCode title amount currency status")
+                .lean();
+
+        if (!donation) continue;
+
+        const name =
+            [donation.donationCode, donation.title].filter(Boolean).join(" ");
+
+        const currency =
+            donation.currency || "ETB";
+
+        if (
+            donation.status === "Cancelled"
+        ) {
+            throw new Error(
+                `${name} is cancelled; it cannot pay for this delivery. Choose another donation.`
+            );
+        }
+
+        // used by other delivered deliveries
+        const others =
+            await ServiceDelivery.find({
+                organization: organizationId,
+                isDeleted: false,
+                status: { $ne: SERVICE_DELIVERY_STATUS.CANCELLED },
+                ...(excludeDeliveryId ? { _id: { $ne: excludeDeliveryId } } : {}),
+                $or: [
+                    { "items.donation": donation._id },
+                    { donation: donation._id }
+                ]
+            })
+                .select("donation items.donation items.totalCost")
+                .lean();
+
+        const usedElsewhere =
+            others.reduce(
+                (sum, delivery) =>
+                    sum +
+                    (delivery.items || [])
+                        .filter(item =>
+                            String(item.donation || "") === donationId ||
+                            (!item.donation && String(delivery.donation || "") === donationId)
+                        )
+                        .reduce((total, item) => total + Number(item.totalCost || 0), 0),
+                0
+            );
+
+        const total =
+            Number(donation.amount || 0);
+
+        const left =
+            roundMoney(Math.max(total - usedElsewhere, 0));
+
+        if (
+            roundMoney(amount) > left + 0.01
+        ) {
+            throw new Error(
+                `${name} has ${formatMoney(left)} ${currency} left (${formatMoney(total)} ${donation.status === "Pledged" ? "pledged" : "received"}, ${formatMoney(usedElsewhere)} used so far), but this delivery charges it ${formatMoney(amount)} ${currency}. Lower the cost, or charge part of it to another donation.`
+            );
+        }
+
+    }
+
+};
+
+
+// ======================================================
 // VALIDATE SERVICE ITEMS
 // ======================================================
 
@@ -3733,6 +3850,15 @@ const createServiceDelivery = async (
         organizationId
     );
 
+    await validateDonationBalances(
+        items,
+        organizationId,
+        {
+            deliveryDonation: data.donation || null,
+            status: data.status || DEFAULT_SERVICE_DELIVERY_STATUS
+        }
+    );
+
     await validateBeneficiaryAllocations(
         beneficiaryRecords,
         items,
@@ -5163,6 +5289,16 @@ const updateServiceDelivery = async (
             : normalizeObjectId(
                 service.fundingSource
             );
+
+    await validateDonationBalances(
+        finalItems,
+        organizationId,
+        {
+            deliveryDonation: finalDonation || null,
+            status: nextStatus,
+            excludeDeliveryId: service._id
+        }
+    );
 
     // ==================================================
     // VALIDATE FINAL REFERENCES

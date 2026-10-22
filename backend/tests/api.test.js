@@ -1255,6 +1255,62 @@ test("service delivery: shares, conversion and automatic values", { skip }, asyn
 });
 
 
+test("service delivery: a donation cannot pay for more than it has left", { skip }, async () => {
+
+    const { token, people, item, create } = await serviceDeliverySetup();
+
+    const donor = await api("POST", "/donors", { token, body: { name: "Balance Test Donor", donorType: "Foundation" } });
+    assert.ok(donor.status < 300, donor.data?.message);
+
+    const donation = async (title, amount, status) => {
+        const res = await api("POST", "/donations", {
+            token,
+            body: { donor: donor.data.data._id, title, amount, currency: "ETB", status, donationDate: "2026-03-01" }
+        });
+        assert.ok(res.status < 300, res.data?.message);
+        return res.data.data._id;
+    };
+
+    const grant = await donation("Cash grant", 100000, "Received");
+
+    const cash = (amount, donationId) =>
+        item("Cash Assistance", "ETB", 1, amount, { donor: donor.data.data._id, donation: donationId });
+
+    // 100,000 ETB: 50,000 each to two people, individually
+    const both = cash(100000, grant);
+    const paidBody = {
+        recipientType: "Individual",
+        allocationMethod: "Individual",
+        items: [both],
+        beneficiaries: people.slice(0, 2).map(beneficiary => ({ beneficiary, allocations: [{ serviceItem: both._id, quantity: 0, allocatedValue: 50000 }] }))
+    };
+    const paid = await create(paidBody);
+    assert.ok(paid.status < 300, paid.data?.message);
+
+    // nothing is left of the grant now
+    const more = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(1000, grant)], beneficiaries: people });
+    assert.equal(more.status, 400);
+    assert.match(more.data.message, /has 0\.00 ETB left/);
+
+    // a cancelled delivery uses no money
+    const cancelled = await create({ status: "Cancelled", recipientType: "Individual", allocationMethod: "Shared", items: [cash(1000, grant)], beneficiaries: people });
+    assert.ok(cancelled.status < 300, cancelled.data?.message);
+
+    // a pledge can be charged up to its amount
+    const pledge = await donation("Book pledge", 50000, "Pledged");
+    assert.equal((await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(200000, pledge)], beneficiaries: people })).status, 400);
+    assert.ok((await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(50000, pledge)], beneficiaries: people })).status < 300);
+
+    // editing a delivery does not count its own old cost against it
+    const resave = await api("PUT", `/service-deliveries/${paid.data.data._id}`, {
+        token,
+        body: { program: paid.data.data.program?._id || paid.data.data.program, deliveryDate: "2026-05-01", status: "Delivered", remarks: "checked", ...paidBody }
+    });
+    assert.ok(resave.status < 300, resave.data?.message);
+
+});
+
+
 test("reports: people and enterprises count each person's own share", { skip }, async () => {
 
     const { token, people, item, create, shares } = await serviceDeliverySetup();

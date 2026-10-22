@@ -1667,6 +1667,17 @@ const ServiceDeliveryItemRow = ({
             item?.donation
         );
 
+    // The chosen donation's own record (status, amount)
+    const selectedDonationRecord =
+        donationValue
+            ? donationOptions.find(
+                option =>
+                    String(option?.value) ===
+                    String(donationValue)
+            )?.original ||
+            null
+            : null;
+
 
     const {
         data: serviceTypesResponse,
@@ -3695,6 +3706,50 @@ const ServiceDeliveryItemRow = ({
                 >
                     Not linked to a donation. This cost will not appear in any donor&apos;s &quot;Where did it go?&quot; trace. Choose the donor and the donation that paid for it.
                 </Alert>
+
+            )}
+
+            {/* The chosen donation: pledged only, cancelled, or too small */}
+
+            {selectedDonationRecord && (
+
+                selectedDonationRecord.status === "Cancelled"
+                    ? (
+                        <Alert
+                            severity="error"
+                            variant="outlined"
+                            sx={{
+                                mt: 1.5
+                            }}
+                        >
+                            This donation is cancelled and cannot pay for this item. Choose another donation.
+                        </Alert>
+                    )
+                    : itemTotalCost > Number(selectedDonationRecord.amount || 0) + 0.01
+                        ? (
+                            <Alert
+                                severity="warning"
+                                variant="outlined"
+                                sx={{
+                                    mt: 1.5
+                                }}
+                            >
+                                This item costs {formatAmount(itemTotalCost)}, more than the whole donation ({formatAmount(selectedDonationRecord.amount)} {selectedDonationRecord.currency || "ETB"}). It cannot be saved this way: lower the cost or split it across donations.
+                            </Alert>
+                        )
+                        : selectedDonationRecord.status === "Pledged"
+                            ? (
+                                <Alert
+                                    severity="info"
+                                    variant="outlined"
+                                    sx={{
+                                        mt: 1.5
+                                    }}
+                                >
+                                    This donation is still pledged, not received. The cost is charged to it, but the donor&apos;s funding counts only received money.
+                                </Alert>
+                            )
+                            : null
 
             )}
 

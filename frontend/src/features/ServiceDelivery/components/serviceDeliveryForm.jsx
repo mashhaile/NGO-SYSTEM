@@ -2356,12 +2356,17 @@ const ServiceDeliveryForm = ({
             formData?.recipientType === "Individual" &&
             formData?.allocationMethod === "Individual" &&
             Array.isArray(
-                beneficiaries
+                formData?.beneficiaries
             )
         ) {
 
+            // The people on THIS delivery (the beneficiaries
+            // prop is the whole picker list)
+            const chosen =
+                formData.beneficiaries;
+
             const withoutShare =
-                beneficiaries.filter(
+                chosen.filter(
                     beneficiary =>
                         !(Array.isArray(beneficiary?.allocations) ? beneficiary.allocations : [])
                             .some(
@@ -2376,9 +2381,7 @@ const ServiceDeliveryForm = ({
             ) {
 
                 window.alert(
-                    `With individual allocation every beneficiary needs a share: ${withoutShare.length} of ${beneficiaries.length} have none.
-
-` +
+                    `With individual allocation every beneficiary needs a share: ${withoutShare.length} of ${chosen.length} have none.\n\n` +
                     "Give them a share, or choose shared allocation."
                 );
 
