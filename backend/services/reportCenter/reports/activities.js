@@ -192,7 +192,7 @@ const generate = async (query, context, period) => {
                 column("sessions", "Sessions", "number"),
                 column("target", "Target participants", "number"),
                 column("participants", "Participants", "number")
-            ], typeRows, { chart: { type: "bar", x: "label", series: ["target", "participants"] } }),
+            ], typeRows, { chart: { type: "bar", x: "label", series: ["target", "participants"], yLabel: "Participants" } }),
             section("status", "Attendance", [
                 column("label", "Status"),
                 column("records", "Places", "number")

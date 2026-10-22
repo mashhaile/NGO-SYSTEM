@@ -1371,7 +1371,7 @@ test("report center: eight reports, the same figures everywhere, detail reports 
 
     // one figure, one count: the reports agree
     assert.equal(figure("beneficiaries", "Value received"), figure("serviceDelivery", "Given to people"));
-    assert.equal(figure("overview", "People reached"), figure("beneficiaries", "Reached by services"));
+    assert.equal(figure("overview", "Beneficiaries reached"), figure("beneficiaries", "Reached by services"));
     assert.equal(figure("overview", "Value delivered"), figure("serviceDelivery", "Value delivered"));
     assert.equal(figure("programs", "Value delivered"), figure("serviceDelivery", "Value delivered"));
     assert.ok(figure("serviceDelivery", "Deliveries") > 0, "the earlier tests delivered services");

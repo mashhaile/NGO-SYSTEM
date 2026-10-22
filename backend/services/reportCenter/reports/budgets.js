@@ -208,7 +208,7 @@ const generate = async (query, context, period) => {
                 column("remaining", "Remaining", "money"),
                 column("used", "Used", "percent"),
                 column("currency", "Currency")
-            ], categoryRows, { chart: { type: "bar", x: "label", series: ["budget", "spent"] } }),
+            ], categoryRows, { chart: { type: "bar", x: "label", series: ["budget", "spent"], yLabel: "Amount" } }),
             section("donor", "Spending by donor", [
                 column("label", "Donor"),
                 column("donation", "Donation"),

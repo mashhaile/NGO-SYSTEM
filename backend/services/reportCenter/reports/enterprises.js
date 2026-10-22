@@ -117,7 +117,7 @@ const generate = async (query, context, period) => {
         sections: [
             section("type", "By enterprise type", breakdownColumns("Type"), groupRows(rows, row => row.type, measures)),
             section("sector", "By business sector", breakdownColumns("Sector"), groupRows(rows, row => row.sector, measures),
-                { chart: { type: "bar", x: "label", series: ["members"] } }),
+                { chart: { type: "bar", x: "label", series: ["members"], yLabel: "Members" } }),
             section("location", "By location", breakdownColumns("Woreda, zone, region"), groupRows(rows, row => row.location, measures)),
             section("roles", "Members by role", [column("label", "Role"), column("members", "Members", "number")],
                 groupRows(members, member => member.memberRole, { members: () => 1 }))

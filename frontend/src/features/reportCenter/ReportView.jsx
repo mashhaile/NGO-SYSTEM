@@ -29,7 +29,8 @@ import {
     YAxis,
     Tooltip,
     Legend,
-    CartesianGrid
+    CartesianGrid,
+    LabelList
 } from "recharts";
 
 import { useNavigate } from "react-router-dom";
@@ -121,6 +122,18 @@ const SectionChart = ({ chart, rows, columns }) => {
 
     const data = rows.slice(0, 24);
 
+    // the axis says what is counted; bars show their number
+    const yAxis = (
+        <YAxis
+            tick={{ fontSize: 12 }}
+            tickFormatter={(value) => Number(value).toLocaleString("en-US")}
+            width={chart.yLabel ? 78 : 60}
+            label={chart.yLabel ? { value: chart.yLabel, angle: -90, position: "insideLeft", offset: 4, style: { fontSize: 12, fill: theme.palette.text.secondary } } : undefined}
+        />
+    );
+
+    const showNumbers = data.length * chart.series.length <= 24;
+
     if (!data.length) return null;
 
     return (
@@ -138,7 +151,7 @@ const SectionChart = ({ chart, rows, columns }) => {
                     <LineChart data={data} margin={{ left: 8, right: 16, top: 8 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey={chart.x} tick={{ fontSize: 12 }} />
-                        <YAxis tick={{ fontSize: 12 }} />
+                        {yAxis}
                         <Tooltip formatter={(value) => Number(value).toLocaleString("en-US")} />
                         <Legend />
                         {chart.series.map((key, index) => (
@@ -146,14 +159,18 @@ const SectionChart = ({ chart, rows, columns }) => {
                         ))}
                     </LineChart>
                 ) : (
-                    <BarChart data={data} margin={{ left: 8, right: 16, top: 8 }}>
+                    <BarChart data={data} margin={{ left: 8, right: 16, top: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey={chart.x} tick={{ fontSize: 12 }} interval={0} />
-                        <YAxis tick={{ fontSize: 12 }} />
+                        {yAxis}
                         <Tooltip formatter={(value) => Number(value).toLocaleString("en-US")} />
                         <Legend />
                         {chart.series.map((key, index) => (
-                            <Bar key={key} dataKey={key} name={label(key)} fill={colors[index % colors.length]} stackId={chart.stacked ? "total" : undefined} radius={chart.stacked && index < chart.series.length - 1 ? 0 : [4, 4, 0, 0]} />
+                            <Bar key={key} dataKey={key} name={label(key)} fill={colors[index % colors.length]} stackId={chart.stacked ? "total" : undefined} radius={chart.stacked && index < chart.series.length - 1 ? 0 : [4, 4, 0, 0]}>
+                                {showNumbers && !chart.stacked && (
+                                    <LabelList dataKey={key} position="top" style={{ fontSize: 11, fill: theme.palette.text.secondary }} formatter={(value) => (value ? Number(value).toLocaleString("en-US") : "")} />
+                                )}
+                            </Bar>
                         ))}
                     </BarChart>
                 )}

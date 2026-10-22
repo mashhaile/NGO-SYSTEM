@@ -200,9 +200,9 @@ const generate = async (query, context, period) => {
                 column("deliveries", "Deliveries", "number"),
                 column("people", "People", "number"),
                 column("value", "Value", "money", { currency: "ETB" })
-            ], serviceRows, { chart: { type: "bar", x: "label", series: ["value"] }, total: { value: valueDelivered } }),
+            ], serviceRows, { chart: { type: "bar", x: "label", series: ["value"], yLabel: "ETB" }, total: { value: valueDelivered } }),
             section("month", "By month", breakdownColumns("Month"), monthRows,
-                { chart: { type: "bar", x: "label", series: ["toPeople", "toInstitutions", "toHouseholds"], stacked: true } }),
+                { chart: { type: "bar", x: "label", series: ["toPeople", "toInstitutions", "toHouseholds"], stacked: true, yLabel: "ETB" } }),
             section("program", "By program", breakdownColumns("Program"), byRows(row => row.program).sort((a, b) => b.value - a.value)),
             section("project", "By project", breakdownColumns("Project"), byRows(row => row.project).sort((a, b) => b.value - a.value)),
             section("location", "By location", breakdownColumns("Woreda, zone, region"), byRows(row => row.location).sort((a, b) => b.value - a.value)),

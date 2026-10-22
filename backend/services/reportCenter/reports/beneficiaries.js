@@ -218,20 +218,20 @@ const generate = async (query, context, period) => {
                 { chart: { type: "pie", x: "label", series: ["registered"] } }),
             section("age", "By age group", breakdownColumns("Age group"),
                 groupRows(rows, row => row.ageGroup, measures, { order: AGE_ORDER }),
-                { chart: { type: "bar", x: "label", series: ["registered", "reached"] } }),
+                { chart: { type: "bar", x: "label", series: ["registered", "reached"], yLabel: "Beneficiaries" } }),
             section("location", "By location", breakdownColumns("Woreda, zone, region"),
                 groupRows(rows, row => row.location, measures)),
             section("program", "By program", [
                 column("label", "Program"),
-                column("enrolled", "Enrolled", "number"),
+                column("enrolled", "Beneficiaries enrolled", "number"),
                 column("active", "Active", "number"),
                 column("completed", "Completed", "number"),
-                column("reached", "Reached by services", "number"),
+                column("reached", "Beneficiaries reached by services", "number"),
                 column("value", "Value received", "money", { currency: "ETB" })
             ], [...byProgram.values()]
                 .map(row => ({ ...row, reached: row.reached.size, value: round2(row.value) }))
                 .sort((a, b) => b.enrolled - a.enrolled || b.reached - a.reached),
-            { chart: { type: "bar", x: "label", series: ["enrolled", "reached"] } }),
+            { chart: { type: "bar", x: "label", series: ["enrolled", "reached"], yLabel: "Beneficiaries" } }),
             section("month", "By month", [
                 column("label", "Month"),
                 column("registered", "Newly registered", "number"),
@@ -240,7 +240,7 @@ const generate = async (query, context, period) => {
             ], [...byMonth.values()]
                 .sort((a, b) => a.key.localeCompare(b.key))
                 .map(entry => ({ label: monthName(entry.key), registered: entry.registered, reached: entry.reached.size, value: round2(entry.value) })),
-            { chart: { type: "line", x: "label", series: ["reached", "registered"] } }),
+            { chart: { type: "line", x: "label", series: ["reached", "registered"], yLabel: "Beneficiaries" } }),
             vulnerableGroups.length
                 ? section("vulnerable", "Vulnerable groups", [column("label", "Group"), column("people", "People", "number")], vulnerableGroups)
                 : null

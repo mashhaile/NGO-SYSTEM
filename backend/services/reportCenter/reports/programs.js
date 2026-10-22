@@ -216,14 +216,14 @@ const generate = async (query, context, period) => {
                 column("status", "Status"),
                 column("projects", "Projects", "number"),
                 column("target", "Target people", "number"),
-                column("enrolled", "Enrolled", "number"),
-                column("reached", "Reached by services", "number"),
+                column("enrolled", "Beneficiaries enrolled", "number"),
+                column("reached", "Beneficiaries reached by services", "number"),
                 column("value", "Value delivered", "money", { currency: "ETB" }),
                 column("funding", "Funding received"),
                 ...moneyColumns("programs")
             ], programRows, {
                 link: { kind: "program", idKey: "id" },
-                chart: { type: "bar", x: "name", series: ["enrolled", "reached"] }
+                chart: { type: "bar", x: "name", series: ["enrolled", "reached"], yLabel: "Beneficiaries" }
             })
         ],
         details: {

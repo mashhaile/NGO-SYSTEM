@@ -38,7 +38,7 @@ const generate = async (query, context, period) => {
 
     const results = [
         rowOf("People", people, "Registered beneficiaries"),
-        rowOf("People", people, "Reached by services"),
+        rowOf("People", people, "Reached by services", "Beneficiaries reached by services"),
         rowOf("People", people, "Female", "Female beneficiaries"),
         rowOf("People", people, "With a disability", "Beneficiaries with a disability"),
         rowOf("Programs", programs, "Programs"),
@@ -71,7 +71,7 @@ const generate = async (query, context, period) => {
 
     // the headline figures
     const headline = [
-        pick(people, "Reached by services") && { ...pick(people, "Reached by services"), label: "People reached" },
+        pick(people, "Reached by services") && { ...pick(people, "Reached by services"), label: "Beneficiaries reached" },
         pick(delivery, "Value delivered"),
         pick(delivery, "Institutions reached"),
         pick(activities, "Participants") && { ...pick(activities, "Participants"), label: "Training participants" },
