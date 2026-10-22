@@ -526,9 +526,45 @@ const getUnitSemantics = (
 // EXPORT
 // =====================================================
 
+// =====================================================
+// DECIMAL QUANTITIES
+// =====================================================
+//
+// Weights, volumes and lengths can be measured in parts
+// (12.5 Kg, 0.5 Liter); everything else is counted in
+// whole numbers (Piece, Set, Pack, Session, ...).
+// =====================================================
+
+const DECIMAL_UNIT_CODES = [
+    "KG",
+    "KILOGRAM",
+    "LITER",
+    "LITRE",
+    "METER"
+];
+
+// unit: a Lookup (code / value) or a code string
+const allowsDecimalQuantity = (unit) => {
+
+    const candidates =
+        typeof unit === "object" && unit !== null
+            ? [unit.code, unit.unitCode, unit.lookupCode, unit.value, unit.name]
+            : [unit];
+
+    return candidates
+        .filter(Boolean)
+        .some(candidate => DECIMAL_UNIT_CODES.includes(normalizeUnitCode(candidate)));
+
+};
+
+
 module.exports = {
 
     SERVICE_DELIVERY_UNIT_DEFINITIONS,
+
+    DECIMAL_UNIT_CODES,
+
+    allowsDecimalQuantity,
 
     MONETARY_UNIT_CODES,
 

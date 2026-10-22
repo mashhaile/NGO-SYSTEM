@@ -20,6 +20,12 @@ const Project =
 const ServiceDelivery =
     require("../../models/ServiceDelivery");
 
+const {
+    roundMoney,
+    findMemberDeliveryScope,
+    expandToMembers
+} = require("./beneficiaryShares");
+
 
 // =====================================================
 // BUILD REPORT DATE RANGE
@@ -631,17 +637,21 @@ const generate = async (
         // ServiceDelivery
         // =============================================
 
+        // Members are linked to deliveries through
+        // ServiceDeliveryBeneficiary (old deliveries: on the delivery)
+        const memberScope =
+            await findMemberDeliveryScope(
+                organizationId,
+                beneficiaryIds
+            );
+
+
         const serviceQuery = {
 
             organization:
                 organizationId,
 
-            beneficiary: {
-
-                $in:
-                    beneficiaryIds
-
-            },
+            ...memberScope.filter,
 
             isDeleted:
                 false,
@@ -687,7 +697,7 @@ const generate = async (
         }
 
 
-        const serviceDeliveries =
+        const serviceDeliveriesFound =
             await ServiceDelivery.find(
                 serviceQuery
             )
@@ -722,6 +732,16 @@ const generate = async (
             .sort({
                 deliveryDate: 1
             });
+
+
+        // One row per member: the delivery as they received it
+        const serviceDeliveries =
+            await expandToMembers(
+                organizationId,
+                serviceDeliveriesFound,
+                memberScope.links,
+                beneficiaryIds
+            );
 
 
         // =============================================
@@ -818,11 +838,11 @@ const generate = async (
 
             programData.totals.serviceDeliveries++;
 
-            programData.totals.totalSupport +=
-                Number(
+            programData.totals.totalSupport =
+                roundMoney(programData.totals.totalSupport + Number(
                     delivery.totalAmount ||
                     0
-                );
+                ));
 
 
             // =========================================
@@ -902,11 +922,11 @@ const generate = async (
 
                 projectData.totals.serviceDeliveries++;
 
-                projectData.totals.totalSupport +=
-                    Number(
+                projectData.totals.totalSupport =
+                    roundMoney(projectData.totals.totalSupport + Number(
                         delivery.totalAmount ||
                         0
-                    );
+                    ));
 
             }
 
@@ -975,11 +995,11 @@ const generate = async (
 
                 activityData.totals.serviceDeliveries++;
 
-                activityData.totals.totalSupport +=
-                    Number(
+                activityData.totals.totalSupport =
+                    roundMoney(activityData.totals.totalSupport + Number(
                         delivery.totalAmount ||
                         0
-                    );
+                    ));
 
             }
 
@@ -1051,11 +1071,11 @@ const generate = async (
 
                 activityRunData.totals.serviceDeliveries++;
 
-                activityRunData.totals.totalSupport +=
-                    Number(
+                activityRunData.totals.totalSupport =
+                    roundMoney(activityRunData.totals.totalSupport + Number(
                         delivery.totalAmount ||
                         0
-                    );
+                    ));
 
             }
 
@@ -1232,7 +1252,7 @@ const generate = async (
 
 
         const totalSupport =
-            serviceDeliveries.reduce(
+            roundMoney(serviceDeliveries.reduce(
                 (
                     total,
                     delivery
@@ -1243,7 +1263,7 @@ const generate = async (
                         0
                     ),
                 0
-            );
+            ));
 
 
         const totalPrograms =
@@ -1398,7 +1418,7 @@ const generate = async (
 
 
     const totalSupport =
-        rows.reduce(
+        roundMoney(rows.reduce(
             (
                 total,
                 row
@@ -1406,7 +1426,7 @@ const generate = async (
                 total +
                 row.totals.totalSupport,
             0
-        );
+        ));
 
 
     const uniquePrograms =

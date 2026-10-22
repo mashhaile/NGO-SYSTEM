@@ -2350,6 +2350,45 @@ const ServiceDeliveryForm = ({
         }
 
 
+        // Individual allocation: everyone gets their own share
+        // (the server refuses it otherwise)
+        if (
+            formData?.recipientType === "Individual" &&
+            formData?.allocationMethod === "Individual" &&
+            Array.isArray(
+                beneficiaries
+            )
+        ) {
+
+            const withoutShare =
+                beneficiaries.filter(
+                    beneficiary =>
+                        !(Array.isArray(beneficiary?.allocations) ? beneficiary.allocations : [])
+                            .some(
+                                allocation =>
+                                    Number(allocation?.quantity || 0) > 0 ||
+                                    Number(allocation?.allocatedValue || 0) > 0
+                            )
+                );
+
+            if (
+                withoutShare.length > 0
+            ) {
+
+                window.alert(
+                    `With individual allocation every beneficiary needs a share: ${withoutShare.length} of ${beneficiaries.length} have none.
+
+` +
+                    "Give them a share, or choose shared allocation."
+                );
+
+                return;
+
+            }
+
+        }
+
+
         for (
             const item of items
         ) {
@@ -2531,49 +2570,38 @@ const ServiceDeliveryForm = ({
             }
 
 
-            // Small tolerance prevents floating-point
-            // precision issues with decimal currency values.
+            // The breakdown must add up to the item's cost
+            // (a cent of tolerance for rounding)
             const comparisonTolerance =
-                0.000001;
-
+                0.01;
 
             if (
-                detailTotal >
-                parentTotal +
+                detailItems.length > 0 &&
+                Math.abs(
+                    detailTotal -
+                    parentTotal
+                ) >
                 comparisonTolerance
             ) {
 
                 const serviceNumber =
                     itemIndex + 1;
 
-
-                const parentTotalFormatted =
-                    parentTotal.toLocaleString(
+                const formatAmount = (value) =>
+                    value.toLocaleString(
                         "en-US",
                         {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         }
                     );
-
-
-                const detailTotalFormatted =
-                    detailTotal.toLocaleString(
-                        "en-US",
-                        {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }
-                    );
-
 
                 window.alert(
-                    `Service Item ${serviceNumber}: Detail item total cannot exceed the parent service item's total cost.\n\n` +
-                    `Parent service item total: ETB ${parentTotalFormatted}\n` +
-                    `Detail items total: ETB ${detailTotalFormatted}\n\n` +
-                    `Please reduce the detail item quantities or unit costs before saving.`
+                    `Service Item ${serviceNumber}: the detail items must add up to the item's total cost.\n\n` +
+                    `Service item total: ${formatAmount(parentTotal)}\n` +
+                    `Detail items total: ${formatAmount(detailTotal)}\n\n` +
+                    `Adjust the detail quantities or unit costs so the two are equal.`
                 );
-
 
                 return;
 
@@ -2669,6 +2697,19 @@ const ServiceDeliveryForm = ({
                                                     detail?.unit
                                                 ) ||
                                                 null,
+
+                                            // Given out in another unit (1 Sack = 50 Kg)
+                                            allocationUnit:
+                                                normalizeLookupValue(
+                                                    detail?.allocationUnit
+                                                ) ||
+                                                null,
+
+                                            allocationConversionFactor:
+                                                normalizeLookupValue(detail?.allocationUnit) &&
+                                                Number(detail?.allocationConversionFactor) > 0
+                                                    ? Number(detail.allocationConversionFactor)
+                                                    : 1,
 
                                             unitCost:
                                                 safeUnitCost,

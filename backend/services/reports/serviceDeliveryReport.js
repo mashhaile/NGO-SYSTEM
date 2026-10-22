@@ -140,6 +140,14 @@ const getUnitLabel = (unit) => {
 
 const isMonetaryUnit = (unit) => {
 
+    // The unit's own type decides (same rule as when saving);
+    // names are only a fallback for old units without one
+    const semanticType =
+        String(unit?.semanticType || "").trim().toLowerCase();
+
+    if (semanticType === "monetary") return true;
+    if (semanticType === "physical") return false;
+
     const values = [
 
         unit?.name,
@@ -172,11 +180,19 @@ const isMonetaryUnit = (unit) => {
 
 const getAllocationBehavior = (item) => {
 
+    // Saved with the delivery when it was checked; the service
+    // type's current setting only for deliveries saved before
+    const saved =
+        String(item?.allocationBehavior || "").trim().toUpperCase();
+
+    if (saved === "PARTICIPATION" || saved === "CONSUMPTION") {
+        return saved;
+    }
+
     const values = [
 
         item?.serviceType?.allocationBehavior,
-        item?.serviceType?.behavior,
-        item?.allocationBehavior
+        item?.serviceType?.behavior
 
     ]
         .filter(Boolean)
@@ -762,6 +778,20 @@ const convertQuantityMapToObject = (
 
 
 // =====================================================
+// DETAIL CAPACITY
+// =====================================================
+// How much of a detail item can be given out, in the unit
+// allocations use: 1 Sack given out in Kg (factor 50) = 50.
+
+const hasAllocationUnit = (detail) =>
+    Boolean(detail?.allocationUnit && toId(detail.allocationUnit));
+
+const getDetailCapacity = (detail) =>
+    toNumber(detail?.quantity) *
+    (hasAllocationUnit(detail) ? (toNumber(detail?.allocationConversionFactor) || 1) : 1);
+
+
+// =====================================================
 // GET ALLOCATION ACCOUNTING
 // =====================================================
 
@@ -1000,9 +1030,36 @@ const calculateItemAllocation = (
             );
 
 
+    // Allocated by detail item (books, pens ... of a school kit):
+    // the item is as complete as its least-complete detail item.
+    const detailItems =
+        Array.isArray(item?.detailItems) ? item.detailItems : [];
+
+    const allocatedByDetail =
+        detailItems.length > 0 &&
+        directParentAllocatedQuantity === 0 &&
+        (sameUnitDetailAllocatedQuantity > 0 || differentUnitDetailAllocatedQuantity > 0);
+
+    let detailFillRatio = null;
+
+    if (allocatedByDetail) {
+        const ratios = detailItems.map(detail => {
+            const capacity = getDetailCapacity(detail);
+            const allocated = beneficiaryRecords.reduce((sum, record) =>
+                sum + (Array.isArray(record?.allocations) ? record.allocations : [])
+                    .filter(allocation => toId(allocation?.detailItem) === toId(detail))
+                    .reduce((total, allocation) => total + toNumber(allocation?.quantity), 0), 0);
+            return capacity > 0 ? allocated / capacity : 1;
+        });
+        detailFillRatio = ratios.length ? Math.min(...ratios) : 1;
+    }
+
+
     const totalParentConsumedQuantity =
-        directParentAllocatedQuantity +
-        sameUnitDetailAllocatedQuantity;
+        allocatedByDetail
+            ? Math.round(deliveredQuantity * Math.min(detailFillRatio, 1) * 1000) / 1000
+            : directParentAllocatedQuantity +
+              sameUnitDetailAllocatedQuantity;
 
 
     let unallocatedQuantity = 0;
@@ -1024,11 +1081,13 @@ const calculateItemAllocation = (
             );
 
         overAllocatedQuantity =
-            Math.max(
-                totalParentConsumedQuantity -
-                deliveredQuantity,
-                0
-            );
+            allocatedByDetail
+                ? (detailFillRatio > 1 ? Math.round(deliveredQuantity * (detailFillRatio - 1) * 1000) / 1000 : 0)
+                : Math.max(
+                    totalParentConsumedQuantity -
+                    deliveredQuantity,
+                    0
+                );
 
     }
 
@@ -1391,13 +1450,19 @@ const generate = async (
         .populate({
             path: "items.unit",
             select:
-                "name value code"
+                "name value code semanticType"
         })
 
         .populate({
             path: "items.detailItems.unit",
             select:
-                "name value code"
+                "name value code semanticType"
+        })
+
+        .populate({
+            path: "items.detailItems.allocationUnit",
+            select:
+                "name value code semanticType"
         })
 
         .sort({
@@ -1937,9 +2002,11 @@ const generate = async (
                                     );
 
 
+                                    // In the unit allocations are counted in
+                                    // (1 sack given out in Kg = 50 Kg)
                                     const detailDeliveredQuantity =
-                                        toNumber(
-                                            detail.quantity
+                                        getDetailCapacity(
+                                            detail
                                         );
 
 
@@ -2015,12 +2082,28 @@ const generate = async (
                                             null,
 
                                         quantity:
-                                            detailDeliveredQuantity,
+                                            toNumber(
+                                                detail.quantity
+                                            ),
 
                                         unit:
                                             getUnitObject(
                                                 detail.unit
                                             ),
+
+                                        // Given out in another unit (1 Sack = 50 Kg)
+                                        allocationUnit:
+                                            hasAllocationUnit(detail)
+                                                ? getUnitObject(detail.allocationUnit)
+                                                : null,
+
+                                        allocationConversionFactor:
+                                            hasAllocationUnit(detail)
+                                                ? toNumber(detail.allocationConversionFactor) || 1
+                                                : 1,
+
+                                        allocatableQuantity:
+                                            detailDeliveredQuantity,
 
                                         unitCost:
                                             toNumber(

@@ -1494,6 +1494,33 @@ const getItemTotal = (
 
 
 // =====================================================
+// DETAIL ITEM CAPACITY
+// =====================================================
+// A detail item given out in another unit (1 Sack = 50 Kg)
+// is allocated in that unit: 2 sacks = 100 Kg to share.
+
+const getDetailAllocationUnit = (
+    detailItem
+) =>
+    detailItem?.allocationUnit ||
+    detailItem?.unit;
+
+const getDetailCapacity = (
+    detailItem
+) =>
+    getSafeNumber(
+        detailItem?.quantity
+    ) *
+    (
+        detailItem?.allocationUnit
+            ? getSafeNumber(
+                detailItem?.allocationConversionFactor
+            ) || 1
+            : 1
+    );
+
+
+// =====================================================
 // DETAIL ITEM TOTAL
 // =====================================================
 
@@ -1949,7 +1976,7 @@ const updateAllocation = (
             } else {
                 const deliveredQuantity = getSafeNumber(
                     detailItem
-                        ? detailItem.quantity
+                        ? getDetailCapacity(detailItem)
                         : serviceItem.quantity
                 );
 
@@ -2237,7 +2264,7 @@ const applyFullAllocation = (
 
         const deliveryQuantity = getSafeNumber(
             detailItem
-                ? detailItem.quantity
+                ? getDetailCapacity(detailItem)
                 : serviceItem.quantity
         );
 
@@ -2965,7 +2992,7 @@ const applyFullAllocation = (
 
                                                                                 const detailUnit =
                                                                                     getUnitDisplay(
-                                                                                        detailItem.unit,
+                                                                                        getDetailAllocationUnit(detailItem),
                                                                                         safeUnitOptions
                                                                                     );
 
@@ -2982,7 +3009,7 @@ const applyFullAllocation = (
 
                                                                                 const detailQuantity =
                                                                                     getSafeNumber(
-                                                                                        detailItem.quantity
+                                                                                        getDetailCapacity(detailItem)
                                                                                     );
 
 
@@ -3637,14 +3664,14 @@ const applyFullAllocation = (
 
                                                                                 const detailUnit =
                                                                                     getUnitDisplay(
-                                                                                        detailItem.unit,
+                                                                                        getDetailAllocationUnit(detailItem),
                                                                                         safeUnitOptions
                                                                                     );
 
 
                                                                                 const detailQuantity =
                                                                                     getSafeNumber(
-                                                                                        detailItem.quantity
+                                                                                        getDetailCapacity(detailItem)
                                                                                     );
 
 

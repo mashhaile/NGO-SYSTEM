@@ -711,6 +711,18 @@ const ServiceDeliveryCreatePage = () => {
                                 detail?.unit
                             ),
 
+                        // Given out in another unit (1 Sack = 50 Kg)
+                        allocationUnit:
+                            normalizeId(
+                                detail?.allocationUnit
+                            ) ||
+                            null,
+
+                        allocationConversionFactor:
+                            normalizeId(detail?.allocationUnit) && Number(detail?.allocationConversionFactor) > 0
+                                ? Number(detail.allocationConversionFactor)
+                                : 1,
+
                         unitCost:
                             safeUnitCost,
 
@@ -1258,11 +1270,11 @@ const ServiceDeliveryCreatePage = () => {
                     !Number.isFinite(
                         quantity
                     ) ||
-                    quantity < 1
+                    quantity <= 0
                 ) {
 
                     alert(
-                        `Quantity must be at least 1 for item ${i + 1}.`
+                        `Quantity must be more than 0 for item ${i + 1}.`
                     );
 
 

@@ -75,21 +75,19 @@ const detailItemSchema =
         // Quantity
         // --------------------------------------------------
 
+        // Above 0; whole numbers unless the unit is a weight
+        // or volume (the service checks the unit)
         quantity:
             Joi.number()
-                .integer()
-                .min(1)
+                .greater(0)
                 .required()
                 .messages({
 
                     "number.base":
                         "Detail item quantity must be a number.",
 
-                    "number.integer":
-                        "Detail item quantity must be a whole number.",
-
-                    "number.min":
-                        "Detail item quantity must be at least 1.",
+                    "number.greater":
+                        "Detail item quantity must be more than 0.",
 
                     "any.required":
                         "Detail item quantity is required."
@@ -109,6 +107,40 @@ const detailItemSchema =
 
                     "string.pattern.base":
                         "Detail item unit ID must be a valid ID."
+
+                }),
+
+
+        // --------------------------------------------------
+        // Allocation unit + conversion (optional)
+        //
+        // Delivered in one unit, given out in another:
+        // 1 Sack (unit) = 50 Kg (allocation unit), so the
+        // factor is 50 and allocations are counted in Kg.
+        // --------------------------------------------------
+
+        allocationUnit:
+            objectId
+                .allow(null, "")
+                .default(null)
+                .messages({
+
+                    "string.pattern.base":
+                        "Detail item allocation unit ID must be a valid ID."
+
+                }),
+
+        allocationConversionFactor:
+            Joi.number()
+                .greater(0)
+                .default(1)
+                .messages({
+
+                    "number.base":
+                        "How many allocation units one detail unit holds must be a number.",
+
+                    "number.greater":
+                        "How many allocation units one detail unit holds must be more than 0."
 
                 }),
 
@@ -213,45 +245,33 @@ const serviceItemSchema =
         // --------------------------------------------------
         // Allocation Behavior
         //
-        // This is accepted for backward compatibility,
-        // but the backend MUST resolve the authoritative
-        // value from the selected ServiceType lookup.
+        // Always taken from the selected Service Type by
+        // the server; a value sent by the client is ignored
+        // (it could otherwise lift the quantity limit).
         // --------------------------------------------------
 
         allocationBehavior:
-            Joi.string()
-                .valid(
-                    "CONSUMPTION",
-                    "PARTICIPATION"
-                )
-                .optional()
-                .messages({
-
-                    "any.only":
-                        "Service item allocation behavior is invalid."
-
-                }),
+            Joi.any()
+                .strip(),
 
 
         // --------------------------------------------------
         // Quantity
         // --------------------------------------------------
 
+        // Above 0; whole numbers unless the unit is a weight
+        // or volume (the service checks the unit)
         quantity:
             Joi.number()
-                .integer()
-                .min(1)
+                .greater(0)
                 .required()
                 .messages({
 
                     "number.base":
                         "Service item quantity must be a number.",
 
-                    "number.integer":
-                        "Service item quantity must be a whole number.",
-
-                    "number.min":
-                        "Service item quantity must be at least 1.",
+                    "number.greater":
+                        "Service item quantity must be more than 0.",
 
                     "any.required":
                         "Service item quantity is required."
@@ -860,6 +880,8 @@ const createFields = {
             }),
 
 
+    // No default here: the service picks it from the
+    // recipient type and the beneficiaries (one rule set)
     allocationMethod:
         Joi.string()
             .valid(
@@ -868,7 +890,7 @@ const createFields = {
                 "Group",
                 "Unallocated"
             )
-            .default("Unallocated")
+            .optional()
             .messages({
 
                 "any.only":
@@ -1095,176 +1117,13 @@ const serverControlledFields = {
 
 
 // ======================================================
-// CREATE RECIPIENT RULES
+// RECIPIENT / ALLOCATION RULES
+//
+// Which allocation method fits which recipient type is
+// decided in ONE place: validateRecipientAndAllocation in
+// services/serviceDeliveryService.js. This schema only
+// checks that the values are known.
 // ======================================================
-
-const validateCreateRecipientRules =
-    (value, helpers) => {
-
-        const recipientType =
-            value.recipientType ||
-            "Individual";
-
-        const allocationMethod =
-            value.allocationMethod ||
-            "Unallocated";
-
-        const recipientName =
-            typeof value.recipientName === "string"
-                ? value.recipientName.trim()
-                : "";
-
-        const beneficiaries =
-            Array.isArray(value.beneficiaries)
-                ? value.beneficiaries
-                : [];
-
-        const hasLegacyBeneficiary =
-            value.beneficiary !== undefined &&
-            value.beneficiary !== null &&
-            value.beneficiary !== "";
-
-        const hasBeneficiaries =
-            beneficiaries.length > 0 ||
-            hasLegacyBeneficiary;
-
-
-        // ------------------------------------------------
-        // Named recipients
-        // ------------------------------------------------
-
-        if (
-            [
-                "Household",
-                "Group / Community",
-                "Institution"
-            ].includes(recipientType) &&
-            !recipientName
-        ) {
-
-            return helpers.error(
-                "any.recipientNameRequired"
-            );
-
-        }
-
-
-        // ------------------------------------------------
-        // Individual + Individual
-        // ------------------------------------------------
-
-        if (
-            recipientType === "Individual" &&
-            allocationMethod === "Individual" &&
-            !hasBeneficiaries
-        ) {
-
-            return helpers.error(
-                "any.beneficiaryRequired"
-            );
-
-        }
-
-
-        // ------------------------------------------------
-        // Individual + Shared
-        // ------------------------------------------------
-
-        if (
-            recipientType === "Individual" &&
-            allocationMethod === "Shared" &&
-            !hasBeneficiaries
-        ) {
-
-            return helpers.error(
-                "any.beneficiaryRequired"
-            );
-
-        }
-
-
-        // ------------------------------------------------
-        // Individual + Unallocated
-        //
-        // This is allowed only when there are no
-        // beneficiaries.
-        // ------------------------------------------------
-
-        if (
-            recipientType === "Individual" &&
-            allocationMethod === "Unallocated" &&
-            hasBeneficiaries
-        ) {
-
-            return helpers.error(
-                "any.individualUnallocated"
-            );
-
-        }
-
-
-        // ------------------------------------------------
-        // Group / Community
-        // ------------------------------------------------
-
-        if (
-            recipientType === "Group / Community" &&
-            ![
-                "Group",
-                "Unallocated"
-            ].includes(allocationMethod)
-        ) {
-
-            return helpers.error(
-                "any.invalidRecipientAllocation"
-            );
-
-        }
-
-
-        // ------------------------------------------------
-        // Household
-        // ------------------------------------------------
-
-        if (
-            recipientType === "Household" &&
-            ![
-                "Shared",
-                "Unallocated",
-                "Individual"
-            ].includes(allocationMethod)
-        ) {
-
-            return helpers.error(
-                "any.invalidRecipientAllocation"
-            );
-
-        }
-
-
-        // ------------------------------------------------
-        // Institution
-        // ------------------------------------------------
-
-        if (
-            recipientType === "Institution" &&
-            ![
-                "Shared",
-                "Unallocated",
-                "Group"
-            ].includes(allocationMethod)
-        ) {
-
-            return helpers.error(
-                "any.invalidRecipientAllocation"
-            );
-
-        }
-
-
-        return value;
-
-    };
 
 
 // ======================================================
@@ -1277,24 +1136,6 @@ const createServiceDeliverySchema =
         ...createFields,
 
         ...serverControlledFields
-
-    })
-    .custom(
-        validateCreateRecipientRules
-    )
-    .messages({
-
-        "any.recipientNameRequired":
-            "Recipient name is required for household, group/community, or institution service deliveries.",
-
-        "any.beneficiaryRequired":
-            "At least one beneficiary is required for this recipient and allocation combination.",
-
-        "any.individualUnallocated":
-            "An individual recipient with beneficiaries cannot use unallocated allocation.",
-
-        "any.invalidRecipientAllocation":
-            "The selected recipient type and allocation method are not compatible."
 
     });
 

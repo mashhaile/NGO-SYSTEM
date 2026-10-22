@@ -7,6 +7,12 @@ const Project = require("../../models/Project");
 const Activity = require("../../models/Activity");
 const ActivityRun = require("../../models/ActivityRun");
 const ServiceDelivery = require("../../models/ServiceDelivery");
+
+const {
+    roundMoney,
+    findMemberDeliveryScope,
+    expandToMembers
+} = require("./beneficiaryShares");
 const Lookup = require("../../models/Lookup");
 
 
@@ -548,15 +554,21 @@ const generate = async (
     // SERVICE DELIVERIES
     // =================================================
 
+    // Members are linked to deliveries through
+    // ServiceDeliveryBeneficiary (old deliveries: on the delivery)
+    const memberScope =
+        await findMemberDeliveryScope(
+            organizationId,
+            beneficiaryIds
+        );
+
+
     const serviceQuery = {
 
         organization:
             organizationId,
 
-        beneficiary: {
-            $in:
-                beneficiaryIds
-        },
+        ...memberScope.filter,
 
         isDeleted:
             false,
@@ -612,7 +624,7 @@ const generate = async (
     }
 
 
-    const services =
+    const servicesFound =
         await ServiceDelivery.find(
             serviceQuery
         )
@@ -653,6 +665,16 @@ const generate = async (
             "name value code"
         )
         .lean();
+
+
+    // One row per member: the delivery as they received it
+    const services =
+        await expandToMembers(
+            organizationId,
+            servicesFound,
+            memberScope.links,
+            beneficiaryIds
+        );
 
 
     // =================================================
@@ -1145,8 +1167,8 @@ const generate = async (
                     programData.summary.quantity +=
                         quantity;
 
-                    programData.summary.supportValue +=
-                        supportValue;
+                    programData.summary.supportValue =
+                        roundMoney(programData.summary.supportValue + supportValue);
 
 
                     enterpriseData.summary.services++;
@@ -1154,8 +1176,8 @@ const generate = async (
                     enterpriseData.summary.quantity +=
                         quantity;
 
-                    enterpriseData.summary.supportValue +=
-                        supportValue;
+                    enterpriseData.summary.supportValue =
+                        roundMoney(enterpriseData.summary.supportValue + supportValue);
 
                 }
             );
@@ -1325,8 +1347,8 @@ const generate = async (
                         program.summary.quantity;
 
 
-                    totalSupportValue +=
-                        program.summary.supportValue;
+                    totalSupportValue =
+                        roundMoney(totalSupportValue + program.summary.supportValue);
 
                 }
             );

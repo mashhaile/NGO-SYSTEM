@@ -1091,6 +1091,207 @@ test("revisions: return and cancel", { skip }, async () => {
 // ERROR CODES + SEARCH
 // =====================================================
 
+// =====================================================
+// SERVICE DELIVERY
+// =====================================================
+
+const serviceDeliverySetup = async () => {
+
+    if (state.sd) return state.sd;
+
+    const token = state.tokenA;
+
+    const lookups = async (module, category) =>
+        (await api("GET", `/lookups/module/${module}/category/${category}`, { token })).data.data;
+
+    const types = await lookups("ServiceDelivery", "ServiceType");
+    const units = Object.fromEntries((await lookups("ServiceDelivery", "Unit")).map(unit => [unit.value, unit._id]));
+    const genders = Object.fromEntries((await lookups("Beneficiary", "Gender")).map(gender => [gender.value, gender._id]));
+
+    const program = await api("POST", "/programs", { token, body: { name: "Service Delivery Test Program", startDate: "2026-01-01" } });
+    assert.ok(program.status < 300, program.data?.message);
+
+    const people = [];
+    for (const [index, [firstName, lastName]] of [["Almaz", "Kebede"], ["Hana", "Tesfaye"], ["Selam", "Girma"]].entries()) {
+        const person = await api("POST", "/beneficiaries", {
+            token,
+            body: { firstName, lastName, gender: genders.Female, dateOfBirth: "1995-03-10", phone: `091200000${index}` }
+        });
+        assert.ok(person.status < 300, person.data?.message);
+        people.push(person.data.data._id);
+    }
+
+    const item = (typeName, unitName, quantity, unitCost, extra = {}) => {
+        const type = types.find(found => found.value === typeName);
+        assert.ok(type, `service type ${typeName}`);
+        return {
+            _id: new mongoose.Types.ObjectId().toString(),
+            serviceCategory: String(type.parentLookup?._id || type.parentLookup),
+            serviceType: type._id,
+            quantity,
+            unit: units[unitName],
+            unitCost,
+            ...extra
+        };
+    };
+
+    const create = (body) =>
+        api("POST", "/service-deliveries", {
+            token,
+            body: { program: program.data.data._id, deliveryDate: "2026-05-01", status: "Delivered", ...body }
+        });
+
+    const shares = (serviceItem, quantity, allocatedValue, extra = {}) =>
+        people.map(beneficiary => ({
+            beneficiary,
+            allocations: [{ serviceItem: serviceItem._id, quantity, ...(allocatedValue === undefined ? {} : { allocatedValue }), ...extra }]
+        }));
+
+    state.sd = { token, units, people, item, create, shares };
+
+    return state.sd;
+
+};
+
+
+test("service delivery: behavior comes from the service type, not the client", { skip }, async () => {
+
+    const { token, item, create, shares } = await serviceDeliverySetup();
+
+    // A training: everyone takes part in all 3 sessions
+    const training = item("Business Skills Training", "Session", 3, 1000);
+    const accepted = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [training], beneficiaries: shares(training, 3, 1000) });
+    assert.ok(accepted.status < 300, accepted.data?.message);
+
+    const saved = await api("GET", `/service-deliveries/${accepted.data.data._id}`, { token });
+    assert.equal(saved.data.data.items[0].allocationBehavior, "PARTICIPATION");
+
+    // Hygiene kits are used up: claiming PARTICIPATION does not let 2 kits reach 6 people
+    const kits = item("Hygiene Kit", "Set", 2, 750, { allocationBehavior: "PARTICIPATION" });
+    const refused = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [kits], beneficiaries: shares(kits, 2, 500) });
+    assert.equal(refused.status, 400);
+
+});
+
+
+test("service delivery: units, whole numbers and detail items", { skip }, async () => {
+
+    const { units, people, item, create } = await serviceDeliverySetup();
+
+    const shared = (items) => create({ recipientType: "Individual", allocationMethod: "Shared", items, beneficiaries: people });
+
+    // a unit the service type does not allow
+    const wrongUnit = await shared([item("School Fees", "Kg", 5, 100)]);
+    assert.equal(wrongUnit.status, 400);
+    assert.match(wrongUnit.data.message, /cannot be recorded in/);
+
+    // weights take parts, countable things do not
+    assert.ok((await shared([item("Food Assistance", "Kg", 12.5, 80)])).status < 300);
+    const halfKit = await shared([item("Hygiene Kit", "Set", 2.5, 750)]);
+    assert.equal(halfKit.status, 400);
+    assert.match(halfKit.data.message, /whole number/);
+
+    // the breakdown must add up to the item's cost
+    const mismatch = await shared([item("School Supplies", "Set", 2, 100, { detailItems: [{ name: "Books", quantity: 10, unit: units.Piece, unitCost: 100 }] })]);
+    assert.equal(mismatch.status, 400);
+    assert.match(mismatch.data.message, /must be equal/);
+
+    // a detail item needs a unit
+    const noUnit = await shared([item("School Supplies", "Set", 3, 100, { detailItems: [{ name: "Books", quantity: 3, unitCost: 100 }] })]);
+    assert.equal(noUnit.status, 400);
+    assert.match(noUnit.data.message, /needs a unit/);
+
+    // cash is not broken down into goods
+    const cashToGoods = await shared([item("Cash Assistance", "ETB", 3, 1000, { detailItems: [{ name: "Rice", quantity: 3, unit: units.Kg, unitCost: 1000 }] })]);
+    assert.equal(cashToGoods.status, 400);
+
+});
+
+
+test("service delivery: shares, conversion and automatic values", { skip }, async () => {
+
+    const { token, units, people, item, create, shares } = await serviceDeliverySetup();
+
+    // Individual allocation: everyone needs a share
+    const kits = item("Hygiene Kit", "Set", 3, 750);
+    const missing = await create({
+        recipientType: "Individual",
+        allocationMethod: "Individual",
+        items: [kits],
+        beneficiaries: [
+            { beneficiary: people[0], allocations: [{ serviceItem: kits._id, quantity: 1, allocatedValue: 750 }] },
+            { beneficiary: people[1], allocations: [{ serviceItem: kits._id, quantity: 1, allocatedValue: 750 }] },
+            { beneficiary: people[2], allocations: [] }
+        ]
+    });
+    assert.equal(missing.status, 400);
+    assert.match(missing.data.message, /1 of 3/);
+
+    // 1 sack = 50 Kg: 10 Kg to each of 3 people fits
+    const detailId = new mongoose.Types.ObjectId().toString();
+    const rice = item("Food Assistance", "Kg", 1, 2500, {
+        detailItems: [{ _id: detailId, name: "Rice sack", quantity: 1, unit: units.Piece, allocationUnit: units.Kg, allocationConversionFactor: 50, unitCost: 2500 }]
+    });
+    const sack = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [rice], beneficiaries: shares(rice, 10, 500, { detailItem: detailId }) });
+    assert.ok(sack.status < 300, sack.data?.message);
+
+    // ...but 20 Kg each (60 of 50) does not
+    const rice2 = { ...rice, _id: new mongoose.Types.ObjectId().toString() };
+    const tooMuch = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [rice2], beneficiaries: shares(rice2, 20, 0, { detailItem: detailId }) });
+    assert.equal(tooMuch.status, 400);
+
+    // values left empty are worked out: one kit each = 750 each
+    const kits2 = item("Hygiene Kit", "Set", 3, 750);
+    const automatic = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [kits2], beneficiaries: shares(kits2, 1) });
+    assert.ok(automatic.status < 300, automatic.data?.message);
+
+    const saved = await api("GET", `/service-deliveries/${automatic.data.data._id}`, { token });
+    assert.deepEqual(saved.data.data.beneficiaries.map(person => person.allocations[0].allocatedValue), [750, 750, 750]);
+
+    // an institution is not split among people
+    const institution = await create({ recipientType: "Institution", recipientName: "Test School", allocationMethod: "Group", items: [item("School Supplies", "Set", 10, 100)], beneficiaries: people });
+    assert.equal(institution.status, 400);
+
+});
+
+
+test("reports: people and enterprises count each person's own share", { skip }, async () => {
+
+    const { token, people, item, create, shares } = await serviceDeliverySetup();
+
+    const report = async (name) => {
+        const res = await api("GET", `/reports/${name}?period=annual&year=2026`, { token });
+        assert.equal(res.status, 200, `${name}: ${res.data?.message}`);
+        return res.data.data.summary;
+    };
+
+    const before = await report("beneficiaryReport");
+
+    // 3 kits worth 2,250 to 3 people: 750 each, not 2,250 each
+    const kits = item("Hygiene Kit", "Set", 3, 750);
+    const delivery = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [kits], beneficiaries: shares(kits, 1, 750) });
+    assert.ok(delivery.status < 300, delivery.data?.message);
+
+    const after = await report("beneficiaryReport");
+    assert.equal(Math.round((after.totalSupportValue - before.totalSupportValue) * 100) / 100, 2250);
+
+    // two of them run an enterprise: it received 1,500 and 2 kits
+    const enterprise = await api("POST", "/enterprises", { token, body: { name: "Test Enterprise", beneficiaries: [people[0], people[1]] } });
+    assert.ok(enterprise.status < 300, enterprise.data?.message);
+
+    const impact = await api("GET", `/reports/enterpriseImpactReport?period=annual&year=2026&enterprise=${enterprise.data.data._id}`, { token });
+    assert.equal(impact.status, 200, impact.data?.message);
+
+    const row = impact.data.data.data.find(found => String(found.enterprise.id) === String(enterprise.data.data._id));
+    assert.ok(row, "the enterprise is in the report");
+
+    const fromThisDelivery = row.services.filter(service => String(service.deliveryId) === String(delivery.data.data._id));
+    assert.equal(fromThisDelivery.length, 2, "one row per member");
+    assert.equal(fromThisDelivery.reduce((sum, service) => sum + Number(service.totalAmount), 0), 1500);
+
+});
+
+
 test("errors: bad id 400, unknown id 404, bad JSON 400, unknown route 404", { skip }, async () => {
 
     assert.equal((await api("GET", "/programs/not-an-id", { token: state.tokenA })).status, 400);

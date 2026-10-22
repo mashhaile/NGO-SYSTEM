@@ -35,9 +35,35 @@ const generateSequence =
     require("../utils/generateSequence");
 
 const {
-    getUnitSemantics
+    getUnitSemantics,
+    allowsDecimalQuantity
 } =
     require("../config/serviceDeliveryUnits");
+
+
+// ======================================================
+// SMALL HELPERS (quantities, money, names)
+// ======================================================
+
+const roundMoney = (value) =>
+    Math.round(Number(value || 0) * 100) / 100;
+
+const formatMoney = (value) =>
+    Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const lookupLabel = (lookup) =>
+    lookup?.value || lookup?.name || lookup?.code || "the selected unit";
+
+// Countable units take whole numbers; weights / volumes take parts
+const assertQuantityFitsUnit = (quantity, unit, what) => {
+
+    if (!allowsDecimalQuantity(unit) && !Number.isInteger(Number(quantity))) {
+        throw new Error(
+            `${what} must be a whole number of ${lookupLabel(unit)} (decimals are only for weights and volumes such as Kg or Liter).`
+        );
+    }
+
+};
 
 const {
     SERVICE_DELIVERY_STATUS,
@@ -1113,7 +1139,8 @@ const validateServiceTypeParent = (
 
 const validateDetailItems = async (
     detailItems,
-    organizationId
+    organizationId,
+    parent = null
 ) => {
 
     if (
@@ -1184,10 +1211,10 @@ const validateDetailItems = async (
             !Number.isFinite(
                 quantity
             ) ||
-            quantity < 1
+            quantity <= 0
         ) {
             throw new Error(
-                "Detail item quantity must be at least 1."
+                "Detail item quantity must be more than 0."
             );
         }
 
@@ -1223,33 +1250,54 @@ const validateDetailItems = async (
             );
         }
 
+        const detailName =
+            detailItem.name || "A detail item";
+
+        // Every detail item needs a unit (it is counted and
+        // allocated in it)
         if (
-            detailItem.unit
+            !detailItem.unit
         ) {
-
-            const unit =
-                await validateServiceDeliveryLookup(
-                    detailItem.unit,
-                    organizationId,
-                    "Unit",
-                    "Detail item unit"
-                );
-
-            const semantics =
-                resolveUnitSemantics(
-                    unit
-                );
-
-            if (
-                semantics ===
-                "unknown"
-            ) {
-                throw new Error(
-                    `Detail item unit '${unit.value || unit.name || unit.code}' does not have recognized service delivery allocation semantics.`
-                );
-            }
-
+            throw new Error(
+                `${detailName} needs a unit.`
+            );
         }
+
+        const unit =
+            await validateServiceDeliveryLookup(
+                detailItem.unit,
+                organizationId,
+                "Unit",
+                "Detail item unit"
+            );
+
+        const semantics =
+            resolveUnitSemantics(
+                unit
+            );
+
+        if (
+            semantics ===
+            "unknown"
+        ) {
+            throw new Error(
+                `Detail item unit '${unit.value || unit.name || unit.code}' does not have recognized service delivery allocation semantics.`
+            );
+        }
+
+        // Money is broken down into money, goods into goods
+        if (
+            parent?.unitSemantics &&
+            semantics !== parent.unitSemantics
+        ) {
+            throw new Error(
+                parent.unitSemantics === "monetary"
+                    ? `${parent.label} is an amount of money; ${detailName} in ${lookupLabel(unit)} cannot be part of it.`
+                    : `${parent.label} is counted in goods; ${detailName} cannot be an amount of money.`
+            );
+        }
+
+        assertQuantityFitsUnit(quantity, unit, `The quantity of ${detailName}`);
 
         if (
             detailItem.allocationUnit
@@ -1277,6 +1325,51 @@ const validateDetailItems = async (
                 );
             }
 
+            // 1 Sack = 50 Kg: only goods are converted
+            if (
+                semantics !== "physical" ||
+                allocationSemantics !== "physical"
+            ) {
+                throw new Error(
+                    `${detailName}: only goods can be given out in another unit.`
+                );
+            }
+
+        }
+
+        else if (
+            allocationConversionFactor !== 1
+        ) {
+            throw new Error(
+                `${detailName}: choose the unit it is given out in, or leave the conversion at 1.`
+            );
+        }
+
+    }
+
+    // The breakdown must add up to the item's cost
+    if (
+        parent &&
+        detailItems.length > 0
+    ) {
+
+        const detailTotal =
+            roundMoney(
+                detailItems.reduce(
+                    (sum, detailItem) => sum + Number(detailItem.quantity || 0) * Number(detailItem.unitCost || 0),
+                    0
+                )
+            );
+
+        const itemTotal =
+            roundMoney(parent.totalCost);
+
+        if (
+            Math.abs(detailTotal - itemTotal) > 0.01
+        ) {
+            throw new Error(
+                `The detail items of ${parent.label} add up to ${formatMoney(detailTotal)}, but the item costs ${formatMoney(itemTotal)}. They must be equal.`
+            );
         }
 
     }
@@ -1495,11 +1588,13 @@ const validateServiceItems = async (
             category._id
         );
 
+        // The service type decides how the quantity is given
+        // out; a value sent by the client never counts.
         const allocationBehavior =
-            resolveAllocationBehavior(
-                item,
-                serviceType
-            );
+            normalizeAllocationBehavior(
+                serviceType?.allocationBehavior
+            ) ||
+            "CONSUMPTION";
 
         if (
             !item.unit
@@ -1531,6 +1626,21 @@ const validateServiceItems = async (
             );
         }
 
+        // The unit must be one the service type allows
+        const allowedUnits =
+            Array.isArray(serviceType.allowedUnits)
+                ? serviceType.allowedUnits.map(value => String(value?._id || value))
+                : [];
+
+        if (
+            allowedUnits.length > 0 &&
+            !allowedUnits.includes(String(unit._id))
+        ) {
+            throw new Error(
+                `${lookupLabel(serviceType)} cannot be recorded in ${lookupLabel(unit)}. Choose one of the units allowed for this service type.`
+            );
+        }
+
         const quantity =
             Number(
                 item.quantity
@@ -1540,12 +1650,14 @@ const validateServiceItems = async (
             !Number.isFinite(
                 quantity
             ) ||
-            quantity < 1
+            quantity <= 0
         ) {
             throw new Error(
-                "Service item quantity must be at least 1."
+                "Service item quantity must be more than 0."
             );
         }
+
+        assertQuantityFitsUnit(quantity, unit, `The quantity of ${lookupLabel(serviceType)}`);
 
         const unitCost =
             Number(
@@ -1569,7 +1681,12 @@ const validateServiceItems = async (
             )
                 ? item.detailItems
                 : [],
-            organizationId
+            organizationId,
+            {
+                label: lookupLabel(serviceType),
+                unitSemantics,
+                totalCost: quantity * unitCost
+            }
         );
 
         await validateItemDonor(
@@ -2169,57 +2286,50 @@ const validateRecipientAndAllocation = (
             : 0;
 
     // ==================================================
-    // INDIVIDUAL RESOLUTION
+    // DEFAULT ALLOCATION METHOD
     //
-    // An Individual recipient with beneficiaries is
-    // always allocated by Individual.
-    //
-    // This also repairs old records that may have been
-    // saved as Unallocated.
+    // When none is given (or an individual recipient
+    // was saved as Unallocated):
+    //   Individual        -> Individual when shares are
+    //                        given, else Shared (evenly)
+    //   Household,
+    //   Institution       -> Shared with beneficiaries,
+    //                        else Unallocated
+    //   Group / Community -> Group with beneficiaries,
+    //                        else Unallocated
     // ==================================================
+
+    const hasShares =
+        Array.isArray(beneficiaryRecords) &&
+        beneficiaryRecords.some(
+            record =>
+                Array.isArray(record?.allocations) &&
+                record.allocations.length > 0
+        );
 
     if (
-        recipientType ===
-        "Individual"
+        recipientType === "Individual" &&
+        (
+            !allocationMethod ||
+            (allocationMethod === "Unallocated" && beneficiaryCount > 0)
+        )
     ) {
 
-        if (
-            beneficiaryCount >
-            0
-        ) {
-
-            if (
-                !allocationMethod ||
-                allocationMethod ===
-                "Unallocated"
-            ) {
-                allocationMethod =
-                    "Individual";
-            }
-
-        }
-
-        else if (
-            !allocationMethod
-        ) {
-
-            allocationMethod =
-                "Individual";
-
-        }
+        allocationMethod =
+            hasShares ? "Individual" : "Shared";
 
     }
-
-    // ==================================================
-    // DEFAULT ALLOCATION
-    // ==================================================
 
     if (
         !allocationMethod
     ) {
 
         allocationMethod =
-            "Unallocated";
+            beneficiaryCount === 0
+                ? "Unallocated"
+                : recipientType === "Group / Community"
+                    ? "Group"
+                    : "Shared";
 
     }
 
@@ -2567,6 +2677,44 @@ const validateBeneficiaryAllocations = async (
     const valueTotals =
         new Map();
 
+    // People allocated on each item (a participation item's
+    // value is shared equally among them)
+    const participantsPerItem =
+        new Map();
+
+    for (const record of beneficiaryRecords) {
+        const itemIds = new Set(
+            (Array.isArray(record?.allocations) ? record.allocations : [])
+                .map(allocation => String(allocation?.serviceItem || ""))
+                .filter(Boolean)
+        );
+        for (const itemId of itemIds) {
+            participantsPerItem.set(itemId, (participantsPerItem.get(itemId) || 0) + 1);
+        }
+    }
+
+    // Individual allocation: everyone gets their own share
+    if (
+        allocationMethod === "Individual"
+    ) {
+
+        const withoutShare =
+            beneficiaryRecords.filter(
+                record =>
+                    record?.beneficiary &&
+                    !(Array.isArray(record.allocations) && record.allocations.length)
+            ).length;
+
+        if (
+            withoutShare > 0
+        ) {
+            throw new Error(
+                `With individual allocation every beneficiary needs a share: ${withoutShare} of ${beneficiaryRecords.length} ${withoutShare === 1 ? "has" : "have"} none. Give them a share, or use shared allocation.`
+            );
+        }
+
+    }
+
     // ==================================================
     // BENEFICIARY ALLOCATIONS
     // ==================================================
@@ -2676,7 +2824,7 @@ const validateBeneficiaryAllocations = async (
             const quantity =
                 allocation.quantity;
 
-            const allocatedValue =
+            let allocatedValue =
                 allocation.allocatedValue;
 
             if (
@@ -2853,7 +3001,40 @@ const validateBeneficiaryAllocations = async (
 
                 };
 
+                // Given out in another unit: 1 Sack = 50 Kg, so
+                // the allocation is in Kg and 50 Kg per sack exist
+                if (
+                    detailItem.allocationUnit
+                ) {
+
+                    const allocationUnit =
+                        await validateServiceDeliveryLookup(
+                            detailItem.allocationUnit,
+                            organizationId,
+                            "Unit",
+                            "Detail item allocation unit"
+                        );
+
+                    effectiveUnitInfo = {
+
+                        unit:
+                            allocationUnit,
+
+                        unitSemantics:
+                            resolveUnitSemantics(allocationUnit)
+
+                    };
+
+                }
+
             }
+
+            // How much of the detail item exists, in the unit the
+            // allocation is counted in
+            const conversionFactor =
+                detailItem && detailItem.allocationUnit
+                    ? Number(detailItem.allocationConversionFactor || 1)
+                    : 1;
 
             // ==================================================
             // MONETARY
@@ -2883,6 +3064,12 @@ const validateBeneficiaryAllocations = async (
                 "physical"
             ) {
 
+                assertQuantityFitsUnit(
+                    quantity,
+                    effectiveUnitInfo.unit,
+                    "An allocated quantity"
+                );
+
                 if (
                     detailItem
                 ) {
@@ -2890,7 +3077,8 @@ const validateBeneficiaryAllocations = async (
                     const actualDetailQuantity =
                         Number(
                             detailItem.quantity
-                        );
+                        ) *
+                        conversionFactor;
 
                     if (
                         Number.isFinite(
@@ -2963,6 +3151,55 @@ const validateBeneficiaryAllocations = async (
                     }
 
                 }
+
+            }
+
+            // ==================================================
+            // AUTOMATIC VALUE
+            //
+            // Left at 0, the value is worked out: what this
+            // person's quantity costs (consumption), or an equal
+            // share of the item (participation). Rounded down so
+            // the shares never add up to more than the cost.
+            // ==================================================
+
+            if (
+                allocatedValue === 0 &&
+                quantity > 0 &&
+                effectiveUnitInfo.unitSemantics === "physical"
+            ) {
+
+                const floorMoney = (value) =>
+                    Math.floor(Number(value || 0) * 100 + 1e-6) / 100;
+
+                if (
+                    allocationBehavior === "PARTICIPATION"
+                ) {
+
+                    const cost =
+                        detailItem
+                            ? Number(detailItem.quantity || 0) * Number(detailItem.unitCost || 0)
+                            : Number(serviceItem.quantity || 0) * Number(serviceItem.unitCost || 0);
+
+                    allocatedValue =
+                        floorMoney(cost / Math.max(1, participantsPerItem.get(serviceItemId) || 1));
+
+                }
+
+                else {
+
+                    const unitPrice =
+                        detailItem
+                            ? Number(detailItem.unitCost || 0) / conversionFactor
+                            : Number(serviceItem.unitCost || 0);
+
+                    allocatedValue =
+                        floorMoney(quantity * unitPrice);
+
+                }
+
+                rawAllocation.allocatedValue =
+                    allocatedValue;
 
             }
 
@@ -3109,6 +3346,11 @@ const validateBeneficiaryAllocations = async (
         const actualDetailQuantity =
             Number(
                 detailItem.quantity
+            ) *
+            (
+                detailItem.allocationUnit
+                    ? Number(detailItem.allocationConversionFactor || 1)
+                    : 1
             );
 
         if (
@@ -3116,10 +3358,10 @@ const validateBeneficiaryAllocations = async (
                 actualDetailQuantity
             ) &&
             allocatedQuantity >
-                actualDetailQuantity
+                actualDetailQuantity + 1e-9
         ) {
             throw new Error(
-                `Total beneficiary allocation quantity for detail item ${detailItem.name || detailItemId} cannot exceed the actual detail item quantity.`
+                `Total beneficiary allocation quantity for detail item ${detailItem.name || detailItemId} cannot exceed the actual detail item quantity (${actualDetailQuantity}).`
             );
         }
 
@@ -3163,7 +3405,7 @@ const validateBeneficiaryAllocations = async (
 
         if (
             allocatedValue >
-            actualItemCost
+            actualItemCost + 0.01
         ) {
             throw new Error(
                 "Total beneficiary allocated value cannot exceed the actual service item cost."

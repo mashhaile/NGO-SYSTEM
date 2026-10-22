@@ -3,6 +3,11 @@ const Enrollment = require("../../models/enrollment");
 const EnterpriseMember = require("../../models/EnterpriseMember");
 const ServiceDelivery = require("../../models/ServiceDelivery");
 const ServiceDeliveryBeneficiary = require("../../models/ServiceDeliveryBeneficiary");
+const {
+    roundMoney,
+    getBeneficiarySupportValue,
+    buildDeliveryShares
+} = require("./beneficiaryShares");
 
 const {
     COUNTED_DELIVERY_FILTER
@@ -574,6 +579,17 @@ const generate = async (
             0;
 
 
+        // What everyone else on these deliveries was given
+        const deliveryShares =
+            await buildDeliveryShares(
+                organizationId,
+                serviceLinks.map(serviceLink => ({
+                    ...serviceLink,
+                    serviceDelivery: serviceMap.get(String(serviceLink.serviceDelivery))
+                }))
+            );
+
+
         for (
             const serviceLink
             of serviceLinks
@@ -620,8 +636,9 @@ const generate = async (
             // =========================================
             //
             // Individual service:
-            // The complete delivery value belongs to
-            // this beneficiary.
+            // What this person received: their own
+            // allocated value, or an equal share of
+            // what the other allocations leave.
             //
             // Group service:
             // Community / Household / Institution
@@ -639,13 +656,14 @@ const generate = async (
 
 
             const beneficiarySupportValue =
-                recipientType === "Individual"
-                    ? serviceAmount
-                    : 0;
+                getBeneficiarySupportValue(
+                    { ...serviceLink, serviceDelivery: service },
+                    deliveryShares
+                );
 
 
-            totalSupportValue +=
-                beneficiarySupportValue;
+            totalSupportValue =
+                roundMoney(totalSupportValue + beneficiarySupportValue);
 
 
             // =========================================
@@ -1295,7 +1313,7 @@ const generate = async (
     // =================================================
 
     const totalSupportValue =
-        report.reduce(
+        roundMoney(report.reduce(
 
             (
                 sum,
@@ -1306,7 +1324,7 @@ const generate = async (
 
             0
 
-        );
+        ));
 
 
     // =================================================

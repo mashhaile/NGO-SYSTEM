@@ -50,6 +50,11 @@ const detailItemSchema = new mongoose.Schema(
 
     // ======================================
     // Detail Quantity
+    //
+    // Above 0. Whole numbers for countable
+    // units (Piece, Set, ...); decimals for
+    // weights and volumes (Kg, Liter, Meter).
+    // The service checks which.
     // ======================================
 
     quantity: {
@@ -60,7 +65,7 @@ const detailItemSchema = new mongoose.Schema(
 
         default: 1,
 
-        min: 1
+        min: 0.001
 
     },
 
@@ -245,6 +250,8 @@ const serviceItemSchema = new mongoose.Schema(
     },
 
 
+    // Above 0; whole numbers unless the unit is a
+    // weight or volume (checked by the service).
     quantity: {
 
         type: Number,
@@ -253,7 +260,31 @@ const serviceItemSchema = new mongoose.Schema(
 
         default: 1,
 
-        min: 1
+        min: 0.001
+
+    },
+
+
+    // ======================================
+    // ALLOCATION BEHAVIOR
+    //
+    // Taken from the service type when the delivery
+    // is saved, and kept with it, so the delivery is
+    // always read the way it was checked:
+    //
+    //   CONSUMPTION   the quantity is shared out
+    //                 (10 kits for 10 people)
+    //   PARTICIPATION each person takes part in all
+    //                 of it (a 3-session training)
+    // ======================================
+
+    allocationBehavior: {
+
+        type: String,
+
+        enum: ["CONSUMPTION", "PARTICIPATION", null],
+
+        default: null
 
     },
 

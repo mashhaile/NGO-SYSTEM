@@ -116,38 +116,11 @@ const getLookupCode = (
 // BENEFICIARY SUPPORT VALUE
 // =====================================================
 
-const getBeneficiarySupportValue = (
-    service
-) => {
-
-    if (!service) {
-
-        return 0;
-
-    }
-
-
-    const recipientType =
-        service.recipientType ||
-        "Individual";
-
-
-    if (
-        recipientType !== "Individual"
-    ) {
-
-        return 0;
-
-    }
-
-
-    return (
-        Number(
-            service.totalAmount
-        ) || 0
-    );
-
-};
+const {
+    roundMoney,
+    getBeneficiarySupportValue,
+    buildDeliveryShares
+} = require("./beneficiaryShares");
 
 
 // =====================================================
@@ -1743,6 +1716,15 @@ const generate = async (
     );
 
 
+    // What each delivery leaves for people without an
+    // allocation of their own (counts everyone on it)
+    const deliveryShares =
+        await buildDeliveryShares(
+            organizationId,
+            validServiceLinks
+        );
+
+
     // =================================================
     // SERVICE MAP
     // =================================================
@@ -1872,7 +1854,7 @@ const generate = async (
 
 
         const totalSupportValue =
-            beneficiaryServices.reduce(
+            roundMoney(beneficiaryServices.reduce(
 
                 (
                     sum,
@@ -1884,9 +1866,7 @@ const generate = async (
 
 
                     const beneficiarySupportValue =
-                        getBeneficiarySupportValue(
-                            service
-                        );
+                        getBeneficiarySupportValue(link, deliveryShares);
 
 
                     return (
@@ -1898,7 +1878,7 @@ const generate = async (
 
                 0
 
-            );
+            ));
 
 
         const fullName = [
@@ -2210,9 +2190,7 @@ const generate = async (
 
 
                         const beneficiarySupportValue =
-                            getBeneficiarySupportValue(
-                                service
-                            );
+                            getBeneficiarySupportValue(link, deliveryShares);
 
 
                         const serviceItems =
@@ -2480,17 +2458,19 @@ const generate = async (
 
 
     const totalSupportValue =
-        report.reduce(
+        roundMoney(
+            report.reduce(
 
-            (
-                sum,
-                item
-            ) =>
-                sum +
-                item.totalValue,
+                (
+                    sum,
+                    item
+                ) =>
+                    sum +
+                    item.totalValue,
 
-            0
+                0
 
+            )
         );
 
 

@@ -1236,6 +1236,61 @@ const isAmountUnit = (
 
 
 // =====================================================
+// WHOLE OR DECIMAL QUANTITY
+// =====================================================
+// Weights, volumes and lengths take parts (12.5 Kg);
+// everything else is counted in whole numbers (same rule
+// as the server).
+
+const DECIMAL_UNIT_CODES = [
+    "KG",
+    "KILOGRAM",
+    "LITER",
+    "LITRE",
+    "METER"
+];
+
+const allowsDecimalQuantity = (
+    unit,
+    unitOptions
+) => {
+
+    const option =
+        findUnitOption(
+            unit,
+            unitOptions
+        );
+
+    return [
+        option?.code,
+        option?.label,
+        option?.name
+    ]
+        .filter(Boolean)
+        .some(
+            candidate =>
+                DECIMAL_UNIT_CODES.includes(
+                    normalizeUnitCode(
+                        candidate
+                    )
+                )
+        );
+
+};
+
+const quantityStep = (
+    unit,
+    unitOptions
+) =>
+    allowsDecimalQuantity(
+        unit,
+        unitOptions
+    )
+        ? "any"
+        : 1;
+
+
+// =====================================================
 // GET ALLOWED UNIT IDS
 // =====================================================
 
@@ -2599,12 +2654,14 @@ const ServiceDeliveryItemRow = ({
 
 
                     updatedItem.quantity =
-                        Number.isFinite(
-                            numericValue
-                        ) &&
-                        numericValue > 0
-                            ? numericValue
-                            : 1;
+                        value === ""
+                            ? ""
+                            : Number.isFinite(
+                                numericValue
+                            ) &&
+                            numericValue >= 0
+                                ? numericValue
+                                : existingItem?.quantity ?? 1;
 
                 }
 
@@ -2761,12 +2818,14 @@ const ServiceDeliveryItemRow = ({
 
 
                     updatedDetail.quantity =
-                        Number.isFinite(
-                            numericValue
-                        ) &&
-                        numericValue > 0
-                            ? numericValue
-                            : 1;
+                        value === ""
+                            ? ""
+                            : Number.isFinite(
+                                numericValue
+                            ) &&
+                            numericValue >= 0
+                                ? numericValue
+                                : existingDetail?.quantity ?? 1;
 
                 }
 
@@ -2803,6 +2862,49 @@ const ServiceDeliveryItemRow = ({
                             value
                         ) ||
                         null;
+
+                }
+
+                // Given out in another unit (1 Sack = 50 Kg)
+                else if (
+                    field ===
+                    "allocationUnit"
+                ) {
+
+                    updatedDetail.allocationUnit =
+                        normalizeLookupValue(
+                            value
+                        ) ||
+                        null;
+
+                    if (
+                        !updatedDetail.allocationUnit
+                    ) {
+                        updatedDetail.allocationConversionFactor =
+                            1;
+                    }
+
+                }
+
+                else if (
+                    field ===
+                    "allocationConversionFactor"
+                ) {
+
+                    const numericValue =
+                        Number(
+                            value
+                        );
+
+                    updatedDetail.allocationConversionFactor =
+                        value === ""
+                            ? ""
+                            : Number.isFinite(
+                                numericValue
+                            ) &&
+                            numericValue >= 0
+                                ? numericValue
+                                : existingDetail?.allocationConversionFactor ?? 1;
 
                 }
 
@@ -2918,6 +3020,12 @@ const ServiceDeliveryItemRow = ({
 
                     unit:
                         null,
+
+                    allocationUnit:
+                        null,
+
+                    allocationConversionFactor:
+                        1,
 
                     unitCost:
                         0,
@@ -3233,6 +3341,102 @@ const ServiceDeliveryItemRow = ({
             : [];
 
 
+    // Money is broken down into money, goods into goods
+    const parentUnitChosen =
+        Boolean(
+            normalizeLookupValue(
+                item?.unit
+            )
+        );
+
+    const detailUnitOptions =
+        parentUnitChosen
+            ? unitOptions.filter(
+                option =>
+                    isAmountUnit(
+                        option?.value,
+                        unitOptions
+                    ) ===
+                    amountUnit
+            )
+            : unitOptions;
+
+    // Units goods can be given out in (Sack -> Kg); not
+    // money, and not time (days, hours, sessions)
+    const goodsUnitOptions =
+        unitOptions.filter(
+            option =>
+                !isAmountUnit(
+                    option?.value,
+                    unitOptions
+                ) &&
+                ![
+                    "DAY",
+                    "HOUR",
+                    "SESSION",
+                    "WEEK",
+                    "MONTH"
+                ].includes(
+                    normalizeUnitCode(
+                        option?.code ||
+                        option?.label
+                    )
+                )
+        );
+
+    const unitName = (
+        unit
+    ) =>
+        findUnitOption(
+            unit,
+            unitOptions
+        )?.label ||
+        "unit";
+
+
+    // The breakdown must add up to the item's cost
+    const itemTotalCost =
+        calculateTotalCost(
+            item?.quantity,
+            item?.unitCost
+        );
+
+    const detailItemsTotal =
+        detailItems.reduce(
+            (
+                sum,
+                detail
+            ) =>
+                sum +
+                calculateTotalCost(
+                    detail?.quantity,
+                    detail?.unitCost
+                ),
+            0
+        );
+
+    const detailTotalMismatch =
+        detailItems.length > 0 &&
+        Math.abs(
+            detailItemsTotal -
+            itemTotalCost
+        ) >
+        0.01;
+
+    const formatAmount = (
+        value
+    ) =>
+        Number(
+            value || 0
+        ).toLocaleString(
+            "en-US",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+
     // =================================================
     // RENDER SINGLE SERVICE ITEM
     // =================================================
@@ -3350,8 +3554,12 @@ const ServiceDeliveryItemRow = ({
                             )
                     }
                     inputProps={{
-                        min: 1,
-                        step: 1
+                        min: 0,
+                        step:
+                            quantityStep(
+                                item?.unit,
+                                unitOptions
+                            )
                     }}
                     fullWidth
                 />
@@ -3590,6 +3798,13 @@ const ServiceDeliveryItemRow = ({
                                             );
 
 
+                                        const detailAllocationUnitValue =
+                                            normalizeLookupValue(
+                                                detailItem?.allocationUnit
+                                            ) ||
+                                            "";
+
+
                                         const detailTotal =
                                             calculateTotalCost(
                                                 detailItem?.quantity,
@@ -3652,8 +3867,12 @@ const ServiceDeliveryItemRow = ({
                                                             )
                                                     }
                                                     inputProps={{
-                                                        min: 1,
-                                                        step: 1
+                                                        min: 0,
+                                                        step:
+                                                            quantityStep(
+                                                                detailItem?.unit,
+                                                                unitOptions
+                                                            )
                                                     }}
                                                     fullWidth
                                                 />
@@ -3665,7 +3884,7 @@ const ServiceDeliveryItemRow = ({
                                                         detailUnitValue
                                                     }
                                                     options={
-                                                        unitOptions
+                                                        detailUnitOptions
                                                     }
                                                     onChange={
                                                         (event) =>
@@ -3740,6 +3959,105 @@ const ServiceDeliveryItemRow = ({
 
                                                 </Box>
 
+
+                                                {/* Given out in another unit: 1 Sack = 50 Kg */}
+
+                                                {!amountUnit && (
+
+                                                    <Box
+                                                        sx={{
+                                                            gridColumn: "1 / -1",
+                                                            display: "grid",
+                                                            gridTemplateColumns: {
+                                                                xs: "1fr",
+                                                                md: "2fr 1fr 2fr"
+                                                            },
+                                                            gap: 2,
+                                                            alignItems: "center"
+                                                        }}
+                                                    >
+
+                                                        <AppSelect
+                                                            label="Given out in"
+                                                            placeholder="Same unit"
+                                                            value={
+                                                                detailAllocationUnitValue
+                                                            }
+                                                            options={
+                                                                goodsUnitOptions.filter(
+                                                                    option =>
+                                                                        String(option?.value) !==
+                                                                        String(detailUnitValue)
+                                                                )
+                                                            }
+                                                            onChange={
+                                                                (event) =>
+                                                                    updateDetailItem(
+                                                                        detailIndex,
+                                                                        "allocationUnit",
+                                                                        event?.target?.value ??
+                                                                        event
+                                                                    )
+                                                            }
+                                                            disabled={
+                                                                !detailUnitValue
+                                                            }
+                                                            fullWidth
+                                                        />
+
+
+                                                        {detailAllocationUnitValue && (
+
+                                                            <AppTextField
+                                                                label={
+                                                                    `${unitName(detailUnitValue)} holds`
+                                                                }
+                                                                type="number"
+                                                                value={
+                                                                    detailItem?.allocationConversionFactor ??
+                                                                    1
+                                                                }
+                                                                onChange={
+                                                                    (event) =>
+                                                                        updateDetailItem(
+                                                                            detailIndex,
+                                                                            "allocationConversionFactor",
+                                                                            event?.target?.value
+                                                                        )
+                                                                }
+                                                                inputProps={{
+                                                                    min: 0,
+                                                                    step: "any"
+                                                                }}
+                                                                helperText={
+                                                                    unitName(detailAllocationUnitValue)
+                                                                }
+                                                                fullWidth
+                                                            />
+
+                                                        )}
+
+
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                color: "text.secondary",
+                                                                gridColumn: detailAllocationUnitValue
+                                                                    ? "auto"
+                                                                    : { md: "span 2" }
+                                                            }}
+                                                        >
+                                                            {
+                                                                detailAllocationUnitValue
+                                                                    ? `1 ${unitName(detailUnitValue)} = ${Number(detailItem?.allocationConversionFactor || 0)} ${unitName(detailAllocationUnitValue)}. Beneficiaries share ${Number(detailItem?.quantity || 0) * Number(detailItem?.allocationConversionFactor || 0)} ${unitName(detailAllocationUnitValue)}.`
+                                                                    : "Beneficiaries receive it in the same unit."
+                                                            }
+                                                        </Typography>
+
+                                                    </Box>
+
+                                                )}
+
                                             </Box>
 
                                         );
@@ -3751,6 +4069,21 @@ const ServiceDeliveryItemRow = ({
                         </Box>
                     )
             }
+
+
+            {detailTotalMismatch && (
+
+                <Alert
+                    severity="warning"
+                    variant="outlined"
+                    sx={{
+                        mt: 2
+                    }}
+                >
+                    The detail items add up to {formatAmount(detailItemsTotal)}, but this item costs {formatAmount(itemTotalCost)}. They must be equal before you can save.
+                </Alert>
+
+            )}
 
         </Box>
     );

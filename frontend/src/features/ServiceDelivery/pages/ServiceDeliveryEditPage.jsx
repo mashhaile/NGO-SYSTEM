@@ -885,7 +885,7 @@ const normalizeDetailItems = (
                 Number.isFinite(
                     quantity
                 ) &&
-                quantity >= 1
+                quantity > 0
                     ? quantity
                     : 1;
 
@@ -926,6 +926,19 @@ const normalizeDetailItems = (
                     detailItem?.unit
                 ) ||
                 "";
+
+            // Given out in another unit (1 Sack = 50 Kg)
+            normalizedDetailItem.allocationUnit =
+                getId(
+                    detailItem?.allocationUnit
+                ) ||
+                null;
+
+            normalizedDetailItem.allocationConversionFactor =
+                normalizedDetailItem.allocationUnit &&
+                Number(detailItem?.allocationConversionFactor) > 0
+                    ? Number(detailItem.allocationConversionFactor)
+                    : 1;
 
 
             normalizedDetailItem.unitCost =
@@ -1069,7 +1082,7 @@ const normalizeDetailItemsForSubmit = (
                 Number.isFinite(
                     quantity
                 ) &&
-                quantity >= 1
+                quantity > 0
                     ? quantity
                     : 1;
 
@@ -1096,12 +1109,19 @@ const normalizeDetailItemsForSubmit = (
                     normalizedDetailItemId,
 
                 name,
-
                 quantity:
                     safeQuantity,
-
                 unit,
-
+                allocationUnit:
+                    getId(
+                        detailItem?.allocationUnit
+                    ) ||
+                    null,
+                allocationConversionFactor:
+                    getId(detailItem?.allocationUnit) &&
+                    Number(detailItem?.allocationConversionFactor) > 0
+                        ? Number(detailItem.allocationConversionFactor)
+                        : 1,
                 unitCost:
                     safeUnitCost,
 
@@ -1232,7 +1252,7 @@ const normalizeItems = (
                 Number.isFinite(
                     quantity
                 ) &&
-                quantity >= 1
+                quantity > 0
                     ? quantity
                     : 1;
 
@@ -1459,7 +1479,7 @@ const normalizeItemsForSubmit = (
                 Number.isFinite(
                     quantity
                 ) &&
-                quantity >= 1
+                quantity > 0
                     ? quantity
                     : 1;
 

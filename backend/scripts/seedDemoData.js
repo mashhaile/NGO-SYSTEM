@@ -884,7 +884,7 @@ const setupServiceDeliveries = async () => {
     await delivery("hygiene", "Hygiene kits to 10 girls", {
         recipientType: "Individual", allocationMethod: "Shared", beneficiaries: peopleIn("girls", 10),
         program: ids.programs.women, project: ids.projects.girls, activity: ids.activities.girls, activityRun: ids.runs.girls1,
-        items: [serviceItem("Hygiene Kit", "Pack", 10, 750, "wef", "girls")],
+        items: [serviceItem("Hygiene Kit", "Set", 10, 750, "wef", "girls")],
         deliveryDate: "2026-04-05", ...am
     });
 
@@ -892,7 +892,7 @@ const setupServiceDeliveries = async () => {
         recipientType: "Group / Community", recipientName: "Afar water committee, phase 1", allocationMethod: "Group",
         beneficiaries: peopleIn("water", 7),
         program: ids.programs.wash, project: ids.projects.water, activity: ids.activities.water, activityRun: ids.runs.water1,
-        items: [serviceItem("WASH Supplies", "Set", 7, 2500, "gef", "water")],
+        items: [serviceItem("WASH Supplies", "Box", 7, 2500, "gef", "water")],
         deliveryDate: "2026-06-12", ...af
     });
 

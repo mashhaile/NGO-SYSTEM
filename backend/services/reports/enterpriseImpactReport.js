@@ -2,6 +2,12 @@ const Enterprise = require("../../models/Enterprise");
 const EnterpriseMember = require("../../models/EnterpriseMember");
 const ServiceDelivery = require("../../models/ServiceDelivery");
 
+const {
+    roundMoney,
+    findMemberDeliveryScope,
+    expandToMembers
+} = require("./beneficiaryShares");
+
 
 // =====================================================
 // DATE FILTER
@@ -483,15 +489,21 @@ const generate = async (
         // SERVICE DELIVERIES
         // ---------------------------------------------
 
+        // Members are linked to deliveries through
+        // ServiceDeliveryBeneficiary (old deliveries: on the delivery)
+        const memberScope =
+            await findMemberDeliveryScope(
+                organizationId,
+                beneficiaryIds
+            );
+
+
         const serviceQuery = {
 
             organization:
                 organizationId,
 
-            beneficiary: {
-                $in:
-                    beneficiaryIds
-            },
+            ...memberScope.filter,
 
             isDeleted:
                 false,
@@ -554,7 +566,7 @@ const generate = async (
         }
 
 
-        const deliveries =
+        const deliveriesFound =
             await ServiceDelivery.find(
                 serviceQuery
             )
@@ -594,6 +606,16 @@ const generate = async (
                 deliveryDate:
                     -1
             });
+
+
+        // One row per member: the delivery as they received it
+        const deliveries =
+            await expandToMembers(
+                organizationId,
+                deliveriesFound,
+                memberScope.links,
+                beneficiaryIds
+            );
 
 
         // =================================================
@@ -979,7 +1001,7 @@ const generate = async (
 
 
         const totalSupportValue =
-            serviceRows.reduce(
+            roundMoney(serviceRows.reduce(
 
                 (
                     total,
@@ -992,7 +1014,7 @@ const generate = async (
 
                 0
 
-            );
+            ));
 
 
         // =================================================
@@ -1217,7 +1239,7 @@ const generate = async (
                 ),
 
             totalSupportValue:
-                rows.reduce(
+                roundMoney(rows.reduce(
                     (
                         total,
                         row
@@ -1225,7 +1247,7 @@ const generate = async (
                         total +
                         row.summary.totalSupportValue,
                     0
-                )
+                ))
 
         },
 
