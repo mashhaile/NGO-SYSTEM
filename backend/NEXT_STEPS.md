@@ -82,17 +82,19 @@ until purchase orders exist).
   helpers: hooks/useServerList, utils/permissions, utils/apiError.
   Donations and Service Deliveries APIs have no paging / search, so those
   two filter in the browser (fine for now; add server paging if they grow).
-- Live TOR-000001 has currency "150000": set it to ETB on next deploy.
 - Budgets module is the ONLY source of budget numbers (DONE, local only):
   the typed Program "budget" / Project "approvedBudget" fields are gone;
   lists, detail pages, Project report and Dashboard read
   services/budgetFigures.js. On the next deploy, after a backup, run on live:
   node scripts/removeOldBudgetFields.js --uri-file .env.atlas --db ngo_system --dry-run
   then without --dry-run.
-- Next deploy, also run on live (each with --dry-run first, after a backup):
-  node scripts/repairDonationLinks.js --uri-file .env.atlas --db ngo_system
-  node scripts/cleanupDefaultLookups.js --uri-file .env.atlas --db ngo_system
-  node scripts/updatePlanLimit.js --plan FREE --limit users --value 5 --uri-file .env.atlas --db ngo_system
+- 2026-10-22 live: deployed; backup backups/ngo_system-2026-10-22T09-11-38;
+  ran removeOldBudgetFields, cleanupDefaultLookups, updatePlanLimit (Free = 5
+  users) and the TOR currency fix; organization counter aligned (sign-up was
+  failing with a duplicate organizationCode, now also fixed in code).
+- Live demo organization ORG-000003 "Hope for Ethiopia Development
+  Association": logins *@heda-demo.org, password Demo2026pass. The password
+  is known; it is on the public site because the owner chose so.
 - Local demo data: backups/DEMO-heda-2026-10-22 (logins *@heda-demo.org,
   password Demo2026pass). Rebuild: node scripts/seedDemoData.js --reset --yes
   (local only, never on live).

@@ -491,11 +491,14 @@ const createOrganization = async (
     // GENERATE ORGANIZATION CODE
     // =================================================
 
+    // Skips codes already in use (organizations created before
+    // the counter existed would otherwise block every sign-up)
     const organizationCode =
         await generateSequence(
             "Organization",
             "ORG",
-            null
+            null,
+            (code) => Organization.exists({ organizationCode: code })
         );
 
 

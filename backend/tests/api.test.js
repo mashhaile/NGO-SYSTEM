@@ -269,6 +269,33 @@ test("sign-up: a new organization gets units and common lookups", { skip }, asyn
 });
 
 
+test("sign-up: works when the organization counter is behind existing codes", { skip }, async () => {
+
+    // Organizations created before the counter existed (live) made
+    // every new sign-up fail with a duplicate organizationCode.
+    await state.db.collection("counters").updateOne(
+        { module: "Organization", organization: null },
+        { $set: { sequence: 0 } }
+    );
+
+    const signup = await api("POST", "/organizations", {
+        body: {
+            name: "Counter Behind Org",
+            email: "org-counter@test.local",
+            phone: "0911000099",
+            country: "Ethiopia",
+            admin: { name: "Counter Admin", email: "admin-counter@test.local", password: "Counter2026x" }
+        }
+    });
+    assert.ok(signup.status < 300, `${signup.status} ${signup.data?.message}`);
+
+    const created = await state.db.collection("organizations").findOne({ email: "org-counter@test.local" });
+    const others = await state.db.collection("organizations").countDocuments({ organizationCode: created.organizationCode });
+    assert.equal(others, 1, "the code is unique");
+
+});
+
+
 test("super admin: a created organization also gets common lookups", { skip }, async () => {
 
     await run(

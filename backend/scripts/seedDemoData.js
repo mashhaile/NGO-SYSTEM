@@ -18,6 +18,12 @@
 // The backend must be running (API_URL, default
 // http://localhost:5000/api/v1).
 //
+// Add the demo organization to ANOTHER database (no reset,
+// existing organizations are not touched): give its API and
+// its connection (used only for the temporary super admin):
+//   API_URL=https://<site>/api/v1 node scripts/seedDemoData.js --uri-file .env.atlas --db ngo_system
+// --reset is refused for anything but the local database.
+//
 // Demo logins (password for all: Demo2026pass):
 //   admin@heda-demo.org     organization admin
 //   data@heda-demo.org      data entry
@@ -31,6 +37,8 @@ require("dotenv").config({ quiet: true });
 const mongoose = require("mongoose");
 
 const { hashPassword } = require("../utils/password");
+
+const { argument, connectForScript } = require("../utils/scriptConnection");
 
 
 const API = process.env.API_URL || "http://localhost:5000/api/v1";
@@ -1132,8 +1140,19 @@ const PHASES = [
 
 const main = async () => {
 
-    await mongoose.connect(process.env.MONGO_URI);
+    const remote = Boolean(argument("--uri-file") || argument("--db"));
+
+    if (RESET && (remote || !/localhost|127.0.0.1/.test(API))) {
+        throw new Error("--reset is only allowed on the local database and local API.");
+    }
+
+    await connectForScript();
     console.log(`Database: ${mongoose.connection.name}   API: ${API}`);
+
+    // Never create the demo organization twice
+    if (!RESET && await mongoose.connection.db.collection("organizations").findOne({ email: `info@${DOMAIN}` })) {
+        throw new Error(`The demo organization (info@${DOMAIN}) already exists in this database.`);
+    }
 
     if (RESET) {
         if (!CONFIRMED) throw new Error("--reset deletes all organization data. Add --yes to confirm.");
