@@ -6,7 +6,6 @@ import {
     ListItemText,
     Typography,
     Box,
-    Collapse,
     Divider,
     IconButton,
     Select,
@@ -26,14 +25,11 @@ import {
     FactCheck,
     VolunteerActivism,
     AccountBalance,
-    Settings,
     LocalShipping,
     ManageSearch,
     Business,
     ManageAccounts,
     Tune,
-    ExpandLess,
-    ExpandMore,
     Close,
     AdminPanelSettings,
     Apartment,
@@ -44,12 +40,11 @@ import {
     ReceiptLong,
     Group,
     HowToReg,
-    Groups
+    LockOutlined
 } from "@mui/icons-material";
 
 import {
-    NavLink,
-    useLocation
+    NavLink
 } from "react-router-dom";
 
 import {
@@ -95,19 +90,25 @@ const GREEN_HOVER = "#f0fdf4";
 /* ==========================================================
    NAVIGATION
    ----------------------------------------------------------
-   Items and groups, in menu order. A group opens as a
-   dropdown; it is hidden when the user may see none of its
-   items, and shown as a plain item when only one is left.
+   Sections in menu order: a title with its items always
+   visible (no dropdowns). Items the user may not open are
+   shown greyed out (not clickable), so everyone sees what
+   the system has. Admin sections (adminOnly) are left out
+   entirely for users who cannot use them.
 ========================================================== */
 
-const MAIN_NAVIGATION = [
-
-    { label: "Dashboard", path: "/dashboard", icon: <Dashboard /> },
+const SECTIONS = [
 
     {
-        key: "beneficiaries",
-        label: "Beneficiaries",
-        icon: <Groups />,
+        title: "Main",
+        items: [
+            { label: "Dashboard", path: "/dashboard", icon: <Dashboard /> },
+            { label: "Reports", path: "/reports", icon: <Assessment />, permission: "report.read" }
+        ]
+    },
+
+    {
+        title: "Beneficiaries",
         items: [
             { label: "Beneficiaries", path: "/beneficiaries", icon: <People />, permission: "beneficiary.read" },
             { label: "Enrollments", path: "/enrollments", icon: <HowToReg />, permission: "enrollment.read" },
@@ -116,12 +117,15 @@ const MAIN_NAVIGATION = [
         ]
     },
 
-    { label: "Service Delivery", path: "/service-deliveries", icon: <LocalShipping />, permission: "service.read" },
+    {
+        title: "Services",
+        items: [
+            { label: "Service Delivery", path: "/service-deliveries", icon: <LocalShipping />, permission: "service.read" }
+        ]
+    },
 
     {
-        key: "programs",
-        label: "Programs",
-        icon: <Folder />,
+        title: "Programs",
         items: [
             { label: "Programs", path: "/programs", icon: <Folder />, permission: "program.read" },
             { label: "Projects", path: "/projects", icon: <Assignment />, permission: "project.read" }
@@ -129,9 +133,7 @@ const MAIN_NAVIGATION = [
     },
 
     {
-        key: "activities",
-        label: "Activities",
-        icon: <EventNote />,
+        title: "Activities",
         items: [
             { label: "Terms of Reference", path: "/tors", icon: <Description />, permission: "tor.read" },
             { label: "Activities", path: "/activities", icon: <EventNote />, permission: "activity.read" },
@@ -141,9 +143,7 @@ const MAIN_NAVIGATION = [
     },
 
     {
-        key: "funding",
-        label: "Funding",
-        icon: <VolunteerActivism />,
+        title: "Funding",
         items: [
             { label: "Donors", path: "/donors", icon: <VolunteerActivism />, permission: "donor.read" },
             { label: "Donations", path: "/donations", icon: <AccountBalance />, permission: "donation.read" }
@@ -151,69 +151,39 @@ const MAIN_NAVIGATION = [
     },
 
     {
-        key: "finance",
-        label: "Finance",
-        icon: <Savings />,
+        title: "Finance",
         items: [
             { label: "Budgets", path: "/budgets", icon: <Savings />, permission: "budget.read" },
             { label: "Expenses", path: "/expenses", icon: <ReceiptLong />, permission: "expense.read" }
         ]
     },
 
-    { label: "Reports", path: "/reports", icon: <Assessment />, permission: "report.read" }
+    {
+        title: "Platform Administration",
+        superAdminOnly: true,
+        adminOnly: true,
+        items: [
+            { label: "Super Admin Dashboard", path: "/superadmin", icon: <AdminPanelSettings />, exact: true },
+            { label: "Organizations", path: "/superadmin/organizations", icon: <Apartment /> },
+            { label: "Plans", path: "/superadmin/plans", icon: <CardMembership /> },
+            { label: "Subscriptions", path: "/superadmin/subscriptions", icon: <Payments /> }
+        ]
+    },
+
+    {
+        title: "Administration",
+        adminOnly: true,
+        items: [
+            { label: "Organization", path: "/settings/organization", icon: <Business />, permission: PERMISSIONS.ORGANIZATION_READ },
+            { label: "User Management", path: "/users", icon: <ManageAccounts />, permission: PERMISSIONS.USER_READ },
+            // Admin only: other roles read lookups / custom fields
+            // for their forms, they do not manage them
+            { label: "Lookup Management", path: "/lookups", icon: <ManageSearch />, permission: PERMISSIONS.LOOKUP_UPDATE },
+            { label: "Custom Fields", path: "/settings/custom-fields", icon: <Tune />, permission: PERMISSIONS.CUSTOMFIELD_UPDATE }
+        ]
+    }
 
 ];
-
-const SETTINGS_GROUP = {
-    key: "settings",
-    label: "Settings",
-    icon: <Settings />,
-    items: [
-        { label: "Organization", path: "/settings/organization", icon: <Business />, permission: PERMISSIONS.ORGANIZATION_READ },
-        { label: "User Management", path: "/users", icon: <ManageAccounts />, permission: PERMISSIONS.USER_READ },
-        // Admin only: other roles read lookups for dropdowns, they
-        // do not manage them
-        { label: "Lookup Management", path: "/lookups", icon: <ManageSearch />, permission: PERMISSIONS.LOOKUP_UPDATE },
-        { label: "Custom Fields", path: "/settings/custom-fields", icon: <Tune />, permission: PERMISSIONS.CUSTOMFIELD_UPDATE }
-    ]
-};
-
-const SUPER_ADMIN_GROUP = {
-    key: "superadmin",
-    label: "Super Admin",
-    icon: <AdminPanelSettings />,
-    items: [
-        { label: "Super Admin Dashboard", path: "/superadmin", icon: <AdminPanelSettings />, exact: true },
-        { label: "Organizations", path: "/superadmin/organizations", icon: <Apartment /> },
-        { label: "Plans", path: "/superadmin/plans", icon: <CardMembership /> },
-        { label: "Subscriptions", path: "/superadmin/subscriptions", icon: <Payments /> }
-    ]
-};
-
-
-/* ==========================================================
-   REMEMBERED OPEN GROUPS (per browser)
-========================================================== */
-
-const OPEN_GROUPS_KEY = "sidebar.openGroups";
-
-const readOpenGroups = () => {
-    try {
-        return JSON.parse(localStorage.getItem(OPEN_GROUPS_KEY) || "{}") || {};
-    }
-    catch {
-        return {};
-    }
-};
-
-const saveOpenGroups = (value) => {
-    try {
-        localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(value));
-    }
-    catch {
-        // storage blocked: the menu still works, it just does not remember
-    }
-};
 
 
 /* ==========================================================
@@ -223,10 +193,11 @@ const saveOpenGroups = (value) => {
 const navItemSx = {
 
     position: "relative",
-    minHeight: 44,
+    minHeight: 38,
     px: 1.5,
+    py: 0.5,
     borderRadius: 1.5,
-    mb: 0.35,
+    mb: 0.25,
     color: "text.secondary",
     transition: "background-color 0.18s ease, color 0.18s ease",
 
@@ -236,13 +207,18 @@ const navItemSx = {
     },
 
     "& .MuiListItemIcon-root": {
-        minWidth: 38,
+        minWidth: 36,
         color: "inherit",
-        transition: "color 0.18s ease"
+        transition: "color 0.18s ease",
+        "& svg": { fontSize: 21 }
+    },
+
+    "& .MuiListItemText-root": {
+        my: 0
     },
 
     "& .MuiListItemText-primary": {
-        fontSize: "0.88rem",
+        fontSize: "0.86rem",
         fontWeight: 500
     },
 
@@ -255,8 +231,8 @@ const navItemSx = {
             content: '""',
             position: "absolute",
             left: 0,
-            top: 7,
-            bottom: 7,
+            top: 6,
+            bottom: 6,
             width: 3,
             borderRadius: "0 4px 4px 0",
             backgroundColor: GREEN
@@ -273,28 +249,16 @@ const navItemSx = {
 
 };
 
-const childItemSx = {
-    ...navItemSx,
-    minHeight: 40,
-    pl: 2.5,
-    ml: 1
-};
-
 const sectionTitleSx = {
     display: "block",
     px: 1.5,
-    mb: 0.75,
+    mb: 0.5,
+    lineHeight: 1.6,
     color: "text.disabled",
     fontWeight: 700,
     fontSize: "0.64rem",
     letterSpacing: "0.09em"
 };
-
-
-const isInside = (pathname, item) =>
-    item.exact
-        ? pathname === item.path
-        : pathname === item.path || pathname.startsWith(`${item.path}/`);
 
 
 /* ==========================================================
@@ -305,8 +269,6 @@ const Sidebar = ({
     mobileOpen = false,
     onMobileClose
 }) => {
-
-    const location = useLocation();
 
     const dispatch = useDispatch();
 
@@ -373,53 +335,18 @@ const Sidebar = ({
         permissions.includes("*") ||
         permissions.includes(permission);
 
-    // Groups keep only allowed items; empty groups are dropped and
-    // a group with one item becomes that item.
-    const visible = (entries) =>
-        entries
-            .map(entry => {
-                if (!entry.items) return can(entry.permission) ? entry : null;
-                const items = entry.items.filter(item => can(item.permission));
-                if (items.length === 0) return null;
-                if (items.length === 1) return items[0];
-                return { ...entry, items };
-            })
-            .filter(Boolean);
-
-    const mainEntries = visible(MAIN_NAVIGATION);
-    const [settingsEntry] = visible([SETTINGS_GROUP]);
-
-
-    /* ---------------- open groups ---------------- */
-
-    const [openGroups, setOpenGroups] = useState(readOpenGroups);
-
-    const activeGroupKey =
-        [...MAIN_NAVIGATION, SETTINGS_GROUP, SUPER_ADMIN_GROUP]
-            .find(entry => entry.items?.some(item => isInside(location.pathname, item)))
-            ?.key;
-
-    // The group of the current page opens by itself; the user
-    // can still collapse it while staying on that page.
-    const [collapsedHere, setCollapsedHere] = useState(null);
-    const hereKey = (key) => `${key}@${location.pathname}`;
-
-    const isOpen = (key) =>
-        key === activeGroupKey
-            ? collapsedHere !== hereKey(key)
-            : Boolean(openGroups[key]);
-
-    const toggleGroup = (key) => {
-        if (key === activeGroupKey) {
-            setCollapsedHere(previous => (previous === hereKey(key) ? null : hereKey(key)));
-            return;
-        }
-        setOpenGroups(previous => {
-            const next = { ...previous, [key]: !previous[key] };
-            saveOpenGroups(next);
-            return next;
-        });
-    };
+    // Admin sections: only allowed items. Others: every item,
+    // the ones the user may not open marked as locked.
+    const sections =
+        SECTIONS
+            .filter(section => !section.superAdminOnly || isSuperAdmin)
+            .map(section => ({
+                ...section,
+                items: section.adminOnly
+                    ? section.items.filter(item => can(item.permission))
+                    : section.items.map(item => ({ ...item, locked: !can(item.permission) }))
+            }))
+            .filter(section => section.items.length > 0);
 
     const handleNavigation = () => {
         if (onMobileClose) onMobileClose();
@@ -427,58 +354,6 @@ const Sidebar = ({
 
 
     /* ---------------- rendering ---------------- */
-
-    const renderLink = (item, sx = navItemSx) => (
-        <ListItemButton
-            key={item.path}
-            component={NavLink}
-            to={item.path}
-            end={Boolean(item.exact)}
-            onClick={handleNavigation}
-            sx={sx}
-        >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
-        </ListItemButton>
-    );
-
-    const renderGroup = (group) => {
-
-        const active = group.key === activeGroupKey;
-        const open = isOpen(group.key);
-
-        return (
-            <Box key={group.key}>
-                <ListItemButton
-                    onClick={() => toggleGroup(group.key)}
-                    aria-expanded={open}
-                    sx={{
-                        ...navItemSx,
-                        color: active ? GREEN : "text.secondary",
-                        "& .MuiListItemText-primary": {
-                            fontSize: "0.88rem",
-                            fontWeight: active ? 700 : 500
-                        }
-                    }}
-                >
-                    <ListItemIcon>{group.icon}</ListItemIcon>
-                    <ListItemText primary={group.label} />
-                    {open ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
-                </ListItemButton>
-
-                <Collapse in={open} timeout="auto" unmountOnExit>
-                    <List disablePadding sx={{ pl: 1 }}>
-                        {group.items.map(item => renderLink(item, childItemSx))}
-                    </List>
-                </Collapse>
-            </Box>
-        );
-
-    };
-
-    const renderEntries = (entries) =>
-        entries.map(entry => (entry.items ? renderGroup(entry) : renderLink(entry)));
-
 
     const drawerContent = (
 
@@ -541,41 +416,57 @@ const Sidebar = ({
                     flexGrow: 1,
                     overflowY: "auto",
                     px: 1.25,
-                    py: 1.75,
+                    py: 1.5,
                     "&::-webkit-scrollbar": { width: 5 },
                     "&::-webkit-scrollbar-thumb": { backgroundColor: "rgba(0,0,0,0.10)", borderRadius: 10 }
                 }}
             >
 
-                <Typography variant="overline" sx={sectionTitleSx}>
-                    Main
-                </Typography>
+                {sections.map((section, index) => (
+                    <Box key={section.title} sx={{ mt: index === 0 ? 0 : 1.75 }}>
 
-                <List disablePadding>
-                    {renderEntries(mainEntries)}
-                </List>
-
-                {isSuperAdmin && (
-                    <Box sx={{ mt: 2.5 }}>
                         <Typography variant="overline" sx={sectionTitleSx}>
-                            Platform Administration
+                            {section.title}
                         </Typography>
-                        <List disablePadding>
-                            {renderGroup(SUPER_ADMIN_GROUP)}
-                        </List>
-                    </Box>
-                )}
 
-                {settingsEntry && (
-                    <Box sx={{ mt: 2.5 }}>
-                        <Typography variant="overline" sx={sectionTitleSx}>
-                            Administration
-                        </Typography>
                         <List disablePadding>
-                            {renderEntries([settingsEntry])}
+                            {section.items.map(item => item.locked ? (
+                                <Box
+                                    key={item.path}
+                                    component="li"
+                                    title="Your role does not include this"
+                                    sx={{ listStyle: "none" }}
+                                >
+                                    <ListItemButton
+                                        disabled
+                                        aria-disabled="true"
+                                        sx={{
+                                            ...navItemSx,
+                                            "&.Mui-disabled": { opacity: 0.45 }
+                                        }}
+                                    >
+                                        <ListItemIcon>{item.icon}</ListItemIcon>
+                                        <ListItemText primary={item.label} />
+                                        <LockOutlined sx={{ fontSize: 15, color: "text.disabled" }} />
+                                    </ListItemButton>
+                                </Box>
+                            ) : (
+                                <ListItemButton
+                                    key={item.path}
+                                    component={NavLink}
+                                    to={item.path}
+                                    end={Boolean(item.exact)}
+                                    onClick={handleNavigation}
+                                    sx={navItemSx}
+                                >
+                                    <ListItemIcon>{item.icon}</ListItemIcon>
+                                    <ListItemText primary={item.label} />
+                                </ListItemButton>
+                            ))}
                         </List>
+
                     </Box>
-                )}
+                ))}
 
             </Box>
 
