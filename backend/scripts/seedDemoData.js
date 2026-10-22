@@ -47,6 +47,7 @@ const DOMAIN = "heda-demo.org";
 
 const RESET = process.argv.includes("--reset");
 const CONFIRMED = process.argv.includes("--yes");
+const ENRICH_ONLY = process.argv.includes("--enrich-deliveries");
 
 const KEEP_COLLECTIONS = ["plans", "adminareas"];
 
@@ -910,6 +911,185 @@ const setupServiceDeliveries = async () => {
 
 
 // =====================================================
+// 7b. DETAIL ITEMS AND ALLOCATIONS
+// =====================================================
+// Adds a breakdown (detail items) and per-beneficiary
+// allocations to some deliveries, through the update API.
+// Also runs on its own for demo data that already exists:
+//   node scripts/seedDemoData.js --enrich-deliveries [--uri-file ... --db ...]
+
+const DELIVERY_ENRICHMENT = {
+
+    // School supplies + uniforms to 14 children
+    "SD-000001": {
+        details: {
+            0: [
+                { name: "Exercise books", quantity: 70, unit: "Piece", unitCost: 40 },
+                { name: "Pens", quantity: 70, unit: "Piece", unitCost: 10 },
+                { name: "Pencil and eraser set", quantity: 14, unit: "Set", unitCost: 100 }
+            ]
+        },
+        // each child: 5 books, 5 pens, 1 set (the detail items) + 1 uniform
+        perPerson: () => [
+            { item: 0, detail: "Exercise books", quantity: 5 },
+            { item: 0, detail: "Pens", quantity: 5 },
+            { item: 0, detail: "Pencil and eraser set", quantity: 1 },
+            { item: 1, quantity: 1 }
+        ]
+    },
+
+    // Teacher support kits to 12 teachers
+    "SD-000003": {
+        details: {
+            0: [
+                { name: "Teacher guide", quantity: 12, unit: "Piece", unitCost: 450 },
+                { name: "Chalk and markers", quantity: 12, unit: "Set", unitCost: 250 },
+                { name: "Lesson plan book", quantity: 12, unit: "Piece", unitCost: 200 }
+            ]
+        },
+        perPerson: () => [
+            { item: 0, detail: "Teacher guide", quantity: 1 },
+            { item: 0, detail: "Chalk and markers", quantity: 1 },
+            { item: 0, detail: "Lesson plan book", quantity: 1 }
+        ]
+    },
+
+    // Seed grants (ETB 40,000) to 8 women: different amounts
+    "SD-000004": {
+        perPerson: (index) => [
+            { item: 0, quantity: 0, value: [6000, 6000, 5000, 5000, 5000, 5000, 4000, 4000][index] || 0 }
+        ]
+    },
+
+    // Business skills training, 3 sessions: everyone takes part in all 3
+    "SD-000005": {
+        perPerson: (index, count, items) => {
+            const total = items[0].quantity * items[0].unitCost;
+            const share = Math.floor((total / count) * 100) / 100;
+            const value = index === count - 1 ? Math.round((total - share * (count - 1)) * 100) / 100 : share;
+            return [{ item: 0, quantity: items[0].quantity, value }];
+        }
+    },
+
+    // Hygiene kits to 10 girls: 3 packs of pads, 2 soaps, 2 underwear, 1 bag each
+    "SD-000006": {
+        details: {
+            0: [
+                { name: "Sanitary pads", quantity: 30, unit: "Pack", unitCost: 120 },
+                { name: "Soap", quantity: 20, unit: "Piece", unitCost: 60 },
+                { name: "Underwear", quantity: 20, unit: "Piece", unitCost: 100 },
+                { name: "Carry bag", quantity: 10, unit: "Piece", unitCost: 70 }
+            ]
+        },
+        perPerson: () => [
+            { item: 0, detail: "Sanitary pads", quantity: 3 },
+            { item: 0, detail: "Soap", quantity: 2 },
+            { item: 0, detail: "Underwear", quantity: 2 },
+            { item: 0, detail: "Carry bag", quantity: 1 }
+        ]
+    }
+
+};
+
+const refId = (value) => (value && typeof value === "object" ? value._id : value) || null;
+
+const money = (value) => Math.round(Number(value || 0) * 100) / 100;
+
+const enrichServiceDeliveries = async () => {
+
+    console.log("\n== Detail items and beneficiary allocations");
+
+    const units = await lookupMap(ids.admin, "ServiceDelivery", "Unit");
+    const list = (await api("GET", "/service-deliveries", { token: ids.admin })).data;
+
+    const itemsPayload = (delivery, plan) =>
+        delivery.items.map((item, index) => ({
+            _id: item._id,
+            serviceCategory: refId(item.serviceCategory),
+            serviceType: refId(item.serviceType),
+            // follow the service type (trainings are PARTICIPATION now)
+            allocationBehavior: item.serviceType?.allocationBehavior || item.allocationBehavior || "CONSUMPTION",
+            quantity: item.quantity,
+            unit: refId(item.unit),
+            unitCost: item.unitCost,
+            donor: refId(item.donor),
+            donation: refId(item.donation),
+            detailItems: ((plan && plan.details?.[index]) || item.detailItems || []).map(detail => {
+                const saved = (item.detailItems || []).find(existing => existing.name === detail.name);
+                return {
+                    ...(saved?._id ? { _id: saved._id } : {}),
+                    name: detail.name,
+                    quantity: detail.quantity,
+                    unit: typeof detail.unit === "string" && units[detail.unit] ? units[detail.unit] : refId(detail.unit),
+                    unitCost: detail.unitCost
+                };
+            })
+        }));
+
+    for (const [number, plan] of Object.entries(DELIVERY_ENRICHMENT)) {
+
+        await step(`Delivery ${number}: detail items and allocations`, async () => {
+
+            const found = list.find(item => item.deliveryNumber === number);
+            if (!found) throw new Error("delivery not found");
+
+            const path = `/service-deliveries/${found._id}`;
+            const before = (await api("GET", path, { token: ids.admin })).data;
+            const people = before.beneficiaries || [];
+
+            // 1. Save the detail items (allocations come next, by their ids)
+            if (plan.details) {
+                await api("PUT", path, {
+                    token: ids.admin,
+                    body: {
+                        allocationMethod: "Shared",
+                        items: itemsPayload(before, plan),
+                        beneficiaries: people.map(person => refId(person.beneficiary))
+                    }
+                });
+            }
+
+            // 2. One allocation per person per item / detail item
+            const saved = (await api("GET", path, { token: ids.admin })).data;
+            const items = itemsPayload(saved, null);
+
+            const beneficiaries =
+                people.map((person, index) => ({
+                    beneficiary: refId(person.beneficiary),
+                    status: person.status || "Received",
+                    allocations: plan.perPerson(index, people.length, saved.items).map(share => {
+                        const item = saved.items[share.item];
+                        const detail = share.detail ? (item.detailItems || []).find(entry => entry.name === share.detail) : null;
+                        if (share.detail && !detail) throw new Error(`detail item ${share.detail} not saved`);
+                        const unitCost = detail ? detail.unitCost : item.unitCost;
+                        return {
+                            serviceItem: item._id,
+                            detailItem: detail ? detail._id : null,
+                            quantity: share.quantity,
+                            // the value this person received (quantity x unit cost unless given)
+                            allocatedValue: share.value ?? money(share.quantity * unitCost)
+                        };
+                    })
+                }));
+
+            await api("PUT", path, {
+                token: ids.admin,
+                body: { allocationMethod: "Individual", items, beneficiaries }
+            });
+
+            const after = (await api("GET", path, { token: ids.admin })).data;
+            const allocated = (after.beneficiaries || []).filter(person => (person.allocations || []).length).length;
+            if (allocated !== people.length) throw new Error(`allocations saved for ${allocated} of ${people.length}`);
+            if (Number(after.totalAmount) !== Number(before.totalAmount)) throw new Error(`total changed ${before.totalAmount} -> ${after.totalAmount}`);
+
+        });
+
+    }
+
+};
+
+
+// =====================================================
 // 8. ENTERPRISES
 // =====================================================
 
@@ -1133,6 +1313,7 @@ const PHASES = [
     setupActivities,
     setupBeneficiaries,
     setupServiceDeliveries,
+    enrichServiceDeliveries,
     setupEnterprises,
     setupExpenses,
     setupReports
@@ -1148,6 +1329,18 @@ const main = async () => {
 
     await connectForScript();
     console.log(`Database: ${mongoose.connection.name}   API: ${API}`);
+
+    // Existing demo data: only add detail items and allocations
+    if (ENRICH_ONLY) {
+        ids.admin = await step("Login as organization admin", () => login(`admin@${DOMAIN}`));
+        if (ids.admin) await enrichServiceDeliveries();
+        const failed = results.filter(item => item.status === "FAIL");
+        console.log(`
+== Summary: ${results.length - failed.length} passed, ${failed.length} failed`);
+        for (const item of failed) console.log(`  FAIL ${item.name} - ${item.detail}`);
+        process.exitCode = failed.length ? 1 : 0;
+        return;
+    }
 
     // Never create the demo organization twice
     if (!RESET && await mongoose.connection.db.collection("organizations").findOne({ email: `info@${DOMAIN}` })) {
