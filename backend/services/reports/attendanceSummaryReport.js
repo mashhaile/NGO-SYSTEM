@@ -7,7 +7,6 @@ const AttendanceRecord = require("../../models/AttendanceRecord");
 
 const buildDateFilter = (filters = {}) => {
 
-```
 let startDate = null;
 let endDate = null;
 
@@ -177,7 +176,6 @@ if (startDate || endDate) {
 
 
 return filter;
-```
 
 };
 
@@ -190,7 +188,6 @@ filters = {},
 context
 ) => {
 
-```
 if (
     !context ||
     !context.organizationId
@@ -666,7 +663,6 @@ return {
         Object.values(projects)
 
 };
-```
 
 };
 

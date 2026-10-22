@@ -814,6 +814,19 @@ test("budget numbers come only from the Budgets module", { skip }, async () => {
 });
 
 
+test("reports: attendance summary and donor impact generate (were 500)", { skip }, async () => {
+
+    // attendanceSummaryReport had markdown fences in the code;
+    // donorImpactReport used old field names and crashed on
+    // donations without a program.
+    for (const report of ["attendanceSummaryReport", "donorImpactReport"]) {
+        const res = await api("GET", `/reports/${report}?period=annual&year=2026`, { token: state.tokenA });
+        assert.equal(res.status, 200, `${report}: ${res.data?.message}`);
+    }
+
+});
+
+
 test("reports: exports work for reports without a custom layout", { skip }, async () => {
 
     // Excel / PDF / CSV were failing for every report except Service

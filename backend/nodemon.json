@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "tests/*",
+        "scripts/*",
+        "backups/*",
+        "uploads/*",
+        "logs/*"
+    ]
+}
