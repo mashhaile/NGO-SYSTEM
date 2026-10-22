@@ -17,7 +17,8 @@ import {
     Stack,
     Typography,
     Divider,
-    Chip
+    Chip,
+    Alert
 } from "@mui/material";
 
 
@@ -659,6 +660,16 @@ const formatDateTime = (
 // MONEY
 // =====================================================
 
+// =====================================================
+// HOW AN ITEM IS GIVEN OUT (readable)
+// =====================================================
+
+const behaviorLabel = (behavior) =>
+    behavior === "PARTICIPATION"
+        ? "Everyone takes part"
+        : "Shared out";
+
+
 const formatMoney = (
     value
 ) => {
@@ -1149,7 +1160,7 @@ const getDetailItems = (
 // =====================================================
 // DETAIL ITEM TOTAL
 // =====================================================
-
+
 
 
 // =====================================================
@@ -2370,6 +2381,42 @@ const ServiceDeliveryDetailsPage = () => {
         );
 
 
+    // =================================================
+    // EQUAL SHARE
+    // =================================================
+    // People with no allocation of their own share equally
+    // what the others' allocations leave (the same rule the
+    // reports and the donor trace use). Households, groups
+    // and institutions are not split among people.
+
+    const valueGivenToPeople =
+        beneficiaryRecords.reduce(
+            (sum, record) =>
+                sum +
+                (Array.isArray(record?.allocations) ? record.allocations : [])
+                    .reduce((total, allocation) => total + getNumber(allocation?.allocatedValue, 0), 0),
+            0
+        );
+
+    const peopleWithoutShare =
+        recipientType === "Individual"
+            ? beneficiaryRecords.filter(
+                record =>
+                    !(Array.isArray(record?.allocations) && record.allocations.length)
+            ).length
+            : 0;
+
+    const valueSharedEqually =
+        peopleWithoutShare > 0
+            ? Math.max(totalAmount - valueGivenToPeople, 0)
+            : 0;
+
+    const equalShare =
+        peopleWithoutShare > 0
+            ? valueSharedEqually / peopleWithoutShare
+            : 0;
+
+
    
     // =================================================
     // PER-ITEM ALLOCATION ACCOUNTING
@@ -3173,6 +3220,54 @@ const ServiceDeliveryDetailsPage = () => {
 
                                         </Grid>
 
+                                        {/* The donation behind it: pledged only, cancelled, or too small */}
+
+                                        {(() => {
+
+                                            const donation =
+                                                item?.donation && typeof item.donation === "object"
+                                                    ? item.donation
+                                                    : null;
+
+                                            if (!donation) return null;
+
+                                            const itemCost =
+                                                getServiceItemTotal(item);
+
+                                            const donationAmount =
+                                                getNumber(donation.amount, 0);
+
+                                            const currency =
+                                                donation.currency || "ETB";
+
+                                            if (donation.status === "Cancelled") {
+                                                return (
+                                                    <Alert severity="error" variant="outlined" sx={{ mt: 2 }}>
+                                                        This donation is cancelled; it cannot pay for this item. Charge it to another donation.
+                                                    </Alert>
+                                                );
+                                            }
+
+                                            if (itemCost > donationAmount + 0.01) {
+                                                return (
+                                                    <Alert severity="warning" variant="outlined" sx={{ mt: 2 }}>
+                                                        This item costs {currency} {formatMoney(itemCost)}, more than the whole donation ({currency} {formatMoney(donationAmount)}{donation.status === "Pledged" ? ", still pledged" : ""}). Charge part of it to another donation or lower the cost.
+                                                    </Alert>
+                                                );
+                                            }
+
+                                            if (donation.status === "Pledged") {
+                                                return (
+                                                    <Alert severity="info" variant="outlined" sx={{ mt: 2 }}>
+                                                        This donation is still pledged, not received ({currency} {formatMoney(donationAmount)}).
+                                                    </Alert>
+                                                );
+                                            }
+
+                                            return null;
+
+                                        })()}
+
                                     </DetailSection>
 
                                 </Grid>
@@ -3373,6 +3468,27 @@ const ServiceDeliveryDetailsPage = () => {
                                                             />
 
                                                         </Stack>
+
+                                                        {
+                                                            allocations.length === 0 &&
+                                                            equalShare > 0 && (
+
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        mt: 1,
+                                                                        ml: {
+                                                                            xs: 0,
+                                                                            sm: 5
+                                                                        },
+                                                                        color: "text.secondary"
+                                                                    }}
+                                                                >
+                                                                    Equal share: <strong>ETB {formatMoney(equalShare)}</strong> (no allocation of their own; ETB {formatMoney(valueSharedEqually)} shared by {peopleWithoutShare} {peopleWithoutShare === 1 ? "person" : "people"})
+                                                                </Typography>
+
+                                                            )
+                                                        }
 
                                                         {
                                                             allocations.length > 0 && (
@@ -3804,7 +3920,7 @@ const ServiceDeliveryDetailsPage = () => {
                                                             <DetailField
                                                                 label="Allocation"
                                                                 value={
-                                                                    summary?.allocationBehavior
+                                                                    behaviorLabel(summary?.allocationBehavior)
                                                                 }
                                                             />
 
@@ -3892,7 +4008,7 @@ const ServiceDeliveryDetailsPage = () => {
                                                                                         >
 
                                                                                             <Grid
-                                                                                                size={{ xs: 12, sm: 3 }}
+                                                                                                size={{ xs: 12, sm: 2 }}
                                                                                             >
 
                                                                                                 <Typography
@@ -3989,7 +4105,7 @@ const ServiceDeliveryDetailsPage = () => {
 
 
                                                                                             <Grid
-                                                                                                size={{ xs: 12, sm: 1 }}
+                                                                                                size={{ xs: 12, sm: 2 }}
                                                                                             >
 
                                                                                                 <DetailField
@@ -4114,7 +4230,7 @@ const ServiceDeliveryDetailsPage = () => {
                                                         }}
                                                     >
                                                         {
-                                                            summary.allocationBehavior
+                                                            behaviorLabel(summary.allocationBehavior)
                                                         }
                                                     </Typography>
 
@@ -4266,11 +4382,17 @@ const ServiceDeliveryDetailsPage = () => {
                         >
 
                             <DetailField
-                                label="Unallocated Value"
+                                label={
+                                    peopleWithoutShare > 0
+                                        ? `Shared Equally (${peopleWithoutShare} ${peopleWithoutShare === 1 ? "person" : "people"})`
+                                        : "Unallocated Value"
+                                }
                                 value={
-                                    `ETB ${formatMoney(
-                                        unallocatedValue
-                                    )}`
+                                    peopleWithoutShare > 0
+                                        ? `ETB ${formatMoney(valueSharedEqually)}`
+                                        : `ETB ${formatMoney(
+                                            unallocatedValue
+                                        )}`
                                 }
                             />
 
@@ -4421,11 +4543,17 @@ const ServiceDeliveryDetailsPage = () => {
                         >
 
                             <DetailField
-                                label="Unallocated Value"
+                                label={
+                                    peopleWithoutShare > 0
+                                        ? `Shared Equally (${peopleWithoutShare} ${peopleWithoutShare === 1 ? "person" : "people"})`
+                                        : "Unallocated Value"
+                                }
                                 value={
-                                    `ETB ${formatMoney(
-                                        unallocatedValue
-                                    )}`
+                                    peopleWithoutShare > 0
+                                        ? `ETB ${formatMoney(valueSharedEqually)}`
+                                        : `ETB ${formatMoney(
+                                            unallocatedValue
+                                        )}`
                                 }
                             />
 

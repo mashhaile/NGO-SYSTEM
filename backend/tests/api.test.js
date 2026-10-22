@@ -1311,6 +1311,39 @@ test("service delivery: a donation cannot pay for more than it has left", { skip
 });
 
 
+test("service delivery: with individual allocation, cash is shared out in full", { skip }, async () => {
+
+    const { people, item, create } = await serviceDeliverySetup();
+
+    const cash = item("Cash Assistance", "ETB", 1, 20000);
+    const shares = (first, second) => [
+        { beneficiary: people[0], allocations: [{ serviceItem: cash._id, quantity: 0, allocatedValue: first }] },
+        { beneficiary: people[1], allocations: [{ serviceItem: cash._id, quantity: 0, allocatedValue: second }] }
+    ];
+
+    // 15,000 + 2,000 of 20,000 leaves 3,000 with no one
+    const short = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [cash], beneficiaries: shares(15000, 2000) });
+    assert.equal(short.status, 400);
+    assert.match(short.data.message, /3,000\.00 is left with no one/);
+
+    const full = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [{ ...cash, _id: new mongoose.Types.ObjectId().toString() }], beneficiaries: [] });
+    assert.equal(full.status, 400, "no beneficiaries is still refused");
+
+    const cash2 = { ...cash, _id: new mongoose.Types.ObjectId().toString() };
+    const ok = await create({
+        recipientType: "Individual",
+        allocationMethod: "Individual",
+        items: [cash2],
+        beneficiaries: [
+            { beneficiary: people[0], allocations: [{ serviceItem: cash2._id, quantity: 0, allocatedValue: 18000 }] },
+            { beneficiary: people[1], allocations: [{ serviceItem: cash2._id, quantity: 0, allocatedValue: 2000 }] }
+        ]
+    });
+    assert.ok(ok.status < 300, ok.data?.message);
+
+});
+
+
 test("reports: people and enterprises count each person's own share", { skip }, async () => {
 
     const { token, people, item, create, shares } = await serviceDeliverySetup();

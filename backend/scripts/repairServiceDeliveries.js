@@ -14,7 +14,8 @@
 //   - a detail item without a unit, or of the other kind
 //     (money inside goods, goods inside money)
 //   - detail items that don't add up to the item's cost
-//   - "Individual" allocation with people who have no share
+//   - "Individual" allocation with people who have no share,
+//     or money (cash, fees) not shared out in full
 //
 //   node scripts/repairServiceDeliveries.js            (apply)
 //   node scripts/repairServiceDeliveries.js --dry-run  (only report)
@@ -163,6 +164,16 @@ const main = async () => {
                 .toArray();
             const without = links.filter(link => !(link.allocations || []).length).length;
             if (without) issues.push(`Individual allocation, but ${without} of ${links.length} beneficiaries have no share`);
+
+            // money is shared out in full
+            (delivery.items || []).forEach((item, index) => {
+                if (semanticsOf(get(item.unit)) !== "monetary") return;
+                const cost = roundMoney(Number(item.quantity || 0) * Number(item.unitCost || 0));
+                const given = roundMoney(links.reduce((sum, link) => sum + (link.allocations || [])
+                    .filter(allocation => String(allocation.serviceItem) === String(item._id))
+                    .reduce((total, allocation) => total + Number(allocation.allocatedValue || 0), 0), 0));
+                if (Math.abs(cost - given) > 0.01) issues.push(`Service item ${index + 1}: ${cost} in money, shares add up to ${given} (${roundMoney(cost - given)} with no one)`);
+            });
         }
 
         if (Object.keys(set).length) {

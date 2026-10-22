@@ -3531,6 +3531,56 @@ const validateBeneficiaryAllocations = async (
 
     }
 
+    // ======================================================
+    // CASH IS GIVEN OUT IN FULL
+    //
+    // With individual allocation, an amount of money (cash,
+    // school fees) must reach people in full: 20,000 ETB
+    // given as 15,000 + 2,000 leaves 3,000 with no one.
+    // Goods may have stock left over; money may not.
+    // ======================================================
+
+    if (
+        allocationMethod === "Individual"
+    ) {
+
+        let itemNumber = 0;
+
+        for (const [serviceItemId, serviceItem] of serviceItemMap.entries()) {
+
+            itemNumber += 1;
+
+            if (
+                unitSemanticsMap.get(serviceItemId)?.unitSemantics !== "monetary"
+            ) {
+                continue;
+            }
+
+            const cost =
+                roundMoney(
+                    normalizeNumber(
+                        serviceItem.totalCost,
+                        normalizeNumber(serviceItem.quantity, 0) * normalizeNumber(serviceItem.unitCost, 0)
+                    )
+                );
+
+            const given =
+                roundMoney(
+                    valueTotals.get(serviceItemId) || 0
+                );
+
+            if (
+                Math.abs(cost - given) > 0.01
+            ) {
+                throw new Error(
+                    `Service item ${itemNumber} is an amount of ${formatMoney(cost)}, but the shares add up to ${formatMoney(given)}. With individual allocation the whole amount must be shared out (${formatMoney(cost - given)} is left with no one).`
+                );
+            }
+
+        }
+
+    }
+
 };
 
 

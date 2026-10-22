@@ -200,9 +200,19 @@ const memberItems = (delivery, link, personValue) => {
                 onItem.filter(allocation => !allocation?.detailItem);
             const itemCost =
                 Number(item.totalCost || 0) || quantity * Number(item.unitCost || 0);
-            own = direct.length
-                ? direct.reduce((sum, allocation) => sum + Number(allocation?.quantity || 0), 0)
-                : itemCost > 0
+            const directQuantity =
+                direct.reduce((sum, allocation) => sum + Number(allocation?.quantity || 0), 0);
+            const directValue =
+                direct.reduce((sum, allocation) => sum + Number(allocation?.allocatedValue || 0), 0);
+            // a cash share is an amount with no quantity: the
+            // amount is what they received (4,000 ETB of a
+            // 40,000 ETB cash item counts as 4,000 ETB, as in
+            // the donor trace)
+            own = direct.length && directQuantity > 0
+                ? directQuantity
+                : direct.length && directValue > 0
+                    ? directValue
+                    : itemCost > 0
                     ? quantity * (onItem.reduce((sum, allocation) => sum + Number(allocation?.allocatedValue || 0), 0) / itemCost)
                     : 0;
         }

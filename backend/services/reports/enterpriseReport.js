@@ -1090,10 +1090,7 @@ const generate = async (
             ) {
 
                 const quantity =
-                    Number(
-                        item.quantity ||
-                        0
-                    );
+                    (Number(item.quantity || 0) > 0 ? 1 : 0);
 
 
                 programData.totals.services +=
@@ -1237,10 +1234,7 @@ const generate = async (
                                 ) => {
 
                                     return itemTotal +
-                                        Number(
-                                            item.quantity ||
-                                            0
-                                        );
+                                        (Number(item.quantity || 0) > 0 ? 1 : 0);
 
                                 },
                                 0

@@ -987,9 +987,7 @@ const generate = async (
                                 item
                             ) =>
                                 itemTotal +
-                                Number(
-                                    item.quantity || 0
-                                ),
+                                (Number(item.quantity || 0) > 0 ? 1 : 0),
                             0
                         );
 

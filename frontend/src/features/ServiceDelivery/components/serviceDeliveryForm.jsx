@@ -2389,6 +2389,62 @@ const ServiceDeliveryForm = ({
 
             }
 
+            // Money (cash, fees) is shared out in full; goods
+            // may have stock left over
+            for (
+                const [itemIndex, item] of items.entries()
+            ) {
+
+                const unit =
+                    unitOptions.find(
+                        option =>
+                            String(option?.value) ===
+                            String(normalizeLookupValue(item?.unit))
+                    );
+
+                const isMoney =
+                    unit?.semanticType === "monetary" ||
+                    ["ETB", "BIRR", "USD", "EUR"].includes(
+                        String(unit?.code || unit?.label || "").toUpperCase()
+                    );
+
+                if (!isMoney) continue;
+
+                const itemId =
+                    String(normalizeLookupValue(item?._id ?? item?.id));
+
+                const cost =
+                    Number(item?.quantity || 0) *
+                    Number(item?.unitCost || 0);
+
+                const given =
+                    chosen.reduce(
+                        (sum, beneficiary) =>
+                            sum +
+                            (Array.isArray(beneficiary?.allocations) ? beneficiary.allocations : [])
+                                .filter(allocation => String(normalizeLookupValue(allocation?.serviceItem)) === itemId)
+                                .reduce((total, allocation) => total + Number(allocation?.allocatedValue || 0), 0),
+                        0
+                    );
+
+                if (
+                    Math.abs(cost - given) > 0.01
+                ) {
+
+                    const amount = (value) =>
+                        value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    window.alert(
+                        `Service Item ${itemIndex + 1} is ${amount(cost)} in money, but the shares add up to ${amount(given)}.\n\n` +
+                        `With individual allocation the whole amount must be shared out (${amount(cost - given)} is left with no one).`
+                    );
+
+                    return;
+
+                }
+
+            }
+
         }
 
 
