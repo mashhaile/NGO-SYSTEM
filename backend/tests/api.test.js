@@ -1540,6 +1540,23 @@ test("service delivery: who may receive what, and how it is shared", { skip }, a
     const school = await create({ recipientType: "Institution", recipientName: "Test School", allocationMethod: "Unallocated", items: [item("School Supplies", "Set", 10, 100)], beneficiaries: [] });
     assert.ok(school.status < 300, school.data?.message);
 
+    // cash may go to a group or an institution as a whole
+    const seed = await create({ recipientType: "Group / Community", recipientName: "Savings group", allocationMethod: "Group", items: [item("Cash Assistance", "ETB", 1, 20000)], beneficiaries: people });
+    assert.ok(seed.status < 300, seed.data?.message);
+    const grant = await create({ recipientType: "Institution", recipientName: "Health post", allocationMethod: "Unallocated", items: [item("Cash Assistance", "ETB", 1, 50000)], beneficiaries: [] });
+    assert.ok(grant.status < 300, grant.data?.message);
+
+    // who a service type may go to is set on the service type
+    const token = state.tokenA;
+    const types = (await api("GET", "/lookups/module/ServiceDelivery/category/ServiceType", { token })).data.data;
+    const feesType = types.find(type => type.value === "School Fees");
+    assert.deepEqual(feesType.recipientTypes, ["Individual"]);
+    const changed = await api("PUT", `/lookups/${feesType._id}`, { token, body: { recipientTypes: ["Individual", "Household"] } });
+    assert.ok(changed.status < 300, changed.data?.message);
+    assert.deepEqual(changed.data.data.recipientTypes, ["Individual", "Household"]);
+    assert.equal((await api("PUT", `/lookups/${feesType._id}`, { token, body: { recipientTypes: ["Robot"] } })).status, 400);
+    await api("PUT", `/lookups/${feesType._id}`, { token, body: { recipientTypes: ["Individual"] } });
+
 });
 
 

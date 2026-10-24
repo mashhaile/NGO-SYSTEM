@@ -205,7 +205,7 @@ const DEFAULT_SERVICE_TYPES = [
     { category: "Water, Sanitation and Hygiene", value: "Hygiene Kit", units: ["Set", "Unit", "Box"] },
     { category: "Water, Sanitation and Hygiene", value: "WASH Supplies", units: ["Box", "Pack", "Piece", "Kg", "Liter"] },
 
-    { category: "Emergency Assistance", value: "Cash Assistance", units: MONEY, recipients: ["Individual", "Household"] },
+    { category: "Emergency Assistance", value: "Cash Assistance", units: MONEY, recipients: ["Individual", "Household", "Group / Community", "Institution"] },
     { category: "Shelter and Housing", value: "Shelter Materials", units: ["Box", "Pack", "Piece", "Kg"] },
 
     { category: "Livelihoods", value: "Livelihood Training", units: ["Session", "Hour", "Set"], behavior: PARTICIPATION },

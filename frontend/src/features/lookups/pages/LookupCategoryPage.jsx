@@ -275,9 +275,18 @@ const createEmptyForm = () => ({
     active: true,
     parentLookup: "",
     allowedUnits: [],
+    recipientTypes: [],
     allocationBehavior: "CONSUMPTION"
-
 });
+
+
+// Who a service type may be given to (none chosen = anyone)
+const RECIPIENT_TYPE_OPTIONS = [
+    "Individual",
+    "Household",
+    "Group / Community",
+    "Institution"
+];
 
 
 // ==========================================================
@@ -828,7 +837,10 @@ const LookupCategoryPage = () => {
 
                 allowedUnits:
                     existingAllowedUnits,
-
+                recipientTypes:
+                    Array.isArray(lookup?.recipientTypes)
+                        ? lookup.recipientTypes
+                        : [],
                 allocationBehavior:
                     normalizeAllocationBehavior(
                         lookup?.allocationBehavior
@@ -1173,7 +1185,8 @@ const LookupCategoryPage = () => {
 
                     updateData.allowedUnits =
                         cleanAllowedUnits;
-
+                    updateData.recipientTypes =
+                        editForm.recipientTypes || [];
                     updateData.allocationBehavior =
                         cleanAllocationBehavior;
 
@@ -2966,6 +2979,63 @@ const LookupCategoryPage = () => {
                                                                                 display: "block"
                                                                             }}>
                                                                             These are the only units that this Service Type may use. No default unit is assigned.
+                                                                        </Typography>
+                                                                    </FormControl>
+                                                                )}
+
+
+                                                                {isServiceType && (
+
+                                                                    <FormControl
+                                                                        fullWidth
+                                                                        disabled={saving}
+                                                                    >
+
+                                                                        <InputLabel>
+                                                                            Can be given to
+                                                                        </InputLabel>
+
+                                                                        <Select
+                                                                            multiple
+                                                                            value={
+                                                                                editForm.recipientTypes || []
+                                                                            }
+                                                                            label="Can be given to"
+                                                                            onChange={
+                                                                                event =>
+                                                                                    handleEditChange(
+                                                                                        "recipientTypes",
+                                                                                        typeof event.target.value === "string"
+                                                                                            ? event.target.value.split(",")
+                                                                                            : event.target.value
+                                                                                    )
+                                                                            }
+                                                                            renderValue={
+                                                                                selected =>
+                                                                                    selected.length
+                                                                                        ? selected.join(", ")
+                                                                                        : "Anyone"
+                                                                            }
+                                                                            displayEmpty
+                                                                        >
+                                                                            {RECIPIENT_TYPE_OPTIONS.map(option => (
+                                                                                <MenuItem
+                                                                                    key={option}
+                                                                                    value={option}
+                                                                                >
+                                                                                    {option}
+                                                                                </MenuItem>
+                                                                            ))}
+                                                                        </Select>
+
+                                                                        <Typography
+                                                                            variant="caption"
+                                                                            color="text.secondary"
+                                                                            sx={{
+                                                                                mt: 0.75,
+                                                                                display: "block"
+                                                                            }}>
+                                                                            Who this service may go to. None chosen means anyone. School fees, for example, are for individuals only.
                                                                         </Typography>
 
                                                                     </FormControl>

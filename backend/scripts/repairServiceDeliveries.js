@@ -101,6 +101,20 @@ const main = async () => {
         typesFilled += count;
         if (!DRY_RUN) await db.collection("lookups").updateMany(filter, { $set: { recipientTypes: type.recipients } });
     }
+    // Cash Assistance first went to individuals and households only;
+    // where that earlier default is unchanged, it now goes to anyone
+    // it may be shared with (groups, institutions as a whole)
+    const cashFilter = {
+        category: "ServiceType",
+        value: /^cash assistance$/i,
+        recipientTypes: { $all: ["Individual", "Household"], $size: 2 }
+    };
+    const cashTypes = await db.collection("lookups").countDocuments(cashFilter);
+    if (!DRY_RUN && cashTypes) {
+        await db.collection("lookups").updateMany(cashFilter, { $set: { recipientTypes: ["Individual", "Household", "Group / Community", "Institution"] } });
+    }
+    typesFilled += cashTypes;
+
     console.log(`${typesFilled} service types ${DRY_RUN ? "would get" : "got"} their allowed recipients (cash, fees).`);
 
     const deliveries =

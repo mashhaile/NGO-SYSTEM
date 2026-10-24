@@ -623,6 +623,42 @@ const validateParentLookup = async ({
 //
 // =====================================================
 
+// =====================================================
+// RECIPIENT TYPES (ServiceType only)
+// =====================================================
+//
+// Who a service type may be given to. Empty = anyone.
+//
+// =====================================================
+
+const RECIPIENT_TYPES = [
+    "Individual",
+    "Household",
+    "Group / Community",
+    "Institution"
+];
+
+const validateRecipientTypes = (recipientTypes) => {
+
+    if (recipientTypes === undefined || recipientTypes === null || recipientTypes === "") {
+        return [];
+    }
+
+    const list = Array.isArray(recipientTypes) ? recipientTypes : [recipientTypes];
+    const clean = [...new Set(list.map(item => String(item || "").trim()).filter(Boolean))];
+    const unknown = clean.filter(item => !RECIPIENT_TYPES.includes(item));
+
+    if (unknown.length) {
+        throw new Error(
+            `Unknown recipient type: ${unknown.join(", ")}. Use ${RECIPIENT_TYPES.join(", ")}.`
+        );
+    }
+
+    return RECIPIENT_TYPES.filter(item => clean.includes(item));
+
+};
+
+
 const validateAllowedUnits = async ({
     allowedUnits,
     organization,
@@ -1183,7 +1219,10 @@ const createLookup = async (
 
                 allowedUnits:
                     validatedAllowedUnits,
-
+                recipientTypes:
+                    field.category === "ServiceType"
+                        ? validateRecipientTypes(payload.recipientTypes)
+                        : [],
                 active:
                     payload.active !== undefined
                         ? normalizeBoolean(
@@ -2990,6 +3029,10 @@ const updateLookup = async (
         updateData.allowedUnits =
             finalAllowedUnits;
 
+        if (payload.recipientTypes !== undefined) {
+            updateData.recipientTypes =
+                validateRecipientTypes(payload.recipientTypes);
+        }
     }
 
     else {
