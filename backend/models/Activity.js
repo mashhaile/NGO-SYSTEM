@@ -424,6 +424,13 @@ activitySchema.index({
 
 
 
+// dated inside its project (see plugins/insideProjectDates)
+activitySchema.plugin(
+    require("./plugins/insideProjectDates"),
+    { dates: ["activityDate"], what: "This activity", labels: { activityDate: "date" } }
+);
+
+
 module.exports = mongoose.model(
 
     "Activity",

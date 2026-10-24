@@ -1086,7 +1086,7 @@ const getProjectLookup =
         })
 
             .select(
-                "_id projectCode name program parentProject phaseNumber"
+                "_id projectCode name program parentProject phaseNumber startDate endDate"
             )
 
             .sort({

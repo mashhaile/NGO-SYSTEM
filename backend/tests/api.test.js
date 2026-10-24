@@ -1870,6 +1870,50 @@ test("projects in phases: each phase works like a project; the main project grou
 });
 
 
+test("work is dated inside its project: activities, runs and deliveries", { skip }, async () => {
+
+    const { people, item, create } = await serviceDeliverySetup();
+    const token = state.tokenA;
+
+    const program = (await api("POST", "/programs", { token, body: { name: "Dated Work Program", startDate: "2026-01-01" } })).data.data._id;
+    const project = (await api("POST", "/projects", { token, body: { program, name: "ABC 2026", startDate: "2026-01-01", endDate: "2026-12-31", status: "Active" } })).data.data._id;
+
+    const activity = (activityDate) => api("POST", "/activities", { token, body: { project, name: "Field survey", activityType: "Assessment", activityDate } });
+
+    const before = await activity("2025-06-01");
+    assert.equal(before.status, 400);
+    assert.match(before.data.message, /outside its project's dates: ABC 2026 runs from 1 Jan 2026 to 31 Dec 2026/);
+
+    const inside = await activity("2026-06-01");
+    assert.equal(inside.status, 201, inside.data?.message);
+    const activityId = inside.data.data._id;
+
+    // moving the date outside is refused; other edits are fine
+    assert.equal((await api("PUT", `/activities/${activityId}`, { token, body: { activityDate: "2027-02-01" } })).status, 400);
+    assert.ok((await api("PUT", `/activities/${activityId}`, { token, body: { name: "Field survey (north)" } })).status < 300);
+
+    // an older record dated outside can still be edited for anything else
+    await state.db.collection("activities").updateOne({ _id: new mongoose.Types.ObjectId(activityId) }, { $set: { activityDate: new Date("2025-01-01") } });
+    const rename = await api("PUT", `/activities/${activityId}`, { token, body: { name: "Field survey (old date)" } });
+    assert.ok(rename.status < 300, rename.data?.message);
+
+    // activity runs
+    const run = (startDate, endDate) => api("POST", "/activity-runs", { token, body: { activity: activityId, name: "Round 1", startDate, endDate } });
+    const lateRun = await run("2026-11-01", "2027-01-15");
+    assert.equal(lateRun.status, 400);
+    assert.match(lateRun.data.message, /end date .* is outside its project's dates/);
+    assert.ok((await run("2026-11-01", "2026-12-15")).status < 300);
+
+    // service deliveries
+    const deliver = (deliveryDate) => create({ program, project, deliveryDate, recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 750)], beneficiaries: people });
+    const lateDelivery = await deliver("2027-03-01");
+    assert.equal(lateDelivery.status, 400);
+    assert.match(lateDelivery.data.message, /delivery date .* is outside its project's dates/);
+    assert.ok((await deliver("2026-03-01")).status < 300);
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

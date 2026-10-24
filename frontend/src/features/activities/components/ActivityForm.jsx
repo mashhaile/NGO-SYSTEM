@@ -291,6 +291,14 @@ const ActivityForm = ({
     // CHANGE FIELD
     // =================================================
 
+    // the chosen project's start and end (YYYY-MM-DD)
+    const projectRange = (project) => {
+        const full = projects.find(item => item._id === (project?._id || project));
+        if (!full?.startDate || !full?.endDate) return null;
+        return { start: String(full.startDate).slice(0, 10), end: String(full.endDate).slice(0, 10) };
+    };
+
+
     const changeField = (field, value) => {
 
         if (field === "activityDate") {
@@ -330,6 +338,13 @@ const ActivityForm = ({
 
         if (!formData.activityDate) {
             setDateError("Activity date is required");
+            return;
+        }
+
+        // inside the project's dates (the server checks it too)
+        const range = projectRange(formData.project);
+        if (range && (formData.activityDate < range.start || formData.activityDate > range.end)) {
+            setDateError(`The date must be inside the project's dates (${range.start} to ${range.end}).`);
             return;
         }
 
@@ -595,7 +610,14 @@ const ActivityForm = ({
                             label="Activity Date"
                             required
                             error={Boolean(dateError)}
-                            helperText={dateError}
+                            helperText={
+                                dateError ||
+                                (projectRange(formData.project)
+                                    ? `Inside the project's dates: ${projectRange(formData.project).start} to ${projectRange(formData.project).end}`
+                                    : "")
+                            }
+                            minDate={projectRange(formData.project)?.start}
+                            maxDate={projectRange(formData.project)?.end}
                             value={
                                 formData.activityDate || null
                             }

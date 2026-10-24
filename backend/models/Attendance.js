@@ -224,6 +224,13 @@ attendanceSchema.index({
 
 
 
+// dated inside its project (see plugins/insideProjectDates)
+attendanceSchema.plugin(
+    require("./plugins/insideProjectDates"),
+    { dates: ["sessionDate"], what: "This attendance session", labels: { sessionDate: "session date" } }
+);
+
+
 module.exports = mongoose.model(
     "Attendance",
     attendanceSchema

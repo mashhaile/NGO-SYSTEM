@@ -1526,6 +1526,13 @@ serviceDeliverySchema.index({
 // MODEL
 // ==========================================
 
+// dated inside its project (see plugins/insideProjectDates)
+serviceDeliverySchema.plugin(
+    require("./plugins/insideProjectDates"),
+    { dates: ["deliveryDate"], what: "This service delivery", labels: { deliveryDate: "delivery date" } }
+);
+
+
 module.exports = mongoose.model(
 
     "ServiceDelivery",

@@ -229,6 +229,13 @@ ActivityRunSchema.index(
     createdAt:-1
 });
 
+// dated inside its project (see plugins/insideProjectDates)
+ActivityRunSchema.plugin(
+    require("./plugins/insideProjectDates"),
+    { dates: ["startDate", "endDate"], what: "This activity run", labels: { startDate: "start date", endDate: "end date" } }
+);
+
+
 module.exports =
 mongoose.model(
 "ActivityRun",
