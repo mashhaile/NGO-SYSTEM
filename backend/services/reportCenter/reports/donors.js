@@ -25,7 +25,7 @@ const {
 } = require("../core");
 
 const { inPeriod, monthKey, monthName } = require("../period");
-const { loadDeliveries, loadServedLinks } = require("../data");
+const { loadDeliveries, loadServedLinks, INSTITUTION, HOUSEHOLD_OR_GROUP } = require("../data");
 
 
 const addTo = (totals, currency, amount) => {
@@ -51,9 +51,13 @@ const donationUse = (deliveries, links) => {
             funded.set(donationId, entry);
         }
         for (const [donationId, entry] of funded) {
-            const row = use.get(donationId) || { used: 0, deliveries: new Set(), people: new Set() };
+            const row = use.get(donationId) || { used: 0, deliveries: new Set(), people: new Set(), institutions: new Set(), groups: new Set() };
             row.used += entry.cost;
             row.deliveries.add(toId(delivery._id));
+            // a school, a community group … reached as a whole
+            const recipient = String(delivery.recipientName || delivery.deliveryNumber).trim().toLowerCase();
+            if (INSTITUTION.includes(delivery.recipientType)) row.institutions.add(recipient);
+            if (HOUSEHOLD_OR_GROUP.includes(delivery.recipientType)) row.groups.add(recipient);
             for (const link of links) {
                 if (toId(link.serviceDelivery._id) !== toId(delivery._id)) continue;
                 const allocations = link.allocations || [];
@@ -131,7 +135,9 @@ const generate = async (query, context, period) => {
             usedInPeriod: round2(use?.used || 0),
             usedToDate,
             remaining: received ? round2(Math.max(received - usedToDate, 0)) : null,
-            people: use?.people.size || 0
+            people: use?.people.size || 0,
+            institutions: use?.institutions.size || 0,
+            groups: use?.groups.size || 0
         };
     });
 
@@ -140,7 +146,13 @@ const generate = async (query, context, period) => {
         const id = toId(donor._id);
         const own = donationRows.filter(row => row.donorId === id);
         const people = new Set();
-        for (const row of own) for (const person of periodUse.get(row.id)?.people || []) people.add(person);
+        const institutions = new Set();
+        const groups = new Set();
+        for (const row of own) {
+            for (const person of periodUse.get(row.id)?.people || []) people.add(person);
+            for (const name of periodUse.get(row.id)?.institutions || []) institutions.add(name);
+            for (const name of periodUse.get(row.id)?.groups || []) groups.add(name);
+        }
         return {
             id,
             name: donor.name,
@@ -150,7 +162,9 @@ const generate = async (query, context, period) => {
             received: formatTotals(own.filter(row => row.status === "Received").reduce((totals, row) => addTo(totals, row.currency, row.amount), {})),
             pledged: formatTotals(own.filter(row => row.status === "Pledged").reduce((totals, row) => addTo(totals, row.currency, row.amount), {})),
             used: formatTotals(own.reduce((totals, row) => (row.usedInPeriod ? addTo(totals, row.currency, row.usedInPeriod) : totals), {})),
-            people: people.size
+            people: people.size,
+            institutions: institutions.size,
+            groups: groups.size
         };
     }).filter(row => row.donations > 0 || !query.program);
 
@@ -158,7 +172,13 @@ const generate = async (query, context, period) => {
     const pledged = donationRows.filter(row => row.status === "Pledged").reduce((totals, row) => addTo(totals, row.currency, row.amount), {});
     const usedTotals = donationRows.reduce((totals, row) => (row.usedInPeriod ? addTo(totals, row.currency, row.usedInPeriod) : totals), {});
     const reached = new Set();
-    for (const use of periodUse.values()) for (const person of use.people) reached.add(person);
+    const institutionsReached = new Set();
+    const groupsReached = new Set();
+    for (const use of periodUse.values()) {
+        for (const person of use.people) reached.add(person);
+        for (const name of use.institutions) institutionsReached.add(name);
+        for (const name of use.groups) groupsReached.add(name);
+    }
 
     // received per month and currency
     const monthRows = (() => {
@@ -204,7 +224,9 @@ const generate = async (query, context, period) => {
             summaryItem("Received", formatTotals(received), "text"),
             summaryItem("Pledged, not yet received", formatTotals(pledged), "text"),
             summaryItem("Used on services in the period", formatTotals(usedTotals), "text"),
-            summaryItem("People reached through donations", reached.size)
+            summaryItem("Beneficiaries reached through donations", reached.size),
+            summaryItem("Institutions reached through donations", institutionsReached.size),
+            summaryItem("Households and groups reached through donations", groupsReached.size)
         ],
         sections: [
             section("donors", "By donor", [
@@ -215,7 +237,9 @@ const generate = async (query, context, period) => {
                 column("received", "Received"),
                 column("pledged", "Pledged"),
                 column("used", "Used in period"),
-                column("people", "People reached", "number")
+                column("people", "Beneficiaries reached", "number"),
+                column("institutions", "Institutions reached", "number"),
+                column("groups", "Households / groups reached", "number")
             ], donorRows, { link: { kind: "donor", idKey: "id" } }),
             section("month", "Received by month", [
                 column("label", "Month"),
@@ -242,7 +266,9 @@ const generate = async (query, context, period) => {
                 column("usedInPeriod", "Used in period", "money"),
                 column("usedToDate", "Used to date", "money"),
                 column("remaining", "Remaining", "money"),
-                column("people", "People reached", "number")
+                column("people", "Beneficiaries reached", "number"),
+                column("institutions", "Institutions reached", "number"),
+                column("groups", "Households / groups reached", "number")
             ],
             rows: donationRows.map(({ donorId, ...row }) => row)
         }

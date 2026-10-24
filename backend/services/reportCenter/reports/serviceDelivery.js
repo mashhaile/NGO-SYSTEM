@@ -25,7 +25,7 @@ const {
 } = require("../core");
 
 const { monthKey, monthName } = require("../period");
-const { loadDeliveries, loadServedLinks, serviceName, quantityText, isMoneyUnit } = require("../data");
+const { loadDeliveries, loadServedLinks, serviceName, quantityText, isMoneyUnit, recipientsOf, countText, INSTITUTION, HOUSEHOLD_OR_GROUP } = require("../data");
 
 
 const generate = async (query, context, period) => {
@@ -70,16 +70,8 @@ const generate = async (query, context, period) => {
 
     const total = (key) => round2(rows.reduce((sum, row) => sum + row[key], 0));
 
-    // institutions (a school, a health post) and households / groups
-    // reached as a whole: their value and how many there were
-    const reachedAsWhole = (types) => {
-        const own = rows.filter(row => types.includes(row.delivery.recipientType));
-        const names = new Set(own.map(row => String(row.delivery.recipientName || row.delivery.deliveryNumber).trim().toLowerCase()));
-        return { value: round2(own.reduce((sum, row) => sum + row.value, 0)), count: names.size };
-    };
-    const institutions = reachedAsWhole(["Institution"]);
-    const groups = reachedAsWhole(["Household", "Group / Community"]);
-    const countText = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+    // institutions and households / groups reached as a whole
+    const { institutions, groups } = recipientsOf(deliveries);
     const valueDelivered = total("value");
     const people = new Set(links.map(link => link.beneficiaryId));
 
@@ -99,6 +91,8 @@ const generate = async (query, context, period) => {
                 money: 0,
                 deliveries: new Set(),
                 people: new Set(),
+                institutions: new Set(),
+                groups: new Set(),
                 value: 0
             };
             entry.quantity += toNumber(item.quantity);
@@ -106,6 +100,9 @@ const generate = async (query, context, period) => {
             entry.value += toNumber(item.totalCost);
             entry.deliveries.add(row.id);
             for (const person of row.people) entry.people.add(person);
+            const recipient = String(row.delivery.recipientName || row.number).trim().toLowerCase();
+            if (INSTITUTION.includes(row.delivery.recipientType)) entry.institutions.add(recipient);
+            if (HOUSEHOLD_OR_GROUP.includes(row.delivery.recipientType)) entry.groups.add(recipient);
             map.set(key, entry);
         }
         return [...map.values()].sort((a, b) => b.value - a.value).map(entry => ({
@@ -115,6 +112,8 @@ const generate = async (query, context, period) => {
             kind: isMoneyUnit(entry.sample.unit) ? "Money" : "Goods / service",
             deliveries: entry.deliveries.size,
             people: entry.people.size,
+            institutions: entry.institutions.size,
+            groups: entry.groups.size,
             value: round2(entry.value)
         }));
     })();
@@ -181,7 +180,7 @@ const generate = async (query, context, period) => {
         period,
         summary: [
             summaryItem("Deliveries", rows.length),
-            summaryItem("People reached", people.size),
+            summaryItem("Beneficiaries reached", people.size),
             summaryItem("Value delivered", valueDelivered, "money", { currency: "ETB" }),
             summaryItem("Given to people", total("toPeople"), "money", { currency: "ETB", note: `${percent(total("toPeople"), valueDelivered)}% of the value` }),
             summaryItem("Institutions reached", institutions.count, "number", { note: `ETB ${institutions.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }),
@@ -198,7 +197,9 @@ const generate = async (query, context, period) => {
                 column("kind", "Kind"),
                 column("quantity", "Quantity"),
                 column("deliveries", "Deliveries", "number"),
-                column("people", "People", "number"),
+                column("people", "Beneficiaries", "number"),
+                column("institutions", "Institutions", "number"),
+                column("groups", "Households / groups", "number"),
                 column("value", "Value", "money", { currency: "ETB" })
             ], serviceRows, { chart: { type: "bar", x: "label", series: ["value"], yLabel: "ETB" }, total: { value: valueDelivered } }),
             section("month", "By month", breakdownColumns("Month"), monthRows,

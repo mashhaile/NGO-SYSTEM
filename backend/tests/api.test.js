@@ -1382,6 +1382,16 @@ test("report center: eight reports, the same figures everywhere, detail reports 
     assert.ok(Math.abs(parts - figure("serviceDelivery", "Value delivered")) < 0.05, `${parts} vs ${figure("serviceDelivery", "Value delivered")}`);
     assert.equal(delivery.details.rows.length, figure("serviceDelivery", "Deliveries"));
 
+    // trainings: completion never exceeds the people trained
+    assert.ok(figure("activities", "Completed every session") <= figure("activities", "People trained"));
+    assert.ok(reports.activities.sections.some(item => item.key === "trainings"));
+    assert.ok(reports.activities.sections.some(item => item.key === "others"));
+
+    // institutions and households / groups are counted the same in every report
+    assert.equal(figure("programs", "Institutions reached"), figure("serviceDelivery", "Institutions reached"));
+    assert.equal(figure("overview", "Institutions reached"), figure("serviceDelivery", "Institutions reached"));
+    assert.equal(figure("programs", "Households and groups reached"), figure("serviceDelivery", "Households and groups reached"));
+
     // a period with nothing in it
     const emptyRes = await api("GET", "/report-center/serviceDelivery?period=year&year=2001", { token });
     assert.equal(emptyRes.status, 200);

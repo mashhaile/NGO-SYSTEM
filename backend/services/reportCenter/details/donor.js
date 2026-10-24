@@ -58,7 +58,13 @@ const generate = async (id, query, context, period) => {
     const use = donationUse(deliveries, links);
 
     const reached = new Set();
-    for (const entry of use.values()) for (const person of entry.people) reached.add(person);
+    const institutions = new Set();
+    const groups = new Set();
+    for (const entry of use.values()) {
+        for (const person of entry.people) reached.add(person);
+        for (const name of entry.institutions) institutions.add(name);
+        for (const name of entry.groups) groups.add(name);
+    }
 
     const people =
         reached.size
@@ -96,7 +102,9 @@ const generate = async (id, query, context, period) => {
             summaryItem("Received", formatTotals(received), "text"),
             summaryItem("Pledged", formatTotals(pledged), "text"),
             summaryItem("Used on services", formatTotals(used), "text"),
-            summaryItem("People reached", reached.size)
+            summaryItem("Beneficiaries reached", reached.size),
+            summaryItem("Institutions reached", institutions.size),
+            summaryItem("Households and groups reached", groups.size)
         ],
         sections: [
             section("donations", "Donations", [
@@ -108,7 +116,9 @@ const generate = async (id, query, context, period) => {
                 column("amount", "Amount", "money"),
                 column("currency", "Currency"),
                 column("used", "Used", "money"),
-                column("people", "People reached", "number")
+                column("people", "Beneficiaries reached", "number"),
+                column("institutions", "Institutions", "number"),
+                column("groups", "Households / groups", "number")
             ], donations.map(donation => ({
                 id: toId(donation._id),
                 date: donation.donationDate,
@@ -119,13 +129,16 @@ const generate = async (id, query, context, period) => {
                 amount: round2(donation.amount),
                 currency: donation.currency || "ETB",
                 used: round2(use.get(toId(donation._id))?.used || 0),
-                people: use.get(toId(donation._id))?.people.size || 0
+                people: use.get(toId(donation._id))?.people.size || 0,
+                institutions: use.get(toId(donation._id))?.institutions.size || 0,
+                groups: use.get(toId(donation._id))?.groups.size || 0
             })), { link: { kind: "donation", idKey: "id" } }),
             section("paidFor", "What the donations paid for", [
                 column("date", "Date", "date"),
                 column("delivery", "Delivery"),
                 column("services", "Services"),
-                column("people", "People", "number"),
+                column("recipient", "Recipient"),
+                column("people", "Beneficiaries", "number"),
                 column("value", "Cost", "money", { currency: "ETB" })
             ], deliveries.map(delivery => {
                 const funded = (delivery.items || []).filter(item => ids.has(toId(item.donation)) || (!item.donation && ids.has(toId(delivery.donation))));
@@ -134,6 +147,7 @@ const generate = async (id, query, context, period) => {
                     date: delivery.deliveryDate,
                     delivery: delivery.deliveryNumber,
                     services: funded.map(item => `${serviceName(item)} (${quantityText(item)})`).join("; "),
+                    recipient: (delivery.recipientType || "Individual") === "Individual" ? "Individuals" : `${delivery.recipientType}${delivery.recipientName ? `: ${delivery.recipientName}` : ""}`,
                     people: links.filter(link => toId(link.serviceDelivery._id) === toId(delivery._id)).length,
                     value: round2(funded.reduce((sum, item) => sum + toNumber(item.totalCost), 0))
                 };

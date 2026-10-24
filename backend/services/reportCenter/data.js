@@ -118,6 +118,35 @@ const itemValues = (link) => {
 };
 
 
+// Deliveries to an institution (a school, a health post) or
+// to a household / group as a whole: how many were reached
+// and the value, the same way in every report.
+const INSTITUTION = ["Institution"];
+const HOUSEHOLD_OR_GROUP = ["Household", "Group / Community"];
+
+const recipientKey = (delivery) =>
+    String(delivery.recipientName || delivery.deliveryNumber || delivery._id).trim().toLowerCase();
+
+const reachedAsWhole = (deliveries, types) => {
+    const own = deliveries.filter(delivery => types.includes(delivery.recipientType));
+    return {
+        count: new Set(own.map(recipientKey)).size,
+        value: round2(own.reduce((sum, delivery) => sum + toNumber(delivery.totalAmount), 0)),
+        names: [...new Set(own.map(delivery => delivery.recipientName).filter(Boolean))]
+    };
+};
+
+const recipientsOf = (deliveries) => ({
+    institutions: reachedAsWhole(deliveries, INSTITUTION),
+    groups: reachedAsWhole(deliveries, HOUSEHOLD_OR_GROUP)
+});
+
+const countText = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+
+const moneyText = (value) =>
+    `ETB ${toNumber(value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+
 // Money items (cash, fees) count by their amount
 const isMoneyUnit = (unit) =>
     String(unit?.semanticType || "").toLowerCase() === "monetary" ||
@@ -147,6 +176,12 @@ const splitDeliveryValue = (delivery) =>
 
 
 module.exports = {
+    recipientsOf,
+    reachedAsWhole,
+    countText,
+    moneyText,
+    INSTITUTION,
+    HOUSEHOLD_OR_GROUP,
     loadDeliveries,
     loadServedLinks,
     itemValues,

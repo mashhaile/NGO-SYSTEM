@@ -116,7 +116,7 @@ const generate = async (id, query, context, period) => {
             summaryItem("Value delivered", round2(deliveries.reduce((sum, delivery) => sum + Number(delivery.totalAmount || 0), 0)), "money", { currency: "ETB" })
         ],
         sections: [
-            section("sessions", "Sessions", [
+            sessions.length ? section("sessions", "Sessions", [
                 column("date", "Date", "date"),
                 column("number", "No.", "number"),
                 column("title", "Session"),
@@ -128,25 +128,27 @@ const generate = async (id, query, context, period) => {
                 const own = records.filter(record => toId(record.attendance) === toId(item._id));
                 const count = (status) => own.filter(record => record.status === status).length;
                 return { date: item.sessionDate, number: item.sessionNumber, title: item.sessionTitle, present: count("Present"), late: count("Late"), excused: count("Excused"), absent: count("Absent") };
-            })),
-            section("sheet", "Attendance sheet", [
+            })) : null,
+            sessions.length ? section("sheet", "Attendance sheet", [
                 column("number", "No."),
                 column("name", "Participant"),
                 column("type", "Type"),
                 column("gender", "Gender"),
                 column("sessions", "Sessions attended"),
                 column("rate", "Attendance", "percent")
-            ], sheetRows, { link: { kind: "beneficiary", idKey: "id" } }),
+            ], sheetRows, { link: { kind: "beneficiary", idKey: "id" } }) : null,
             deliveries.length
                 ? section("deliveries", "Delivered during the run", [
                     column("date", "Date", "date"),
                     column("number", "Delivery"),
-                    column("people", "People", "number"),
+                    column("recipient", "Recipient"),
+                    column("people", "Beneficiaries", "number"),
                     column("value", "Value", "money", { currency: "ETB" })
                 ], deliveries.map(delivery => ({
                     id: toId(delivery._id),
                     date: delivery.deliveryDate,
                     number: delivery.deliveryNumber,
+                    recipient: (delivery.recipientType || "Individual") === "Individual" ? "Individuals" : `${delivery.recipientType}${delivery.recipientName ? `: ${delivery.recipientName}` : ""}`,
                     people: links.filter(link => toId(link.serviceDelivery._id) === toId(delivery._id)).length,
                     value: round2(delivery.totalAmount)
                 })), { link: { kind: "delivery", idKey: "id" } })

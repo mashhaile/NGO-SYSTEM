@@ -24,7 +24,7 @@ const {
 } = require("../core");
 
 const { inPeriod } = require("../period");
-const { loadDeliveries, loadServedLinks, serviceName, quantityText } = require("../data");
+const { loadDeliveries, loadServedLinks, serviceName, quantityText, recipientsOf } = require("../data");
 
 
 const addTo = (totals, currency, amount) => {
@@ -155,7 +155,9 @@ const build = async (level, id, query, context, period) => {
         record: { fields },
         summary: [
             ...(isProgram ? [summaryItem("Projects", projects.length), summaryItem("People enrolled", enrollments.length)] : []),
-            summaryItem("People reached", people.size),
+            summaryItem("Beneficiaries reached", people.size),
+            summaryItem("Institutions reached", recipientsOf(deliveries).institutions.count, "number", { note: recipientsOf(deliveries).institutions.names.join(", ") || undefined }),
+            summaryItem("Households and groups reached", recipientsOf(deliveries).groups.count, "number", { note: recipientsOf(deliveries).groups.names.join(", ") || undefined }),
             summaryItem("Deliveries", deliveries.length),
             summaryItem("Value delivered", valueDelivered, "money", { currency: "ETB" }),
             summaryItem("Activities", activities.length),

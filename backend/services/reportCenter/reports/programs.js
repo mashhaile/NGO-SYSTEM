@@ -28,7 +28,7 @@ const {
 } = require("../core");
 
 const { inPeriod } = require("../period");
-const { loadDeliveries, loadServedLinks } = require("../data");
+const { loadDeliveries, loadServedLinks, recipientsOf, moneyText } = require("../data");
 
 
 // { ETB: 100, USD: 5 } → "ETB 100.00 + USD 5.00"
@@ -132,6 +132,15 @@ const generate = async (query, context, period) => {
             activities: activities.filter(activity => toId(activity.project) === id).length,
             deliveries: own.length,
             reached: people.size,
+            ...(() => {
+                const { institutions, groups } = recipientsOf(own);
+                return {
+                    institutions: institutions.count,
+                    toInstitutions: institutions.value,
+                    groups: groups.count,
+                    toGroups: groups.value
+                };
+            })(),
             value: round2(own.reduce((sum, delivery) => sum + toNumber(delivery.totalAmount), 0)),
             funding: formatTotals(funding),
             budgetCurrency: figure?.currency || "",
@@ -163,6 +172,15 @@ const generate = async (query, context, period) => {
             enrolled: enrolled.length,
             active: enrolled.filter(item => item.status === "Active").length,
             reached: people.size,
+            ...(() => {
+                const { institutions, groups } = recipientsOf(own);
+                return {
+                    institutions: institutions.count,
+                    toInstitutions: institutions.value,
+                    groups: groups.count,
+                    toGroups: groups.value
+                };
+            })(),
             deliveries: own.length,
             value: round2(own.reduce((sum, delivery) => sum + toNumber(delivery.totalAmount), 0)),
             funding: formatTotals(funding),
@@ -199,7 +217,9 @@ const generate = async (query, context, period) => {
             summaryItem("Programs", programs.length, "number", { note: `${programs.filter(program => program.status === "Active").length} active` }),
             summaryItem("Projects", projects.length, "number", { note: `${projects.filter(project => project.status === "Active").length} active` }),
             summaryItem("People enrolled", enrollments.length),
-            summaryItem("People reached by services", allPeople.size),
+            summaryItem("Beneficiaries reached by services", allPeople.size),
+            summaryItem("Institutions reached", recipientsOf(deliveries).institutions.count, "number", { note: moneyText(recipientsOf(deliveries).institutions.value) }),
+            summaryItem("Households and groups reached", recipientsOf(deliveries).groups.count, "number", { note: moneyText(recipientsOf(deliveries).groups.value) }),
             summaryItem("Value delivered", round2(deliveries.reduce((sum, delivery) => sum + toNumber(delivery.totalAmount), 0)), "money", { currency: "ETB" }),
             summaryItem("Funding received", formatTotals(fundingTotals), "text"),
             ...(money
@@ -218,6 +238,10 @@ const generate = async (query, context, period) => {
                 column("target", "Target people", "number"),
                 column("enrolled", "Beneficiaries enrolled", "number"),
                 column("reached", "Beneficiaries reached by services", "number"),
+                column("institutions", "Institutions reached", "number"),
+                column("toInstitutions", "To institutions", "money", { currency: "ETB" }),
+                column("groups", "Households / groups reached", "number"),
+                column("toGroups", "To households / groups", "money", { currency: "ETB" }),
                 column("value", "Value delivered", "money", { currency: "ETB" }),
                 column("funding", "Funding received"),
                 ...moneyColumns("programs")
@@ -238,7 +262,11 @@ const generate = async (query, context, period) => {
                 column("donor", "Donor"),
                 column("activities", "Activities", "number"),
                 column("deliveries", "Deliveries", "number"),
-                column("reached", "People reached", "number"),
+                column("reached", "Beneficiaries reached", "number"),
+                column("institutions", "Institutions reached", "number"),
+                column("toInstitutions", "To institutions", "money", { currency: "ETB" }),
+                column("groups", "Households / groups reached", "number"),
+                column("toGroups", "To households / groups", "money", { currency: "ETB" }),
                 column("value", "Value delivered", "money", { currency: "ETB" }),
                 ...moneyColumns("projects")
             ],
