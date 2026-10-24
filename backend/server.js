@@ -196,7 +196,8 @@ app.use(express.json());
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 2000,
+    // API_RATE_LIMIT raises it for a local bulk load (test data)
+    max: Number(process.env.API_RATE_LIMIT) || 2000,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
