@@ -35,6 +35,9 @@ const {
 const donationFunding =
     require("./donationFunding");
 
+const expenseLinks =
+    require("./serviceDeliveryExpenseLinks");
+
 const Lookup =
     require("../models/Lookup");
 
@@ -748,7 +751,18 @@ const calculateItems = (
                     normalizeObjectId(
                         item?.donation
                     ),
-
+                // bought with this expense (then not charged to
+                // the donation again), or marked as not bought
+                // with these expenses (no more suggestions)
+                paidByExpense:
+                    normalizeObjectId(
+                        item?.paidByExpense
+                    ) || null,
+                separateFromExpenses:
+                    [...new Set((Array.isArray(item?.separateFromExpenses) ? item.separateFromExpenses : [])
+                        .map(value => normalizeObjectId(value))
+                        .filter(Boolean)
+                        .map(String))],
                 detailItems,
                 remarks:
                     typeof item?.remarks ===
@@ -1607,9 +1621,15 @@ const validateDonationBalances = async (
         if (!donation) continue;
 
         const currency = String(donation.currency || donationFunding.BASE_CURRENCY).toUpperCase();
-        const parts = chargedItems.map(item => donationFunding.itemInCurrency(item, currency));
+        const use = await donationFunding.donationUse(donationId, organizationId, { excludeDeliveryId });
+        const toCharge = chargedItems.filter(item => !(item.paidByExpense && use.paidExpenses.has(String(item.paidByExpense))));
+        if (!toCharge.length) {
+            donationFunding.assertMayPayFor(use.donation, work, "This delivery");
+            continue;
+        }
+        const parts = toCharge.map(item => donationFunding.itemInCurrency(item, currency));
         const charge = parts.some(part => part === null) ? null : parts.reduce((sum, part) => sum + part, 0);
-        const otherCurrency = chargedItems.map(item => String(item.currency || donationFunding.BASE_CURRENCY).toUpperCase()).find(code => code !== currency);
+        const otherCurrency = toCharge.map(item => String(item.currency || donationFunding.BASE_CURRENCY).toUpperCase()).find(code => code !== currency);
 
         await donationFunding.assertCanCharge({
             donationId,
@@ -1618,7 +1638,8 @@ const validateDonationBalances = async (
             charge,
             chargeCurrency: otherCurrency,
             what: "This delivery",
-            excludeDeliveryId
+            excludeDeliveryId,
+            hint: () => expenseLinks.refusalHint(donationId, organizationId, { project: work.project, excludeDeliveryId })
         });
 
     }
@@ -4023,6 +4044,12 @@ const createServiceDelivery = async (
         { recipientType }
     );
 
+    await expenseLinks.checkLinks(
+        items,
+        organizationId,
+        { project: data.project }
+    );
+
     await validateDonationBalances(
         items,
         organizationId,
@@ -4503,6 +4530,11 @@ const getServiceDeliveryById = async (
 
             .populate(
                 "items.donation"
+            )
+
+            .populate(
+                "items.paidByExpense",
+                "expenseCode description amount currency expenseDate status"
             )
 
             .populate(
@@ -5253,7 +5285,18 @@ const updateServiceDelivery = async (
                     normalizeObjectId(
                         item.donation
                     ),
-
+                currency:
+                    item.currency || "ETB",
+                exchangeRate:
+                    item.exchangeRate ?? 1,
+                originalUnitCost:
+                    item.originalUnitCost ?? null,
+                originalTotal:
+                    item.originalTotal ?? null,
+                paidByExpense:
+                    item.paidByExpense || null,
+                separateFromExpenses:
+                    item.separateFromExpenses || [],
                 detailItems:
                     normalizeDetailItems(
                         Array.isArray(
@@ -5261,7 +5304,10 @@ const updateServiceDelivery = async (
                         )
                             ? item.detailItems
                             : []
-                    ),
+                    ).map((detail, index) => ({
+                        ...detail,
+                        originalUnitCost: item.detailItems?.[index]?.originalUnitCost ?? null
+                    })),
 
                 remarks:
                     item.remarks ||
@@ -5473,6 +5519,12 @@ const updateServiceDelivery = async (
             : normalizeObjectId(
                 service.fundingSource
             );
+
+    await expenseLinks.checkLinks(
+        finalItems,
+        organizationId,
+        { project: finalProject, excludeDeliveryId: service._id }
+    );
 
     await validateDonationBalances(
         finalItems,

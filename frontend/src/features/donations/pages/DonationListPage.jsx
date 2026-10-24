@@ -11,6 +11,7 @@ import {
 import {
     Alert,
     Box,
+    Button,
     Link,
     Typography
 } from "@mui/material";
@@ -49,6 +50,10 @@ import {
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
+import {
+    getDoubleCountingApi
+} from "../../ServiceDelivery/api/serviceDeliveryApi";
+
 
 const STATUS_OPTIONS =
     ["Pledged", "Received", "Cancelled"].map(value => ({ value, label: value }));
@@ -73,6 +78,39 @@ const allocationOf = (donation) => {
 // =====================================================
 // The donations API returns the whole (filtered) list, so
 // search and paging happen here.
+
+// Items given out and expenses that look like the same money
+const DoubleCountingNotice = ({ onOpen }) => {
+
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        let cancelled = false;
+        getDoubleCountingApi()
+            .then(rows => { if (!cancelled) setCount(rows.length); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, []);
+
+    if (!count) return null;
+
+    return (
+        <Alert
+            severity="warning"
+            variant="outlined"
+            sx={{ mb: 2 }}
+            action={
+                <Button color="warning" size="small" onClick={onOpen}>
+                    Review
+                </Button>
+            }
+        >
+            {count} delivery item{count === 1 ? "" : "s"} may be counted twice with an expense on the same donation (bought with the expense, then given out).
+        </Alert>
+    );
+
+};
+
 
 const DonationListPage = () => {
 
@@ -305,6 +343,10 @@ const DonationListPage = () => {
                 secondaryAction={() => navigate("/donations/untraced")}
                 secondaryActionLabel="Untraced Spending"
                 secondaryActionIcon={<WarningAmber />}
+            />
+
+            <DoubleCountingNotice
+                onOpen={() => navigate("/donations/double-counting")}
             />
 
             <SearchToolbar

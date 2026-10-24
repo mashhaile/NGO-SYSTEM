@@ -365,11 +365,20 @@ const serviceItemSchema =
                 .allow(null, "")
                 .default(null)
                 .messages({
-
                     "string.pattern.base":
                         "Donation ID must be a valid ID."
-
                 }),
+
+        // bought with this expense (not charged twice)
+        paidByExpense:
+            objectId
+                .allow(null, "")
+                .default(null),
+
+        separateFromExpenses:
+            Joi.array()
+                .items(objectId)
+                .default([]),
 
 
         // --------------------------------------------------

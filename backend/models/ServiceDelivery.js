@@ -404,15 +404,26 @@ const serviceItemSchema = new mongoose.Schema(
     // ======================================
 
     donation: {
-
         type: mongoose.Schema.Types.ObjectId,
-
         ref: "Donation",
-
         default: null
-
     },
 
+    // Bought with this expense (the kits bought with
+    // EXP-000123, then given out): the expense already uses
+    // the donation's money, so this item does not use it again
+    paidByExpense: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Expense",
+        default: null
+    },
+
+    // Expenses the user said this item was NOT bought with
+    // (no more "was it bought with...?" suggestions for them)
+    separateFromExpenses: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Expense"
+    }],
 
     // ======================================
     // DETAIL ITEMS

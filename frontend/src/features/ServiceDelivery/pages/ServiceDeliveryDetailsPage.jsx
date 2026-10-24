@@ -3135,7 +3135,7 @@ const ServiceDeliveryDetailsPage = () => {
                                                         >
 
                                                             <DetailField
-                                                                label="Actual Cost"
+                                                                label={item?.paidByExpense ? "Actual Cost (bought with an expense)" : "Actual Cost"}
                                                                 value={
                                                                     `ETB ${formatMoney(
                                                                         summary?.itemTotal

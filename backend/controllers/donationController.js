@@ -289,6 +289,7 @@ const getDonationByIdController = async (
                     amount: use.amount,
                     byDeliveries: use.byDeliveries,
                     byExpenses: use.byExpenses,
+                    givenFromExpenses: use.givenFromExpenses,
                     used: use.used,
                     left: use.left
                 }

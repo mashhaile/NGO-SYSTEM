@@ -42,6 +42,14 @@ import {
 } from "@tanstack/react-query";
 
 import {
+    useParams
+} from "react-router-dom";
+
+import {
+    getExpenseOptionsApi
+} from "../api/serviceDeliveryApi";
+
+import {
     getDonationsService,
     getDonationByIdService
 } from "../../donations/services/DonationService";
@@ -1659,6 +1667,8 @@ const ServiceDeliveryItemRow = ({
     item,
     index,
     setItems,
+    project,
+    deliveryId,
     serviceCategories,
     unitOptions,
     unitsLoading,
@@ -3496,6 +3506,47 @@ const ServiceDeliveryItemRow = ({
         return null;
     })();
 
+    // The expenses these items may have been bought with
+    // (same donation and project), the close ones first
+    const {
+        data: expenseOptions = []
+    } = useQuery({
+        queryKey: ["expense-options", donationValue, project, deliveryId, Math.round(Number(itemCostInDonationCurrency || 0))],
+        queryFn: () => getExpenseOptionsApi({
+            donation: donationValue,
+            project: project || undefined,
+            amount: itemCostInDonationCurrency || 0,
+            excludeDelivery: deliveryId || undefined
+        }),
+        enabled: Boolean(donationValue),
+        staleTime: 30000
+    });
+
+    const paidByExpenseValue =
+        normalizeLookupValue(
+            item?.paidByExpense
+        ) || "";
+
+    const separateExpenses =
+        (Array.isArray(item?.separateFromExpenses) ? item.separateFromExpenses : [])
+            .map(value => String(normalizeLookupValue(value)));
+
+    const suggestedExpense =
+        !paidByExpenseValue
+            ? expenseOptions.find(option => option.close && !separateExpenses.includes(String(option._id))) || null
+            : null;
+
+    const expenseSelectOptions = [
+        { value: "", label: "Not bought with an expense (charged to the donation)" },
+        ...expenseOptions.map(option => ({
+            value: String(option._id),
+            label: `${option.expenseCode}${option.description ? ` · ${option.description}` : ""} · ${option.currency || "ETB"} ${Number(option.remaining).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} not yet linked (${option.status})`
+        })),
+        ...(paidByExpenseValue && !expenseOptions.some(option => String(option._id) === String(paidByExpenseValue))
+            ? [{ value: String(paidByExpenseValue), label: item?.paidByExpense?.expenseCode || "The linked expense" }]
+            : [])
+    ];
+
     const detailItemsTotal =
         detailItems.reduce(
             (
@@ -3875,6 +3926,72 @@ const ServiceDeliveryItemRow = ({
                     {`This donation has ${selectedDonationFunding.currency} ${formatAmount(selectedDonationFunding.left)} left of ${formatAmount(selectedDonationFunding.amount)} (used: ${formatAmount(selectedDonationFunding.byDeliveries)} in service deliveries, ${formatAmount(selectedDonationFunding.byExpenses)} in expenses). What this delivery already saved is counted as used; it is checked again when you save.`}
                     {itemCostInDonationCurrency === null && ` This item is in ${itemCurrency(item)}: give it in ${selectedDonationFunding.currency}${selectedDonationFunding.currency === BASE_CURRENCY ? " with its exchange rate" : ""} to charge this donation.`}
                 </Typography>
+
+            )}
+
+            {/* Bought with an expense: the donation is charged once */}
+
+            {donationValue && (expenseOptions.length > 0 || paidByExpenseValue) && (
+
+                <Box
+                    sx={{
+                        mt: 1.5,
+                        maxWidth: 640
+                    }}
+                >
+
+                    <AppSelect
+                        label="Bought with expense"
+                        value={paidByExpenseValue}
+                        options={expenseSelectOptions}
+                        onChange={
+                            (event) =>
+                                updateItem(
+                                    "paidByExpense",
+                                    (event?.target?.value ?? event) || null
+                                )
+                        }
+                        helperText={
+                            paidByExpenseValue
+                                ? "These items were bought with that expense: the donation is charged once, by the expense."
+                                : "If these items were bought with an expense on this donation, choose it so the money is not counted twice."
+                        }
+                        fullWidth
+                    />
+
+                </Box>
+
+            )}
+
+            {suggestedExpense && (
+
+                <Alert
+                    severity="warning"
+                    variant="outlined"
+                    sx={{
+                        mt: 1.5
+                    }}
+                    action={
+                        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                            <AppButton
+                                size="small"
+                                variant="contained"
+                                onClick={() => updateItem("paidByExpense", String(suggestedExpense._id))}
+                            >
+                                Yes, link it
+                            </AppButton>
+                            <AppButton
+                                size="small"
+                                variant="outlined"
+                                onClick={() => updateItem("separateFromExpenses", [...separateExpenses, String(suggestedExpense._id)])}
+                            >
+                                No, separate
+                            </AppButton>
+                        </Box>
+                    }
+                >
+                    {`Expense ${suggestedExpense.expenseCode}${suggestedExpense.description ? ` "${suggestedExpense.description}"` : ""} (${suggestedExpense.currency || "ETB"} ${Number(suggestedExpense.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, ${suggestedExpense.expenseDate ? new Date(suggestedExpense.expenseDate).toLocaleDateString() : ""}) is on the same donation, with about the same amount. Were these items bought with it? If so, the donation is charged once.`}
+                </Alert>
 
             )}
 
@@ -4344,8 +4461,14 @@ const ServiceDeliveryItems = ({
     items = [],
     setItems,
     serviceCategories = [],
-    units = []
+    units = [],
+    project = null
 }) => {
+
+    // editing: this delivery's own links are not "taken"
+    const {
+        id: deliveryId
+    } = useParams();
 
     const [
         donorOptions,
@@ -4872,9 +4995,14 @@ const ServiceDeliveryItems = ({
                             item={
                                 item
                             }
-
                             index={
                                 index
+                            }
+                            project={
+                                normalizeLookupValue(project) || null
+                            }
+                            deliveryId={
+                                deliveryId || null
                             }
 
                             setItems={

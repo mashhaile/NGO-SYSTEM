@@ -590,7 +590,58 @@ const deleteServiceDeliveryController = async (
 // EXPORTS
 // ==========================================
 
+// ==========================================
+// BOUGHT WITH AN EXPENSE (not charged twice)
+// ==========================================
+
+const expenseLinks =
+    require("../services/serviceDeliveryExpenseLinks");
+
+const respond = (handler) => async (req, res) => {
+    try {
+        res.json({ success: true, data: await handler(req) });
+    }
+    catch (error) {
+        res.status(getErrorStatus(error)).json({ success: false, message: getErrorMessage(error) });
+    }
+};
+
+// GET /service-deliveries/expense-options?donation=&project=&amount=&excludeDelivery=
+const getExpenseOptionsController = respond(req =>
+    expenseLinks.options({
+        organizationId: req.user.organizationId,
+        donation: req.query.donation,
+        project: req.query.project || null,
+        amount: Number(req.query.amount || 0),
+        excludeDeliveryId: req.query.excludeDelivery || null
+    })
+);
+
+// GET /service-deliveries/double-counting
+const getDoubleCountingController = respond(req =>
+    expenseLinks.review(req.user.organizationId)
+);
+
+// POST /service-deliveries/:id/items/:itemId/expense-link { expense, separate }
+const setExpenseLinkController = respond(req =>
+    expenseLinks.setLink({
+        organizationId: req.user.organizationId,
+        deliveryId: req.params.id,
+        itemId: req.params.itemId,
+        expense: req.body?.expense,
+        separate: req.body?.separate === true,
+        userId: req.user.userId
+    })
+);
+
+
 module.exports = {
+
+    getExpenseOptionsController,
+
+    getDoubleCountingController,
+
+    setExpenseLinkController,
 
     createServiceDeliveryController,
 

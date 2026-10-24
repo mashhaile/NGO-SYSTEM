@@ -1416,9 +1416,16 @@ const ServiceDeliveryCreatePage = () => {
 
                                 currency:
                                     item?.currency || "ETB",
-
                                 exchangeRate:
                                     item?.exchangeRate ?? null,
+                                paidByExpense:
+                                    item?.paidByExpense
+                                        ? String(item.paidByExpense?._id || item.paidByExpense)
+                                        : null,
+                                separateFromExpenses:
+                                    Array.isArray(item?.separateFromExpenses)
+                                        ? item.separateFromExpenses.map(String)
+                                        : [],
 
                                 detailItems:
                                     normalizeDetailItems(

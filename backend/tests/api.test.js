@@ -1613,6 +1613,89 @@ test("funding: restricted donations pay only for their own work; expenses use th
 });
 
 
+test("funding: items bought with an expense are not charged to the donation twice", { skip }, async () => {
+
+    const { people, item, create } = await serviceDeliverySetup();
+    const token = state.tokenA;
+
+    const budget = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data;
+    const project = String(budget.project?._id || budget.project);
+    const program = String(budget.program?._id || budget.program);
+    const line = budget.summary.lines[0];
+
+    const donor = (await api("POST", "/donors", { token, body: { name: "Kits Donor", donorType: "Foundation" } })).data.data._id;
+    const donationId = (await api("POST", "/donations", { token, body: { donor, title: "Kits grant", amount: 100000, currency: "ETB", status: "Received", donationDate: "2026-03-01" } })).data.data._id;
+    const funding = async () => (await api("GET", `/donations/${donationId}`, { token })).data.data.funding;
+
+    // 100 kits bought for 75,000 (the expense)
+    const bought = await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Hygiene kits purchase", amount: 75000, currency: "ETB", donation: donationId });
+    assert.ok(bought.status < 300, bought.data?.message);
+    const expenseId = bought.data.data._id;
+    const expenseCode = bought.data.data.expenseCode;
+    assert.equal((await api("POST", `/expenses/${expenseId}/submit`, { token: state.dataEntryToken })).status, 200);
+
+    // ... and given out (75,000): suggested as bought with that expense
+    const options = (await api("GET", `/service-deliveries/expense-options?donation=${donationId}&project=${project}&amount=75000`, { token })).data.data;
+    assert.equal(options[0].expenseCode, expenseCode);
+    assert.equal(options[0].close, true);
+
+    const kits = (quantity, extra = {}) => item("Hygiene Kit", "Set", quantity, 750, { donor, donation: donationId, ...extra });
+    const deliver = (items) => create({ program, project, recipientType: "Individual", allocationMethod: "Shared", items, beneficiaries: people });
+
+    // not linked: counted twice, so refused, naming the expense
+    const unlinked = await deliver([kits(100)]);
+    assert.equal(unlinked.status, 400);
+    assert.match(unlinked.data.message, new RegExp(`link them to it .*${expenseCode}`));
+
+    // linked: charged once
+    const linked = await deliver([kits(100, { paidByExpense: expenseId })]);
+    assert.ok(linked.status < 300, linked.data?.message);
+    let now = await funding();
+    assert.deepEqual([now.byExpenses, now.byDeliveries, now.givenFromExpenses, now.left], [75000, 0, 75000, 25000]);
+
+    // more kits than the expense bought
+    const extra = await deliver([kits(1, { paidByExpense: expenseId })]);
+    assert.equal(extra.status, 400);
+    assert.match(extra.data.message, /more than the expense/);
+
+    // a second purchase (7,500) and a delivery of it, not linked: the review finds the pair
+    const second = (await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "More kits", amount: 7500, currency: "ETB", donation: donationId })).data.data;
+    await api("POST", `/expenses/${second._id}/submit`, { token: state.dataEntryToken });
+    const small = await deliver([kits(10)]);
+    assert.ok(small.status < 300, small.data?.message);
+    assert.equal((await funding()).left, 10000, "100,000 - 75,000 - 7,500 - 7,500 (counted twice)");
+
+    const review = (await api("GET", "/service-deliveries/double-counting", { token })).data.data;
+    const pair = review.find(found => String(found.delivery._id) === String(small.data.data._id));
+    assert.ok(pair, "possible double counting listed");
+    assert.equal(pair.expense.expenseCode, second.expenseCode);
+
+    // linked from the review: counted once
+    const set = await api("POST", `/service-deliveries/${pair.delivery._id}/items/${pair.item._id}/expense-link`, { token, body: { expense: pair.expense._id } });
+    assert.ok(set.status < 300, set.data?.message);
+    assert.equal((await funding()).left, 17500);
+    assert.ok(!(await api("GET", "/service-deliveries/double-counting", { token })).data.data.some(found => String(found.delivery._id) === String(small.data.data._id)));
+
+    // "separate": not suggested again
+    const third = (await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Transport", amount: 1500, currency: "ETB", donation: donationId })).data.data;
+    await api("POST", `/expenses/${third._id}/submit`, { token: state.dataEntryToken });
+    const two = await deliver([kits(2)]);
+    const listed = () => api("GET", "/service-deliveries/double-counting", { token }).then(res => res.data.data.some(found => String(found.delivery._id) === String(two.data.data._id)));
+    assert.equal(await listed(), true);
+    const itemId = (await api("GET", `/service-deliveries/${two.data.data._id}`, { token })).data.data.items[0]._id;
+    assert.ok((await api("POST", `/service-deliveries/${two.data.data._id}/items/${itemId}/expense-link`, { token, body: { expense: third._id, separate: true } })).status < 300);
+    assert.equal(await listed(), false);
+
+    // the expense returned (no longer counted): the kits use the donation themselves
+    assert.equal((await api("POST", `/expenses/${expenseId}/return`, { token: state.financeToken, body: { comment: "Wrong receipt" } })).status, 200);
+    now = await funding();
+    assert.equal(now.byDeliveries, 75000 + 1500, "the 100 kits and the 2 separate kits");
+    assert.equal(now.givenFromExpenses, 7500);
+    assert.equal(now.left, 100000 - 75000 - 1500 - 7500 - 1500);
+
+});
+
+
 test("budgets: a revision needs its reason when saved; approvers are told; the audit trail has it", { skip }, async () => {
 
     const token = state.tokenA;

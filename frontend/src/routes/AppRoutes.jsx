@@ -247,6 +247,7 @@ const DonationDetailsPage = lazyPage(() => import("../features/donations/pages/D
 const DonationEditPage = lazyPage(() => import("../features/donations/pages/DonationEditPage"));
 const DonationTracePage = lazyPage(() => import("../features/donations/pages/DonationTracePage"));
 const UntracedSpendingPage = lazyPage(() => import("../features/donations/pages/UntracedSpendingPage"));
+const DoubleCountingPage = lazyPage(() => import("../features/donations/pages/DoubleCountingPage"));
 const DonorSharePage = lazyPage(() => import("../features/donations/pages/DonorSharePage"));
 const ReportCenterPage = lazyPage(() => import("../features/reportCenter/ReportCenterPage"));
 const ReportDetailPage = lazyPage(() => import("../features/reportCenter/ReportDetailPage"));
@@ -1240,6 +1241,15 @@ const AppRoutes = () => {
                     element={
                         <PermissionRoute permission="donation.create">
                             <DonationCreatePage />
+                        </PermissionRoute>
+                    }
+                />
+
+                <Route
+                    path="/donations/double-counting"
+                    element={
+                        <PermissionRoute permission="donation.read">
+                            <DoubleCountingPage />
                         </PermissionRoute>
                     }
                 />

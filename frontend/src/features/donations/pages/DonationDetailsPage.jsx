@@ -445,6 +445,13 @@ const DonationDetailsPage = () => {
                                 value={formatMoney(currentDonation.funding.byExpenses)}
                             />
 
+                            {Number(currentDonation.funding.givenFromExpenses) > 0 && (
+                                <InfoRow
+                                    label="Given out, bought with those expenses (not counted again)"
+                                    value={formatMoney(currentDonation.funding.givenFromExpenses)}
+                                />
+                            )}
+
                             <InfoRow
                                 label="Left to use"
                                 value={formatMoney(currentDonation.funding.left)}

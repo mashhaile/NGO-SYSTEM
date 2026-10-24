@@ -57,6 +57,12 @@ const {
 
     getServiceDeliveryByIdController,
 
+    getExpenseOptionsController,
+
+    getDoubleCountingController,
+
+    setExpenseLinkController,
+
     updateServiceDeliveryController,
 
     deleteServiceDeliveryController
@@ -130,6 +136,41 @@ router.get(
 
     getServiceDeliveriesController
 
+);
+
+
+// ======================================================
+// BOUGHT WITH AN EXPENSE (before "/:id")
+// ======================================================
+//
+// The expenses an item may have been bought with, the
+// possible double counting to review, and linking an item
+// to its expense (or marking it as separate).
+//
+// ======================================================
+
+router.get(
+    "/expense-options",
+    authMiddleware,
+    subscriptionMiddleware,
+    authorize("service.read"),
+    getExpenseOptionsController
+);
+
+router.get(
+    "/double-counting",
+    authMiddleware,
+    subscriptionMiddleware,
+    authorize("service.read"),
+    getDoubleCountingController
+);
+
+router.post(
+    "/:id/items/:itemId/expense-link",
+    authMiddleware,
+    subscriptionMiddleware,
+    authorize("service.update"),
+    setExpenseLinkController
 );
 
 

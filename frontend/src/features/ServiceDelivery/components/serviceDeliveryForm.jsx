@@ -2966,9 +2966,18 @@ const ServiceDeliveryForm = ({
 
                         currency:
                             item?.currency || "ETB",
-
                         exchangeRate:
                             item?.exchangeRate ?? null,
+                        // bought with this expense (not charged twice)
+                        paidByExpense:
+                            normalizeLookupValue(
+                                item?.paidByExpense
+                            ) ||
+                            null,
+                        separateFromExpenses:
+                            Array.isArray(item?.separateFromExpenses)
+                                ? item.separateFromExpenses.map(value => normalizeLookupValue(value)).filter(Boolean)
+                                : [],
 
                         // ---------------------------------
                         // DETAIL ITEMS
@@ -3695,11 +3704,12 @@ const ServiceDeliveryForm = ({
                         serviceCategories={
                             serviceCategoryOptions
                         }
-
                         units={
                             unitOptions
                         }
-
+                        project={
+                            formData?.project
+                        }
                     />
 
                 </FormSection>

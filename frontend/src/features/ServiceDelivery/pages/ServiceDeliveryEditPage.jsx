@@ -1335,6 +1335,19 @@ const normalizeItems = (
                     : item?.exchangeRate ?? null;
 
 
+            // Bought with this expense (not charged twice)
+            normalizedItem.paidByExpense =
+                getId(
+                    item?.paidByExpense
+                ) ||
+                null;
+
+            normalizedItem.separateFromExpenses =
+                Array.isArray(item?.separateFromExpenses)
+                    ? item.separateFromExpenses.map(value => getId(value)).filter(Boolean)
+                    : [];
+
+
             normalizedItem.remarks =
                 item?.remarks ||
                 "";
@@ -1556,10 +1569,17 @@ const normalizeItemsForSubmit = (
 
                 currency:
                     item?.currency || "ETB",
-
                 exchangeRate:
                     item?.exchangeRate ?? null,
-
+                paidByExpense:
+                    getId(
+                        item?.paidByExpense
+                    ) ||
+                    null,
+                separateFromExpenses:
+                    Array.isArray(item?.separateFromExpenses)
+                        ? item.separateFromExpenses.map(value => getId(value)).filter(Boolean)
+                        : [],
                 detailItems,
 
                 remarks:
