@@ -1,5 +1,15 @@
 const Joi = require("joi");
 
+const { CURRENCY_CODES } = require("../config/currencies");
+
+// ETB, USD, EUR, GBP, CHF (config/currencies.js)
+const currencyCode =
+    Joi.string()
+        .trim()
+        .uppercase()
+        .valid(...CURRENCY_CODES)
+        .messages({ "any.only": `Currency must be one of ${CURRENCY_CODES.join(", ")}.` });
+
 const {
     PAYMENT_METHODS
 } = require("../models/Expense");
@@ -23,8 +33,7 @@ const objectId =
 const optionalId = objectId.allow("", null);
 
 const currency =
-    Joi.string().trim().uppercase().pattern(/^[A-Z]{3}$/)
-        .messages({ "string.pattern.base": "Currency must be a 3-letter code such as ETB or USD." });
+    currencyCode;
 
 const fields = {
     budget: objectId,

@@ -1979,6 +1979,35 @@ test("dates make sense: order, inside the parent, nothing done in the future", {
 });
 
 
+test("currencies: one list (CHF included); others are refused; CHF converts like the rest", { skip }, async () => {
+
+    const token = state.tokenA;
+    const donor = (await api("POST", "/donors", { token, body: { name: "Swiss Foundation", donorType: "Foundation" } })).data.data._id;
+
+    // a Swiss franc donation, with its rate on the day it was received
+    const chf = await api("POST", "/donations", { token, body: { donor, title: "Swiss grant", amount: 10000, currency: "CHF", status: "Received", donationDate: "2026-04-01", receivedRate: 140 } });
+    assert.ok(chf.status < 300, chf.data?.message);
+    const funding = (await api("GET", `/donations/${chf.data.data._id}`, { token })).data.data.funding;
+    assert.equal(funding.currency, "CHF");
+    assert.equal(funding.inBase.received, 1400000);
+
+    // a code that is not in the list
+    const unknown = await api("POST", "/donations", { token, body: { donor, title: "Odd grant", amount: 10, currency: "XYZ", status: "Pledged", donationDate: "2026-04-01" } });
+    assert.equal(unknown.status, 400);
+    assert.match(unknown.data.message, /ETB, USD, EUR, GBP, CHF/);
+
+    // an expense paid in CHF on the ETB budget: converted at its rate
+    const line = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data.summary.lines[0];
+    const noRate = await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Swiss consultant", amount: 100, currency: "CHF" });
+    assert.equal(noRate.status, 400);
+    const paid = await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Swiss consultant", amount: 100, currency: "CHF", exchangeRate: 140 });
+    assert.ok(paid.status < 300, paid.data?.message);
+    assert.equal(paid.data.data.budgetAmount, 14000);
+    assert.equal((await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Odd", amount: 1, currency: "XYZ", exchangeRate: 2 })).status, 400);
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

@@ -1,5 +1,15 @@
 const Joi = require("joi");
 
+const { CURRENCY_CODES } = require("../config/currencies");
+
+// ETB, USD, EUR, GBP, CHF (config/currencies.js)
+const currencyCode =
+    Joi.string()
+        .trim()
+        .uppercase()
+        .valid(...CURRENCY_CODES)
+        .messages({ "any.only": `Currency must be one of ${CURRENCY_CODES.join(", ")}.` });
+
 const {
     SERVICE_DELIVERY_STATUSES,
     DEFAULT_SERVICE_DELIVERY_STATUS
@@ -255,8 +265,7 @@ const serviceItemSchema =
                 .strip(),
         // an item priced in another currency (USD, EUR) and its rate to ETB
         currency:
-            Joi.string().trim().uppercase().pattern(/^[A-Z]{3}$/).default("ETB")
-                .messages({ "string.pattern.base": "Currency must be a 3-letter code such as ETB or USD." }),
+            currencyCode.default("ETB"),
 
         exchangeRate:
             Joi.number().greater(0).allow(null)

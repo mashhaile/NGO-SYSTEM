@@ -1,5 +1,15 @@
 const Joi = require("joi");
 
+const { CURRENCY_CODES } = require("../config/currencies");
+
+// ETB, USD, EUR, GBP, CHF (config/currencies.js)
+const currencyCode =
+    Joi.string()
+        .trim()
+        .uppercase()
+        .valid(...CURRENCY_CODES)
+        .messages({ "any.only": `Currency must be one of ${CURRENCY_CODES.join(", ")}.` });
+
 
 // =====================================================
 // TOR VALIDATORS
@@ -131,12 +141,8 @@ const torFields = {
     // 3-letter code (ETB, USD, ...): free text let amounts
     // be typed into it ("ETB5000000")
     currency:
-        Joi.string()
-            .trim()
-            .uppercase()
-            .pattern(/^[A-Z]{3}$/)
-            .allow("", null)
-            .messages({ "string.pattern.base": "Currency must be a 3-letter code such as ETB or USD." }),
+        currencyCode
+            .allow("", null),
 
     budgetLines:
         Joi.array()

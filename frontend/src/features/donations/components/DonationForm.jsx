@@ -1,4 +1,9 @@
 import {
+    CURRENCIES,
+    CURRENCY_NAMES
+} from "../../budgets/utils/budgetUtils";
+
+import {
     useEffect,
     useMemo,
     useState
@@ -508,29 +513,9 @@ const DonationForm = ({
     // STATIC OPTIONS
     // =================================================
 
-    const currencyOptions = [
-
-        {
-            value: "USD",
-            label: "USD"
-        },
-
-        {
-            value: "ETB",
-            label: "ETB"
-        },
-
-        {
-            value: "EUR",
-            label: "EUR"
-        },
-
-        {
-            value: "GBP",
-            label: "GBP"
-        }
-
-    ];
+    // the shared currency list (with CHF, Swiss Franc)
+    const currencyOptions =
+        CURRENCIES.map(code => ({ value: code, label: `${code} - ${CURRENCY_NAMES[code] || code}` }));
 
 
     const fundingSourceOptions = [

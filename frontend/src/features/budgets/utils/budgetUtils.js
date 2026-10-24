@@ -32,12 +32,23 @@ export const BUDGET_CATEGORIES = [
     "Other"
 ];
 
+// The currencies money can be recorded in: keep in step with
+// the server's list (backend/config/currencies.js)
 export const CURRENCIES = [
     "ETB",
     "USD",
     "EUR",
-    "GBP"
+    "GBP",
+    "CHF"
 ];
+
+export const CURRENCY_NAMES = {
+    ETB: "Ethiopian Birr",
+    USD: "US Dollar",
+    EUR: "Euro",
+    GBP: "British Pound",
+    CHF: "Swiss Franc"
+};
 
 export const MAX_YEARS = 10;
 

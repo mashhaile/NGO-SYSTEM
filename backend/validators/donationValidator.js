@@ -1,5 +1,15 @@
 const Joi = require("joi");
 
+const { CURRENCY_CODES } = require("../config/currencies");
+
+// ETB, USD, EUR, GBP, CHF (config/currencies.js)
+const currencyCode =
+    Joi.string()
+        .trim()
+        .uppercase()
+        .valid(...CURRENCY_CODES)
+        .messages({ "any.only": `Currency must be one of ${CURRENCY_CODES.join(", ")}.` });
+
 
 // ==========================================
 // OBJECT ID
@@ -112,13 +122,7 @@ const createDonationSchema = Joi.object({
 
 
     currency:
-        Joi.string()
-            .valid(
-                "USD",
-                "ETB",
-                "EUR",
-                "GBP"
-            )
+        currencyCode
             .default("USD"),
 
     // 1 unit of the currency = ? ETB, on the day it was received
@@ -299,13 +303,7 @@ const updateDonationSchema = Joi.object({
 
 
     currency:
-        Joi.string()
-            .valid(
-                "USD",
-                "ETB",
-                "EUR",
-                "GBP"
-            )
+        currencyCode
             .optional(),
 
     receivedRate:
