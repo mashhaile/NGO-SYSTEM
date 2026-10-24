@@ -626,7 +626,10 @@ const createBudget = async (data, organizationId, userId) => {
     const level = data.level;
     const years = validateYears(data.startYear, data.endYear);
     const target = await resolveTarget(organizationId, level, data.program, data.project);
-
+    // a project in phases: each phase has its own budget
+    if (level === BUDGET_LEVEL.PROJECT) {
+        await require("./projectPhases").assertNotMainProject(target.project, organizationId, "the budget");
+    }
     await assertNoActiveBudget(organizationId, level, target);
 
     const budgetCode =

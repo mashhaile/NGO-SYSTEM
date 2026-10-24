@@ -1624,7 +1624,7 @@ const validateDonationBalances = async (
         const use = await donationFunding.donationUse(donationId, organizationId, { excludeDeliveryId });
         const toCharge = chargedItems.filter(item => !(item.paidByExpense && use.paidExpenses.has(String(item.paidByExpense))));
         if (!toCharge.length) {
-            donationFunding.assertMayPayFor(use.donation, work, "This delivery");
+            donationFunding.assertMayPayFor(use.donation, await donationFunding.withParent(work), "This delivery");
             continue;
         }
         const parts = toCharge.map(item => donationFunding.itemInCurrency(item, currency));
@@ -4044,6 +4044,10 @@ const createServiceDelivery = async (
         { recipientType }
     );
 
+    // a project in phases: the delivery belongs to a phase
+    await require("./projectPhases")
+        .assertNotMainProject(data.project, organizationId, "the service delivery");
+
     await expenseLinks.checkLinks(
         items,
         organizationId,
@@ -5519,6 +5523,11 @@ const updateServiceDelivery = async (
             : normalizeObjectId(
                 service.fundingSource
             );
+
+    if (String(finalProject || "") !== String(service.project || "")) {
+        await require("./projectPhases")
+            .assertNotMainProject(finalProject, organizationId, "the service delivery");
+    }
 
     await expenseLinks.checkLinks(
         finalItems,

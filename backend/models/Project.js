@@ -95,12 +95,24 @@ default:null
 
 
 
+// A phase of this main project (Phase 1, Phase 2 ...): a
+// project of its own (budget, activities, reports), grouped
+// under the main project. See services/projectPhases.js
+parentProject:{
+type:mongoose.Schema.Types.ObjectId,
+ref:"Project",
+default:null,
+index:true
+},
+
+phaseNumber:{
+type:Number,
+default:null
+},
+
 startDate:{
-
 type:Date,
-
 required:true
-
 },
 
 

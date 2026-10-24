@@ -52,13 +52,22 @@ const build = async (level, id, query, context, period) => {
 
     if (!record) throw notFound(isProgram ? "Program" : "Project");
 
+    // a main project: its phases count with it (each phase is a project)
+    const phases =
+        isProgram
+            ? []
+            : await Project.find(scope(organizationId, { parentProject: record._id }))
+                .select("projectCode name status startDate endDate phaseNumber")
+                .sort({ phaseNumber: 1 })
+                .lean();
+
     const projects =
         isProgram
-            ? await Project.find(scope(organizationId, { program: record._id })).select("projectCode name status startDate endDate").sort({ projectCode: 1 }).lean()
-            : [record];
+            ? await Project.find(scope(organizationId, { program: record._id })).select("projectCode name status startDate endDate parentProject phaseNumber").sort({ projectCode: 1 }).lean()
+            : [record, ...phases];
 
     const projectIds = projects.map(project => project._id);
-    const own = isProgram ? { program: record._id } : { project: record._id };
+    const own = isProgram ? { program: record._id } : { project: { $in: projectIds } };
 
     const deliveries = await loadDeliveries(organizationId, period, own);
     const links = await loadServedLinks(organizationId, deliveries);
@@ -95,15 +104,35 @@ const build = async (level, id, query, context, period) => {
     const donationDate = inPeriod(period);
     const donations =
         await Donation.find(scope(organizationId, {
-            ...(isProgram ? { $or: [{ program: record._id }, { project: { $in: projectIds } }] } : { project: record._id }),
+            ...(isProgram ? { $or: [{ program: record._id }, { project: { $in: projectIds } }] } : { project: { $in: projectIds } }),
             ...(donationDate ? { donationDate } : {})
         }))
             .populate("donor", "name")
             .sort({ donationDate: 1 })
             .lean();
 
-    const figures = money ? await getBudgetFigures(organizationId, isProgram ? { programIds: [record._id] } : { projectIds: [record._id] }) : null;
-    const figure = figures ? (isProgram ? figures.programs?.[toId(record._id)] : figures.projects?.[toId(record._id)]) : null;
+    const figures = money ? await getBudgetFigures(organizationId, isProgram ? { programIds: [record._id] } : { projectIds }) : null;
+
+    // the budget: the project's own, or its phases' added up (in one currency)
+    const phaseFigures = figures && phases.length ? projectIds.map(id => figures.projects?.[toId(id)]).filter(Boolean) : [];
+    const sameCurrency = phaseFigures.length && phaseFigures.every(item => item.currency === phaseFigures[0].currency);
+    const figure =
+        !figures
+            ? null
+            : isProgram
+                ? figures.programs?.[toId(record._id)]
+                : phases.length
+                    ? (sameCurrency
+                        ? {
+                            budgetCode: `${phaseFigures.length} budget${phaseFigures.length === 1 ? "" : "s"} (phases)`,
+                            status: "all phases",
+                            currency: phaseFigures[0].currency,
+                            approvedAmount: phaseFigures.reduce((sum, item) => sum + toNumber(item.approvedAmount), 0),
+                            spent: phaseFigures.reduce((sum, item) => sum + toNumber(item.spent), 0),
+                            remaining: phaseFigures.reduce((sum, item) => sum + toNumber(item.remaining), 0)
+                        }
+                        : null)
+                    : figures.projects?.[toId(record._id)];
 
     const expenseDate = inPeriod(period);
     const expenses =
@@ -131,6 +160,7 @@ const build = async (level, id, query, context, period) => {
             : [
                 { label: "Code", value: record.projectCode },
                 { label: "Program", value: record.program?.name },
+                ...(phases.length ? [{ label: "Phases", value: phases.map(phase => `Phase ${phase.phaseNumber}: ${phase.name} (${phase.status})`).join("; ") }] : []),
                 { label: "Status", value: record.status },
                 { label: "Start", value: record.startDate, format: "date" },
                 { label: "End", value: record.endDate, format: "date" },
@@ -150,11 +180,14 @@ const build = async (level, id, query, context, period) => {
         title: record.name,
         description: isProgram
             ? `Program ${record.programCode}: projects, people, deliveries, activities and funding.`
-            : `Project ${record.projectCode}: people, deliveries, activities and funding.`,
+            : phases.length
+                ? `Project ${record.projectCode} with its ${phases.length} phase${phases.length === 1 ? "" : "s"}: people (each counted once), deliveries, activities and funding.`
+                : `Project ${record.projectCode}: people, deliveries, activities and funding.`,
         period,
         record: { fields },
         summary: [
             ...(isProgram ? [summaryItem("Projects", projects.length), summaryItem("People enrolled", enrollments.length)] : []),
+            ...(phases.length ? [summaryItem("Phases", phases.length)] : []),
             summaryItem("Beneficiaries reached", people.size),
             summaryItem("Institutions reached", recipientsOf(deliveries).institutions.count, "number", { note: recipientsOf(deliveries).institutions.names.join(", ") || undefined }),
             summaryItem("Households and groups reached", recipientsOf(deliveries).groups.count, "number", { note: recipientsOf(deliveries).groups.names.join(", ") || undefined }),
@@ -190,6 +223,42 @@ const build = async (level, id, query, context, period) => {
                         end: project.endDate,
                         deliveries: ownDeliveries.length,
                         value: round2(ownDeliveries.reduce((sum, delivery) => sum + toNumber(delivery.totalAmount), 0))
+                    };
+                }), { link: { kind: "project", idKey: "id" } })
+                : null,
+            // a main project: phase by phase (each opens as its own project report)
+            phases.length
+                ? section("phases", "Phase by phase", [
+                    column("phase", "Phase"),
+                    column("name", "Name"),
+                    column("status", "Status"),
+                    column("start", "Start", "date"),
+                    column("end", "End", "date"),
+                    column("people", "People reached", "number"),
+                    column("deliveries", "Deliveries", "number"),
+                    column("value", "Value delivered", "money", { currency: "ETB" }),
+                    ...(money ? [
+                        column("budget", "Approved budget", "text"),
+                        column("spent", "Spent", "text"),
+                        column("left", "Left", "text")
+                    ] : [])
+                ], phases.map(phase => {
+                    const ownDeliveries = deliveries.filter(delivery => toId(delivery.project) === toId(phase._id));
+                    const ids = new Set(ownDeliveries.map(delivery => toId(delivery._id)));
+                    const phasePeople = new Set(links.filter(link => ids.has(toId(link.serviceDelivery?._id || link.serviceDelivery))).map(link => link.beneficiaryId));
+                    const budget = figures?.projects?.[toId(phase._id)];
+                    const amount = (value) => (budget ? `${budget.currency} ${round2(value).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "-");
+                    return {
+                        id: toId(phase._id),
+                        phase: `Phase ${phase.phaseNumber}`,
+                        name: phase.name,
+                        status: phase.status,
+                        start: phase.startDate,
+                        end: phase.endDate,
+                        people: phasePeople.size,
+                        deliveries: ownDeliveries.length,
+                        value: round2(ownDeliveries.reduce((sum, delivery) => sum + toNumber(delivery.totalAmount), 0)),
+                        ...(money ? { budget: amount(budget?.approvedAmount), spent: amount(budget?.spent), left: amount(budget?.remaining) } : {})
                     };
                 }), { link: { kind: "project", idKey: "id" } })
                 : null,

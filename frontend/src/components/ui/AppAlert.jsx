@@ -7,6 +7,8 @@ const AppAlert = ({
     severity = "info",
     title,
     children,
+    // many pages pass the text as message="..."
+    message,
     action,
     variant = "standard",
     sx = {},
@@ -34,7 +36,7 @@ const AppAlert = ({
                 </AlertTitle>
             )}
 
-            {children}
+            {children ?? message}
         </Alert>
     );
 };

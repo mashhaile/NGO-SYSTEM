@@ -1,3 +1,4 @@
+const ApiError = require("../utils/apiError");
 const escapeRegex = require("../utils/escapeRegex");
 const Project =
     require("../models/Project");
@@ -46,6 +47,9 @@ const withBudgets = async (organizationId, projects) => {
 };
 
 
+const phases = require("./projectPhases");
+
+
 const isValidObjectId = (value) => {
 
     return mongoose.Types.ObjectId.isValid(value);
@@ -64,9 +68,17 @@ const createProject = async (
 ) => {
 
     // =================================================
+    // A PHASE OF A MAIN PROJECT (its program)
+    // =================================================
+    const parent =
+        await phases.resolveParent(data.parentProject, organizationId);
+    if (parent) {
+        data.program = String(parent.program);
+        await phases.checkPhaseDates({ parent, startDate: data.startDate, endDate: data.endDate, organizationId });
+    }
+    // =================================================
     // VERIFY PROGRAM
     // =================================================
-
     if (
         !data.program ||
         !isValidObjectId(data.program)
@@ -265,13 +277,13 @@ const createProject = async (
 
             status:
                 data.status || "Draft",
-
+            parentProject:
+                parent ? parent._id : null,
+            phaseNumber:
+                parent ? await phases.nextPhaseNumber(parent._id, organizationId) : null,
             createdBy:
                 userId
-
         });
-
-
     return project;
 
 };
@@ -361,9 +373,15 @@ const getProjects = async (
 
 
     // =================================================
+    // PHASES OF A MAIN PROJECT
+    // =================================================
+    if (query.parentProject && isValidObjectId(query.parentProject)) {
+        filter.parentProject =
+            query.parentProject;
+    }
+    // =================================================
     // STATUS FILTER
     // =================================================
-
     if (status) {
 
         filter.status =
@@ -454,10 +472,13 @@ const getProjects = async (
         await Promise.all([
 
             Project.find(filter)
-
                 .populate(
                     "program",
                     "programCode name"
+                )
+                .populate(
+                    "parentProject",
+                    "projectCode name"
                 )
 
                 .populate(
@@ -569,10 +590,14 @@ const getProjectById = async (
             .lean();
 
     if (!project) return null;
-
     const [result] =
         await withBudgets(organizationId, [project]);
-
+    if (project.parentProject) {
+        result.parentProject =
+            await Project.findById(project.parentProject).select("projectCode name startDate endDate").lean();
+    }
+    result.phases =
+        await withBudgets(organizationId, await phases.phasesOf(project._id, organizationId));
     return result;
 
 };
@@ -620,14 +645,20 @@ const updateProject = async (
 
 
     if (!project) {
-
         throw new Error(
             "Project not found."
         );
-
     }
-
-
+    // =================================================
+    // MAIN PROJECT (a phase of it)
+    // =================================================
+    let newParent = undefined;
+    if (data.parentProject !== undefined) {
+        newParent =
+            await phases.resolveParent(data.parentProject, organizationId, { selfId: project._id });
+        // a phase is in its main project's program
+        if (newParent) data.program = String(newParent.program);
+    }
     // =================================================
     // PROGRAM
     // =================================================
@@ -899,9 +930,24 @@ const updateProject = async (
 
 
     // =================================================
+    // PHASES: inside the main project, not overlapping
+    // =================================================
+    if (newParent !== undefined) {
+        const before = project.parentProject ? String(project.parentProject) : null;
+        project.parentProject = newParent ? newParent._id : null;
+        if (!newParent) project.phaseNumber = null;
+        else if (before !== String(newParent._id)) project.phaseNumber = await phases.nextPhaseNumber(newParent._id, organizationId);
+    }
+    if (project.parentProject) {
+        const parent = newParent || await Project.findById(project.parentProject).lean();
+        if (parent) await phases.checkPhaseDates({ parent, startDate: project.startDate, endDate: project.endDate, selfId: project._id, organizationId });
+    }
+    else {
+        await phases.assertCoversPhases(project, organizationId);
+    }
+    // =================================================
     // AUDIT
     // =================================================
-
     project.updatedBy =
         userId;
 
@@ -966,24 +1012,25 @@ const deleteProject = async (
     }
 
 
+    const projectPhases =
+        await phases.phasesOf(id, organizationId);
+    if (projectPhases.length) {
+        throw new ApiError(
+            `This project has ${projectPhases.length} phase${projectPhases.length === 1 ? "" : "s"}. Delete or move the phases first.`,
+            409
+        );
+    }
     const project =
         await Project.findOneAndUpdate(
-
             {
-
                 _id:
                     id,
-
                 organization:
                     organizationId,
-
                 isDeleted:
                     false
-
             },
-
             {
-
                 isDeleted:
                     true,
 
@@ -1039,7 +1086,7 @@ const getProjectLookup =
         })
 
             .select(
-                "_id projectCode name program"
+                "_id projectCode name program parentProject phaseNumber"
             )
 
             .sort({

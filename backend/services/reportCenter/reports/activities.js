@@ -31,7 +31,7 @@ const AttendanceRecord = require("../../../models/AttendanceRecord");
 
 const {
     scope, objectId, toId, round2, percent, groupRows, locationText,
-    summaryItem, column, section, buildReport
+    summaryItem, column, section, buildReport, projectIn
 } = require("../core");
 
 const { inPeriod, monthKey, monthName } = require("../period");
@@ -61,7 +61,7 @@ const generate = async (query, context, period) => {
 
     // ---------- activities in scope ----------
     const activityFilter = {};
-    if (objectId(query.project)) activityFilter.project = objectId(query.project);
+    if (objectId(query.project)) activityFilter.project = projectIn(query);
     if (query.status) activityFilter.status = query.status;
 
     let activities =

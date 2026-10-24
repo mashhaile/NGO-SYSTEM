@@ -4,6 +4,10 @@ import {
 } from "react";
 
 import {
+    useSearchParams
+} from "react-router-dom";
+
+import {
     Box
 } from "@mui/material";
 
@@ -34,9 +38,15 @@ import {
     getStaffLookupService
 } from "../../users/services/userService";
 
+import {
+    getProjectsService
+} from "../services/projectService";
+
 
 const initialState = {
     program: "",
+    // a phase of this main project (Phase 1, Phase 2 ...)
+    parentProject: "",
     name: "",
     description: "",
     donor: "",
@@ -98,6 +108,39 @@ const ProjectForm = ({
         programs,
         setPrograms
     ] = useState([]);
+
+    // projects that may have phases (not phases themselves)
+    const [
+        mainProjects,
+        setMainProjects
+    ] = useState([]);
+
+    // "Add phase" opens this form with ?parent=<main project>
+    const [searchParams] =
+        useSearchParams();
+
+    const parentFromUrl =
+        searchParams.get("parent") || "";
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        getProjectsService({ limit: 1000 })
+            .then(response => {
+                const data = response?.data?.data ?? response?.data ?? [];
+                const list = Array.isArray(data) ? data : data?.items || [];
+                if (!cancelled) setMainProjects(list.filter(project => !project.parentProject));
+            })
+            .catch(() => {
+                if (!cancelled) setMainProjects([]);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, []);
 
 
     const [
@@ -259,13 +302,11 @@ const ProjectForm = ({
     useEffect(() => {
 
         if (!initialData) {
-
             setForm({
-                ...initialState
+                ...initialState,
+                parentProject: parentFromUrl
             });
-
             return;
-
         }
 
 
@@ -290,9 +331,12 @@ const ProjectForm = ({
 
 
         setForm({
-
             program:
                 programId,
+            parentProject:
+                getEntityId(
+                    initialData.parentProject
+                ),
 
             name:
                 initialData.name ??
@@ -329,7 +373,8 @@ const ProjectForm = ({
         });
 
     }, [
-        initialData
+        initialData,
+        parentFromUrl
     ]);
 
 
@@ -433,7 +478,7 @@ const ProjectForm = ({
         // BASIC VALIDATION
         // -------------------------------------------------
 
-        if (!form.program) {
+        if (!form.program && !form.parentProject) {
 
             setFormError(
                 "Please select a program."
@@ -482,11 +527,13 @@ const ProjectForm = ({
         // -------------------------------------------------
 
         const payload = {
-
             program:
                 getEntityId(
-                    form.program
+                    form.program || selectedMainProject?.program
                 ),
+            // a phase of a main project (empty: a project on its own)
+            parentProject:
+                form.parentProject || null,
 
             name:
                 form.name.trim(),
@@ -610,6 +657,30 @@ const ProjectForm = ({
 
     };
 
+
+    // =====================================================
+    // MAIN PROJECT OPTIONS (phases)
+    // =====================================================
+
+    const selfId =
+        getEntityId(initialData?._id);
+
+    const hasPhases =
+        Array.isArray(initialData?.phases) && initialData.phases.length > 0;
+
+    const selectedMainProject =
+        mainProjects.find(project => getEntityId(project) === form.parentProject) || null;
+
+    const mainProjectOptions = [
+        { value: "", label: "Not a phase (a project on its own)" },
+        ...mainProjects
+            .filter(project => getEntityId(project) !== selfId)
+            .filter(project => !form.program || selectedMainProject || getEntityId(project.program) === form.program)
+            .map(project => ({
+                value: getEntityId(project),
+                label: project.projectCode ? `${project.projectCode} - ${project.name}` : project.name
+            }))
+    ];
 
     // =====================================================
     // PROGRAM OPTIONS
@@ -746,7 +817,7 @@ const ProjectForm = ({
                             label="Program"
                             required
                             value={
-                                form.program
+                                form.program || getEntityId(selectedMainProject?.program)
                             }
                             placeholder="Select Program"
                             options={
@@ -757,6 +828,41 @@ const ProjectForm = ({
                                     "program",
                                     e.target.value
                                 )
+                            }
+                            disabled={
+                                Boolean(selectedMainProject)
+                            }
+                            helperText={
+                                selectedMainProject
+                                    ? "A phase is in its main project's program"
+                                    : undefined
+                            }
+                        />
+
+
+                        <AppSelect
+                            label="Phase of (main project)"
+                            value={
+                                form.parentProject
+                            }
+                            options={
+                                mainProjectOptions
+                            }
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                const main = mainProjects.find(project => getEntityId(project) === value);
+                                changeField("parentProject", value);
+                                if (main) changeField("program", getEntityId(main.program));
+                            }}
+                            disabled={
+                                hasPhases
+                            }
+                            helperText={
+                                hasPhases
+                                    ? "This project has phases of its own"
+                                    : selectedMainProject
+                                        ? `Dates must lie inside ${String(selectedMainProject.startDate || "").slice(0, 10)} to ${String(selectedMainProject.endDate || "").slice(0, 10)} and not overlap another phase`
+                                        : "Leave empty for a project on its own. A phase has its own budget, activities and reports."
                             }
                         />
 

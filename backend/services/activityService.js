@@ -132,16 +132,13 @@ const createActivity = async (
 ) => {
 
     const project =
-
         await validateProject(
-
             data.project,
-
             organizationId
-
         );
-
-
+    // a project in phases: the activity belongs to a phase
+    await require("./projectPhases")
+        .assertNotMainProject(project._id, organizationId, "the activity");
     const activityCode =
 
         await generateActivityCode(

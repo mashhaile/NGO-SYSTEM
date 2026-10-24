@@ -25,7 +25,7 @@ const Expense = require("../../../models/Expense");
 
 const {
     scope, formatTotals, objectId, toId, round2, toNumber, percent, groupRows,
-    summaryItem, column, section, buildReport
+    summaryItem, column, section, buildReport, projectIn
 } = require("../core");
 
 const { inPeriod, monthKey, monthName } = require("../period");
@@ -52,7 +52,7 @@ const generate = async (query, context, period) => {
 
     const filter = { status: "Approved", startYear: { $lte: year }, endYear: { $gte: year } };
     if (objectId(query.program)) filter.program = objectId(query.program);
-    if (objectId(query.project)) filter.project = objectId(query.project);
+    if (objectId(query.project)) filter.project = projectIn(query);
 
     const budgets =
         await Budget.find(scope(organizationId, filter))

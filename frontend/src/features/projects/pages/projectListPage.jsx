@@ -192,6 +192,7 @@ const ProjectListPage = () => {
                     </Link>
                     <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
                         {params.row.projectCode}
+                        {params.row.parentProject ? ` · Phase ${params.row.phaseNumber || ""} of ${params.row.parentProject.name || ""}` : ""}
                     </Typography>
                 </Box>
             )

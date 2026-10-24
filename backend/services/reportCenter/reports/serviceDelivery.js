@@ -21,7 +21,7 @@
 
 const {
     objectId, toId, round2, toNumber, percent, locationText, groupRows,
-    summaryItem, column, section, buildReport
+    summaryItem, column, section, buildReport, projectIn
 } = require("../core");
 
 const { monthKey, monthName } = require("../period");
@@ -34,7 +34,7 @@ const generate = async (query, context, period) => {
 
     const filter = {};
     if (objectId(query.program)) filter.program = objectId(query.program);
-    if (objectId(query.project)) filter.project = objectId(query.project);
+    if (objectId(query.project)) filter.project = projectIn(query);
     if (query.region) filter.$or = [{ region: query.region }, { regionCode: query.region }];
 
     const deliveries = await loadDeliveries(organizationId, period, filter);

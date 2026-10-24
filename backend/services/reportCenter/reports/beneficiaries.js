@@ -17,7 +17,7 @@ const AttendanceRecord = require("../../../models/AttendanceRecord");
 
 const {
     scope, objectId, toId, round2, percent, fullName, ageOf, ageGroup, AGE_GROUPS,
-    lookupText, locationText, groupRows, summaryItem, column, section, buildReport
+    lookupText, locationText, groupRows, summaryItem, column, section, buildReport, projectIn
 } = require("../core");
 
 const { inPeriod, monthKey, monthName } = require("../period");
@@ -48,7 +48,7 @@ const generate = async (query, context, period) => {
     // ---------- what they received in the period ----------
     const deliveryFilter = {};
     if (objectId(query.program)) deliveryFilter.program = objectId(query.program);
-    if (objectId(query.project)) deliveryFilter.project = objectId(query.project);
+    if (objectId(query.project)) deliveryFilter.project = projectIn(query);
 
     const deliveries = await loadDeliveries(organizationId, period, deliveryFilter);
     const links = await loadServedLinks(organizationId, deliveries);
@@ -68,7 +68,7 @@ const generate = async (query, context, period) => {
     const sessionFilter = {};
     if (sessionDate) sessionFilter.sessionDate = sessionDate;
     if (objectId(query.program)) sessionFilter.program = objectId(query.program);
-    if (objectId(query.project)) sessionFilter.project = objectId(query.project);
+    if (objectId(query.project)) sessionFilter.project = projectIn(query);
 
     const sessions =
         await Attendance.find(scope(organizationId, sessionFilter)).select("_id").lean();

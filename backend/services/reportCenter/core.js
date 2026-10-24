@@ -156,7 +156,16 @@ const assertPermission = (context, permission, what) => {
 
 const notFound = (what) => new ApiError(`${what} not found.`, 404);
 
+// the project chosen in a report filter, with its phases
+// (filled in by runReport: query.projectIds)
+const projectIn = (query) =>
+    Array.isArray(query.projectIds) && query.projectIds.length
+        ? { $in: query.projectIds }
+        : objectId(query.project);
+
+
 module.exports = {
+    projectIn,
     toNumber,
     round2,
     formatTotals,

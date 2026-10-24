@@ -29,7 +29,10 @@ exports.createProjectSchema = Joi.object({
     projectManager:
         Joi.string()
             .allow(null),
-
+    // a phase of this main project
+    parentProject:
+        Joi.string()
+            .allow(null, ""),
     startDate:
         Joi.date()
             .required(),
@@ -77,7 +80,9 @@ exports.updateProjectSchema = Joi.object({
     projectManager:
         Joi.string()
             .allow(null),
-
+    parentProject:
+        Joi.string()
+            .allow(null, ""),
     startDate:
         Joi.date(),
 

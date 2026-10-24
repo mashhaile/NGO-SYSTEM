@@ -95,6 +95,11 @@ const assertMayPayFor = (donation, work, what = "This") => {
         return;
     }
 
+    // a donation for a main project pays for any of its phases
+    if (scope.key === "project" && work?.parentProject && toId(work.parentProject) === scope.id) {
+        return;
+    }
+
     if (toId(work?.[scope.key]) !== scope.id) {
         throw new ApiError(
             `${label(donation)} is restricted to its ${scope.level}; ${what.toLowerCase()} is for another ${scope.level}. Choose a donation for this work, or an unrestricted one.`,
@@ -226,12 +231,18 @@ const donationUse = async (donationOrId, organizationId, { excludeDeliveryId = n
 
 // ---------- charge a donation (check it may pay and has enough) ----------
 
+// the work's main project, when its project is a phase
+const withParent = async (work) => {
+    if (!work?.project || work.parentProject) return work;
+    return { ...work, parentProject: await require("./projectPhases").parentOf(work.project) };
+};
+
+
 const assertCanCharge = async ({ donationId, organizationId, work, charge, chargeCurrency, what = "This", excludeDeliveryId = null, excludeExpenseId = null, session = null, hint = null }) => {
 
     const use = await donationUse(donationId, organizationId, { excludeDeliveryId, excludeExpenseId, session });
     const { donation, currency } = use;
-
-    assertMayPayFor(donation, work, what);
+    assertMayPayFor(donation, await withParent(work), what);
 
     if (charge === null || charge === undefined) {
         throw new ApiError(
@@ -264,6 +275,7 @@ const lockDonation = (donationId, session) =>
 module.exports = {
     BASE_CURRENCY,
     COUNTED_EXPENSE_STATUS,
+    withParent,
     label,
     money,
     toId,

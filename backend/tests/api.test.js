@@ -1794,6 +1794,82 @@ test("budgets: a USD project budget under an ETB program budget is converted at 
 });
 
 
+test("projects in phases: each phase works like a project; the main project groups them", { skip }, async () => {
+
+    const { people, item, create } = await serviceDeliverySetup();
+    const token = state.tokenA;
+
+    const program = (await api("POST", "/programs", { token, body: { name: "Phased Program", startDate: "2026-01-01" } })).data.data._id;
+    const otherProgram = (await api("POST", "/programs", { token, body: { name: "Other Phased Program", startDate: "2026-01-01" } })).data.data._id;
+    const main = (await api("POST", "/projects", { token, body: { program, name: "Water Points", startDate: "2026-01-01", endDate: "2027-12-31", status: "Active" } })).data.data._id;
+
+    const phase = (name, startDate, endDate, extra = {}) =>
+        api("POST", "/projects", { token, body: { program: otherProgram, parentProject: main, name, startDate, endDate, status: "Active", ...extra } });
+
+    const one = await phase("Water Points Phase 1", "2026-01-01", "2026-12-31");
+    assert.equal(one.status, 201, one.data?.message);
+    assert.equal(one.data.data.phaseNumber, 1);
+    assert.equal(String(one.data.data.program), program, "a phase is in its main project's program");
+
+    const overlap = await phase("Overlapping", "2026-06-01", "2027-03-31");
+    assert.equal(overlap.status, 400);
+    assert.match(overlap.data.message, /overlaps Water Points Phase 1/);
+
+    const outside = await phase("Too late", "2027-06-01", "2028-06-30");
+    assert.equal(outside.status, 400);
+    assert.match(outside.data.message, /inside its main project's dates/);
+
+    const two = await phase("Water Points Phase 2", "2027-01-01", "2027-12-31");
+    assert.equal(two.data.data.phaseNumber, 2);
+
+    const nested = await api("POST", "/projects", { token, body: { program, parentProject: one.data.data._id, name: "Phase of a phase", startDate: "2026-02-01", endDate: "2026-03-01" } });
+    assert.equal(nested.status, 400);
+
+    // new work goes on a phase
+    const activity = (project) => api("POST", "/activities", { token, body: { project, name: "Site survey", activityType: "Assessment", activityDate: "2026-03-01" } });
+    const onMain = await activity(main);
+    assert.equal(onMain.status, 400);
+    assert.match(onMain.data.message, /runs in phases/);
+    const onPhase = await activity(one.data.data._id);
+    assert.ok(onPhase.status < 300, onPhase.data?.message);
+
+    const budget = (project) => api("POST", "/budgets", { token, body: { level: "project", name: "Budget", project, startYear: 2026, endYear: 2026, lines: [{ category: "Personnel", amounts: yearly({ 2026: 1000 }) }] } });
+    assert.equal((await budget(main)).status, 400);
+    assert.equal((await budget(one.data.data._id)).status, 201, "each phase has its own budget");
+
+    // a donation for the main project pays for its phases
+    const donor = (await api("POST", "/donors", { token, body: { name: "Phases Donor", donorType: "Foundation" } })).data.data._id;
+    const donation = (await api("POST", "/donations", { token, body: { donor, title: "Water grant", amount: 50000, currency: "ETB", status: "Received", donationDate: "2026-02-01", fundingRestriction: "Restricted", program, project: main } })).data.data._id;
+    const deliver = (project) => create({ program, project, recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 750, { donor, donation })], beneficiaries: people });
+    assert.equal((await deliver(main)).status, 400, "not on the main project");
+    const delivered = await deliver(one.data.data._id);
+    assert.ok(delivered.status < 300, delivered.data?.message);
+
+    // the main project: its phases, and reports that include them
+    const details = (await api("GET", `/projects/${main}`, { token })).data.data;
+    assert.deepEqual(details.phases.map(found => found.phaseNumber), [1, 2]);
+    const phaseDetails = (await api("GET", `/projects/${one.data.data._id}`, { token })).data.data;
+    assert.equal(phaseDetails.parentProject.name, "Water Points");
+
+    const report = (await api("GET", `/report-center/detail/project/${main}?period=all`, { token })).data.data;
+    const figure = (label) => report.summary.find(found => found.label === label)?.value;
+    assert.equal(figure("Phases"), 2);
+    assert.equal(figure("Deliveries"), 1, "the phase's delivery counts for the main project");
+    const byPhase = report.sections.find(found => found.key === "phases");
+    assert.deepEqual(byPhase.rows.map(row => [row.phase, row.deliveries, row.people]), [["Phase 1", 1, 3], ["Phase 2", 0, 0]]);
+
+    const filtered = (await api("GET", `/report-center/serviceDelivery?period=year&year=2026&project=${main}`, { token })).data.data;
+    assert.equal(filtered.summary.find(found => found.label === "Deliveries")?.value, 1, "the main project filter includes its phases");
+
+    // the main project keeps its phases
+    assert.equal((await api("DELETE", `/projects/${main}`, { token })).status, 409);
+    const shrink = await api("PUT", `/projects/${main}`, { token, body: { endDate: "2027-06-30" } });
+    assert.equal(shrink.status, 400);
+    assert.match(shrink.data.message, /must hold all its phases/);
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

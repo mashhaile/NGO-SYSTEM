@@ -63,6 +63,12 @@ const runReport = async (key, query, context) => {
 
     if (report.permission) assertPermission(context, report.permission, "this report");
 
+    // a main project: its phases too
+    if (query.project) {
+        const organizationId = context.organizationId;
+        query = { ...query, projectIds: await require("../projectPhases").projectAndPhases(query.project, organizationId) };
+    }
+
     return report.generate(query, context, resolvePeriod(query));
 
 };

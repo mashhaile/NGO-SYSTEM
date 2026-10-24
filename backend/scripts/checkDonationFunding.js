@@ -65,7 +65,7 @@ const main = async () => {
                 const paid = String(item.donation || "") === String(donation._id) || (!item.donation && String(delivery.donation || "") === String(donation._id));
                 if (!paid) continue;
                 try {
-                    donationFunding.assertMayPayFor(donation, delivery, "This delivery");
+                    donationFunding.assertMayPayFor(donation, await donationFunding.withParent({ program: delivery.program, project: delivery.project, activity: delivery.activity, activityRun: delivery.activityRun }), "This delivery");
                 }
                 catch (error) {
                     issues.push(`${delivery.deliveryNumber}: ${error.message}`);
@@ -85,7 +85,7 @@ const main = async () => {
 
         for (const expense of expenses) {
             try {
-                donationFunding.assertMayPayFor(donation, expense, "This expense");
+                donationFunding.assertMayPayFor(donation, await donationFunding.withParent({ program: expense.program, project: expense.project, activity: expense.activity, activityRun: expense.activityRun }), "This expense");
             }
             catch (error) {
                 issues.push(`${expense.expenseCode}: ${error.message}`);
