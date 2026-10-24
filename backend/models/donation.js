@@ -147,10 +147,23 @@ amount:{
 },
 
 
+// A donation in another currency (USD, EUR): what 1 unit
+// was worth in ETB on the day it was received. The donor's
+// figures stay in the donation's currency; ETB totals of the
+// organization use this rate for what was received
+receivedRate:{
+    type:Number,
+    default:null,
+    min:0
+},
+
+receivedRateDate:{
+    type:Date,
+    default:null
+},
+
 currency:{
-
     type:String,
-
     default:"USD",
 
     uppercase:true,

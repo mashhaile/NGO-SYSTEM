@@ -121,6 +121,20 @@ const createDonationSchema = Joi.object({
             )
             .default("USD"),
 
+    // 1 unit of the currency = ? ETB, on the day it was received
+    receivedRate:
+        Joi.number()
+            .greater(0)
+            .allow(null, "")
+            .messages({
+                "number.base": "The exchange rate must be a number.",
+                "number.greater": "The exchange rate must be more than 0."
+            }),
+
+    receivedRateDate:
+        Joi.date()
+            .allow(null, ""),
+
 
     donationDate:
         Joi.date()
@@ -292,6 +306,17 @@ const updateDonationSchema = Joi.object({
                 "EUR",
                 "GBP"
             )
+            .optional(),
+
+    receivedRate:
+        Joi.number()
+            .greater(0)
+            .allow(null, "")
+            .optional(),
+
+    receivedRateDate:
+        Joi.date()
+            .allow(null, "")
             .optional(),
 
 

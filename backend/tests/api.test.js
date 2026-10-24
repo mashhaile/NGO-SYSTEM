@@ -885,14 +885,22 @@ test("funding: received only, never added across currencies", { skip }, async ()
     const donor = await api("POST", "/donors", { token, body: { name: "Currency Test Donor", donorType: "Foundation" } });
     assert.ok(donor.status < 300, donor.data?.message);
 
-    const donation = (title, amount, currency, status) =>
+    const donation = (title, amount, currency, status, extra = {}) =>
         api("POST", "/donations", {
             token,
-            body: { donor: donor.data.data._id, title, amount, currency, status, donationDate: "2026-03-01" }
+            body: { donor: donor.data.data._id, title, amount, currency, status, donationDate: "2026-03-01", ...extra }
         });
 
     assert.ok((await donation("ETB grant", 1000000, "ETB", "Received")).status < 300);
-    assert.ok((await donation("EUR grant", 5000, "EUR", "Received")).status < 300);
+
+    // received in EUR: the rate on that day is needed
+    const noRate = await donation("EUR grant", 5000, "EUR", "Received");
+    assert.equal(noRate.status, 400);
+    assert.match(noRate.data.message, /exchange rate on the day this EUR donation was received/);
+    const eur = await donation("EUR grant", 5000, "EUR", "Received", { receivedRate: 130 });
+    assert.ok(eur.status < 300, eur.data?.message);
+    assert.equal(new Date(eur.data.data.receivedRateDate).toISOString().slice(0, 10), "2026-03-01", "dated the day it was received");
+    assert.ok((await donation("EUR pledge", 100, "EUR", "Pledged")).status < 300, "a pledge may have no rate yet");
     assert.ok((await donation("ETB pledge", 300000, "ETB", "Pledged")).status < 300);
 
     const dashboard = await api("GET", "/dashboard?period=annual&year=2026", { token });
@@ -904,7 +912,19 @@ test("funding: received only, never added across currencies", { skip }, async ()
     assert.equal(donors.status, 200, donors.data?.message);
     const figure = (label) => donors.data.data.summary.find(item => item.label === label)?.value;
     assert.equal(figure("Received"), "ETB 1,000,000.00 + EUR 5,000.00");
-    assert.equal(figure("Pledged, not yet received"), "ETB 300,000.00");
+    assert.equal(figure("Received, in ETB (each at its received rate)"), "ETB 1,650,000.00");
+    assert.equal(figure("Pledged, not yet received"), "ETB 300,000.00 + EUR 100.00");
+
+    // the donor's figures stay in EUR; ETB: received at 130, used at the rate when spent (140)
+    const { item, create, people } = await serviceDeliverySetupFor(token);
+    const kits = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 10, { currency: "EUR", exchangeRate: 140, donor: donor.data.data._id, donation: eur.data.data._id })], beneficiaries: people });
+    assert.ok(kits.status < 300, kits.data?.message);
+    const funding = (await api("GET", `/donations/${eur.data.data._id}`, { token })).data.data.funding;
+    assert.deepEqual([funding.used, funding.left], [20, 4980]);
+    assert.deepEqual(
+        [funding.inBase.received, funding.inBase.usedWhenSpent, funding.inBase.usedAtReceivedRate, funding.inBase.exchangeDifference, funding.inBase.left],
+        [650000, 2800, 2600, 200, 647400]
+    );
 
 });
 
@@ -1070,11 +1090,12 @@ test("revisions: return and cancel", { skip }, async () => {
 // SERVICE DELIVERY
 // =====================================================
 
-const serviceDeliverySetup = async () => {
+const serviceDeliverySetup = () => serviceDeliverySetupFor(state.tokenA, "sd");
 
-    if (state.sd) return state.sd;
+// the same, for any organization (B: other phone numbers)
+const serviceDeliverySetupFor = async (token, cacheKey = "sdB") => {
 
-    const token = state.tokenA;
+    if (state[cacheKey]) return state[cacheKey];
 
     const lookups = async (module, category) =>
         (await api("GET", `/lookups/module/${module}/category/${category}`, { token })).data.data;
@@ -1090,7 +1111,7 @@ const serviceDeliverySetup = async () => {
     for (const [index, [firstName, lastName]] of [["Almaz", "Kebede"], ["Hana", "Tesfaye"], ["Selam", "Girma"]].entries()) {
         const person = await api("POST", "/beneficiaries", {
             token,
-            body: { firstName, lastName, gender: genders.Female, dateOfBirth: "1995-03-10", phone: `091200000${index}` }
+            body: { firstName, lastName, gender: genders.Female, dateOfBirth: "1995-03-10", phone: `0912${cacheKey === "sd" ? "00" : "11"}000${index}` }
         });
         assert.ok(person.status < 300, person.data?.message);
         people.push(person.data.data._id);
@@ -1122,9 +1143,9 @@ const serviceDeliverySetup = async () => {
             allocations: [{ serviceItem: serviceItem._id, quantity, ...(allocatedValue === undefined ? {} : { allocatedValue }), ...extra }]
         }));
 
-    state.sd = { token, units, people, item, create, shares };
+    state[cacheKey] = { token, units, people, item, create, shares };
 
-    return state.sd;
+    return state[cacheKey];
 
 };
 

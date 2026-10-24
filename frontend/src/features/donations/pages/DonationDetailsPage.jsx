@@ -138,6 +138,9 @@ const DonationDetailsPage = () => {
 
     };
 
+    const formatEtb = (value) =>
+        `ETB ${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
     const formatMoney = (value) =>
         `${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentDonation?.funding?.currency || currentDonation?.currency || ""}`.trim();
 
@@ -456,6 +459,42 @@ const DonationDetailsPage = () => {
                                 label="Left to use"
                                 value={formatMoney(currentDonation.funding.left)}
                             />
+
+                            {/* In another currency: the same in ETB */}
+
+                            {currentDonation.funding.inBase && (
+                                currentDonation.funding.inBase.rate
+                                    ? (
+                                        <>
+                                            <InfoRow
+                                                label="Exchange rate when received"
+                                                value={`1 ${currentDonation.funding.currency} = ETB ${currentDonation.funding.inBase.rate}${currentDonation.funding.inBase.rateDate ? ` (${new Date(currentDonation.funding.inBase.rateDate).toLocaleDateString()})` : ""}`}
+                                            />
+                                            <InfoRow
+                                                label="Received, in ETB"
+                                                value={formatEtb(currentDonation.funding.inBase.received)}
+                                            />
+                                            <InfoRow
+                                                label="Used, in ETB at the rates when spent"
+                                                value={formatEtb(currentDonation.funding.inBase.usedWhenSpent)}
+                                            />
+                                            <InfoRow
+                                                label="Exchange gain / loss on what was used"
+                                                value={`${currentDonation.funding.inBase.exchangeDifference > 0 ? "+" : ""}${formatEtb(currentDonation.funding.inBase.exchangeDifference)} (at the received rate it would be ${formatEtb(currentDonation.funding.inBase.usedAtReceivedRate)})`}
+                                            />
+                                            <InfoRow
+                                                label="Left, in ETB at the received rate"
+                                                value={formatEtb(currentDonation.funding.inBase.left)}
+                                            />
+                                        </>
+                                    )
+                                    : (
+                                        <InfoRow
+                                            label="In ETB"
+                                            value="No exchange rate recorded for the day it was received: edit the donation and enter it."
+                                        />
+                                    )
+                            )}
                         </>
                     )}
 

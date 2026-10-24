@@ -95,6 +95,10 @@ const main = async () => {
             }
         }
 
+        if (currency !== "ETB" && donation.status === "Received" && !(Number(donation.receivedRate) > 0)) {
+            issues.push(`received in ${currency} with no exchange rate for that day: enter it (edit the donation), or ETB totals leave it out`);
+        }
+
         const use = await donationFunding.donationUse(donation, donation.organization);
         if (use.left < -0.01) {
             issues.push(`uses ${currency} ${use.used.toLocaleString("en-US")} (deliveries ${use.byDeliveries.toLocaleString("en-US")} + expenses ${use.byExpenses.toLocaleString("en-US")}) of ${use.amount.toLocaleString("en-US")}: ${(-use.left).toLocaleString("en-US")} over`);

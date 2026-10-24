@@ -156,8 +156,19 @@ const donationUse = async (donationOrId, organizationId, { excludeDeliveryId = n
             ? allCounted.filter(expense => toId(expense._id) !== toId(excludeExpenseId))
             : allCounted;
 
+    // ... and what that was in ETB when it was spent (an
+    // expense with no ETB figure is counted at the received
+    // rate: notInBase)
     let byExpenses = 0;
-    for (const expense of expenses) byExpenses += toNumber(expenseInCurrency(expense, currency));
+    let usedInBase = 0;
+    let notInBase = 0;
+    for (const expense of expenses) {
+        const value = toNumber(expenseInCurrency(expense, currency));
+        byExpenses += value;
+        const inBase = expenseInCurrency(expense, BASE_CURRENCY);
+        if (inBase === null) notInBase += value;
+        else usedInBase += toNumber(inBase);
+    }
 
     // items bought with one of these expenses are already paid
     // (the expense being charged right now counts too)
@@ -187,6 +198,7 @@ const donationUse = async (donationOrId, organizationId, { excludeDeliveryId = n
                 continue;
             }
             byDeliveries += value;
+            usedInBase += toNumber(item.totalCost);
         }
     }
 
@@ -202,6 +214,8 @@ const donationUse = async (donationOrId, organizationId, { excludeDeliveryId = n
         byExpenses: roundMoney(byExpenses),
         // given out, but paid by an expense above (not counted again)
         givenFromExpenses: roundMoney(fromExpenses),
+        usedInBase: roundMoney(usedInBase),
+        notInBase: roundMoney(notInBase),
         paidExpenses,
         used,
         left: roundMoney(amount - used)

@@ -20,6 +20,36 @@ const donationFunding =
     require("../services/donationFunding");
 
 
+// A donation in USD / EUR, seen in ETB: received at its
+// received rate; used at the rates on the expenses / items
+// when they were spent; the difference is the exchange
+// gain (+) or loss (-) on what was used so far.
+const baseView = (use, donation) => {
+
+    if (use.currency === donationFunding.BASE_CURRENCY) return null;
+
+    const rate = Number(donation.receivedRate);
+    if (!(rate > 0)) return { rate: null };
+
+    const round = value => Math.round(value * 100) / 100;
+    const usedAtReceivedRate = round(use.used * rate);
+    const usedWhenSpent = round(use.usedInBase + use.notInBase * rate);
+
+    return {
+        rate,
+        rateDate: donation.receivedRateDate || null,
+        received: round(use.amount * rate),
+        usedWhenSpent,
+        usedAtReceivedRate,
+        exchangeDifference: round(usedWhenSpent - usedAtReceivedRate),
+        left: round(use.left * rate),
+        // used amounts with no ETB figure of their own (counted at the received rate)
+        withoutOwnRate: use.notInBase
+    };
+
+};
+
+
 const {
     logAudit
 
@@ -291,7 +321,9 @@ const getDonationByIdController = async (
                     byExpenses: use.byExpenses,
                     givenFromExpenses: use.givenFromExpenses,
                     used: use.used,
-                    left: use.left
+                    left: use.left,
+                    // in another currency: the same in ETB
+                    inBase: baseView(use, plain)
                 }
             }
 

@@ -36,6 +36,9 @@ const defaultForm = {
     amount: "",
 
     currency: "USD",
+    // another currency than ETB: 1 unit = ? ETB on the day it was received
+    receivedRate: "",
+    receivedRateDate: "",
     donationDate: "",
     financialYear: "",
 
@@ -300,6 +303,10 @@ const DonationForm = ({
 
             currency:
                 initialData.currency || "USD",
+            receivedRate:
+                initialData.receivedRate ? String(initialData.receivedRate) : "",
+            receivedRateDate:
+                initialData.receivedRateDate ? String(initialData.receivedRateDate).slice(0, 10) : "",
 
             donationDate:
                 initialData.donationDate
@@ -782,13 +789,22 @@ const DonationForm = ({
 
 
         if (!form.donationDate) {
-
             alert(
                 "Please select donation date."
             );
-
             return;
+        }
 
+
+        if (
+            form.currency !== "ETB" &&
+            form.status === "Received" &&
+            !(Number(form.receivedRate) > 0)
+        ) {
+            alert(
+                `Please enter the exchange rate on the day this donation was received (1 ${form.currency} = ? ETB).`
+            );
+            return;
         }
 
 
@@ -821,7 +837,14 @@ const DonationForm = ({
 
             currency:
                 form.currency,
-
+            receivedRate:
+                form.currency !== "ETB" && Number(form.receivedRate) > 0
+                    ? Number(form.receivedRate)
+                    : null,
+            receivedRateDate:
+                form.currency !== "ETB" && Number(form.receivedRate) > 0
+                    ? form.receivedRateDate || form.donationDate
+                    : null,
             donationDate:
                 form.donationDate,
 
@@ -1110,6 +1133,29 @@ const DonationForm = ({
                                 )
                             }
                         />
+
+
+                        {form.currency !== "ETB" && (
+
+                            <TextField
+                                label={`Rate (1 ${form.currency} = ? ETB)`}
+                                type="number"
+                                required={form.status === "Received"}
+                                value={form.receivedRate}
+                                onChange={event => changeField("receivedRate", event.target.value)}
+                                helperText={
+                                    Number(form.receivedRate) > 0 && Number(form.amount) > 0
+                                        ? `= ETB ${(Number(form.amount) * Number(form.receivedRate)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}. The donor's figures stay in ${form.currency}.`
+                                        : `The rate on the day it was received (its date is the donation date). The donor's figures stay in ${form.currency}; ETB totals use this rate.`
+                                }
+                                inputProps={{
+                                    min: 0,
+                                    step: "0.0001"
+                                }}
+                                fullWidth
+                            />
+
+                        )}
 
 
                         <AppDatePicker

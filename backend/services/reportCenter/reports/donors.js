@@ -169,6 +169,24 @@ const generate = async (query, context, period) => {
     }).filter(row => row.donations > 0 || !query.program);
 
     const received = donationRows.filter(row => row.status === "Received").reduce((totals, row) => addTo(totals, row.currency, row.amount), {});
+
+    // In ETB, each donation at the rate on the day it was received
+    // (only when some are in another currency)
+    const receivedInBase = (list) => {
+        const own = list.filter(donation => donation.status === "Received");
+        const foreign = own.filter(donation => String(donation.currency || "ETB").toUpperCase() !== "ETB");
+        if (!foreign.length) return [];
+        const noRate = foreign.filter(donation => !(Number(donation.receivedRate) > 0));
+        const total = own.reduce((sum, donation) =>
+            sum + (String(donation.currency || "ETB").toUpperCase() === "ETB"
+                ? Number(donation.amount || 0)
+                : Number(donation.amount || 0) * (Number(donation.receivedRate) || 0)), 0);
+        return [summaryItem("Received, in ETB (each at its received rate)", `ETB ${round2(total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "text", {
+            note: noRate.length
+                ? `${noRate.length} donation${noRate.length === 1 ? "" : "s"} in another currency without a received rate left out`
+                : `${foreign.length} in another currency converted`
+        })];
+    };
     const pledged = donationRows.filter(row => row.status === "Pledged").reduce((totals, row) => addTo(totals, row.currency, row.amount), {});
     const usedTotals = donationRows.reduce((totals, row) => (row.usedInPeriod ? addTo(totals, row.currency, row.usedInPeriod) : totals), {});
     const reached = new Set();
@@ -222,6 +240,7 @@ const generate = async (query, context, period) => {
             summaryItem("Donors", donors.length, "number", { note: `${donors.filter(donor => donor.status !== "Inactive").length} active` }),
             summaryItem("Donations in the period", donationRows.length),
             summaryItem("Received", formatTotals(received), "text"),
+            ...receivedInBase(donations),
             summaryItem("Pledged, not yet received", formatTotals(pledged), "text"),
             summaryItem("Used on services in the period", formatTotals(usedTotals), "text"),
             summaryItem("Beneficiaries reached through donations", reached.size),

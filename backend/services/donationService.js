@@ -16,6 +16,9 @@ const Activity =
 const ActivityRun =
     require("../models/ActivityRun");
 
+const ApiError =
+    require("../utils/apiError");
+
 
 // ==========================================
 // GENERATE DONATION CODE
@@ -433,6 +436,47 @@ const populateDonation = (query) => {
 // CREATE DONATION
 // ==========================================
 
+// =====================================================
+// THE RATE ON THE DAY IT WAS RECEIVED
+// =====================================================
+//
+// A received donation in another currency than ETB needs
+// what 1 unit was worth in ETB that day (its date defaults
+// to the donation date). A pledge may have none yet. In
+// ETB there is no rate.
+//
+// =====================================================
+
+const applyReceivedRate = (donation) => {
+
+    const currency = String(donation.currency || "USD").toUpperCase();
+
+    if (currency === "ETB") {
+        donation.receivedRate = null;
+        donation.receivedRateDate = null;
+        return;
+    }
+
+    const rate = Number(donation.receivedRate);
+
+    if (!(rate > 0)) {
+        donation.receivedRate = null;
+        donation.receivedRateDate = null;
+        if (donation.status === "Received") {
+            throw new ApiError(
+                `Give the exchange rate on the day this ${currency} donation was received (1 ${currency} = ? ETB). The donor's figures stay in ${currency}; the rate is used for the organization's ETB totals.`,
+                400
+            );
+        }
+        return;
+    }
+
+    donation.receivedRate = rate;
+    if (!donation.receivedRateDate) donation.receivedRateDate = donation.donationDate || new Date();
+
+};
+
+
 const createDonation = async (
     data,
     organizationId,
@@ -445,6 +489,8 @@ const createDonation = async (
             organizationId
         );
 
+
+    applyReceivedRate(data);
 
     const donationCode =
         await generateDonationCode(
@@ -684,7 +730,8 @@ const updateDonation = async (
         "amount",
 
         "currency",
-
+        "receivedRate",
+        "receivedRateDate",
         "donationDate",
 
         "financialYear",
@@ -725,6 +772,8 @@ const updateDonation = async (
 
     // Links (with their parents filled in)
     Object.assign(donation, parents);
+
+    applyReceivedRate(donation);
 
 
     donation.updatedBy =
