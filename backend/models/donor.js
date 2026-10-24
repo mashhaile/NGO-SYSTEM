@@ -440,6 +440,19 @@ donorSchema.index({
 
 
 
+// dates that must make sense (see plugins/dateRules)
+donorSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This donor",
+        rules: [
+            { notFuture: "donorSince" },
+            { notFuture: "lastContactDate" }
+        ]
+    }
+);
+
+
 module.exports =
     mongoose.model(
         "Donor",

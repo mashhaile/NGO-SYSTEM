@@ -224,6 +224,19 @@ attendanceSchema.index({
 
 
 
+// dates that must make sense (see plugins/dateRules)
+attendanceSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This attendance session",
+        labels: { sessionDate: "session date" },
+        rules: [
+            { inside: { model: "ActivityRun", ref: "activityRun", fields: ["sessionDate"], title: "activity run" } }
+        ]
+    }
+);
+
+
 // dated inside its project (see plugins/insideProjectDates)
 attendanceSchema.plugin(
     require("./plugins/insideProjectDates"),

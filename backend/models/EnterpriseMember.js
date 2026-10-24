@@ -398,6 +398,21 @@ enterpriseMemberSchema.index({
 // EXPORT
 // =====================================================
 
+// dates that must make sense (see plugins/dateRules)
+enterpriseMemberSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This member",
+        labels: { joinedDate: "joining date", leftDate: "leaving date" },
+        rules: [
+            { order: ["joinedDate", "leftDate"] },
+            { inside: { model: "Enterprise", ref: "enterprise", fields: ["joinedDate", "leftDate"], title: "enterprise" } },
+            { notFuture: "leftDate" }
+        ]
+    }
+);
+
+
 module.exports =
     mongoose.model(
 

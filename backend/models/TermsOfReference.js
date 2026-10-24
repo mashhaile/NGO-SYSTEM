@@ -450,6 +450,24 @@ termsOfReferenceSchema.index({
 });
 
 
+// dates that must make sense (see plugins/dateRules)
+termsOfReferenceSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This TOR",
+        rules: [
+            { order: ["startDate", "endDate"] }
+        ]
+    }
+);
+
+// dated inside its project (see plugins/insideProjectDates)
+termsOfReferenceSchema.plugin(
+    require("./plugins/insideProjectDates"),
+    { dates: ["startDate", "endDate"], what: "This TOR", labels: { startDate: "start date", endDate: "end date" } }
+);
+
+
 const TermsOfReference =
     mongoose.model(
         "TermsOfReference",

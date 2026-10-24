@@ -481,6 +481,26 @@ beneficiarySchema.index({
 // MODEL
 // =====================================================
 
+// dates that must make sense (see plugins/dateRules)
+beneficiarySchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This beneficiary",
+        labels: { dateOfBirth: "date of birth" },
+        rules: [
+            { notFuture: "dateOfBirth" },
+            {
+                fields: ["dateOfBirth"],
+                check: (v) =>
+                    v.dateOfBirth && new Date(v.dateOfBirth) < new Date("1900-01-01")
+                        ? "The date of birth is before 1900. Check the year."
+                        : null
+            }
+        ]
+    }
+);
+
+
 module.exports = mongoose.model(
     "Beneficiary",
     beneficiarySchema

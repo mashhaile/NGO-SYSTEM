@@ -405,6 +405,8 @@ const setupProgramsAndDonors = async () => {
                     donationType: extra.donationType || "Bank Transfer",
                     status: extra.status || "Received",
                     receiptNumber: extra.receipt || null,
+                    // a donation in another currency: its rate on the day it was received
+                    receivedRate: extra.receivedRate || null,
                     description: extra.description || null
                 }
             });
@@ -415,7 +417,7 @@ const setupProgramsAndDonors = async () => {
     ids.donations.teachers = await donation("Teacher Training Grant 2026", "gef", "teachers", 2400000, "ETB", "2026-01-20", { receipt: "RC-2026-001" });
     ids.donations.water = await donation("Water Points Grant 2026", "gef", "water", 3200000, "ETB", "2026-02-10", { receipt: "RC-2026-002" });
     ids.donations.savings = await donation("Savings Groups Grant", "wef", "savings", 1800000, "ETB", "2026-01-25", { receipt: "RC-2026-003" });
-    ids.donations.girls = await donation("Girls Life Skills Grant", "wef", "girls", 15000, "EUR", "2026-03-01", { receipt: "RC-2026-004" });
+    ids.donations.girls = await donation("Girls Life Skills Grant", "wef", "girls", 15000, "EUR", "2026-03-01", { receipt: "RC-2026-004", receivedRate: 155 });
     ids.donations.materials = await donation("School Feeding Support", "act", "materials", 900000, "ETB", "2026-02-15", { receipt: "RC-2026-005" });
     ids.donations.pledge = await donation("Exercise Books Pledge", "abebe", "materials", 50000, "ETB", "2026-09-01", { status: "Pledged", fundingSource: "Donation", restriction: "Unrestricted", donationType: "Cash" });
 
@@ -884,7 +886,8 @@ const setupServiceDeliveries = async () => {
     await delivery("hygiene", "Hygiene kits to 10 girls", {
         recipientType: "Individual", allocationMethod: "Shared", beneficiaries: peopleIn("girls", 10),
         program: ids.programs.women, project: ids.projects.girls, activity: ids.activities.girls, activityRun: ids.runs.girls1,
-        items: [serviceItem("Hygiene Kit", "Set", 10, 750, "wef", "girls")],
+        // paid from the EUR grant: priced in EUR (5 EUR = ETB 750 at 150)
+        items: [{ ...serviceItem("Hygiene Kit", "Set", 10, 5, "wef", "girls"), currency: "EUR", exchangeRate: 150 }],
         deliveryDate: "2026-04-05", ...am
     });
 
@@ -975,10 +978,11 @@ const DELIVERY_ENRICHMENT = {
     "SD-000006": {
         details: {
             0: [
-                { name: "Sanitary pads", quantity: 30, unit: "Pack", unitCost: 120 },
-                { name: "Soap", quantity: 20, unit: "Piece", unitCost: 60 },
-                { name: "Underwear", quantity: 20, unit: "Piece", unitCost: 100 },
-                { name: "Carry bag", quantity: 10, unit: "Piece", unitCost: 70 }
+                // in EUR, like the kits: 24 + 8 + 12 + 6 = 50 EUR
+                { name: "Sanitary pads", quantity: 30, unit: "Pack", unitCost: 0.8 },
+                { name: "Soap", quantity: 20, unit: "Piece", unitCost: 0.4 },
+                { name: "Underwear", quantity: 20, unit: "Piece", unitCost: 0.6 },
+                { name: "Carry bag", quantity: 10, unit: "Piece", unitCost: 0.6 }
             ]
         },
         perPerson: () => [
@@ -1011,7 +1015,10 @@ const enrichServiceDeliveries = async () => {
             allocationBehavior: item.serviceType?.allocationBehavior || item.allocationBehavior || "CONSUMPTION",
             quantity: item.quantity,
             unit: refId(item.unit),
-            unitCost: item.unitCost,
+            // priced in another currency: the price as entered, with its rate
+            currency: item.currency || "ETB",
+            exchangeRate: item.exchangeRate,
+            unitCost: item.originalUnitCost ?? item.unitCost,
             donor: refId(item.donor),
             donation: refId(item.donation),
             detailItems: ((plan && plan.details?.[index]) || item.detailItems || []).map(detail => {
@@ -1021,7 +1028,7 @@ const enrichServiceDeliveries = async () => {
                     name: detail.name,
                     quantity: detail.quantity,
                     unit: typeof detail.unit === "string" && units[detail.unit] ? units[detail.unit] : refId(detail.unit),
-                    unitCost: detail.unitCost
+                    unitCost: detail.originalUnitCost ?? detail.unitCost
                 };
             })
         }));

@@ -557,6 +557,19 @@ donationSchema.index({
 // MODEL
 // =====================================
 
+// dates that must make sense (see plugins/dateRules)
+donationSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This donation",
+        labels: { donationDate: "date" },
+        rules: [
+            { notFuture: "donationDate", watch: ["status"], when: (v) => v.status === "Received", because: "A donation still to come is Pledged." }
+        ]
+    }
+);
+
+
 module.exports =
 
     mongoose.models.Donation ||

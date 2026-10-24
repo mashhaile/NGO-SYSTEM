@@ -416,6 +416,24 @@ attendanceRecordSchema.index({
     "location.site": 1
 });
 
+// dates that must make sense (see plugins/dateRules)
+attendanceRecordSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This attendance",
+        rules: [
+            {
+                fields: ["checkInTime", "checkOutTime"],
+                check: (v) =>
+                    v.checkInTime && v.checkOutTime && new Date(v.checkOutTime) < new Date(v.checkInTime)
+                        ? "The check-out time is before the check-in time."
+                        : null
+            }
+        ]
+    }
+);
+
+
 module.exports = mongoose.model(
     "AttendanceRecord",
     attendanceRecordSchema

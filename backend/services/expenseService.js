@@ -319,6 +319,8 @@ const createExpense = async (data, organizationId, userId) => {
 
     await checkDonation(organizationId, {
         ...amounts,
+        // a USD expense on an ETB budget counts in ETB for an ETB donation
+        budgetCurrency: charge.budget.currency,
         ...links,
         program: charge.budget.program,
         project: charge.budget.project,

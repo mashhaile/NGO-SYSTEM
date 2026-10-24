@@ -276,6 +276,31 @@ createdAt:-1
 
 
 
+// dates that must make sense (see plugins/dateRules)
+enrollmentSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This enrollment",
+        labels: { enrollmentDate: "enrollment date", completionDate: "completion date" },
+        rules: [
+            { order: ["enrollmentDate", "completionDate"] },
+            { inside: { model: "Program", ref: "program", fields: ["enrollmentDate"], title: "program" } },
+            { notFuture: "completionDate", because: "Record the completion when it happens." },
+            {
+                fields: ["beneficiary", "enrollmentDate"],
+                check: async (v) => {
+                    if (!v.beneficiary || !v.enrollmentDate) return null;
+                    const person = await require("mongoose").model("Beneficiary").findById(v.beneficiary).select("dateOfBirth").lean();
+                    return person?.dateOfBirth && new Date(v.enrollmentDate) < new Date(person.dateOfBirth)
+                        ? "The enrollment date is before the person's date of birth."
+                        : null;
+                }
+            }
+        ]
+    }
+);
+
+
 module.exports =
     mongoose.models.Enrollment ||
     mongoose.model(

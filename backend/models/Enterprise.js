@@ -590,6 +590,34 @@ enterpriseSchema.index({
 // EXPORT
 // =====================================================
 
+// dates that must make sense (see plugins/dateRules)
+enterpriseSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This enterprise",
+        rules: [
+            { order: ["startDate", "endDate"] },
+        {
+            fields: ["startDate", "endDate"],
+            check: async (v) => {
+                if (!v._id || !v.startDate) return null;
+                const mongoose = require("mongoose");
+                const start = new Date(v.startDate);
+                const end = v.endDate ? new Date(new Date(v.endDate).getTime() + 24 * 60 * 60 * 1000 - 1) : null;
+                for (const [model, ref, field, label] of [["EnterpriseMember","enterprise","joinedDate","member(s)"],["EnterpriseMember","enterprise","leftDate","member(s)"]]) {
+                    const outside = [{ [field]: { $lt: start } }];
+                    if (end) outside.push({ [field]: { $gt: end } });
+                    const count = await mongoose.model(model).countDocuments({ [ref]: v._id, isDeleted: { $ne: true }, $or: outside });
+                    if (count) return `${count} ${label} of this enterprise ${count === 1 ? "is" : "are"} dated outside these dates. Move ${count === 1 ? "it" : "them"} first, or keep the enterprise's dates around ${count === 1 ? "it" : "them"}.`;
+                }
+                return null;
+            }
+        }
+        ]
+    }
+);
+
+
 module.exports = mongoose.model(
 
     "Enterprise",

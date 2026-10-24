@@ -1526,6 +1526,19 @@ serviceDeliverySchema.index({
 // MODEL
 // ==========================================
 
+// dates that must make sense (see plugins/dateRules)
+serviceDeliverySchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This service delivery",
+        labels: { deliveryDate: "delivery date" },
+        rules: [
+            { notFuture: "deliveryDate", watch: ["status"], when: (v) => v.status === "Delivered", because: "Record a delivery once it is given out." }
+        ]
+    }
+);
+
+
 // dated inside its project (see plugins/insideProjectDates)
 serviceDeliverySchema.plugin(
     require("./plugins/insideProjectDates"),

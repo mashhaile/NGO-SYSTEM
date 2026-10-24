@@ -296,6 +296,34 @@ programSchema.index({
     name:1
 
 });
+// dates that must make sense (see plugins/dateRules)
+programSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This program",
+        rules: [
+            { order: ["startDate", "endDate"] },
+        {
+            fields: ["startDate", "endDate"],
+            check: async (v) => {
+                if (!v._id || !v.startDate) return null;
+                const mongoose = require("mongoose");
+                const start = new Date(v.startDate);
+                const end = v.endDate ? new Date(new Date(v.endDate).getTime() + 24 * 60 * 60 * 1000 - 1) : null;
+                for (const [model, ref, field, label] of [["Project","program","startDate","project(s)"],["Project","program","endDate","project(s)"],["Enrollment","program","enrollmentDate","enrollment(s)"]]) {
+                    const outside = [{ [field]: { $lt: start } }];
+                    if (end) outside.push({ [field]: { $gt: end } });
+                    const count = await mongoose.model(model).countDocuments({ [ref]: v._id, isDeleted: { $ne: true }, $or: outside });
+                    if (count) return `${count} ${label} of this program ${count === 1 ? "is" : "are"} dated outside these dates. Move ${count === 1 ? "it" : "them"} first, or keep the program's dates around ${count === 1 ? "it" : "them"}.`;
+                }
+                return null;
+            }
+        }
+        ]
+    }
+);
+
+
 module.exports = mongoose.model(
 
     "Program",

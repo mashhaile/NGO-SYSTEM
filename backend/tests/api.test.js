@@ -1799,6 +1799,14 @@ test("projects in phases: each phase works like a project; the main project grou
     const { people, item, create } = await serviceDeliverySetup();
     const token = state.tokenA;
 
+    // these tests add programs and projects beyond the Free
+    // plan's 10: give organization A room, as an upgrade would
+    const orgA = await state.db.collection("organizations").findOne({ email: "org-a@test.local" });
+    await state.db.collection("subscriptions").updateMany(
+        { organization: orgA._id },
+        { $set: { "planSnapshot.limits.programs": 100, "planSnapshot.limits.projects": 100 } }
+    );
+
     const program = (await api("POST", "/programs", { token, body: { name: "Phased Program", startDate: "2026-01-01" } })).data.data._id;
     const otherProgram = (await api("POST", "/programs", { token, body: { name: "Other Phased Program", startDate: "2026-01-01" } })).data.data._id;
     const main = (await api("POST", "/projects", { token, body: { program, name: "Water Points", startDate: "2026-01-01", endDate: "2027-12-31", status: "Active" } })).data.data._id;
@@ -1906,10 +1914,67 @@ test("work is dated inside its project: activities, runs and deliveries", { skip
 
     // service deliveries
     const deliver = (deliveryDate) => create({ program, project, deliveryDate, recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 750)], beneficiaries: people });
-    const lateDelivery = await deliver("2027-03-01");
+    const lateDelivery = await deliver("2025-12-01");
     assert.equal(lateDelivery.status, 400);
     assert.match(lateDelivery.data.message, /delivery date .* is outside its project's dates/);
     assert.ok((await deliver("2026-03-01")).status < 300);
+
+});
+
+
+test("dates make sense: order, inside the parent, nothing done in the future", { skip }, async () => {
+
+    const token = state.tokenA;
+    const { people } = await serviceDeliverySetup();
+    const future = new Date(Date.now() + 40 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    // a program: its end is not before its start; its projects lie inside it
+    const program = (await api("POST", "/programs", { token, body: { name: "Dates Program", startDate: "2026-01-01", endDate: "2026-12-31" } })).data.data._id;
+    const backwards = await api("PUT", `/programs/${program}`, { token, body: { endDate: "2025-06-30" } });
+    assert.equal(backwards.status, 400);
+
+    const outside = await api("POST", "/projects", { token, body: { program, name: "Too long", startDate: "2026-01-01", endDate: "2027-06-30" } });
+    assert.equal(outside.status, 400);
+    assert.match(outside.data.message, /outside its program's dates: Dates Program runs from 1 Jan 2026 to 31 Dec 2026/);
+
+    const project = (await api("POST", "/projects", { token, body: { program, name: "Dates Project", startDate: "2026-01-01", endDate: "2026-12-31" } })).data.data._id;
+    const activity = await api("POST", "/activities", { token, body: { project, name: "Late survey", activityType: "Assessment", activityDate: "2026-09-01" } });
+    assert.equal(activity.status, 201, activity.data?.message);
+
+    // the project's dates cannot shrink past its work, nor the program's past its projects
+    const shrink = await api("PUT", `/projects/${project}`, { token, body: { endDate: "2026-06-30" } });
+    assert.equal(shrink.status, 400);
+    assert.match(shrink.data.message, /1 activity\(ies\) of this project is dated outside these dates/);
+    const programShrink = await api("PUT", `/programs/${program}`, { token, body: { endDate: "2026-10-31" } });
+    assert.equal(programShrink.status, 400);
+
+    // enrollments: inside the program, not before the person was born
+    const enroll = (enrollmentDate) => api("POST", "/enrollments", { token, body: { program, beneficiary: people[0], enrollmentDate } });
+    const early = await enroll("2025-05-01");
+    assert.equal(early.status, 400);
+    assert.match(early.data.message, /outside its program's dates/);
+    const enrolled = await enroll("2026-02-01");
+    assert.ok(enrolled.status < 300, enrolled.data?.message);
+
+    // a date of birth is not in the future or before 1900
+    assert.equal((await api("PUT", `/beneficiaries/${people[1]}`, { token, body: { dateOfBirth: "1850-01-01" } })).status, 400);
+
+    // a received donation, an expense: not in the future
+    const donor = (await api("POST", "/donors", { token, body: { name: "Dates Donor", donorType: "Foundation" } })).data.data._id;
+    const received = await api("POST", "/donations", { token, body: { donor, title: "Tomorrow's grant", amount: 1000, currency: "ETB", status: "Received", donationDate: future } });
+    assert.equal(received.status, 400);
+    assert.match(received.data.message, /is in the future\. A donation still to come is Pledged\./);
+    assert.ok((await api("POST", "/donations", { token, body: { donor, title: "Pledged grant", amount: 1000, currency: "ETB", status: "Pledged", donationDate: future } })).status < 300);
+
+    const line = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data.summary.lines[0];
+    const spent = await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Next month's rent", amount: 100, currency: "ETB", expenseDate: future });
+    assert.equal(spent.status, 400);
+
+    // an enterprise member joins after the enterprise starts
+    const enterprise = (await api("POST", "/enterprises", { token, body: { name: "Dates Enterprise", startDate: "2026-03-01" } })).data.data;
+    const member = await api("POST", "/enterprise-members", { token, body: { enterprise: enterprise._id, beneficiary: people[2], joinedDate: "2026-01-15" } });
+    assert.equal(member.status, 400);
+    assert.match(member.data.message, /outside its enterprise's dates/);
 
 });
 

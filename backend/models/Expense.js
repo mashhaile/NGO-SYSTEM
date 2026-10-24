@@ -141,6 +141,19 @@ ExpenseSchema.index({ organization: 1, budget: 1, budgetLine: 1, fiscalYear: 1, 
 ExpenseSchema.index({ organization: 1, isDeleted: 1, status: 1, expenseDate: -1 });
 
 
+// dates that must make sense (see plugins/dateRules)
+ExpenseSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This expense",
+        labels: { expenseDate: "date" },
+        rules: [
+            { notFuture: "expenseDate", because: "Record an expense on the day it was paid." }
+        ]
+    }
+);
+
+
 module.exports =
     mongoose.models.Expense ||
     mongoose.model("Expense", ExpenseSchema);

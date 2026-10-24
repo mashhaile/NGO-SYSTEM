@@ -265,6 +265,35 @@ startDate:-1
 
 
 
+// dates that must make sense (see plugins/dateRules)
+projectSchema.plugin(
+    require("./plugins/dateRules"),
+    {
+        what: "This project",
+        rules: [
+            { order: ["startDate", "endDate"] },
+            { inside: { model: "Program", ref: "program", fields: ["startDate", "endDate"], title: "program" } },
+        {
+            fields: ["startDate", "endDate"],
+            check: async (v) => {
+                if (!v._id || !v.startDate) return null;
+                const mongoose = require("mongoose");
+                const start = new Date(v.startDate);
+                const end = v.endDate ? new Date(new Date(v.endDate).getTime() + 24 * 60 * 60 * 1000 - 1) : null;
+                for (const [model, ref, field, label] of [["Activity","project","activityDate","activity(ies)"],["ActivityRun","project","startDate","activity run(s)"],["ActivityRun","project","endDate","activity run(s)"],["ServiceDelivery","project","deliveryDate","service delivery(ies)"],["Attendance","project","sessionDate","attendance session(s)"],["TermsOfReference","project","startDate","TOR(s)"],["TermsOfReference","project","endDate","TOR(s)"]]) {
+                    const outside = [{ [field]: { $lt: start } }];
+                    if (end) outside.push({ [field]: { $gt: end } });
+                    const count = await mongoose.model(model).countDocuments({ [ref]: v._id, isDeleted: { $ne: true }, $or: outside });
+                    if (count) return `${count} ${label} of this project ${count === 1 ? "is" : "are"} dated outside these dates. Move ${count === 1 ? "it" : "them"} first, or keep the project's dates around ${count === 1 ? "it" : "them"}.`;
+                }
+                return null;
+            }
+        }
+        ]
+    }
+);
+
+
 module.exports =
 mongoose.model(
 "Project",
