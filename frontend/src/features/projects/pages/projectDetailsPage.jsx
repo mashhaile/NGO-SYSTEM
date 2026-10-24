@@ -10,21 +10,16 @@ import {
 } from "react-router-dom";
 
 
-import {
-    useDispatch
-} from "react-redux";
+
 
 
 import {
     Edit,
-    Add,
-    Delete
+    Add
 } from "@mui/icons-material";
 
 import {
-    Alert,
-    Link,
-    Stack
+    Link
 } from "@mui/material";
 
 import TraceTable
@@ -40,7 +35,6 @@ import {
     FormSection,
     InfoRow,
     AppButton,
-    ConfirmDeleteDialog,
     LoadingState,
     StatusChip
 } from "../../../components/ui";
@@ -52,9 +46,7 @@ import BudgetFigureCard
     from "../../budgets/components/BudgetFigureCard";
 
 
-import {
-    deleteProjectThunk
-} from "../store";
+
 
 
 import {
@@ -74,7 +66,7 @@ const ProjectDetailsPage = () => {
     const { user } = useAuth();
 
 
-    const dispatch = useDispatch();
+
 
 
     const [
@@ -95,16 +87,7 @@ const ProjectDetailsPage = () => {
     ] = useState("");
 
 
-    const [
-        openDelete,
-        setOpenDelete
-    ] = useState(false);
 
-
-    const [
-        deleteError,
-        setDeleteError
-    ] = useState("");
 
 
     // =====================================================
@@ -161,55 +144,6 @@ const ProjectDetailsPage = () => {
         finally {
 
             setLoading(false);
-
-        }
-
-    };
-
-
-    // =====================================================
-    // DELETE PROJECT
-    // =====================================================
-
-    const remove = async () => {
-
-        try {
-
-            const result = await dispatch(
-                deleteProjectThunk(id)
-            );
-
-
-            if (
-                deleteProjectThunk.fulfilled?.match &&
-                deleteProjectThunk.fulfilled.match(result)
-            ) {
-
-                navigate(
-                    "/projects"
-                );
-
-                return;
-
-            }
-
-
-            // refused (e.g. a main project with phases): say why
-            setOpenDelete(false);
-
-            setDeleteError(
-                result?.payload ||
-                result?.error?.message ||
-                "The project could not be deleted."
-            );
-
-        }
-        catch (error) {
-
-            console.error(
-                "DELETE PROJECT ERROR:",
-                error
-            );
 
         }
 
@@ -417,73 +351,28 @@ const ProjectDetailsPage = () => {
                 }
             />
 
-            {/* ACTIONS */}
+            {/* PAGE ACTIONS */}
 
             <PageCard>
 
                 <FormSection>
 
-                    <Stack
-                        direction={{
-                            xs: "column",
-                            sm: "row"
-                        }}
-                        spacing={1.5}
+                    <AppButton
+                        variant="contained"
+                        startIcon={<Edit />}
+                        onClick={() =>
+                            navigate(
+                                `/projects/${id}/edit`
+                            )
+                        }
                     >
-
-                        <AppButton
-                            variant="contained"
-                            startIcon={<Edit />}
-                            onClick={() =>
-                                navigate(
-                                    `/projects/${id}/edit`
-                                )
-                            }
-                        >
-                            Edit Project
-                        </AppButton>
-
-                        {!project.parentProject && hasPermission(user, "project.create") && (
-                            <AppButton
-                                variant="outlined"
-                                startIcon={<Add />}
-                                onClick={() =>
-                                    navigate(
-                                        `/projects/create?parent=${project._id}`
-                                    )
-                                }
-                            >
-                                Add Phase
-                            </AppButton>
-                        )}
-
-                        <AppButton
-                            variant="outlined"
-                            color="error"
-                            startIcon={<Delete />}
-                            onClick={() =>
-                                setOpenDelete(true)
-                            }
-                        >
-                            Delete Project
-                        </AppButton>
-
-                    </Stack>
-
-                    {deleteError && (
-                        <Alert
-                            severity="error"
-                            sx={{
-                                mt: 2
-                            }}
-                        >
-                            {deleteError}
-                        </Alert>
-                    )}
+                        Edit Project
+                    </AppButton>
 
                 </FormSection>
 
             </PageCard>
+
 
             {/* PROJECT */}
 
@@ -592,14 +481,20 @@ const ProjectDetailsPage = () => {
 
             {/* PHASES (each one works like a project) */}
 
-            {!project.parentProject && phases.length > 0 && (
+            {!project.parentProject && (phases.length > 0 || hasPermission(user, "project.create")) && (
 
                 <PageCard>
 
                     <FormSection
                         title="Phases"
-                        subtitle="This project runs in phases. Each phase has its own budget, activities, deliveries and reports; this project shows them together."
+                        subtitle={
+                            phases.length
+                                ? "This project runs in phases. Each phase has its own budget, activities, deliveries and reports; this project shows them together."
+                                : "If this project runs in phases (Phase 1, Phase 2 ...), add them here. Each phase then works like a project of its own."
+                        }
                     >
+
+                        {phases.length > 0 && (
 
                         <TraceTable
                             rows={phases}
@@ -627,6 +522,24 @@ const ProjectDetailsPage = () => {
                                 { key: "left", label: "Left", align: "right", render: row => money(row.budget, "remaining") }
                             ]}
                         />
+                        )}
+
+                        {hasPermission(user, "project.create") && (
+                            <AppButton
+                                variant="outlined"
+                                startIcon={<Add />}
+                                onClick={() =>
+                                    navigate(
+                                        `/projects/create?parent=${project._id}`
+                                    )
+                                }
+                                sx={{
+                                    mt: phases.length ? 2 : 0
+                                }}
+                            >
+                                Add Phase
+                            </AppButton>
+                        )}
 
                     </FormSection>
 
@@ -666,20 +579,6 @@ const ProjectDetailsPage = () => {
             </PageCard>
 
             {backButton}
-
-            <ConfirmDeleteDialog
-                open={openDelete}
-                title="Delete Project"
-                message={
-                    phases.length
-                        ? `${project.name} has ${phases.length} phase${phases.length === 1 ? "" : "s"}. Delete the phases first.`
-                        : `Are you sure you want to delete ${project.name || project.projectCode || "this project"}? This action cannot be undone.`
-                }
-                onClose={() =>
-                    setOpenDelete(false)
-                }
-                onConfirm={remove}
-            />
 
         </PageContainer>
 
