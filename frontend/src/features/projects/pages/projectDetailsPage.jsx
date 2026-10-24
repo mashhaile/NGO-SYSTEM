@@ -17,11 +17,14 @@ import {
 
 import {
     Edit,
-    Add
+    Add,
+    Delete
 } from "@mui/icons-material";
 
 import {
-    Link
+    Alert,
+    Link,
+    Stack
 } from "@mui/material";
 
 import TraceTable
@@ -96,6 +99,12 @@ const ProjectDetailsPage = () => {
         openDelete,
         setOpenDelete
     ] = useState(false);
+
+
+    const [
+        deleteError,
+        setDeleteError
+    ] = useState("");
 
 
     // =====================================================
@@ -185,8 +194,13 @@ const ProjectDetailsPage = () => {
             }
 
 
-            navigate(
-                "/projects"
+            // refused (e.g. a main project with phases): say why
+            setOpenDelete(false);
+
+            setDeleteError(
+                result?.payload ||
+                result?.error?.message ||
+                "The project could not be deleted."
             );
 
         }
@@ -357,76 +371,143 @@ const ProjectDetailsPage = () => {
 
 
     // =====================================================
-    // RENDER
+    // RENDER (same layout as the other detail pages:
+    // actions, information, dates, budget / phases,
+    // record information, back)
     // =====================================================
+
+    const phases =
+        Array.isArray(project.phases) ? project.phases : [];
+
+    const money = (figure, key) =>
+        figure
+            ? `${figure.currency} ${Number(figure[key] || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : "-";
+
+    const formatDateTime = (value) =>
+        value ? new Date(value).toLocaleString() : "-";
+
+    const backButton = (
+
+        <AppButton
+            variant="outlined"
+            onClick={() =>
+                navigate("/projects")
+            }
+            sx={{
+                mt: 3,
+                mb: 5
+            }}
+        >
+            Back to Projects
+        </AppButton>
+
+    );
 
     return (
 
         <PageContainer>
 
-
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <PageHeader
-
                 title="Project Details"
-
                 subtitle={
                     project.projectCode ||
                     project.name ||
                     "Project record"
                 }
-
-                action={() =>
-                    navigate(
-                        `/projects/${id}/edit`
-                    )
-                }
-
-                actionLabel="Edit Project"
-
-                actionIcon={
-                    <Edit />
-                }
-
             />
 
+            {/* ACTIONS */}
 
-            {/* =================================================
-                BASIC INFORMATION
-            ================================================= */}
+            <PageCard>
+
+                <FormSection>
+
+                    <Stack
+                        direction={{
+                            xs: "column",
+                            sm: "row"
+                        }}
+                        spacing={1.5}
+                    >
+
+                        <AppButton
+                            variant="contained"
+                            startIcon={<Edit />}
+                            onClick={() =>
+                                navigate(
+                                    `/projects/${id}/edit`
+                                )
+                            }
+                        >
+                            Edit Project
+                        </AppButton>
+
+                        {!project.parentProject && hasPermission(user, "project.create") && (
+                            <AppButton
+                                variant="outlined"
+                                startIcon={<Add />}
+                                onClick={() =>
+                                    navigate(
+                                        `/projects/create?parent=${project._id}`
+                                    )
+                                }
+                            >
+                                Add Phase
+                            </AppButton>
+                        )}
+
+                        <AppButton
+                            variant="outlined"
+                            color="error"
+                            startIcon={<Delete />}
+                            onClick={() =>
+                                setOpenDelete(true)
+                            }
+                        >
+                            Delete Project
+                        </AppButton>
+
+                    </Stack>
+
+                    {deleteError && (
+                        <Alert
+                            severity="error"
+                            sx={{
+                                mt: 2
+                            }}
+                        >
+                            {deleteError}
+                        </Alert>
+                    )}
+
+                </FormSection>
+
+            </PageCard>
+
+            {/* PROJECT */}
 
             <PageCard>
 
                 <FormSection
-                    title="Basic Information"
+                    title="Project Information"
                 >
 
                     <InfoRow
                         label="Project Code"
-                        value={
-                            project.projectCode
-                        }
+                        value={project.projectCode}
                     />
 
                     <InfoRow
                         label="Project Name"
-                        value={
-                            project.name
-                        }
+                        value={project.name}
                     />
 
                     <InfoRow
                         label="Program"
                         value={
                             project.program
-                                ? (
-                                    `${project.program.programCode || ""} - ${
-                                        project.program.name || ""
-                                    }`
-                                )
+                                ? `${project.program.programCode || ""} - ${project.program.name || ""}`
                                 : "-"
                         }
                     />
@@ -438,7 +519,10 @@ const ProjectDetailsPage = () => {
                                 <Link
                                     component="button"
                                     underline="hover"
-                                    onClick={() => navigate(`/projects/${project.parentProject._id}`)}
+                                    sx={{ fontWeight: 600, textAlign: "left" }}
+                                    onClick={() =>
+                                        navigate(`/projects/${project.parentProject._id}`)
+                                    }
                                 >
                                     {`Phase ${project.phaseNumber || ""} of ${project.parentProject.projectCode || ""} - ${project.parentProject.name || ""}`}
                                 </Link>
@@ -447,67 +531,56 @@ const ProjectDetailsPage = () => {
                     )}
 
                     <InfoRow
-                        label="Description"
+                        label="Donor"
                         value={
-                            project.description
+                            project.donor?.name ||
+                            project.donor?.organizationName ||
+                            "-"
                         }
+                    />
+
+                    <InfoRow
+                        label="Project Manager"
+                        value={
+                            project.projectManager?.name ||
+                            "-"
+                        }
+                    />
+
+                    <InfoRow
+                        label="Description"
+                        value={project.description || "-"}
                     />
 
                 </FormSection>
 
             </PageCard>
 
-
-            {/* =================================================
-                PROJECT STATUS
-            ================================================= */}
+            {/* DATES */}
 
             <PageCard>
 
                 <FormSection
-                    title="Project Status"
+                    title="Project Dates"
                 >
 
                     <InfoRow
-                        label="Status"
-                        value={
-                            <StatusChip
-                                status={
-                                    project.status ||
-                                    "Unknown"
-                                }
-                            />
-                        }
-                    />
-
-                    <InfoRow
                         label="Start Date"
-                        value={
-                            formatDate(
-                                project.startDate
-                            )
-                        }
+                        value={formatDate(project.startDate)}
                     />
 
                     <InfoRow
                         label="End Date"
-                        value={
-                            formatDate(
-                                project.endDate
-                            )
-                        }
+                        value={formatDate(project.endDate)}
                     />
 
                 </FormSection>
 
             </PageCard>
 
+            {/* BUDGET: the project's own, or each phase's */}
 
-            {/* =================================================
-                BUDGET (Budgets module)
-            ================================================= */}
-
-            {(project.phases || []).length === 0 && (
+            {phases.length === 0 && (
                 <BudgetFigureCard
                     figure={project.budget}
                     level="project"
@@ -517,63 +590,51 @@ const ProjectDetailsPage = () => {
                 />
             )}
 
+            {/* PHASES (each one works like a project) */}
 
-            {/* =================================================
-                PHASES (each one works like a project)
-            ================================================= */}
+            {!project.parentProject && phases.length > 0 && (
 
-            {!project.parentProject && (
                 <PageCard>
+
                     <FormSection
                         title="Phases"
-                        subtitle={
-                            (project.phases || []).length
-                                ? "This project runs in phases. Each phase has its own budget, activities, deliveries and reports; this project shows them together."
-                                : "If this project runs in phases (Phase 1, Phase 2 ...), add them here. Each phase then works like a project of its own."
-                        }
+                        subtitle="This project runs in phases. Each phase has its own budget, activities, deliveries and reports; this project shows them together."
                     >
-                        {(project.phases || []).length > 0 && (
-                            <TraceTable
-                                rows={project.phases}
-                                getRowKey={row => row._id}
-                                columns={[
-                                    { key: "phase", label: "Phase", render: row => `Phase ${row.phaseNumber}` },
-                                    {
-                                        key: "name",
-                                        label: "Name",
-                                        render: row => (
-                                            <Link component="button" underline="hover" onClick={() => navigate(`/projects/${row._id}`)}>
-                                                {row.name}
-                                            </Link>
-                                        )
-                                    },
-                                    { key: "dates", label: "Dates", render: row => `${formatDate(row.startDate)} - ${formatDate(row.endDate)}` },
-                                    { key: "status", label: "Status", render: row => <StatusChip status={row.status || "Draft"} /> },
-                                    { key: "budget", label: "Approved budget", align: "right", render: row => row.budget ? `${row.budget.currency} ${Number(row.budget.approvedAmount || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "No budget yet" },
-                                    { key: "spent", label: "Spent", align: "right", render: row => row.budget ? `${row.budget.currency} ${Number(row.budget.spent || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "-" },
-                                    { key: "left", label: "Left", align: "right", render: row => row.budget ? `${row.budget.currency} ${Number(row.budget.remaining || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "-" }
-                                ]}
-                            />
-                        )}
 
-                        {hasPermission(user, "project.create") && (
-                            <AppButton
-                                variant="outlined"
-                                startIcon={<Add />}
-                                onClick={() => navigate(`/projects/create?parent=${project._id}`)}
-                                sx={{ mt: (project.phases || []).length ? 2 : 0 }}
-                            >
-                                Add Phase
-                            </AppButton>
-                        )}
+                        <TraceTable
+                            rows={phases}
+                            getRowKey={row => row._id}
+                            columns={[
+                                { key: "phase", label: "Phase", render: row => `Phase ${row.phaseNumber}` },
+                                {
+                                    key: "name",
+                                    label: "Name",
+                                    render: row => (
+                                        <Link
+                                            component="button"
+                                            underline="hover"
+                                            sx={{ fontWeight: 600, textAlign: "left" }}
+                                            onClick={() => navigate(`/projects/${row._id}`)}
+                                        >
+                                            {row.name}
+                                        </Link>
+                                    )
+                                },
+                                { key: "dates", label: "Dates", render: row => `${formatDate(row.startDate)} - ${formatDate(row.endDate)}` },
+                                { key: "status", label: "Status", render: row => <StatusChip status={row.status || "Draft"} /> },
+                                { key: "budget", label: "Approved budget", align: "right", render: row => (row.budget ? money(row.budget, "approvedAmount") : "No budget yet") },
+                                { key: "spent", label: "Spent", align: "right", render: row => money(row.budget, "spent") },
+                                { key: "left", label: "Left", align: "right", render: row => money(row.budget, "remaining") }
+                            ]}
+                        />
+
                     </FormSection>
+
                 </PageCard>
+
             )}
 
-
-            {/* =================================================
-                RECORD INFORMATION
-            ================================================= */}
+            {/* RECORD */}
 
             <PageCard>
 
@@ -582,116 +643,42 @@ const ProjectDetailsPage = () => {
                 >
 
                     <InfoRow
-                        label="Created At"
+                        label="Status"
                         value={
-                            project.createdAt
-                                ? new Date(
-                                    project.createdAt
-                                ).toLocaleString()
-                                : "-"
+                            <StatusChip
+                                status={project.status || "Draft"}
+                            />
                         }
                     />
 
                     <InfoRow
+                        label="Created At"
+                        value={formatDateTime(project.createdAt)}
+                    />
+
+                    <InfoRow
                         label="Updated At"
-                        value={
-                            project.updatedAt
-                                ? new Date(
-                                    project.updatedAt
-                                ).toLocaleString()
-                                : "-"
-                        }
+                        value={formatDateTime(project.updatedAt)}
                     />
 
                 </FormSection>
 
             </PageCard>
 
-
-            {/* =================================================
-                ACTIONS
-            ================================================= */}
-
-            <PageCard>
-
-                <FormSection>
-
-                    <AppButton
-                        variant="outlined"
-                        onClick={() =>
-                            navigate(
-                                "/projects"
-                            )
-                        }
-                    >
-                        Back
-                    </AppButton>
-
-
-                    <AppButton
-                        variant="contained"
-                        startIcon={
-                            <Edit />
-                        }
-                        onClick={() =>
-                            navigate(
-                                `/projects/${id}/edit`
-                            )
-                        }
-                        sx={{
-                            ml: 2
-                        }}
-                    >
-                        Edit
-                    </AppButton>
-
-
-                    <AppButton
-                        variant="contained"
-                        color="error"
-                        onClick={() =>
-                            setOpenDelete(true)
-                        }
-                        sx={{
-                            ml: 2
-                        }}
-                    >
-                        Delete
-                    </AppButton>
-
-                </FormSection>
-
-            </PageCard>
-
-
-            {/* =================================================
-                DELETE CONFIRMATION
-            ================================================= */}
+            {backButton}
 
             <ConfirmDeleteDialog
-
-                open={
-                    openDelete
-                }
-
+                open={openDelete}
                 title="Delete Project"
-
                 message={
-                    `Are you sure you want to delete ${
-                        project.name ||
-                        project.projectCode ||
-                        "this project"
-                    }? This action cannot be undone.`
+                    phases.length
+                        ? `${project.name} has ${phases.length} phase${phases.length === 1 ? "" : "s"}. Delete the phases first.`
+                        : `Are you sure you want to delete ${project.name || project.projectCode || "this project"}? This action cannot be undone.`
                 }
-
                 onClose={() =>
                     setOpenDelete(false)
                 }
-
-                onConfirm={
-                    remove
-                }
-
+                onConfirm={remove}
             />
 
         </PageContainer>

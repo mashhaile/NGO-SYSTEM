@@ -161,6 +161,12 @@ const ProjectForm = ({
     ] = useState("");
 
 
+    // a check failed: its message shows above the form
+    useEffect(() => {
+        if (formError) window.scrollTo({ top: 0, behavior: "smooth" });
+    }, [formError]);
+
+
     // =====================================================
     // LOAD PROGRAMS
     // =====================================================
@@ -500,6 +506,20 @@ const ProjectForm = ({
         }
 
 
+        if (form.name.trim().length < 3) {
+
+            setFormError(
+                "The project name needs at least 3 letters."
+            );
+
+            return;
+
+        }
+
+
+        const isDate = (value) =>
+            Boolean(value) && !Number.isNaN(new Date(value).getTime());
+
         if (!form.startDate || !form.endDate) {
 
             setFormError(
@@ -511,10 +531,37 @@ const ProjectForm = ({
         }
 
 
+        if (!isDate(form.startDate) || !isDate(form.endDate)) {
+
+            setFormError(
+                "A date is not complete. Enter it as day/month/year (for example 01/06/2027), or pick it from the calendar."
+            );
+
+            return;
+
+        }
+
+
         if (new Date(form.endDate) < new Date(form.startDate)) {
 
             setFormError(
                 "The end date cannot be before the start date."
+            );
+
+            return;
+
+        }
+
+
+        // a phase: inside its main project's dates
+        if (
+            selectedMainProject &&
+            (String(form.startDate).slice(0, 10) < String(selectedMainProject.startDate || "").slice(0, 10) ||
+                String(form.endDate).slice(0, 10) > String(selectedMainProject.endDate || "").slice(0, 10))
+        ) {
+
+            setFormError(
+                `A phase must lie inside its main project's dates (${String(selectedMainProject.startDate || "").slice(0, 10)} to ${String(selectedMainProject.endDate || "").slice(0, 10)}).`
             );
 
             return;

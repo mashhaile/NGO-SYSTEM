@@ -77,6 +77,12 @@ const ProjectEditPage = () => {
     );
 
 
+    // the error shows above the form: bring it into view
+    useEffect(() => {
+        if (error) window.scrollTo({ top: 0, behavior: "smooth" });
+    }, [error]);
+
+
     // =====================================================
     // LOCAL STATE
     // =====================================================

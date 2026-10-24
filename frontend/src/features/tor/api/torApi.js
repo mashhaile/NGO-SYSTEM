@@ -212,7 +212,7 @@ export const getApiErrorMessage = (error, fallback) => {
             : [];
 
     return (
-        (details.length && data?.message === "Validation failed."
+        (details.length && /^(Validation failed|Please check)/.test(String(data?.message || ""))
             ? details.join(" ")
             : data?.message) ||
         error?.message ||

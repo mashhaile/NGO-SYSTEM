@@ -251,7 +251,7 @@ const ProjectListPage = () => {
         {
             field: "status",
             headerName: "Status",
-            minWidth: 100,
+            minWidth: 120,
             renderCell: (params) => <StatusChip status={params.value || "Draft"} />
         },
 
