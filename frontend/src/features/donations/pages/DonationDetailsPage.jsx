@@ -138,6 +138,9 @@ const DonationDetailsPage = () => {
 
     };
 
+    const formatMoney = (value) =>
+        `${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currentDonation?.funding?.currency || currentDonation?.currency || ""}`.trim();
+
 
     // =================================================
     // RELATION VALUE
@@ -428,6 +431,27 @@ const DonationDetailsPage = () => {
                         }
                     />
 
+                    {/* What it has paid for so far, and what is left */}
+
+                    {currentDonation.funding && (
+                        <>
+                            <InfoRow
+                                label="Used in service deliveries"
+                                value={formatMoney(currentDonation.funding.byDeliveries)}
+                            />
+
+                            <InfoRow
+                                label="Used in expenses (submitted / approved)"
+                                value={formatMoney(currentDonation.funding.byExpenses)}
+                            />
+
+                            <InfoRow
+                                label="Left to use"
+                                value={formatMoney(currentDonation.funding.left)}
+                            />
+                        </>
+                    )}
+
                 </FormSection>
 
             </PageCard>
@@ -590,18 +614,6 @@ const DonationDetailsPage = () => {
                 <FormSection
                     title="Record Information"
                 >
-
-                    <InfoRow
-                        label="Status"
-                        value={
-                            <StatusChip
-                                status={
-                                    currentDonation.status ||
-                                    "Inactive"
-                                }
-                            />
-                        }
-                    />
 
                     <InfoRow
                         label="Created At"

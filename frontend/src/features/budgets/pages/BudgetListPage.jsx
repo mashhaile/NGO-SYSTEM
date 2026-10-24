@@ -69,8 +69,13 @@ const LEVEL_OPTIONS = [
     { value: "project", label: "Project budgets" }
 ];
 
-const STATUS_OPTIONS =
-    Object.values(BUDGET_STATUS).map(value => ({ value, label: value }));
+// "Waiting for approval": submitted budgets and submitted revisions
+const WAITING = "waiting";
+
+const STATUS_OPTIONS = [
+    { value: WAITING, label: "Waiting for approval" },
+    ...Object.values(BUDGET_STATUS).map(value => ({ value, label: value }))
+];
 
 
 const period = (budget) =>
@@ -117,7 +122,8 @@ const BudgetListPage = () => {
                 getBudgetsApi({
                     search: search.trim(),
                     level: level || undefined,
-                    status: status || undefined,
+                    status: status && status !== WAITING ? status : undefined,
+                    waiting: status === WAITING ? true : undefined,
                     fiscalYear: fiscalYear || undefined,
                     page: paginationModel.page + 1,
                     limit: paginationModel.pageSize
@@ -258,8 +264,19 @@ const BudgetListPage = () => {
         {
             field: "status",
             headerName: "Status",
-            minWidth: 120,
-            renderCell: (params) => <StatusChip status={params.value} />
+            minWidth: 170,
+            // an approved budget with a revision under way says so:
+            // the approved figures stay in force until it is approved
+            renderCell: (params) => (
+                <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center", height: "100%", gap: 0.25 }}>
+                    <StatusChip status={params.value} />
+                    {params.row.revision?.status && (
+                        <Typography variant="caption" sx={{ color: params.row.revision.status === "Submitted" ? "warning.main" : "text.secondary", lineHeight: 1.2 }}>
+                            Revision v{(params.row.version || 1) + 1}: {params.row.revision.status === "Submitted" ? "waiting for approval" : params.row.revision.status.toLowerCase()}
+                        </Typography>
+                    )}
+                </Box>
+            )
         },
 
         {

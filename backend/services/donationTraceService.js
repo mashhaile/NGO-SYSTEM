@@ -858,17 +858,35 @@ const getDonorTrace = async (
             traces.flatMap(trace => trace._beneficiaryIds)
         );
 
-    const sum = (key) =>
-        roundMoney(
-            traces.reduce(
-                (total, trace) => total + toNumber(trace.totals[key]),
-                0
-            )
-        );
+    // Money is kept per currency: a donor giving ETB and EUR
+    // has two totals, never one added-up number.
+    const byCurrency = new Map();
 
-    const received = sum("received");
+    for (const trace of traces) {
+        const currency = trace.totals.currency || "ETB";
+        const entry = byCurrency.get(currency) || { currency, donations: 0, pledged: 0, received: 0, used: 0 };
+        entry.donations += 1;
+        entry.pledged += toNumber(trace.totals.pledged);
+        entry.received += toNumber(trace.totals.received);
+        entry.used += toNumber(trace.totals.used);
+        byCurrency.set(currency, entry);
+    }
 
-    const used = sum("used");
+    const currencies =
+        [...byCurrency.values()]
+            .sort((x, y) => (x.currency === "ETB" ? -1 : y.currency === "ETB" ? 1 : x.currency.localeCompare(y.currency)))
+            .map(entry => ({
+                currency: entry.currency,
+                donations: entry.donations,
+                pledged: roundMoney(entry.pledged),
+                received: roundMoney(entry.received),
+                used: roundMoney(entry.used),
+                remaining: roundMoney(Math.max(entry.received - entry.used, 0)),
+                percentUsed: entry.received > 0 ? Math.round((entry.used / entry.received) * 1000) / 10 : 0
+            }));
+
+    // one currency: the single figures as before; several: none
+    const single = currencies.length === 1 ? currencies[0] : null;
 
     return {
         donor: {
@@ -879,14 +897,13 @@ const getDonorTrace = async (
         },
         totals: {
             donations: donations.length,
-            pledged: sum("pledged"),
-            received,
-            used,
-            remaining: roundMoney(Math.max(received - used, 0)),
-            percentUsed:
-                received > 0
-                    ? Math.round((used / received) * 1000) / 10
-                    : 0,
+            currency: single ? single.currency : null,
+            pledged: single ? single.pledged : null,
+            received: single ? single.received : null,
+            used: single ? single.used : null,
+            remaining: single ? single.remaining : null,
+            percentUsed: single ? single.percentUsed : null,
+            byCurrency: currencies,
             deliveries: traces.reduce((total, trace) => total + trace.totals.deliveries, 0),
             beneficiariesReached: uniqueBeneficiaries.size
         },

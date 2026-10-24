@@ -14,6 +14,7 @@ const {
 } = require("../models/Budget");
 
 const Donation = require("../models/donation");
+const donationFunding = require("./donationFunding");
 
 const Activity = require("../models/Activity");
 
@@ -236,6 +237,54 @@ const optionalLinks = async (organizationId, data) => {
 };
 
 
+// =====================================================
+// THE DONATION PAYING FOR AN EXPENSE
+// =====================================================
+//
+// An expense charged to a donation must be work the
+// donation may pay for (a restricted donation only for its
+// project / activity), be recorded in a currency the
+// donation can be compared in (the donation's currency, or
+// a budget in that currency), and fit what the donation
+// has left after deliveries and other expenses. Checked
+// when it is saved, submitted and approved (approval
+// locks the donation, so two at once cannot both pass).
+//
+// =====================================================
+
+const checkDonation = async (organizationId, expense, { excludeExpenseId = null, session = null } = {}) => {
+
+    if (!expense.donation) return;
+
+    const donation =
+        await Donation.findOne({ _id: expense.donation, organization: organizationId, isDeleted: { $ne: true } })
+            .select("currency")
+            .session(session)
+            .lean();
+
+    if (!donation) throw new ApiError("Donation not found.", 404);
+
+    const currency = String(donation.currency || donationFunding.BASE_CURRENCY).toUpperCase();
+
+    await donationFunding.assertCanCharge({
+        donationId: expense.donation,
+        organizationId,
+        work: {
+            program: expense.program,
+            project: expense.project,
+            activity: expense.activity,
+            activityRun: expense.activityRun
+        },
+        charge: donationFunding.expenseInCurrency(expense, currency),
+        chargeCurrency: expense.currency,
+        what: "This expense",
+        excludeExpenseId,
+        session
+    });
+
+};
+
+
 const findExpense = async (id, organizationId, session = null) => {
 
     assertId(id);
@@ -266,9 +315,18 @@ const createExpense = async (data, organizationId, userId) => {
     const amounts =
         convert(data.amount, data.currency, data.exchangeRate, charge.budget.currency);
 
+    const links = await optionalLinks(organizationId, data);
+
+    await checkDonation(organizationId, {
+        ...amounts,
+        ...links,
+        program: charge.budget.program,
+        project: charge.budget.project,
+        activityRun: data.activityRun
+    });
+
     const expenseCode =
         await generateSequence("Expense", "EXP", organizationId);
-
     const expense =
         await Expense.create({
             organization: organizationId,
@@ -283,7 +341,7 @@ const createExpense = async (data, organizationId, userId) => {
             ...Object.fromEntries(TEXT_FIELDS.filter(f => data[f] !== undefined).map(f => [f, data[f]])),
             ...amounts,
             budgetCurrency: charge.budget.currency,
-            ...(await optionalLinks(organizationId, data)),
+            ...links,
             status: EXPENSE_STATUS.DRAFT,
             history: [historyEntry("Created", EXPENSE_STATUS.DRAFT, userId)],
             createdBy: userId,
@@ -494,8 +552,8 @@ const updateExpense = async (id, data, organizationId, userId) => {
         updatedBy: userId
     });
 
+    await checkDonation(organizationId, expense, { excludeExpenseId: expense._id });
     expense.history.push(historyEntry("Updated", expense.status, userId));
-
     await expense.save();
 
     return getExpenseById(expense._id, organizationId);
@@ -530,6 +588,8 @@ const submitExpense = async (id, organizationId, userId) => {
 
     // Budget must still be approved and the date still inside it
     await resolveCharge(organizationId, expense.budget, expense.budgetLine, expense.expenseDate);
+    // ... and the donation still able to pay for it
+    await checkDonation(organizationId, expense, { excludeExpenseId: expense._id });
 
     const updated =
         await Expense.findOneAndUpdate(
@@ -565,6 +625,12 @@ const approveExpense = async (id, organizationId, userId, { comment = "", allowO
 
         // Serialize approvals on this budget (see RULES)
         await Budget.updateOne({ _id: charge.budget._id }, { $inc: { chargeVersion: 1 } }, { session });
+
+        // ... and on its donation
+        if (expense.donation) {
+            await donationFunding.lockDonation(expense.donation, session);
+            await checkDonation(organizationId, expense, { excludeExpenseId: expense._id, session });
+        }
 
         const { spent } =
             await lineTotals(organizationId, charge.budget._id, charge.line._id, charge.fiscalYear, expense._id, session);

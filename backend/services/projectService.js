@@ -682,6 +682,11 @@ const updateProject = async (
 
         if (programChanged) {
 
+            // Not once budgets, deliveries ... are recorded under
+            // its current program (see parentChangeGuard)
+            await require("./parentChangeGuard")
+                .assertProjectCanChangeProgram(project._id, organizationId);
+
             const totalProjects =
                 await Project.countDocuments({
 

@@ -46,6 +46,16 @@ const currency =
         .messages({ "string.pattern.base": "Currency must be a 3-letter code such as ETB or USD." });
 
 
+// 1 unit of the budget's currency = rate of the program budget's
+const exchangeRate =
+    Joi.object({
+        rate: Joi.number().greater(0).required()
+            .messages({ "number.greater": "The exchange rate must be more than 0.", "any.required": "Enter the exchange rate." }),
+        date: Joi.date().required()
+            .messages({ "any.required": "Enter the date of the exchange rate." })
+    }).allow(null);
+
+
 const createBudgetSchema =
     Joi.object({
         level: Joi.string().valid(...Object.values(BUDGET_LEVEL)).required(),
@@ -54,6 +64,7 @@ const createBudgetSchema =
         program: objectId.when("level", { is: BUDGET_LEVEL.PROGRAM, then: Joi.required(), otherwise: Joi.optional().allow("", null) }),
         project: objectId.when("level", { is: BUDGET_LEVEL.PROJECT, then: Joi.required(), otherwise: Joi.optional().allow("", null) }),
         currency: currency.default("ETB"),
+        programExchangeRate: exchangeRate,
         startYear: fiscalYear.required(),
         endYear: fiscalYear.required(),
         yearlyAmounts: Joi.array().items(yearAmount).default([]),
@@ -68,6 +79,7 @@ const updateBudgetSchema =
         name: Joi.string().trim().min(3).max(150),
         description: Joi.string().trim().allow("").max(2000),
         currency,
+        programExchangeRate: exchangeRate,
         startYear: fiscalYear,
         endYear: fiscalYear,
         yearlyAmounts: Joi.array().items(yearAmount),

@@ -505,24 +505,8 @@ const DonorDetailsPage = () => {
             </PageCard>
 
 
-            {/* =================================================
-                DONATION HISTORY
-            ================================================= */}
+            {/* The donations are listed in "Donations and Where They Went" above */}
 
-            <PageCard>
-
-                <FormSection
-                    title="Donation History"
-                >
-
-                    <InfoRow
-                        label="Donations"
-                        value="Donation records will appear here after Donation module connection."
-                    />
-
-                </FormSection>
-
-            </PageCard>
 
 
             {/* =================================================

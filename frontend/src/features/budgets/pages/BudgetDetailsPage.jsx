@@ -293,6 +293,18 @@ const BudgetDetailsPage = () => {
                     />
                     <InfoRow label="Currency" value={currency} />
                     <InfoRow label="Status" value={<StatusChip status={budget.status} />} />
+                    {budget.revision?.status && (
+                        <InfoRow
+                            label="Revision"
+                            value={`Version ${(budget.version || 1) + 1}: ${budget.revision.status === "Submitted" ? "waiting for approval" : budget.revision.status.toLowerCase()} (version ${budget.version || 1} stays in force until it is approved)`}
+                        />
+                    )}
+                    {budget.approvers?.length > 0 && (
+                        <InfoRow
+                            label="Can approve"
+                            value={budget.approvers.map(person => `${person.name} (${person.role === "finance_officer" ? "finance officer" : "admin"})`).join(", ")}
+                        />
+                    )}
                     {budget.description && <InfoRow label="Description" value={budget.description} />}
                 </FormSection>
             </PageCard>
@@ -510,8 +522,8 @@ const BudgetDetailsPage = () => {
                             )
                             : (
                                 <Alert severity="info" sx={{ mt: 3 }}>
-                                    This program has no program budget, so nothing limits this project budget.
-                                    Create a program budget to set a ceiling per year.
+                                    This project budget stands on its own: its program has no program budget, so no yearly ceiling applies.
+                                    To set one, create a program budget for the program.
                                 </Alert>
                             )}
                     </FormSection>

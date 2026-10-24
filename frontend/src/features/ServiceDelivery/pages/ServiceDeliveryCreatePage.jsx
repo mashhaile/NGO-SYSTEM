@@ -1414,6 +1414,12 @@ const ServiceDeliveryCreatePage = () => {
                                         )
                                         : null,
 
+                                currency:
+                                    item?.currency || "ETB",
+
+                                exchangeRate:
+                                    item?.exchangeRate ?? null,
+
                                 detailItems:
                                     normalizeDetailItems(
                                         item?.detailItems

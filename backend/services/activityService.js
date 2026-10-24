@@ -563,6 +563,15 @@ const updateActivity = async (
             String(activity.project) !==
             String(newProject._id);
 
+        // Not once runs, deliveries ... are recorded under its
+        // current project (see parentChangeGuard)
+        if (projectChanged) {
+
+            await require("./parentChangeGuard")
+                .assertActivityCanChangeProject(activity._id, organizationId);
+
+        }
+
     }
 
 

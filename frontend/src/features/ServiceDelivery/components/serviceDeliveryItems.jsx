@@ -38,8 +38,38 @@ import {
 
 
 import {
-    getDonationsService
+    useQuery
+} from "@tanstack/react-query";
+
+import {
+    getDonationsService,
+    getDonationByIdService
 } from "../../donations/services/DonationService";
+
+import {
+    CURRENCIES
+} from "../../budgets/utils/budgetUtils";
+
+
+// A service item may be priced in another currency (USD,
+// EUR) with its exchange rate to ETB; the server keeps the
+// original and uses ETB for totals and reports.
+const BASE_CURRENCY = "ETB";
+
+const CURRENCY_OPTIONS =
+    [...new Set([BASE_CURRENCY, ...CURRENCIES])]
+        .map(code => ({ value: code, label: code }));
+
+const itemCurrency = item =>
+    String(item?.currency || BASE_CURRENCY).toUpperCase();
+
+// The currency a cash unit is given in (USD cash), if its code is one
+const cashCurrencyOf = (unit, unitOptions) => {
+    if (getUnitSemantics(unit, unitOptions) !== "monetary") return null;
+    const option = findUnitOption(unit, unitOptions);
+    const code = String(option?.code ?? option?.unitCode ?? option?.lookupCode ?? option?.label ?? "").trim().toUpperCase();
+    return /^[A-Z]{3}$/.test(code) ? code : null;
+};
 
 
 // =====================================================
@@ -1667,6 +1697,17 @@ const ServiceDeliveryItemRow = ({
             item?.donation
         );
 
+    // What the chosen donation has used and has left
+    // (service deliveries + submitted / approved expenses)
+    const {
+        data: selectedDonationFunding
+    } = useQuery({
+        queryKey: ["donation-funding", donationValue],
+        queryFn: async () => (await getDonationByIdService(donationValue))?.data?.funding || null,
+        enabled: Boolean(donationValue),
+        staleTime: 30000
+    });
+
     // The chosen donation's own record (status, amount)
     const selectedDonationRecord =
         donationValue
@@ -2618,6 +2659,13 @@ const ServiceDeliveryItemRow = ({
                     updatedItem.unit =
                         selectedUnit;
 
+                    const cashCurrency =
+                        cashCurrencyOf(selectedUnit, unitOptions);
+
+                    if (cashCurrency) {
+                        updatedItem.currency = cashCurrency;
+                        if (cashCurrency === BASE_CURRENCY) updatedItem.exchangeRate = null;
+                    }
                 }
 
 
@@ -2679,15 +2727,42 @@ const ServiceDeliveryItemRow = ({
 
                 else if (
                     field ===
-                    "unitCost"
+                    "currency"
                 ) {
 
+                    updatedItem.currency =
+                        String(value || BASE_CURRENCY).toUpperCase();
+
+                    if (updatedItem.currency === BASE_CURRENCY) {
+                        updatedItem.exchangeRate = null;
+                    }
+
+                }
+
+
+                else if (
+                    field ===
+                    "exchangeRate"
+                ) {
+
+                    const rate = Number(value);
+
+                    updatedItem.exchangeRate =
+                        value === "" || !Number.isFinite(rate) || rate <= 0
+                            ? null
+                            : rate;
+
+                }
+
+
+                else if (
+                    field ===
+                    "unitCost"
+                ) {
                     const numericValue =
                         Number(
                             value
                         );
-
-
                     updatedItem.unitCost =
                         Number.isFinite(
                             numericValue
@@ -3412,6 +3487,15 @@ const ServiceDeliveryItemRow = ({
             item?.unitCost
         );
 
+    // What the item costs in its donation's currency (null: cannot compare)
+    const itemCostInDonationCurrency = (() => {
+        if (!selectedDonationRecord) return null;
+        const donationCurrency = String(selectedDonationRecord.currency || BASE_CURRENCY).toUpperCase();
+        if (donationCurrency === itemCurrency(item)) return itemTotalCost;
+        if (donationCurrency === BASE_CURRENCY && Number(item?.exchangeRate) > 0) return itemTotalCost * Number(item.exchangeRate);
+        return null;
+    })();
+
     const detailItemsTotal =
         detailItems.reduce(
             (
@@ -3605,8 +3689,70 @@ const ServiceDeliveryItemRow = ({
                 />
 
 
+                <AppSelect
+                    label="Currency"
+                    value={
+                        itemCurrency(item)
+                    }
+                    options={
+                        CURRENCY_OPTIONS
+                    }
+                    onChange={
+                        (event) =>
+                            updateItem(
+                                "currency",
+                                event?.target?.value ??
+                                event
+                            )
+                    }
+                    disabled={
+                        Boolean(cashCurrencyOf(item?.unit, unitOptions))
+                    }
+                    helperText={
+                        cashCurrencyOf(item?.unit, unitOptions)
+                            ? "Cash is recorded in its own currency"
+                            : undefined
+                    }
+                    fullWidth
+                />
+
+
+                {itemCurrency(item) !== BASE_CURRENCY && (
+
+                    <AppTextField
+                        label={`Exchange rate (1 ${itemCurrency(item)} = ? ETB)`}
+                        required
+                        type="number"
+                        value={
+                            item?.exchangeRate ?? ""
+                        }
+                        onChange={
+                            (event) =>
+                                updateItem(
+                                    "exchangeRate",
+                                    event?.target?.value
+                                )
+                        }
+                        error={
+                            !(Number(item?.exchangeRate) > 0)
+                        }
+                        helperText={
+                            Number(item?.exchangeRate) > 0
+                                ? `Total = ETB ${formatAmount(itemTotalCost * Number(item.exchangeRate))}`
+                                : "Needed to count this item in ETB"
+                        }
+                        inputProps={{
+                            min: 0,
+                            step: "0.0001"
+                        }}
+                        fullWidth
+                    />
+
+                )}
+
+
                 <AppTextField
-                    label="Unit Cost"
+                    label={`Unit Cost (${itemCurrency(item)})`}
                     required
                     type="number"
                     value={
@@ -3628,7 +3774,7 @@ const ServiceDeliveryItemRow = ({
 
 
                 <AppTextField
-                    label="Total Cost"
+                    label={`Total Cost (${itemCurrency(item)})`}
                     value={
                         calculateTotalCost(
                             item?.quantity,
@@ -3710,6 +3856,28 @@ const ServiceDeliveryItemRow = ({
 
             )}
 
+            {/* The chosen donation: what it has left */}
+
+            {selectedDonationFunding && selectedDonationRecord?.status !== "Cancelled" && (
+
+                <Typography
+                    variant="body2"
+                    color={
+                        itemCostInDonationCurrency !== null &&
+                        itemCostInDonationCurrency > selectedDonationFunding.left + 0.01
+                            ? "warning.main"
+                            : "text.secondary"
+                    }
+                    sx={{
+                        mt: 1
+                    }}
+                >
+                    {`This donation has ${selectedDonationFunding.currency} ${formatAmount(selectedDonationFunding.left)} left of ${formatAmount(selectedDonationFunding.amount)} (used: ${formatAmount(selectedDonationFunding.byDeliveries)} in service deliveries, ${formatAmount(selectedDonationFunding.byExpenses)} in expenses). What this delivery already saved is counted as used; it is checked again when you save.`}
+                    {itemCostInDonationCurrency === null && ` This item is in ${itemCurrency(item)}: give it in ${selectedDonationFunding.currency}${selectedDonationFunding.currency === BASE_CURRENCY ? " with its exchange rate" : ""} to charge this donation.`}
+                </Typography>
+
+            )}
+
             {/* The chosen donation: pledged only, cancelled, or too small */}
 
             {selectedDonationRecord && (
@@ -3726,7 +3894,8 @@ const ServiceDeliveryItemRow = ({
                             This donation is cancelled and cannot pay for this item. Choose another donation.
                         </Alert>
                     )
-                    : itemTotalCost > Number(selectedDonationRecord.amount || 0) + 0.01
+                    : itemCostInDonationCurrency !== null &&
+                        itemCostInDonationCurrency > Number(selectedDonationRecord.amount || 0) + 0.01
                         ? (
                             <Alert
                                 severity="warning"
@@ -3735,7 +3904,7 @@ const ServiceDeliveryItemRow = ({
                                     mt: 1.5
                                 }}
                             >
-                                This item costs {formatAmount(itemTotalCost)}, more than the whole donation ({formatAmount(selectedDonationRecord.amount)} {selectedDonationRecord.currency || "ETB"}). It cannot be saved this way: lower the cost or split it across donations.
+                                This item costs {formatAmount(itemCostInDonationCurrency)} {selectedDonationRecord.currency || "ETB"}, more than the whole donation ({formatAmount(selectedDonationRecord.amount)} {selectedDonationRecord.currency || "ETB"}). It cannot be saved this way: lower the cost or split it across donations.
                             </Alert>
                         )
                         : selectedDonationRecord.status === "Pledged"
@@ -4621,10 +4790,12 @@ const ServiceDeliveryItems = ({
 
             unitCost:
                 0,
-
             totalCost:
                 0,
-
+            currency:
+                BASE_CURRENCY,
+            exchangeRate:
+                null,
             donor:
                 null,
 

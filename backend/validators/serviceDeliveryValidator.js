@@ -253,6 +253,15 @@ const serviceItemSchema =
         allocationBehavior:
             Joi.any()
                 .strip(),
+        // an item priced in another currency (USD, EUR) and its rate to ETB
+        currency:
+            Joi.string().trim().uppercase().pattern(/^[A-Z]{3}$/).default("ETB")
+                .messages({ "string.pattern.base": "Currency must be a 3-letter code such as ETB or USD." }),
+
+        exchangeRate:
+            Joi.number().greater(0).allow(null)
+                .messages({ "number.greater": "The exchange rate must be more than 0." }),
+
 
 
         // --------------------------------------------------

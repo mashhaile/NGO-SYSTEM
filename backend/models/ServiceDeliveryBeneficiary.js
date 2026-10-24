@@ -98,6 +98,13 @@ detailItem: {
 
             },
 
+            // A share of cash in another currency (USD) as
+            // entered; allocatedValue is its ETB value
+            originalAllocatedValue: {
+                type: Number,
+                default: null
+            },
+
 
             // ======================================
             // Allocation Remarks

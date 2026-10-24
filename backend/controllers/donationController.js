@@ -16,6 +16,9 @@ const {
 const subscriptionService =
     require("../services/subscriptionService");
 
+const donationFunding =
+    require("../services/donationFunding");
+
 
 const {
     logAudit
@@ -262,12 +265,34 @@ const getDonationByIdController = async (
         }
 
 
+        // What the donation has used and has left (deliveries
+        // + submitted / approved expenses, in its currency)
+        const use =
+            await donationFunding.donationUse(
+                donation._id,
+                req.user.organizationId
+            );
+
+        const plain =
+            typeof donation.toObject === "function"
+                ? donation.toObject()
+                : donation;
+
         res.json({
 
             success: true,
 
-            data:
-                donation
+            data: {
+                ...plain,
+                funding: {
+                    currency: use.currency,
+                    amount: use.amount,
+                    byDeliveries: use.byDeliveries,
+                    byExpenses: use.byExpenses,
+                    used: use.used,
+                    left: use.left
+                }
+            }
 
         });
 

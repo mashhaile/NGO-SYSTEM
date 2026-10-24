@@ -520,7 +520,7 @@ const normalizeAllocation = (
 
     const allocatedValue =
         Number(
-            allocation?.allocatedValue ?? 0
+            allocation?.originalAllocatedValue ?? allocation?.allocatedValue ?? 0
         );
 
 
@@ -877,7 +877,7 @@ const normalizeDetailItems = (
 
             const unitCost =
                 Number(
-                    detailItem?.unitCost ?? 0
+                    detailItem?.originalUnitCost ?? detailItem?.unitCost ?? 0
                 );
 
 
@@ -1244,7 +1244,7 @@ const normalizeItems = (
 
             const unitCost =
                 Number(
-                    item?.unitCost ?? 0
+                    item?.originalUnitCost ?? item?.unitCost ?? 0
                 );
 
 
@@ -1323,6 +1323,16 @@ const normalizeItems = (
                     item?.donation
                 ) ||
                 null;
+
+
+            // Priced in another currency: edited as entered
+            normalizedItem.currency =
+                item?.currency || "ETB";
+
+            normalizedItem.exchangeRate =
+                normalizedItem.currency === "ETB"
+                    ? null
+                    : item?.exchangeRate ?? null;
 
 
             normalizedItem.remarks =
@@ -1543,6 +1553,12 @@ const normalizeItemsForSubmit = (
                 donation:
                     donation ||
                     null,
+
+                currency:
+                    item?.currency || "ETB",
+
+                exchangeRate:
+                    item?.exchangeRate ?? null,
 
                 detailItems,
 

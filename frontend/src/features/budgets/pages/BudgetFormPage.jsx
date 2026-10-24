@@ -13,6 +13,7 @@ import {
 import {
     Alert,
     Box,
+    Button,
     ToggleButton,
     ToggleButtonGroup,
     Typography
@@ -84,7 +85,10 @@ const emptyForm = {
     startYear: String(thisYear),
     endYear: String(thisYear + 2),
     yearlyAmounts: [],
-    lines: []
+    lines: [],
+    // a project budget in another currency than its program budget
+    rate: "",
+    rateDate: ""
 };
 
 
@@ -129,7 +133,11 @@ const BudgetFormPage = () => {
     const [programs, setPrograms] = useState([]);
     const [projects, setProjects] = useState([]);
     const [fetchedAvailable, setFetchedAvailable] =
-        useState({ programId: null, value: null });
+        useState({ programId: null, value: null, currency: null });
+
+    // a budget that already exists for the chosen program / project
+    const [existingFor, setExistingFor] =
+        useState({ key: "", budget: null });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
@@ -167,6 +175,8 @@ const BudgetFormPage = () => {
                         endYear: String(source.endYear),
                         yearlyAmounts: source.yearlyAmounts || [],
                         reason: budget.revision?.reason || "",
+                        rate: budget.programExchangeRate?.rate ? String(budget.programExchangeRate.rate) : "",
+                        rateDate: budget.programExchangeRate?.date ? String(budget.programExchangeRate.date).slice(0, 10) : "",
                         lines: (source.lines || []).map(line => ({
                             _id: line._id,
                             category: line.category,
@@ -258,10 +268,10 @@ const BudgetFormPage = () => {
                             .map(item => [item.fiscalYear, item.unallocated])
                     )
                     : null;
-                if (!cancelled) setFetchedAvailable({ programId, value });
+                if (!cancelled) setFetchedAvailable({ programId, value, currency: envelope?.currency || null });
             })
             .catch(() => {
-                if (!cancelled) setFetchedAvailable({ programId, value: null });
+                if (!cancelled) setFetchedAvailable({ programId, value: null, currency: null });
             });
 
         return () => {
@@ -270,7 +280,23 @@ const BudgetFormPage = () => {
 
     }, [form.level, programId, existing]);
 
-    const available =
+    // ---------------- the program budget's currency ----------------
+    const programCurrency =
+        form.level !== "project"
+            ? null
+            : existing
+                ? existing.summary?.programBudget?.currency || null
+                : fetchedAvailable.programId === programId
+                    ? fetchedAvailable.currency
+                    : null;
+
+    // another currency: amounts convert at the rate given
+    const needsRate =
+        Boolean(programCurrency) && form.currency !== programCurrency;
+
+    const rate = Number(form.rate);
+
+    const availableInProgramCurrency =
         form.level !== "project" || !programId
             ? null
             : existing
@@ -278,6 +304,34 @@ const BudgetFormPage = () => {
                 : fetchedAvailable.programId === programId
                     ? fetchedAvailable.value
                     : null;
+
+    // what is left, in this budget's currency (editing: the
+    // server already converted it)
+    const available =
+        !availableInProgramCurrency
+            ? null
+            : existing || !needsRate
+                ? availableInProgramCurrency
+                : rate > 0
+                    ? Object.fromEntries(Object.entries(availableInProgramCurrency).map(([year, amount]) => [year, Math.round((amount / rate) * 100) / 100]))
+                    : null;
+
+    // ---------------- one budget per program / project ----------------
+    const chosenKey =
+        isEdit ? "" : form.level === "project" ? (form.project ? `project:${form.project}` : "") : (form.program ? `program:${form.program}` : "");
+
+    useEffect(() => {
+        if (!chosenKey) return;
+        let cancelled = false;
+        const [level, target] = chosenKey.split(":");
+        getBudgetsApi({ level, [level]: target, limit: 1 })
+            .then(response => { if (!cancelled) setExistingFor({ key: chosenKey, budget: response.data?.[0] || null }); })
+            .catch(() => { if (!cancelled) setExistingFor({ key: chosenKey, budget: null }); });
+        return () => { cancelled = true; };
+    }, [chosenKey]);
+
+    const duplicate =
+        chosenKey && existingFor.key === chosenKey ? existingFor.budget : null;
 
 
     // ---------------- change helpers ----------------
@@ -340,6 +394,21 @@ const BudgetFormPage = () => {
             return;
         }
 
+        if (duplicate) {
+            setError(`This ${form.level} already has a budget (${duplicate.budgetCode}). Open it to edit or revise it.`);
+            return;
+        }
+
+        if (isRevise && String(form.reason || "").trim().length < 3) {
+            setError("Give the reason for this revision (what changed and why).");
+            return;
+        }
+
+        if (!isRevise && needsRate && (!(rate > 0) || !form.rateDate)) {
+            setError(`The program budget is in ${programCurrency}: enter the exchange rate (1 ${form.currency} = ? ${programCurrency}) and its date.`);
+            return;
+        }
+
         const numbers = (amounts) =>
             fitAmounts(amounts, years).map(item => ({ fiscalYear: item.fiscalYear, amount: toNumber(item.amount) }));
 
@@ -347,6 +416,10 @@ const BudgetFormPage = () => {
             name: form.name.trim(),
             description: form.description,
             currency: form.currency,
+            programExchangeRate:
+                needsRate && rate > 0 && form.rateDate
+                    ? { rate, date: form.rateDate }
+                    : null,
             startYear: years[0],
             endYear: years[years.length - 1],
             ...(form.level === "program"
@@ -480,6 +553,23 @@ const BudgetFormPage = () => {
                         </Box>
                     )}
 
+                    {duplicate && (
+                        <Alert
+                            severity="warning"
+                            sx={{ mb: 2 }}
+                            action={
+                                <Button color="inherit" size="small" onClick={() => navigate(`/budgets/${duplicate._id}`)}>
+                                    Open it
+                                </Button>
+                            }
+                        >
+                            This {form.level} already has a budget: {duplicate.budgetCode} {duplicate.name} ({duplicate.status}).
+                            {duplicate.status === "Approved"
+                                ? " To change its figures, open it and start a revision."
+                                : " Open it to edit it instead of creating a second one."}
+                        </Alert>
+                    )}
+
                     <FormGrid columns={2}>
 
                         {form.level === "project"
@@ -526,8 +616,36 @@ const BudgetFormPage = () => {
                             options={CURRENCY_OPTIONS}
                             value={form.currency}
                             onChange={(e) => change({ currency: e.target.value })}
-                            helperText="A project budget must use its program budget's currency."
+                            helperText={
+                                programCurrency
+                                    ? needsRate
+                                        ? `The program budget is in ${programCurrency}: give the exchange rate below.`
+                                        : `Same currency as the program budget (${programCurrency}).`
+                                    : undefined
+                            }
                         />
+
+                        {needsRate && !isRevise && (
+                            <FormGrid columns={2}>
+                                <AppTextField
+                                    label={`Exchange rate: 1 ${form.currency} = ? ${programCurrency}`}
+                                    type="number"
+                                    required
+                                    value={form.rate}
+                                    onChange={(e) => change({ rate: e.target.value })}
+                                    inputProps={{ min: 0, step: "any" }}
+                                    helperText="Used to check the program budget's ceiling"
+                                />
+                                <AppTextField
+                                    label="Rate date"
+                                    type="date"
+                                    required
+                                    value={form.rateDate}
+                                    onChange={(e) => change({ rateDate: e.target.value })}
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                            </FormGrid>
+                        )}
 
                         <FormGrid columns={2}>
                             <AppSelect
@@ -615,6 +733,7 @@ const BudgetFormPage = () => {
                     onSubmit={handleSave}
                     submitLabel={isRevise ? "Save Revision" : isEdit ? "Save Changes" : "Create Budget"}
                     submitLoading={saving}
+                    submitDisabled={Boolean(duplicate)}
                 />
 
             </PageCard>

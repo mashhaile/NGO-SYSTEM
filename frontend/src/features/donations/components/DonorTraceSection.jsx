@@ -101,14 +101,14 @@ const DonorTraceSection = ({
 
                     <>
 
-                        <InfoRow label="Received" value={formatMoney(trace.totals.received)} />
-
-                        <InfoRow
-                            label="Used so far"
-                            value={`${formatMoney(trace.totals.used)} (${trace.totals.percentUsed}%)`}
-                        />
-
-                        <InfoRow label="Remaining" value={formatMoney(trace.totals.remaining)} />
+                        {/* one line per currency: ETB and EUR are never added together */}
+                        {(trace.totals.byCurrency || []).map(entry => (
+                            <InfoRow
+                                key={entry.currency}
+                                label={`Received (${entry.currency})`}
+                                value={`${formatMoney(entry.received, entry.currency)} · used ${formatMoney(entry.used, entry.currency)} (${entry.percentUsed}%) · remaining ${formatMoney(entry.remaining, entry.currency)}${entry.pledged ? ` · pledged ${formatMoney(entry.pledged, entry.currency)}` : ""}`}
+                            />
+                        ))}
 
                         <InfoRow
                             label="People reached"

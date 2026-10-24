@@ -252,7 +252,14 @@ const BudgetRevisionPanel = ({ budget, user, navigate, onChanged }) => {
                                 </AppButton>
                             )}
                             {editable && canEdit && (
-                                <AppButton variant="contained" startIcon={<Send />} onClick={() => openDialog("submit")}>
+                                <AppButton
+                                    variant="contained"
+                                    startIcon={<Send />}
+                                    onClick={() => openDialog("submit")}
+                                    // the reason is given when the revision is edited
+                                    disabled={String(revision.reason || "").trim().length < 3}
+                                    title={String(revision.reason || "").trim().length < 3 ? "Edit the revision and give its reason first" : undefined}
+                                >
                                     Submit Revision
                                 </AppButton>
                             )}

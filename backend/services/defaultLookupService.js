@@ -141,6 +141,7 @@ const ensureOrganizationDefaultLookups = async (
                         .map(unit => unitIds.get(unit.toLowerCase()))
                         .filter(Boolean),
                     allocationBehavior: type.behavior || "CONSUMPTION",
+                    recipientTypes: type.recipients || [],
                     active: true,
                     createdBy: userId
                 }));

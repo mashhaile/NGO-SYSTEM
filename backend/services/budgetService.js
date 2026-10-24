@@ -13,6 +13,9 @@ const Project = require("../models/Project");
 
 const ApiError = require("../utils/apiError");
 
+
+// notifications and audit for approval steps
+const budgetEvents = () => require("./budgetEvents");
 const escapeRegex = require("../utils/escapeRegex");
 
 const generateSequence = require("../utils/generateSequence");
@@ -311,13 +314,35 @@ const programBudgetOf = (organizationId, programId) =>
 
 // Allocated per year by a set of project budgets
 
-const allocatedByYear = (projectBudgets) => {
+// What 1 unit of a project budget's currency is worth in the
+// program budget's currency (null: no rate given)
+const rateToProgram = (projectBudget, programCurrency) =>
+    !programCurrency || projectBudget.currency === programCurrency
+        ? 1
+        : Number(projectBudget.programExchangeRate?.rate) > 0
+            ? Number(projectBudget.programExchangeRate.rate)
+            : null;
+
+const missingRate = (projectBudget, programCurrency) =>
+    new ApiError(
+        `Project budget ${projectBudget.budgetCode || ""} is in ${projectBudget.currency} and the program budget in ${programCurrency}: give the exchange rate (1 ${projectBudget.currency} = ? ${programCurrency}) and its date.`.replace("  ", " "),
+        400
+    );
+
+// Per fiscal year, what project budgets use of the program
+// budget, in the program budget's currency
+const allocatedByYear = (projectBudgets, programCurrency = null, { strict = false } = {}) => {
 
     const allocated = new Map();
 
     for (const budget of projectBudgets) {
+        const rate = rateToProgram(budget, programCurrency);
+        if (rate === null) {
+            if (strict) throw missingRate(budget, programCurrency);
+            continue;
+        }
         for (const item of yearTotals(budget)) {
-            allocated.set(item.fiscalYear, roundMoney((allocated.get(item.fiscalYear) || 0) + item.amount));
+            allocated.set(item.fiscalYear, roundMoney((allocated.get(item.fiscalYear) || 0) + item.amount * rate));
         }
     }
 
@@ -338,7 +363,7 @@ const assertWithinProgram = async (budget) => {
 
         // The envelope must still cover what projects already took
         const projects = await projectBudgetsOf(budget.organization, budget.program);
-        const allocated = allocatedByYear(projects);
+        const allocated = allocatedByYear(projects, budget.currency, { strict: true });
 
         for (const item of yearTotals(budget)) {
             const taken = allocated.get(item.fiscalYear) || 0;
@@ -350,14 +375,7 @@ const assertWithinProgram = async (budget) => {
             }
         }
 
-        for (const project of projects) {
-            if (project.currency !== budget.currency) {
-                throw new ApiError(
-                    `Project budget ${project.budgetCode} is in ${project.currency}; the program budget must use the same currency.`,
-                    400
-                );
-            }
-        }
+
 
         return;
 
@@ -371,15 +389,19 @@ const assertWithinProgram = async (budget) => {
         return;
     }
 
-    if (programBudget.currency !== budget.currency) {
-        throw new ApiError(
-            `The program budget is in ${programBudget.currency}; this project budget must use the same currency.`,
-            400
-        );
+    // in the program budget's currency
+    const rate = rateToProgram(budget, programBudget.currency);
+
+    if (rate === null) {
+        throw missingRate(budget, programBudget.currency);
+    }
+
+    if (budget.currency !== programBudget.currency && !budget.programExchangeRate?.date) {
+        throw new ApiError(`Give the date of the exchange rate (1 ${budget.currency} = ${rate} ${programBudget.currency}).`, 400);
     }
 
     const programYears = new Map(yearTotals(programBudget).map(item => [item.fiscalYear, item.amount]));
-    const others = allocatedByYear(await projectBudgetsOf(budget.organization, budget.program, budget._id));
+    const others = allocatedByYear(await projectBudgetsOf(budget.organization, budget.program, budget._id), programBudget.currency, { strict: true });
 
     for (const item of yearTotals(budget)) {
 
@@ -396,9 +418,11 @@ const assertWithinProgram = async (budget) => {
         const available =
             roundMoney(programYears.get(item.fiscalYear) - (others.get(item.fiscalYear) || 0));
 
-        if (item.amount > available) {
+        const needed = roundMoney(item.amount * rate);
+
+        if (needed > available) {
             throw new ApiError(
-                `${fiscalYearLabel(item.fiscalYear)}: this budget needs ${money(item.amount, budget.currency)}, but only ${money(Math.max(0, available), budget.currency)} of the program budget is unallocated.`,
+                `${fiscalYearLabel(item.fiscalYear)}: this budget needs ${money(item.amount, budget.currency)}${rate !== 1 ? ` (${money(needed, programBudget.currency)} at ${rate})` : ""}, but only ${money(Math.max(0, available), programBudget.currency)} of the program budget is unallocated.`,
                 400
             );
         }
@@ -477,7 +501,7 @@ const buildSummary = async (budget) => {
 
     if (budget.level === BUDGET_LEVEL.PROGRAM) {
 
-        const allocated = allocatedByYear(projects);
+        const allocated = allocatedByYear(projects, budget.currency);
 
         summary.allocation = {
             years: years.map(item => ({
@@ -493,6 +517,9 @@ const buildSummary = async (budget) => {
                 status: project.status,
                 currency: project.currency,
                 totalAmount: project.totalAmount,
+                // converted into the program's currency (null: rate missing)
+                exchangeRate: rateToProgram(project, budget.currency),
+                exchangeRateDate: project.programExchangeRate?.date || null,
                 years: yearTotals(project)
             }))
         };
@@ -537,19 +564,26 @@ const buildSummary = async (budget) => {
     if (programBudget) {
 
         const others = allocatedByYear(
-            await projectBudgetsOf(budget.organization, programBudget.program, budget._id)
+            await projectBudgetsOf(budget.organization, programBudget.program, budget._id),
+            programBudget.currency
         );
+
+        const rate = rateToProgram(budget, programBudget.currency);
 
         summary.programBudget = {
             _id: programBudget._id,
             budgetCode: programBudget.budgetCode,
             status: programBudget.status,
             currency: programBudget.currency,
+            exchangeRate: rate,
+            exchangeRateDate: budget.programExchangeRate?.date || null,
             years: yearTotals(programBudget).map(item => ({
                 fiscalYear: item.fiscalYear,
                 amount: item.amount,
                 usedByOtherProjects: others.get(item.fiscalYear) || 0,
-                availableForThisProject: roundMoney(item.amount - (others.get(item.fiscalYear) || 0))
+                // in this budget's own currency, at its rate
+                availableForThisProject:
+                    rate ? roundMoney((item.amount - (others.get(item.fiscalYear) || 0)) / rate) : null
             }))
         };
 
@@ -607,6 +641,7 @@ const createBudget = async (data, organizationId, userId) => {
             level,
             ...target,
             currency: data.currency || "ETB",
+            programExchangeRate: data.programExchangeRate || undefined,
             startYear: years[0],
             endYear: years[years.length - 1],
             ...normalizeContent(level, data, years),
@@ -637,6 +672,11 @@ const getBudgets = async (organizationId, query = {}) => {
 
     if (query.level) filter.level = query.level;
     if (query.status) filter.status = query.status;
+
+    // budgets and revisions waiting for an approver
+    if (String(query.waiting) === "true" || String(query.waiting) === "1") {
+        filter.$and = [...(filter.$and || []), { $or: [{ status: BUDGET_STATUS.SUBMITTED }, { "revision.status": "Submitted" }] }];
+    }
     if (mongoose.isValidObjectId(query.program)) filter.program = query.program;
     if (mongoose.isValidObjectId(query.project)) filter.project = query.project;
 
@@ -654,7 +694,7 @@ const getBudgets = async (organizationId, query = {}) => {
     const [data, total] =
         await Promise.all([
             Budget.find(filter)
-                .select("budgetCode name level program project currency startYear endYear totalAmount status version createdAt")
+                .select("budgetCode name level program project currency startYear endYear totalAmount status version createdAt revision.status revision.totalAmount revision.submittedAt")
                 .populate("program", "programCode name")
                 .populate("project", "projectCode name")
                 .sort({ createdAt: -1 })
@@ -694,9 +734,15 @@ const getBudgetById = async (id, organizationId) => {
         throw notFound();
     }
 
+    const waiting =
+        budget.status === BUDGET_STATUS.SUBMITTED ||
+        budget.revision?.status === "Submitted";
+
     return {
         ...budget,
-        summary: await buildSummary(budget)
+        summary: await buildSummary(budget),
+        // who can approve it, while it waits
+        approvers: waiting ? await budgetEvents().getApprovers(organizationId) : []
     };
 
 };
@@ -726,6 +772,7 @@ const updateBudget = async (id, data, organizationId, userId) => {
     if (data.name !== undefined) budget.name = data.name;
     if (data.description !== undefined) budget.description = data.description || "";
     if (data.currency !== undefined) budget.currency = data.currency || "ETB";
+    if (data.programExchangeRate !== undefined) budget.programExchangeRate = data.programExchangeRate || undefined;
 
     budget.startYear = years[0];
     budget.endYear = years[years.length - 1];
@@ -836,7 +883,7 @@ const submitBudget = async (id, organizationId, userId) => {
 
     await assertReadyForReview(budget);
 
-    return transition({
+    const result = await transition({
         id,
         organizationId,
         userId,
@@ -846,6 +893,10 @@ const submitBudget = async (id, organizationId, userId) => {
         verb: "submitted",
         set: { submittedBy: userId, submittedAt: new Date(), reviewComment: "" }
     });
+
+    await budgetEvents().submitted({ budget: result, organizationId, userId });
+
+    return result;
 
 };
 
@@ -879,13 +930,16 @@ const approveBudget = async (id, organizationId, userId, comment = "") => {
         action: "Approved",
         verb: "approved",
         set: { approvedBy: userId, approvedAt: new Date() }
+    }).then(async (result) => {
+        await budgetEvents().decided({ budget: result, organizationId, userId, approved: true, comment, submittedBy: budget.submittedBy });
+        return result;
     });
 
 };
 
 
 const returnBudget = async (id, organizationId, userId, comment) =>
-    transition({
+    transitionAndTell({
         id,
         organizationId,
         userId,
@@ -896,6 +950,15 @@ const returnBudget = async (id, organizationId, userId, comment) =>
         verb: "returned",
         set: { reviewComment: comment }
     });
+
+
+// Return, then tell the person who submitted it
+const transitionAndTell = async (options) => {
+    const before = await findBudget(options.id, options.organizationId);
+    const result = await transition(options);
+    await budgetEvents().decided({ budget: result, organizationId: options.organizationId, userId: options.userId, approved: false, comment: options.comment, submittedBy: before.submittedBy });
+    return result;
+};
 
 
 module.exports = {

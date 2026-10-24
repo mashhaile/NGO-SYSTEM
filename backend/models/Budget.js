@@ -240,6 +240,16 @@ const BudgetSchema =
                 match: /^[A-Z]{3}$/
             },
 
+            // A project budget in another currency than its
+            // program budget: 1 unit of this budget's currency =
+            // rate units of the program budget's, as of date.
+            // The program ceiling is checked in its currency;
+            // this budget's own amounts stay as entered.
+            programExchangeRate: {
+                rate: { type: Number, min: 0 },
+                date: { type: Date }
+            },
+
             startYear: {
                 type: Number,
                 required: true

@@ -1727,6 +1727,81 @@ const getDetailAggregate = (
 
 
 // =====================================================
+// VALUES FOLLOW QUANTITIES
+// =====================================================
+//
+// The same rule the server applies when it saves: goods
+// used up are worth quantity x unit price (a detail given
+// out in another unit: its price / the conversion); a
+// training is shared equally by its participants. Rounded
+// down so the shares never exceed the cost. Money (cash,
+// fees) keeps the amount typed in.
+//
+// =====================================================
+
+const revalueAllocations = (
+    beneficiaries,
+    serviceItem,
+    detailItem,
+    allocationBehavior,
+    monetary
+) => {
+
+    if (monetary || !Array.isArray(beneficiaries)) {
+        return beneficiaries;
+    }
+
+    const serviceItemId = String(getServiceItemId(serviceItem));
+    const detailItemId = detailItem ? String(normalizeId(detailItem?._id ?? detailItem?.id)) : "";
+
+    const isTarget = (allocation) =>
+        String(getAllocationServiceItemId(allocation)) === serviceItemId &&
+        (detailItem
+            ? String(getAllocationDetailItemId(allocation)) === detailItemId
+            : !getAllocationDetailItemId(allocation));
+
+    const floorMoney = (value) => Math.floor(Number(value || 0) * 100 + 1e-6) / 100;
+
+    const participants =
+        beneficiaries.filter(beneficiary =>
+            (Array.isArray(beneficiary?.allocations) ? beneficiary.allocations : [])
+                .some(allocation => isTarget(allocation) && getSafeNumber(allocation?.quantity) > 0)
+        ).length;
+
+    const cost = detailItem ? getDetailItemTotal(detailItem) : getItemTotal(serviceItem);
+
+    const factor =
+        detailItem?.allocationUnit
+            ? getSafeNumber(detailItem?.allocationConversionFactor) || 1
+            : 1;
+
+    const unitPrice =
+        detailItem
+            ? getSafeNumber(detailItem?.unitCost) / factor
+            : getSafeNumber(serviceItem?.unitCost);
+
+    return beneficiaries.map(beneficiary => {
+        const allocations = Array.isArray(beneficiary?.allocations) ? beneficiary.allocations : [];
+        if (!allocations.some(isTarget)) return beneficiary;
+        return {
+            ...beneficiary,
+            allocations: allocations.map(allocation => {
+                if (!isTarget(allocation)) return allocation;
+                const quantity = getSafeNumber(allocation?.quantity);
+                const allocatedValue =
+                    quantity <= 0 ? 0
+                        : allocationBehavior === PARTICIPATION
+                            ? floorMoney(cost / Math.max(participants, 1))
+                            : floorMoney(quantity * unitPrice);
+                return { ...allocation, allocatedValue };
+            })
+        };
+    });
+
+};
+
+
+// =====================================================
 // COMPONENT
 // =====================================================
 
@@ -2191,7 +2266,13 @@ const updateAllocation = (
 
         return {
             ...prev,
-            beneficiaries: nextBeneficiaries
+            beneficiaries: revalueAllocations(
+                nextBeneficiaries,
+                serviceItem,
+                detailItem,
+                allocationBehavior,
+                monetary
+            )
         };
     });
 };
@@ -2402,7 +2483,13 @@ const applyFullAllocation = (
 
         return {
             ...prev,
-            beneficiaries: nextBeneficiaries
+            beneficiaries: revalueAllocations(
+                nextBeneficiaries,
+                serviceItem,
+                detailItem,
+                allocationBehavior,
+                monetary
+            )
         };
     });
 };
@@ -2881,6 +2968,14 @@ const applyFullAllocation = (
                                                                     <TextField
                                                                         fullWidth
                                                                         type="number"
+                                                                        disabled={!monetary}
+                                                                        helperText={
+                                                                            monetary
+                                                                                ? undefined
+                                                                                : allocationBehavior === PARTICIPATION
+                                                                                    ? "Worked out: an equal share for each participant"
+                                                                                    : "Worked out: quantity × unit price"
+                                                                        }
                                                                         label={
                                                                             monetary
                                                                                 ? "Allocated Amount (ETB)"
@@ -3156,6 +3251,12 @@ const applyFullAllocation = (
                                                                                             <TextField
                                                                                                 fullWidth
                                                                                                 type="number"
+                                                                                                disabled={!detailMonetary}
+                                                                                                helperText={
+                                                                                                    detailMonetary
+                                                                                                        ? undefined
+                                                                                                        : "Worked out from the quantity"
+                                                                                                }
                                                                                                 label={
                                                                                                     detailMonetary
                                                                                                         ? "Allocated Amount (ETB)"

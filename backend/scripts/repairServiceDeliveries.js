@@ -14,6 +14,13 @@
 //   - a detail item without a unit, or of the other kind
 //     (money inside goods, goods inside money)
 //   - detail items that don't add up to the item's cost
+//   - a service type given to a recipient it is not for
+//     (cash assistance to an institution)
+//   - a household / group not given "as a whole" (Group),
+//     an institution not "Unallocated" or with people listed
+//   - an item shared out both whole and by detail items
+//   - detail items in the item's unit not adding up to it
+//   - goods valued differently from quantity x unit price
 //   - "Individual" allocation with people who have no share,
 //     or money (cash, fees) not shared out in full
 //
@@ -45,6 +52,12 @@ const DRY_RUN = process.argv.includes("--dry-run");
 
 const BEHAVIORS = ["CONSUMPTION", "PARTICIPATION"];
 
+const DEFAULT_RECIPIENTS = new Map(
+    require("../config/defaultLookups").DEFAULT_SERVICE_TYPES
+        .filter(type => type.recipients)
+        .map(type => [type.value.toLowerCase(), type.recipients])
+);
+
 const roundMoney = (value) =>
     Math.round(Number(value || 0) * 100) / 100;
 
@@ -70,6 +83,25 @@ const main = async () => {
     const db = mongoose.connection.db;
 
     console.log(`Database: ${mongoose.connection.name}${DRY_RUN ? " (dry run)" : ""}`);
+
+    // ---------- service types: who they may be given to ----------
+    // (cash and fees: people; cash also households) for
+    // organizations created before the rule
+    const { DEFAULT_SERVICE_TYPES } = require("../config/defaultLookups");
+    let typesFilled = 0;
+    for (const type of DEFAULT_SERVICE_TYPES.filter(item => item.recipients)) {
+        const filter = {
+            module: "ServiceDelivery",
+            category: "ServiceType",
+            value: type.value,
+            $or: [{ recipientTypes: { $exists: false } }, { recipientTypes: { $size: 0 } }]
+        };
+        const count = await db.collection("lookups").countDocuments(filter);
+        if (!count) continue;
+        typesFilled += count;
+        if (!DRY_RUN) await db.collection("lookups").updateMany(filter, { $set: { recipientTypes: type.recipients } });
+    }
+    console.log(`${typesFilled} service types ${DRY_RUN ? "would get" : "got"} their allowed recipients (cash, fees).`);
 
     const deliveries =
         await db.collection("servicedeliveries")
@@ -124,6 +156,23 @@ const main = async () => {
                 issues.push(`${itemName}: unit ${label(unit)} is not allowed for this service type`);
             }
 
+            // who the service may go to
+            const recipients = serviceType?.recipientTypes?.length
+                ? serviceType.recipientTypes
+                : DEFAULT_RECIPIENTS.get(String(serviceType?.value || "").toLowerCase()) || [];
+            if (recipients.length && !recipients.includes(delivery.recipientType || "Individual")) {
+                issues.push(`${itemName}: given to ${delivery.recipientType}, but it is only for ${recipients.join(", ")}`);
+            }
+
+            // detail items in the item's unit add up to its quantity
+            const sameUnit = (item.detailItems || []).length && (item.detailItems || []).every(detail => String(detail.unit || "") === String(item.unit || ""));
+            if (sameUnit) {
+                const detailQuantity = (item.detailItems || []).reduce((sum, detail) => sum + Number(detail.quantity || 0), 0);
+                if (Math.abs(detailQuantity - Number(item.quantity || 0)) > 0.0005) {
+                    issues.push(`${itemName}: detail items add up to ${detailQuantity} ${label(unit)}, the item is ${item.quantity}`);
+                }
+            }
+
             if (unit && !allowsDecimalQuantity(unit) && !Number.isInteger(Number(item.quantity))) {
                 issues.push(`${itemName}: ${item.quantity} ${label(unit)} (whole numbers only)`);
             }
@@ -155,6 +204,41 @@ const main = async () => {
                 }
             }
 
+        });
+
+        // ---------- recipient and allocation method ----------
+        const recipientType = delivery.recipientType || "Individual";
+        const method = delivery.allocationMethod;
+        const methodOk =
+            recipientType === "Individual" ? ["Individual", "Shared"].includes(method)
+                : recipientType === "Institution" ? method === "Unallocated"
+                    : method === "Group";
+        if (!methodOk) issues.push(`${recipientType} with ${method} allocation (expected ${recipientType === "Individual" ? "Individual or Shared" : recipientType === "Institution" ? "Unallocated" : "Group"})`);
+
+        const allLinks = await db.collection("servicedeliverybeneficiaries")
+            .find({ serviceDelivery: delivery._id }, { projection: { allocations: 1 } })
+            .toArray();
+
+        if (recipientType === "Institution" && allLinks.length) issues.push(`Institution with ${allLinks.length} beneficiaries listed`);
+
+        // ---------- one level per item; goods valued by quantity ----------
+        (delivery.items || []).forEach((item, index) => {
+            const own = allLinks.flatMap(link => (link.allocations || []).filter(allocation => String(allocation.serviceItem) === String(item._id)));
+            if (own.some(allocation => allocation.detailItem) && own.some(allocation => !allocation.detailItem)) {
+                issues.push(`Service item ${index + 1}: some beneficiaries have the whole item, others its detail items`);
+            }
+            if ((item.allocationBehavior || "CONSUMPTION") !== "CONSUMPTION") return;
+            for (const allocation of own) {
+                const detail = allocation.detailItem ? (item.detailItems || []).find(entry => String(entry._id) === String(allocation.detailItem)) : null;
+                const unit = get(detail ? (detail.allocationUnit || detail.unit) : item.unit);
+                if (semanticsOf(unit) !== "physical" || !(Number(allocation.quantity) > 0)) continue;
+                const factor = detail?.allocationUnit ? Number(detail.allocationConversionFactor || 1) : 1;
+                const price = detail ? Number(detail.unitCost || 0) / factor : Number(item.unitCost || 0);
+                const expected = Math.floor(Number(allocation.quantity) * price * 100 + 1e-6) / 100;
+                if (Math.abs(expected - Number(allocation.allocatedValue || 0)) > 0.01) {
+                    issues.push(`Service item ${index + 1}: ${allocation.quantity} ${label(unit)} valued ${allocation.allocatedValue}, worth ${expected} (re-save the delivery)`);
+                }
+            }
         });
 
         // ---------- Individual: everyone has a share ----------

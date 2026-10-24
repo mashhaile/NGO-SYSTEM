@@ -259,6 +259,14 @@ donationType:{
 // Payment Status
 // =====================================
 
+// Bumped (in a transaction) by every charge to this
+// donation, so two charges at the same moment cannot both
+// use the last of it
+chargeVersion:{
+    type:Number,
+    default:0
+},
+
 status:{
 
     type:String,

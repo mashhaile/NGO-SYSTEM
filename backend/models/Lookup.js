@@ -439,17 +439,28 @@ const LookupSchema =
             // =================================================
 
             allowedUnits: [
-
                 {
-
                     type:
                         mongoose.Schema.Types.ObjectId,
-
                     ref:
                         "Lookup"
-
                 }
+            ],
 
+            // =================================================
+            // SERVICE TYPE -> ALLOWED RECIPIENTS
+            // =================================================
+            //
+            // Who this service can be given to. Empty = anyone.
+            // Cash assistance, for example, goes to people and
+            // households, not to institutions (that is a grant).
+            //
+            // =================================================
+            recipientTypes: [
+                {
+                    type: String,
+                    enum: ["Individual", "Household", "Group / Community", "Institution"]
+                }
             ],
 
 

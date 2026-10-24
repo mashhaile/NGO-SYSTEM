@@ -1001,42 +1001,35 @@ const ServiceDeliveryForm = ({
                         ];
 
 
+                    // a household, group or institution receives as a
+                    // whole (the server applies the same rule)
                     case "Household":
-
-                        return [
-                            {
-                                value:
-                                    "Shared",
-                                label:
-                                    "Shared"
-                            }
-                        ];
-
-
-                    case "Group / Community":
-
                         return [
                             {
                                 value:
                                     "Group",
                                 label:
-                                    "Group"
+                                    "To the household as a whole"
                             }
                         ];
-
-
-                    case "Institution":
-
+                    case "Group / Community":
                         return [
                             {
                                 value:
-                                    "Shared",
+                                    "Group",
                                 label:
-                                    "Shared"
+                                    "To the group as a whole"
                             }
                         ];
-
-
+                    case "Institution":
+                        return [
+                            {
+                                value:
+                                    "Unallocated",
+                                label:
+                                    "To the institution as a whole"
+                            }
+                        ];
                     default:
 
                         return [];
@@ -1857,7 +1850,7 @@ const ServiceDeliveryForm = ({
             case "Household":
 
                 nextAllocationMethod =
-                    "Shared";
+                    "Group";
 
                 break;
 
@@ -1873,7 +1866,7 @@ const ServiceDeliveryForm = ({
             case "Institution":
 
                 nextAllocationMethod =
-                    "Shared";
+                    "Unallocated";
 
                 break;
 
@@ -2968,6 +2961,16 @@ const ServiceDeliveryForm = ({
                             null,
 
                         // ---------------------------------
+                        // CURRENCY (ETB, or USD at a rate)
+                        // ---------------------------------
+
+                        currency:
+                            item?.currency || "ETB",
+
+                        exchangeRate:
+                            item?.exchangeRate ?? null,
+
+                        // ---------------------------------
                         // DETAIL ITEMS
                         // ---------------------------------
 
@@ -3370,7 +3373,7 @@ const ServiceDeliveryForm = ({
 
                             disabled={
                                 allocationMethod ===
-                                "Group"
+                                "Unallocated"
                             }
 
                             filterSelectedOptions
@@ -3448,9 +3451,10 @@ const ServiceDeliveryForm = ({
                                         }
 
                                         placeholder={
-                                            allocationMethod ===
-                                            "Group"
-                                                ? "Not required for group allocation"
+                                            allocationMethod === "Unallocated"
+                                                ? "No people are listed for an institution"
+                                                : allocationMethod === "Group"
+                                                ? "Optional: list the members"
                                                 : "Search and select beneficiaries"
                                         }
 

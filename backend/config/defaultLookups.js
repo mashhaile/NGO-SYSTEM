@@ -177,20 +177,24 @@ const DEFAULT_LOOKUPS = {
 //                 out: 10 kits for 10 people = 1 kit each
 //   PARTICIPATION each person takes part in all of it: a
 //                 3-session training = 3 sessions for everyone
+//
+// recipients: who the service may go to (empty = anyone).
+// Cash and fees go to people (cash also to households);
+// a payment to an institution is a grant, another type.
 
 const MONEY = ["ETB"];
 const PARTICIPATION = "PARTICIPATION";
 
 const DEFAULT_SERVICE_TYPES = [
 
-    { category: "Education", value: "School Fees", units: MONEY },
+    { category: "Education", value: "School Fees", units: MONEY, recipients: ["Individual"] },
     { category: "Education", value: "School Uniform", units: ["Pair", "Piece"] },
     { category: "Education", value: "School Supplies", units: ["Box", "Pack", "Piece", "Set", "Unit"] },
     { category: "Education", value: "Education Materials", units: ["Box", "Pack", "Piece", "Set", "Unit"] },
-    { category: "Education", value: "Tuition Support", units: MONEY },
+    { category: "Education", value: "Tuition Support", units: MONEY, recipients: ["Individual"] },
     { category: "Education", value: "Teacher Support", units: ["Session", "Hour", "Piece", "Set"] },
 
-    { category: "Health", value: "Medical Treatment", units: MONEY },
+    { category: "Health", value: "Medical Treatment", units: MONEY, recipients: ["Individual"] },
     { category: "Health", value: "Medical Supplies", units: ["Piece", "Set", "Box", "Pack"] },
     { category: "Health", value: "Health Screening", units: ["Session", "Day", "Hour"] },
     { category: "Health", value: "Health Awareness Session", units: ["Session", "Hour"], behavior: PARTICIPATION },
@@ -201,7 +205,7 @@ const DEFAULT_SERVICE_TYPES = [
     { category: "Water, Sanitation and Hygiene", value: "Hygiene Kit", units: ["Set", "Unit", "Box"] },
     { category: "Water, Sanitation and Hygiene", value: "WASH Supplies", units: ["Box", "Pack", "Piece", "Kg", "Liter"] },
 
-    { category: "Emergency Assistance", value: "Cash Assistance", units: MONEY },
+    { category: "Emergency Assistance", value: "Cash Assistance", units: MONEY, recipients: ["Individual", "Household"] },
     { category: "Shelter and Housing", value: "Shelter Materials", units: ["Box", "Pack", "Piece", "Kg"] },
 
     { category: "Livelihoods", value: "Livelihood Training", units: ["Session", "Hour", "Set"], behavior: PARTICIPATION },

@@ -305,6 +305,25 @@ const ExpenseFormPage = () => {
 
     const selectedBudget = budgets.find(item => item._id === form.budget) || null;
     const selectedDonation = donations.find(item => item._id === form.donation) || null;
+
+    // The donations that may pay for this budget's work (the server
+    // checks the same): not cancelled; a restricted one only for its
+    // own program / project / activity; an unrestricted one for anything.
+    const idOf = (value) => String(value?._id || value || "");
+    const work = {
+        program: idOf(budget?.program),
+        project: idOf(budget?.project),
+        activity: form.activity || "",
+        activityRun: ""
+    };
+    const mayPay = (donation) => {
+        if (donation.status === "Cancelled") return false;
+        if (String(donation.fundingRestriction || "Unrestricted") !== "Restricted") return true;
+        const key = ["activityRun", "activity", "project", "program"].find(name => idOf(donation[name]));
+        return !key || idOf(donation[key]) === work[key];
+    };
+    const donationOptions = budget ? donations.filter(mayPay) : donations.filter(item => item.status !== "Cancelled");
+    const hiddenDonations = donations.length - donationOptions.length;
     const selectedActivity = activities.find(item => item._id === form.activity) || null;
 
     return (
@@ -467,9 +486,17 @@ const ExpenseFormPage = () => {
                     <FormGrid columns={2}>
                         <AppAutoComplete
                             label="Paid from donation"
-                            options={donations}
+                            options={donationOptions}
                             value={selectedDonation}
                             placeholder="Select a donation"
+                            helperText={
+                                selectedDonation && !mayPay(selectedDonation)
+                                    ? "This donation cannot pay for this budget's work (cancelled, or restricted to other work). Choose another."
+                                    : hiddenDonations > 0
+                                        ? `${hiddenDonations} donation${hiddenDonations === 1 ? " is" : "s are"} not offered: cancelled, or restricted to other work.`
+                                        : undefined
+                            }
+                            error={Boolean(selectedDonation && !mayPay(selectedDonation))}
                             getOptionLabel={(option) => option ? `${option.donationCode} · ${option.title}${option.donor?.name ? ` (${option.donor.name})` : ""}` : ""}
                             isOptionEqualToValue={(a, b) => a._id === b._id}
                             onChange={(value) => change({ donation: value?._id || "" })}

@@ -198,6 +198,13 @@ const detailItemSchema = new mongoose.Schema(
     // quantity × unitCost
     // ======================================
 
+    // What a detail item cost in its item's currency (USD, EUR),
+    // when that is not ETB; unitCost / totalCost are in ETB
+    originalUnitCost: {
+        type: Number,
+        default: null
+    },
+
     totalCost: {
 
         type: Number,
@@ -325,6 +332,34 @@ const serviceItemSchema = new mongoose.Schema(
 
     },
 
+
+    // The item's currency (ETB by default). In another one
+    // (USD, EUR) the price as entered is originalUnitCost and
+    // unitCost / totalCost are in ETB at exchangeRate
+    // (1 unit of the currency = exchangeRate ETB)
+    currency: {
+        type: String,
+        uppercase: true,
+        trim: true,
+        default: "ETB",
+        match: /^[A-Z]{3}$/
+    },
+
+    exchangeRate: {
+        type: Number,
+        default: 1,
+        min: 0
+    },
+
+    originalUnitCost: {
+        type: Number,
+        default: null
+    },
+
+    originalTotal: {
+        type: Number,
+        default: null
+    },
 
     totalCost: {
 

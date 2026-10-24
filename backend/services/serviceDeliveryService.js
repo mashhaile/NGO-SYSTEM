@@ -28,6 +28,13 @@ const ActivityRun =
 const Donation =
     require("../models/donation");
 
+const {
+    summarize: summarizeAllocations
+} = require("./serviceDeliveryAllocationSummary");
+
+const donationFunding =
+    require("./donationFunding");
+
 const Lookup =
     require("../models/Lookup");
 
@@ -518,10 +525,10 @@ const normalizeDetailItems = (
                 );
 
             if (
-                quantity < 1
+                !(quantity > 0)
             ) {
                 throw new Error(
-                    "Detail item quantity must be at least 1."
+                    "Detail item quantity must be more than 0."
                 );
             }
 
@@ -646,18 +653,62 @@ const calculateItems = (
                     0
                 );
 
-            const unitCost =
+            // A price in another currency (USD, EUR) is kept as
+            // entered (originalUnitCost) and used in ETB, at the
+            // item's exchange rate: everything that adds amounts
+            // up (totals, allocations, reports) stays in ETB.
+            const currency =
+                String(item?.currency || "ETB").trim().toUpperCase() || "ETB";
+
+            const exchangeRate =
+                currency === "ETB"
+                    ? 1
+                    : normalizeNumber(item?.exchangeRate, 0);
+
+            if (
+                currency !== "ETB" &&
+                !(exchangeRate > 0)
+            ) {
+                throw new Error(
+                    `Give the exchange rate of the ${currency} item (1 ${currency} = ? ETB).`
+                );
+            }
+
+            const enteredUnitCost =
                 normalizeNumber(
                     item?.unitCost,
                     0
                 );
 
-            return {
+            const unitCost =
+                currency === "ETB"
+                    ? enteredUnitCost
+                    : Math.round(enteredUnitCost * exchangeRate * 10000) / 10000;
 
+            const detailItems =
+                normalizeDetailItems(item?.detailItems)
+                    .map(detail => {
+                        if (currency === "ETB") return detail;
+                        const detailUnitCost = Math.round(Number(detail.unitCost || 0) * exchangeRate * 10000) / 10000;
+                        return {
+                            ...detail,
+                            originalUnitCost: Number(detail.unitCost || 0),
+                            unitCost: detailUnitCost,
+                            totalCost: Number(detail.quantity || 0) * detailUnitCost
+                        };
+                    });
+
+            return {
                 _id:
                     new mongoose.Types.ObjectId(
                         itemId
                     ),
+                currency,
+                exchangeRate,
+                originalUnitCost:
+                    currency === "ETB" ? null : enteredUnitCost,
+                originalTotal:
+                    currency === "ETB" ? null : Math.round(quantity * enteredUnitCost * 100) / 100,
 
                 serviceCategory:
                     normalizeObjectId(
@@ -698,11 +749,7 @@ const calculateItems = (
                         item?.donation
                     ),
 
-                detailItems:
-                    normalizeDetailItems(
-                        item?.detailItems
-                    ),
-
+                detailItems,
                 remarks:
                     typeof item?.remarks ===
                         "string"
@@ -1084,7 +1131,7 @@ const validateServiceDeliveryLookup = async (
                 true
 
         }).select(
-            "_id module category parentLookup value name code lookupCode semanticType allocationBehavior active allowedUnits"
+            "_id module category parentLookup value name code lookupCode semanticType allocationBehavior active allowedUnits recipientTypes"
         );
 
     if (
@@ -1347,6 +1394,27 @@ const validateDetailItems = async (
 
     }
 
+    // Detail items in the item's own unit are a breakdown of
+    // its quantity: 144 packs = 100 packs + 44 packs
+    if (
+        parent?.unit &&
+        detailItems.length > 0 &&
+        detailItems.every(detailItem => String(detailItem.unit || "") === String(parent.unit._id || parent.unit))
+    ) {
+
+        const detailQuantity =
+            Math.round(detailItems.reduce((sum, detailItem) => sum + Number(detailItem.quantity || 0), 0) * 1000) / 1000;
+
+        if (
+            Math.abs(detailQuantity - Number(parent.quantity || 0)) > 0.0005
+        ) {
+            throw new Error(
+                `The detail items of ${parent.label} add up to ${detailQuantity} ${lookupLabel(parent.unit)}, but the item is ${parent.quantity} ${lookupLabel(parent.unit)}. They must be equal.`
+            );
+        }
+
+    }
+
     // The breakdown must add up to the item's cost
     if (
         parent &&
@@ -1492,13 +1560,16 @@ const validateItemDonation = async (
 
 
 // ======================================================
-// DONATION BALANCE
+// DONATION FUNDING
 // ======================================================
 // An item charged to a donation uses that donation's
-// money. A delivered delivery cannot charge a donation
-// more than it has left (counted the same way as the
-// donation's "Where did it go?" trace), and a cancelled
-// donation pays for nothing.
+// money. A delivered delivery may only charge a donation
+// that may pay for this work (restricted funding) and has
+// enough left: its amount less what other deliveries and
+// expenses already use (see donationFunding). This
+// delivery's own earlier figures are left out when it is
+// edited. Amounts are compared in the donation's currency.
+// A cancelled delivery uses no money.
 
 const validateDonationBalances = async (
     items,
@@ -1506,102 +1577,49 @@ const validateDonationBalances = async (
     {
         deliveryDonation = null,
         status = DEFAULT_SERVICE_DELIVERY_STATUS,
-        excludeDeliveryId = null
+        excludeDeliveryId = null,
+        work = {}
     } = {}
 ) => {
 
-    // a cancelled delivery uses no money
     if (
         status === SERVICE_DELIVERY_STATUS.CANCELLED
     ) {
         return;
     }
 
-    // what this delivery charges each donation
-    const charged =
-        new Map();
+    const charged = new Map();
 
     for (const item of items || []) {
-        const donationId =
-            String(item?.donation || deliveryDonation || "");
-        if (!donationId) continue;
-        charged.set(
-            donationId,
-            (charged.get(donationId) || 0) +
-            Number(item.totalCost || Number(item.quantity || 0) * Number(item.unitCost || 0))
-        );
+        const donationId = String(item?.donation || deliveryDonation || "");
+        if (!donationId || !mongoose.Types.ObjectId.isValid(donationId)) continue;
+        if (!charged.has(donationId)) charged.set(donationId, []);
+        charged.get(donationId).push(item);
     }
 
-    for (const [donationId, amount] of charged) {
-
-        if (!mongoose.Types.ObjectId.isValid(donationId)) continue;
+    for (const [donationId, chargedItems] of charged) {
 
         const donation =
-            await Donation.findOne({
-                _id: donationId,
-                organization: organizationId,
-                isDeleted: false
-            })
-                .select("donationCode title amount currency status")
+            await Donation.findOne({ _id: donationId, organization: organizationId, isDeleted: false })
+                .select("currency")
                 .lean();
 
         if (!donation) continue;
 
-        const name =
-            [donation.donationCode, donation.title].filter(Boolean).join(" ");
+        const currency = String(donation.currency || donationFunding.BASE_CURRENCY).toUpperCase();
+        const parts = chargedItems.map(item => donationFunding.itemInCurrency(item, currency));
+        const charge = parts.some(part => part === null) ? null : parts.reduce((sum, part) => sum + part, 0);
+        const otherCurrency = chargedItems.map(item => String(item.currency || donationFunding.BASE_CURRENCY).toUpperCase()).find(code => code !== currency);
 
-        const currency =
-            donation.currency || "ETB";
-
-        if (
-            donation.status === "Cancelled"
-        ) {
-            throw new Error(
-                `${name} is cancelled; it cannot pay for this delivery. Choose another donation.`
-            );
-        }
-
-        // used by other delivered deliveries
-        const others =
-            await ServiceDelivery.find({
-                organization: organizationId,
-                isDeleted: false,
-                status: { $ne: SERVICE_DELIVERY_STATUS.CANCELLED },
-                ...(excludeDeliveryId ? { _id: { $ne: excludeDeliveryId } } : {}),
-                $or: [
-                    { "items.donation": donation._id },
-                    { donation: donation._id }
-                ]
-            })
-                .select("donation items.donation items.totalCost")
-                .lean();
-
-        const usedElsewhere =
-            others.reduce(
-                (sum, delivery) =>
-                    sum +
-                    (delivery.items || [])
-                        .filter(item =>
-                            String(item.donation || "") === donationId ||
-                            (!item.donation && String(delivery.donation || "") === donationId)
-                        )
-                        .reduce((total, item) => total + Number(item.totalCost || 0), 0),
-                0
-            );
-
-        const total =
-            Number(donation.amount || 0);
-
-        const left =
-            roundMoney(Math.max(total - usedElsewhere, 0));
-
-        if (
-            roundMoney(amount) > left + 0.01
-        ) {
-            throw new Error(
-                `${name} has ${formatMoney(left)} ${currency} left (${formatMoney(total)} ${donation.status === "Pledged" ? "pledged" : "received"}, ${formatMoney(usedElsewhere)} used so far), but this delivery charges it ${formatMoney(amount)} ${currency}. Lower the cost, or charge part of it to another donation.`
-            );
-        }
+        await donationFunding.assertCanCharge({
+            donationId,
+            organizationId,
+            work,
+            charge,
+            chargeCurrency: otherCurrency,
+            what: "This delivery",
+            excludeDeliveryId
+        });
 
     }
 
@@ -1614,7 +1632,8 @@ const validateDonationBalances = async (
 
 const validateServiceItems = async (
     items,
-    organizationId
+    organizationId,
+    options = {}
 ) => {
 
     if (
@@ -1743,6 +1762,19 @@ const validateServiceItems = async (
             );
         }
 
+        // Cash in USD is a USD item: the currency is the unit's
+        if (
+            unitSemantics === "monetary"
+        ) {
+            const cashCurrency = String(unit.code || unit.value || "").trim().toUpperCase();
+            const itemCurrency = String(item.currency || "ETB").toUpperCase();
+            if (/^[A-Z]{3}$/.test(cashCurrency) && cashCurrency !== itemCurrency) {
+                throw new Error(
+                    `${lookupLabel(serviceType)} is given in ${cashCurrency}: record the item in ${cashCurrency}${cashCurrency !== "ETB" ? " with its exchange rate to ETB" : ""}.`
+                );
+            }
+        }
+
         // The unit must be one the service type allows
         const allowedUnits =
             Array.isArray(serviceType.allowedUnits)
@@ -1802,9 +1834,25 @@ const validateServiceItems = async (
             {
                 label: lookupLabel(serviceType),
                 unitSemantics,
-                totalCost: quantity * unitCost
+                totalCost: quantity * unitCost,
+                quantity,
+                unit
             }
         );
+
+        // allowed recipients of this service type
+        const allowedRecipients =
+            Array.isArray(serviceType.recipientTypes) ? serviceType.recipientTypes : [];
+
+        if (
+            options.recipientType &&
+            allowedRecipients.length > 0 &&
+            !allowedRecipients.includes(options.recipientType)
+        ) {
+            throw new Error(
+                `${lookupLabel(serviceType)} can only be given to: ${allowedRecipients.join(", ")}. Choose another recipient type, or another service type.`
+            );
+        }
 
         await validateItemDonor(
             item.donor,
@@ -2437,17 +2485,48 @@ const validateRecipientAndAllocation = (
 
     }
 
+    // ==================================================
+    // WHOLE RECIPIENTS
+    //
+    // A household or a group receives as a whole ("Group":
+    // its members may be listed, no one gets a personal
+    // share); an institution receives as a whole with no
+    // people listed ("Unallocated"). Splitting among people
+    // is only for individual recipients.
+    // ==================================================
     if (
         !allocationMethod
     ) {
-
         allocationMethod =
-            beneficiaryCount === 0
+            recipientType === "Institution"
                 ? "Unallocated"
-                : recipientType === "Group / Community"
+                : recipientType === "Household" || recipientType === "Group / Community"
                     ? "Group"
-                    : "Shared";
+                    : beneficiaryCount === 0 ? "Unallocated" : "Shared";
+    }
 
+    if (
+        (recipientType === "Household" || recipientType === "Group / Community") &&
+        allocationMethod !== "Group"
+    ) {
+        throw new Error(
+            `A ${recipientType === "Household" ? "household" : "group or community"} receives as a whole: use "Group" allocation (members can be listed; no one gets a personal share).`
+        );
+    }
+
+    if (
+        recipientType === "Institution"
+    ) {
+        if (allocationMethod !== "Unallocated") {
+            throw new Error(
+                "An institution receives as a whole: use \"Unallocated\" (to the institution). To give to people, choose Individual as the recipient."
+            );
+        }
+        if (beneficiaryCount > 0) {
+            throw new Error(
+                "An institution receives as a whole, so no beneficiaries are listed. To give to people, choose Individual as the recipient."
+            );
+        }
     }
 
     // ==================================================
@@ -2538,18 +2617,7 @@ const validateRecipientAndAllocation = (
     // HOUSEHOLD
     // ==================================================
 
-    if (
-        recipientType ===
-        "Household" &&
-        allocationMethod ===
-        "Group"
-    ) {
 
-        throw new Error(
-            "Group allocation is not valid for a household recipient."
-        );
-
-    }
 
     // ==================================================
     // GROUP / COMMUNITY
@@ -2944,6 +3012,20 @@ const validateBeneficiaryAllocations = async (
             let allocatedValue =
                 allocation.allocatedValue;
 
+            // A share of USD cash is entered in USD and kept in
+            // ETB (at the item's rate), like the item's own cost
+            if (
+                serviceItem &&
+                String(serviceItem.currency || "ETB") !== "ETB" &&
+                Number(serviceItem.exchangeRate) > 0 &&
+                allocatedValue > 0 &&
+                rawAllocation.originalAllocatedValue === undefined
+            ) {
+                rawAllocation.originalAllocatedValue = allocatedValue;
+                allocatedValue = Math.floor(allocatedValue * Number(serviceItem.exchangeRate) * 100 + 1e-6) / 100;
+                rawAllocation.allocatedValue = allocatedValue;
+            }
+
             if (
                 quantity < 0
             ) {
@@ -3272,16 +3354,27 @@ const validateBeneficiaryAllocations = async (
             }
 
             // ==================================================
-            // AUTOMATIC VALUE
+            // VALUE OF GOODS AND SERVICES
             //
-            // Left at 0, the value is worked out: what this
-            // person's quantity costs (consumption), or an equal
-            // share of the item (participation). Rounded down so
-            // the shares never add up to more than the cost.
+            // Goods and services are worth what their quantity
+            // costs: quantity x unit price (consumption), or an
+            // equal share of the item for each participant
+            // (participation). A value typed in is replaced, so
+            // values always match quantities. Only an amount of
+            // money (cash, fees) is entered as a value.
+            // Rounded down so shares never exceed the cost.
             // ==================================================
+            if (
+                effectiveUnitInfo.unitSemantics === "physical" &&
+                quantity <= 0
+            ) {
+
+                allocatedValue = 0;
+                rawAllocation.allocatedValue = 0;
+
+            }
 
             if (
-                allocatedValue === 0 &&
                 quantity > 0 &&
                 effectiveUnitInfo.unitSemantics === "physical"
             ) {
@@ -3336,6 +3429,35 @@ const validateBeneficiaryAllocations = async (
 
         }
 
+    }
+
+    // ======================================================
+    // ONE LEVEL PER ITEM
+    //
+    // An item is shared out either as itself (10 kits) or by
+    // its detail items (books, pens …), the same for everyone:
+    // mixing both would count the same goods twice.
+    // ======================================================
+
+    {
+        const levels = new Map();
+        for (const record of beneficiaryRecords) {
+            for (const allocation of Array.isArray(record?.allocations) ? record.allocations : []) {
+                const itemId = String(allocation?.serviceItem || "");
+                if (!itemId) continue;
+                const entry = levels.get(itemId) || { item: false, detail: false };
+                if (allocation.detailItem) entry.detail = true; else entry.item = true;
+                levels.set(itemId, entry);
+            }
+        }
+        const order = [...serviceItemMap.keys()];
+        for (const [itemId, entry] of levels) {
+            if (entry.item && entry.detail) {
+                throw new Error(
+                    `Service item ${order.indexOf(itemId) + 1}: share it out either as the whole item or by its detail items, the same for everyone. Some beneficiaries have the item and others its detail items.`
+                );
+            }
+        }
     }
 
     // ======================================================
@@ -3897,7 +4019,8 @@ const createServiceDelivery = async (
 
     await validateServiceItems(
         items,
-        organizationId
+        organizationId,
+        { recipientType }
     );
 
     await validateDonationBalances(
@@ -3905,7 +4028,13 @@ const createServiceDelivery = async (
         organizationId,
         {
             deliveryDonation: data.donation || null,
-            status: data.status || DEFAULT_SERVICE_DELIVERY_STATUS
+            status: data.status || DEFAULT_SERVICE_DELIVERY_STATUS,
+            work: {
+                program: data.program,
+                project: data.project,
+                activity: data.activity,
+                activityRun: data.activityRun
+            }
         }
     );
 
@@ -4483,6 +4612,10 @@ const getServiceDeliveryById = async (
 
             }
         );
+
+    // what was given to whom and what is left (one calculation)
+    result.allocationSummary =
+        summarizeAllocations(result, result.beneficiaries);
 
     return result;
 
@@ -5274,7 +5407,8 @@ const updateServiceDelivery = async (
 
     await validateServiceItems(
         finalItems,
-        organizationId
+        organizationId,
+        { recipientType: resolvedRecipientType }
     );
 
     // ==================================================
@@ -5346,7 +5480,13 @@ const updateServiceDelivery = async (
         {
             deliveryDonation: finalDonation || null,
             status: nextStatus,
-            excludeDeliveryId: service._id
+            excludeDeliveryId: service._id,
+            work: {
+                program: finalProgram,
+                project: finalProject,
+                activity: finalActivity,
+                activityRun: finalActivityRun
+            }
         }
     );
 

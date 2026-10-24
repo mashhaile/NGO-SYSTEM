@@ -520,8 +520,10 @@ test("budgets: program envelope, project allocation and limits", { skip }, async
     // Program summary shows the allocation per year
     const details = await api("GET", `/budgets/${state.envelopeId}`, { token });
     const year2026 = details.data.data.summary.allocation.years.find(item => item.fiscalYear === 2026);
-    assert.equal(year2026.allocated, 600100, "600,000 + 100 (draft budgets count too)");
-    assert.equal(year2026.unallocated, 399900);
+    // The USD draft has no exchange rate yet, so it is not added to
+    // ETB figures (never 600,000 ETB + 100 USD)
+    assert.equal(year2026.allocated, 600000);
+    assert.equal(year2026.unallocated, 400000);
 
     // Fiscal-year filter
     const in2028 = await api("GET", "/budgets?fiscalYear=2028", { token });
@@ -965,9 +967,13 @@ test("revisions: protect spending, ceiling and require a reason", { skip }, asyn
     await set(revisedLines(budget, (line, year, amount) => (line.category === "Personnel" && year === 2026 ? 2000000 : amount)));
     assert.equal((await submit()).status, 400);
 
-    // A reason is required
-    await set(revisedLines(budget, (line, year, amount) => (line.category === "Personnel" && year === 2026 ? 450000 : amount)), { reason: "" });
-    assert.equal((await submit()).status, 400);
+    // A reason is required: asked for when the revision is saved,
+    // not only at submit (the draft keeps its earlier reason)
+    const proposal = revisedLines(budget, (line, year, amount) => (line.category === "Personnel" && year === 2026 ? 450000 : amount));
+    const noReason = await set(proposal, { reason: "" });
+    assert.equal(noReason.status, 400);
+    assert.match(noReason.data.message, /reason/i);
+    assert.ok((await set(proposal)).status < 300, "saved with the reason it already has");
 
 });
 
@@ -1259,7 +1265,7 @@ test("service delivery: a donation cannot pay for more than it has left", { skip
     // nothing is left of the grant now
     const more = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(1000, grant)], beneficiaries: people });
     assert.equal(more.status, 400);
-    assert.match(more.data.message, /has 0\.00 ETB left/);
+    assert.match(more.data.message, /has ETB 0\.00 left/);
 
     // a cancelled delivery uses no money
     const cancelled = await create({ status: "Cancelled", recipientType: "Individual", allocationMethod: "Shared", items: [cash(1000, grant)], beneficiaries: people });
@@ -1423,6 +1429,265 @@ test("report center: eight reports, the same figures everywhere, detail reports 
         assert.ok(String(response.headers.get("content-type")).includes(type), `${format}: ${response.headers.get("content-type")}`);
         assert.ok((await response.arrayBuffer()).byteLength > 100, format);
     }
+
+});
+
+
+// =====================================================
+// CLIENT FEEDBACK (2026-10-23): allocation, currency,
+// recipients, funding, budgets, moving projects
+// =====================================================
+
+test("service delivery: goods are worth quantity x price; one level per item; details add up", { skip }, async () => {
+
+    const { token, units, people, item, create } = await serviceDeliverySetup();
+
+    // 1 kit each, values typed as 100: saved as 750 (1 x 750)
+    const kits = item("Hygiene Kit", "Set", 2, 750);
+    const typed = await create({
+        recipientType: "Individual",
+        allocationMethod: "Individual",
+        items: [kits],
+        beneficiaries: people.slice(0, 2).map(beneficiary => ({ beneficiary, allocations: [{ serviceItem: kits._id, quantity: 1, allocatedValue: 100 }] }))
+    });
+    assert.ok(typed.status < 300, typed.data?.message);
+    const saved = (await api("GET", `/service-deliveries/${typed.data.data._id}`, { token })).data.data;
+    assert.deepEqual(saved.beneficiaries.map(person => person.allocations[0].allocatedValue), [750, 750]);
+    assert.equal(saved.allocationSummary.unallocatedValue, 0);
+
+    // detail items in the item's own unit must add up to its quantity
+    const short = await create({
+        recipientType: "Individual",
+        allocationMethod: "Shared",
+        items: [item("School Supplies", "Set", 3, 100, { detailItems: [{ name: "Kit A", quantity: 2, unit: units.Set, unitCost: 150 }] })],
+        beneficiaries: people
+    });
+    assert.equal(short.status, 400);
+    assert.match(short.data.message, /add up to 2 .* but the item is 3/);
+
+    // the item or its detail items, the same for everyone
+    const detailId = new mongoose.Types.ObjectId().toString();
+    const supplies = item("School Supplies", "Set", 2, 100, { detailItems: [{ _id: detailId, name: "Kit A", quantity: 2, unit: units.Set, unitCost: 100 }] });
+    const mixed = await create({
+        recipientType: "Individual",
+        allocationMethod: "Individual",
+        items: [supplies],
+        beneficiaries: [
+            { beneficiary: people[0], allocations: [{ serviceItem: supplies._id, quantity: 1 }] },
+            { beneficiary: people[1], allocations: [{ serviceItem: supplies._id, detailItem: detailId, quantity: 1 }] }
+        ]
+    });
+    assert.equal(mixed.status, 400);
+    assert.match(mixed.data.message, /either as the whole item or by its detail items/);
+
+});
+
+
+test("service delivery: a shared training counts sessions once and people once", { skip }, async () => {
+
+    const { token, people, item, create, shares } = await serviceDeliverySetup();
+
+    // 1 training of 3 sessions, 3,000 in all, attended by 3 people
+    const training = item("Business Skills Training", "Session", 3, 1000);
+    const res = await create({ recipientType: "Individual", allocationMethod: "Individual", items: [training], beneficiaries: shares(training, 3) });
+    assert.ok(res.status < 300, res.data?.message);
+
+    const saved = (await api("GET", `/service-deliveries/${res.data.data._id}`, { token })).data.data;
+    assert.deepEqual(saved.beneficiaries.map(person => person.allocations[0].allocatedValue), [1000, 1000, 1000], "each takes an equal share of the cost");
+    assert.equal(saved.allocationSummary.allocatedValue, 3000);
+    assert.equal(saved.allocationSummary.items[0].allocatedText, "3 participants");
+    assert.match(saved.allocationSummary.participation[0].text, /^3 Sessions?, 3 participants$/, "not 9 sessions");
+
+});
+
+
+test("service delivery: items in another currency are kept as entered and counted in ETB", { skip }, async () => {
+
+    const { token, people, item, create } = await serviceDeliverySetup();
+
+    const noRate = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 10, { currency: "EUR" })], beneficiaries: people });
+    assert.equal(noRate.status, 400);
+    assert.match(noRate.data.message, /exchange rate of the EUR item/);
+
+    const eur = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 10, { currency: "EUR", exchangeRate: 130 })], beneficiaries: people });
+    assert.ok(eur.status < 300, eur.data?.message);
+    const saved = (await api("GET", `/service-deliveries/${eur.data.data._id}`, { token })).data.data;
+    assert.equal(saved.items[0].currency, "EUR");
+    assert.equal(saved.items[0].originalUnitCost, 10);
+    assert.equal(saved.items[0].unitCost, 1300);
+    assert.equal(saved.totalAmount, 2600);
+
+    // cash in ETB cannot be recorded as a EUR item
+    const cash = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [item("Cash Assistance", "ETB", 1, 100, { currency: "EUR", exchangeRate: 130 })], beneficiaries: people });
+    assert.equal(cash.status, 400);
+    assert.match(cash.data.message, /given in ETB/);
+
+});
+
+
+test("service delivery: who may receive what, and how it is shared", { skip }, async () => {
+
+    const { people, item, create } = await serviceDeliverySetup();
+
+    // school fees are for individuals only
+    const fees = await create({ recipientType: "Group / Community", recipientName: "Youth group", allocationMethod: "Group", items: [item("School Fees", "ETB", 1, 5000)], beneficiaries: people });
+    assert.equal(fees.status, 400);
+    assert.match(fees.data.message, /can only be given to: Individual/);
+
+    // an institution receives the whole item, with no people listed
+    const withPeople = await create({ recipientType: "Institution", recipientName: "Test School", allocationMethod: "Unallocated", items: [item("School Supplies", "Set", 10, 100)], beneficiaries: people });
+    assert.equal(withPeople.status, 400);
+    const school = await create({ recipientType: "Institution", recipientName: "Test School", allocationMethod: "Unallocated", items: [item("School Supplies", "Set", 10, 100)], beneficiaries: [] });
+    assert.ok(school.status < 300, school.data?.message);
+
+});
+
+
+test("funding: restricted donations pay only for their own work; expenses use the balance too", { skip }, async () => {
+
+    const { people, item, create } = await serviceDeliverySetup();
+    const token = state.tokenA;
+
+    const donor = (await api("POST", "/donors", { token, body: { name: "Funding Rules Donor", donorType: "Foundation" } })).data.data._id;
+    const donation = async (title, amount, extra = {}) => {
+        const res = await api("POST", "/donations", { token, body: { donor, title, amount, currency: "ETB", status: "Received", donationDate: "2026-03-01", ...extra } });
+        assert.ok(res.status < 300, res.data?.message);
+        return res.data.data._id;
+    };
+
+    // budget one belongs to project one; project two is another project
+    const budget = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data;
+    const projectOne = String(budget.project?._id || budget.project);
+    const program = String(budget.program?._id || budget.program);
+    const projectTwo = (await api("POST", "/projects", { token, body: { program, name: "Funding Other Project", startDate: "2026-01-01", endDate: "2026-12-31" } })).data.data._id;
+
+    const restricted = await donation("Only for project one", 50000, { fundingRestriction: "Restricted", program, project: projectOne });
+    const kit = (donationId) => item("Hygiene Kit", "Set", 2, 750, { donor, donation: donationId });
+    const deliver = (project, donationId) => create({ program, project, recipientType: "Individual", allocationMethod: "Shared", items: [kit(donationId)], beneficiaries: people });
+
+    const elsewhere = await deliver(projectTwo, restricted);
+    assert.equal(elsewhere.status, 400);
+    assert.match(elsewhere.data.message, /restricted to its project/);
+    assert.ok((await deliver(projectOne, restricted)).status < 300);
+
+    const pooled = await donation("Pooled", 50000, { fundingRestriction: "Unrestricted" });
+    assert.ok((await deliver(projectTwo, pooled)).status < 300, "unrestricted pays for any work");
+
+    // an expense on another project's restricted donation is refused
+    const line = budget.summary.lines[0];
+    const otherRestricted = await donation("Only for project two", 5000, { fundingRestriction: "Restricted", program, project: projectTwo });
+    const wrong = await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Wrong donation", amount: 100, currency: "ETB", donation: otherRestricted });
+    assert.equal(wrong.status, 400);
+    assert.match(wrong.data.message, /restricted to its project/);
+
+    // 8,000 submitted on a 10,000 donation leaves 2,000 for deliveries
+    const small = await donation("Small", 10000);
+    const expense = await newExpense(state.dataEntryToken, { budgetLine: line._id, description: "Uses the donation", amount: 8000, currency: "ETB", donation: small });
+    assert.ok(expense.status < 300, expense.data?.message);
+    assert.equal((await api("POST", `/expenses/${expense.data.data._id}/submit`, { token: state.dataEntryToken })).status, 200);
+
+    const tooMuch = await create({ program, project: projectOne, recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 4, 750, { donor, donation: small })], beneficiaries: people });
+    assert.equal(tooMuch.status, 400);
+    assert.match(tooMuch.data.message, /ETB 2,000\.00 left .* ETB 8,000\.00 in expenses/);
+
+    const balance = (await api("GET", `/donations/${small}`, { token })).data.data.funding;
+    assert.deepEqual([balance.byExpenses, balance.left], [8000, 2000]);
+
+});
+
+
+test("budgets: a revision needs its reason when saved; approvers are told; the audit trail has it", { skip }, async () => {
+
+    const token = state.tokenA;
+    const finance = state.financeToken;
+
+    // budget one is approved: open a revision
+    assert.ok((await api("POST", `/budgets/${state.budgetOneId}/revision`, { token, body: {} })).status < 300);
+    const budget = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data;
+    const lines = budget.revision.lines.map(line => ({ _id: line._id, category: line.category, description: line.description, amounts: line.amounts }));
+
+    const noReason = await api("PUT", `/budgets/${state.budgetOneId}/revision`, { token, body: { lines } });
+    assert.equal(noReason.status, 400);
+    assert.match(noReason.data.message, /reason/i);
+    assert.ok((await api("PUT", `/budgets/${state.budgetOneId}/revision`, { token, body: { lines, reason: "Move staff costs" } })).status < 300);
+    assert.equal((await api("POST", `/budgets/${state.budgetOneId}/revision/submit`, { token, body: {} })).status, 200);
+
+    // still approved itself; the revision is waiting and shown as such
+    const waiting = await api("GET", "/budgets?waiting=true", { token });
+    const row = waiting.data.data.find(found => String(found._id) === String(state.budgetOneId));
+    assert.ok(row, "listed as waiting for approval");
+    assert.equal(row.status, "Approved");
+    assert.equal(row.revision.status, "Submitted");
+    const detail = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data;
+    assert.ok(detail.approvers.some(person => person.name === "Finance Officer"), "who can approve is shown");
+
+    // the finance officer is told
+    const notes = (await api("GET", "/notifications", { token: finance })).data.data;
+    const list = Array.isArray(notes) ? notes : notes.items || notes.notifications || [];
+    assert.ok(list.some(note => /revision/i.test(`${note.title} ${note.message}`)), "approver notified");
+
+    // returned: written in the audit trail
+    assert.equal((await api("POST", `/budgets/${state.budgetOneId}/revision/return`, { token: finance, body: { comment: "Too high" } })).status, 200);
+    const logs = (await api("GET", "/organization/audit-logs?limit=50", { token })).data.data;
+    const actions = (Array.isArray(logs) ? logs : logs.items || logs.logs || []).map(log => log.action);
+    assert.ok(actions.includes("BUDGET_REVISION_SUBMITTED"));
+    assert.ok(actions.includes("BUDGET_REVISION_RETURNED"));
+
+    await api("DELETE", `/budgets/${state.budgetOneId}/revision`, { token });
+
+});
+
+
+test("budgets: a USD project budget under an ETB program budget is converted at its rate", { skip }, async () => {
+
+    const token = state.tokenA;
+
+    const program = (await api("POST", "/programs", { token, body: { name: "Currency Test Program", startDate: "2026-01-01" } })).data.data._id;
+    const project = (await api("POST", "/projects", { token, body: { program, name: "USD Project", startDate: "2026-01-01", endDate: "2026-12-31" } })).data.data._id;
+
+    const envelope = (await api("POST", "/budgets", { token, body: { level: "program", name: "ETB envelope", program, startYear: 2026, endYear: 2026, currency: "ETB", yearlyAmounts: yearly({ 2026: 1000000 }) } })).data.data;
+    assert.equal((await api("POST", `/budgets/${envelope._id}/submit`, { token })).status, 200);
+    assert.equal((await api("POST", `/budgets/${envelope._id}/approve`, { token: state.financeToken, body: {} })).status, 200);
+
+    const usd = (await api("POST", "/budgets", { token, body: { level: "project", name: "USD budget", project, startYear: 2026, endYear: 2026, currency: "USD", lines: [{ category: "Personnel", amounts: yearly({ 2026: 10000 }) }] } })).data.data;
+
+    const noRate = await api("POST", `/budgets/${usd._id}/submit`, { token });
+    assert.equal(noRate.status, 400);
+    assert.match(noRate.data.message, /exchange rate/i);
+
+    // 10,000 USD x 120 = 1,200,000 ETB: more than the envelope
+    await api("PUT", `/budgets/${usd._id}`, { token, body: { programExchangeRate: { rate: 120, date: "2026-10-24" } } });
+    assert.equal((await api("POST", `/budgets/${usd._id}/submit`, { token })).status, 400);
+
+    // 8,000 USD = 960,000 ETB fits
+    await api("PUT", `/budgets/${usd._id}`, { token, body: { lines: [{ category: "Personnel", amounts: yearly({ 2026: 8000 }) }] } });
+    assert.equal((await api("POST", `/budgets/${usd._id}/submit`, { token })).status, 200);
+
+    const year = (await api("GET", `/budgets/${envelope._id}`, { token })).data.data.summary.allocation.years.find(found => found.fiscalYear === 2026);
+    assert.equal(year.allocated, 960000);
+
+    // a second budget for the same project is refused, pointing to the first
+    const again = await api("POST", "/budgets", { token, body: { level: "project", name: "Again", project, startYear: 2026, endYear: 2026, currency: "USD" } });
+    assert.equal(again.status, 409);
+
+});
+
+
+test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
+
+    const token = state.tokenA;
+    const budget = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data;
+    const projectOne = String(budget.project?._id || budget.project);
+    const otherProgram = (await api("POST", "/programs", { token, body: { name: "Move Target Program", startDate: "2026-01-01" } })).data.data._id;
+
+    const used = await api("PUT", `/projects/${projectOne}`, { token, body: { program: otherProgram } });
+    assert.equal(used.status, 409);
+    assert.match(used.data.message, /1 budget/);
+
+    const fresh = (await api("POST", "/projects", { token, body: { program: String(budget.program?._id || budget.program), name: "Empty Project", startDate: "2026-01-01", endDate: "2026-12-31" } })).data.data._id;
+    const moved = await api("PUT", `/projects/${fresh}`, { token, body: { program: otherProgram } });
+    assert.equal(moved.status, 200, moved.data?.message);
+    assert.equal(String(moved.data.data.program?._id || moved.data.data.program), otherProgram);
 
 });
 

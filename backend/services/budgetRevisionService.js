@@ -22,6 +22,8 @@ const {
 
 const budgetService = require("./budgetService");
 
+
+const budgetEvents = require("./budgetEvents");
 const {
     validateYears,
     normalizeContent,
@@ -156,6 +158,9 @@ const assertRevisionAllowed = async (budget, content) => {
         program: budget.program,
         level: budget.level,
         currency: budget.currency,
+        budgetCode: budget.budgetCode,
+        // the budget's exchange rate to its program budget
+        programExchangeRate: budget.programExchangeRate,
         ...content
     });
 
@@ -206,6 +211,14 @@ const updateRevision = async (id, data, organizationId, userId) => {
         budget.revision.reason = data.reason;
     }
 
+    // A revision is saved to be submitted, and submitting
+    // needs the reason: ask for it now, not at the last step.
+    // (Starting a revision, which only copies the figures,
+    // needs none.)
+    if (String(budget.revision.reason || "").trim().length < 3) {
+        throw new ApiError("Give the reason for this revision (what changed and why) before saving it.", 400);
+    }
+
     budget.updatedBy = userId;
 
     await budget.save();
@@ -222,6 +235,8 @@ const cancelRevision = async (id, organizationId, userId) => {
     assertHasRevision(budget, EDITABLE, "cancelled");
 
     budget.history.push(historyEntry(`Revision v${budget.version + 1} cancelled`, budget.status, userId));
+
+    await budgetEvents.audit({ budget, organizationId, userId, action: "BUDGET_REVISION_CANCELLED" });
 
     budget.revision = null;
 
@@ -261,6 +276,8 @@ const submitRevision = async (id, organizationId, userId) => {
 
     await budget.save();
 
+    await budgetEvents.submitted({ budget, organizationId, userId, revision: true });
+
     return budgetService.getBudgetById(id, organizationId);
 
 };
@@ -279,12 +296,17 @@ const returnRevision = async (id, organizationId, userId, comment) => {
 
     await budget.save();
 
+    await budgetEvents.decided({ budget, organizationId, userId, approved: false, revision: true, comment, submittedBy: budget.revision.submittedBy });
+
     return budgetService.getBudgetById(id, organizationId);
 
 };
 
 
 const approveRevision = async (id, organizationId, userId, comment = "") => {
+
+    let decidedBudget = null;
+    let submittedBy = null;
 
     await runInTransaction(async (session) => {
 
@@ -309,6 +331,8 @@ const approveRevision = async (id, organizationId, userId, comment = "") => {
         assertHasRevision(budget, [REVISION_STATUS.SUBMITTED], "approved");
 
         const proposed = budget.revision.toObject();
+
+        submittedBy = proposed.submittedBy;
 
         await assertRevisionAllowed(budget, proposed);
 
@@ -347,7 +371,11 @@ const approveRevision = async (id, organizationId, userId, comment = "") => {
 
         await budget.save({ session });
 
+        decidedBudget = budget;
+
     });
+
+    await budgetEvents.decided({ budget: decidedBudget, organizationId, userId, approved: true, revision: true, comment, submittedBy });
 
     return budgetService.getBudgetById(id, organizationId);
 
