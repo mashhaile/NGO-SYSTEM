@@ -1,3 +1,4 @@
+const nextChildCode = require("../utils/nextChildCode");
 const escapeRegex = require("../utils/escapeRegex");
 const ActivityRun =
     require("../models/ActivityRun");
@@ -93,23 +94,13 @@ const createActivityRun = async (
     // GENERATE RUN CODE
     // =================================================
 
-    const totalRuns =
-        await ActivityRun.countDocuments({
-
-            organization:
-                organizationId,
-
-            activity:
-                data.activity
-
-        });
-
-
     const runCode =
-
-        `${activity.activityCode}-RUN-${String(
-            totalRuns + 1
-        ).padStart(3, "0")}`;
+        await nextChildCode({
+            organizationId,
+            key: `ActivityRun:${activity._id}`,
+            prefix: `${activity.activityCode}-RUN`,
+            isTaken: (code) => ActivityRun.exists({ organization: organizationId, runCode: code })
+        });
 
 
     // =================================================

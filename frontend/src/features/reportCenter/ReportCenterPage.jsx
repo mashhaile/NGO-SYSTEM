@@ -98,13 +98,15 @@ const ReportCenterPage = () => {
     const request = selectedKey ? `${selectedKey}?${new URLSearchParams(query)}` : "";
 
     useEffect(() => {
-        if (!selectedKey) return;
+        // wait for the catalog: it says which filters the report
+        // takes, so asking before it came asked twice
+        if (!selectedKey || !selected) return;
         let alive = true;
         getReportApi(selectedKey, query)
             .then(data => { if (alive) setResult({ request, report: data, error: "" }); })
             .catch(err => { if (alive) setResult({ request, report: null, error: getApiErrorMessage(err, "The report could not be made.") }); });
         return () => { alive = false; };
-    }, [selectedKey, query, request]);
+    }, [selectedKey, selected, query, request]);
 
     // the previous report stays visible (dimmed) while the next one loads
     const loading = Boolean(request) && result.request !== request;

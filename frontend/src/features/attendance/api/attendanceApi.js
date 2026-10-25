@@ -130,11 +130,13 @@ export const saveAttendanceRecordsApi = (
 
         `/attendance/${id}/records`,
 
-        {
-            records: Array.isArray(records)
-                ? records
-                : []
-        }
+        // { records, version } or just the records
+        Array.isArray(records)
+            ? { records }
+            : {
+                records: Array.isArray(records?.records) ? records.records : [],
+                version: records?.version ?? null
+            }
 
     );
 

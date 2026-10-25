@@ -419,11 +419,13 @@ const AttendanceSheetPage = () => {
             await dispatch(
 
                 saveAttendanceRecordsThunk({
-
                     id,
-
-                    data
-
+                    // the version the sheet was opened with: a save
+                    // over someone else's newer save is refused
+                    data: {
+                        records: data,
+                        version: attendance?.recordsVersion ?? 0
+                    }
                 })
 
             ).unwrap();
@@ -441,11 +443,8 @@ const AttendanceSheetPage = () => {
             );
 
             alert(
-
-                error?.message ||
-
+                (typeof error === "string" ? error : error?.message) ||
                 "Save failed"
-
             );
 
         }

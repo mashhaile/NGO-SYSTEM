@@ -77,6 +77,13 @@ const attendanceSchema = new mongoose.Schema(
 
 
 
+    // +1 at every save of the sheet: a save made from an
+    // older copy of the sheet is refused (see the service)
+    recordsVersion:{
+        type:Number,
+        default:0
+    },
+
     sessionDate:{
 
         type:Date,

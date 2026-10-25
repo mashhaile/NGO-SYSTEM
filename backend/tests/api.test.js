@@ -2040,6 +2040,53 @@ test("an item's donor is its donation's donor; a project report shows the budget
 });
 
 
+test("codes never collide; an attendance sheet saved from an old copy is refused", { skip }, async () => {
+
+    const { people } = await serviceDeliverySetup();
+    const token = state.tokenA;
+
+    const program = (await api("POST", "/programs", { token, body: { name: "Codes Program", startDate: "2026-01-01" } })).data.data._id;
+
+    // three projects, activities and runs created at the same moment get different codes
+    const projects = await Promise.all([1, 2, 3].map(n => api("POST", "/projects", { token, body: { program, name: `Same moment ${n}`, startDate: "2026-01-01", endDate: "2026-12-31" } })));
+    assert.ok(projects.every(res => res.status === 201), projects.map(res => res.data?.message).join(" | "));
+    assert.equal(new Set(projects.map(res => res.data.data.projectCode)).size, 3);
+
+    const project = projects[0].data.data._id;
+    const activities = await Promise.all([1, 2, 3].map(n => api("POST", "/activities", { token, body: { project, name: `Parallel activity ${n}`, activityType: "Training", activityDate: "2026-03-01" } })));
+    assert.ok(activities.every(res => res.status === 201), activities.map(res => res.data?.message).join(" | "));
+    assert.equal(new Set(activities.map(res => res.data.data.activityCode)).size, 3);
+
+    const activity = activities[0].data.data._id;
+    const runs = await Promise.all([1, 2, 3].map(n => api("POST", "/activity-runs", { token, body: { activity, name: `Batch ${n}`, startDate: "2026-03-01", endDate: "2026-03-05" } })));
+    assert.ok(runs.every(res => res.status < 300), runs.map(res => res.data?.message).join(" | "));
+    assert.equal(new Set(runs.map(res => res.data.data.runCode)).size, 3);
+
+    // an attendance sheet
+    const session = (await api("POST", "/attendance", { token, body: { activityRun: runs[0].data.data._id, sessionTitle: "Day 1", sessionNumber: 1, sessionDate: "2026-03-01" } })).data.data;
+    const row = (beneficiary, status = "Present") => ({ participantType: "Beneficiary", beneficiary, gender: "Female", ageGroup: "Adult", status });
+    const save = (body) => api("POST", `/attendance/${session._id}/records`, { token, body });
+
+    const first = await save({ records: [row(people[0]), row(people[1])], version: 0 });
+    assert.equal(first.status, 200, first.data?.message);
+    assert.equal(first.data.version, 1);
+
+    // a second person still has the sheet as it was (version 0): refused, nothing lost
+    const stale = await save({ records: [row(people[2])], version: 0 });
+    assert.equal(stale.status, 409);
+    assert.match(stale.data.message, /Someone else saved this attendance sheet/);
+    const records = async () => (await api("GET", `/attendance/${session._id}/records`, { token })).data.data;
+    assert.equal((await records()).length, 2);
+
+    // "add" keeps the people already on the sheet
+    const added = await save({ mode: "add", records: [row(people[1]), row(people[2]), { participantType: "Government", gender: "Male", ageGroup: "Adult", status: "Present", externalParticipant: { name: "Woreda expert", organizationName: "Woreda office", position: "Expert" } }] });
+    assert.equal(added.status, 200, added.data?.message);
+    const after = await records();
+    assert.equal(after.length, 4, "2 kept + 1 new beneficiary + 1 government (the repeated one is not added twice)");
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

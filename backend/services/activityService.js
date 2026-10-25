@@ -1,3 +1,4 @@
+const nextChildCode = require("../utils/nextChildCode");
 const escapeRegex = require("../utils/escapeRegex");
 const Activity = require("../models/Activity");
 const Project = require("../models/Project");
@@ -18,48 +19,12 @@ const generateActivityCode = async (
 
 ) => {
 
-    let number =
-
-        await Activity.countDocuments({
-
-            organization:
-                organizationId,
-
-            project:
-                projectId
-
-        }) + 1;
-
-
-    while (true) {
-
-        const activityCode =
-
-            `${projectCode}-ACT-${String(number).padStart(3, "0")}`;
-
-
-        const exists =
-
-            await Activity.findOne({
-
-                organization:
-                    organizationId,
-
-                activityCode
-
-            });
-
-
-        if (!exists) {
-
-            return activityCode;
-
-        }
-
-
-        number++;
-
-    }
+    return nextChildCode({
+        organizationId,
+        key: `Activity:${projectId}`,
+        prefix: `${projectCode}-ACT`,
+        isTaken: (code) => Activity.exists({ organization: organizationId, activityCode: code })
+    });
 
 };
 

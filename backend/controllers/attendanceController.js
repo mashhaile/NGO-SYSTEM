@@ -202,9 +202,9 @@ const saveAttendanceRecords = async(req,res)=>{
 
 
         const {
-
-            records
-
+            records,
+            version,
+            mode
         } = req.body;
 
 
@@ -228,30 +228,22 @@ const saveAttendanceRecords = async(req,res)=>{
 
 
 
-        const savedRecords =
-
+        const saved =
         await attendanceService.saveAttendanceRecords(
-
             req.params.id,
-
             records,
-
             req.user.organizationId,
-
-            req.user.userId
-
+            req.user.userId,
+            {
+                version: version ?? null,
+                mode: mode === "add" ? "add" : "replace"
+            }
         );
-
-
-
-
-
         res.status(200).json({
-
             success:true,
-
-            data:savedRecords
-
+            data:saved.records,
+            // the sheet's new version (for the next save)
+            version:saved.version
         });
 
 

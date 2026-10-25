@@ -1,3 +1,4 @@
+const nextChildCode = require("../utils/nextChildCode");
 const ApiError = require("../utils/apiError");
 const escapeRegex = require("../utils/escapeRegex");
 const Project =
@@ -221,25 +222,13 @@ const createProject = async (
     // GENERATE PROJECT CODE
     // =================================================
 
-    const totalProjects =
-        await Project.countDocuments({
-
-            organization:
-                organizationId,
-
-            program:
-                data.program,
-
-            isDeleted:
-                false
-
-        });
-
-
     const projectCode =
-        `${program.programCode}-PRJ-${String(
-            totalProjects + 1
-        ).padStart(3, "0")}`;
+        await nextChildCode({
+            organizationId,
+            key: `Project:${program._id}`,
+            prefix: `${program.programCode}-PRJ`,
+            isTaken: (code) => Project.exists({ organization: organizationId, projectCode: code })
+        });
 
 
     // =================================================
@@ -718,18 +707,12 @@ const updateProject = async (
             await require("./parentChangeGuard")
                 .assertProjectCanChangeProgram(project._id, organizationId);
 
-            const totalProjects =
-                await Project.countDocuments({
-
-                    organization:
-                        organizationId,
-
-                    program:
-                        program._id,
-
-                    isDeleted:
-                        false
-
+            const nextProjectCode =
+                await nextChildCode({
+                    organizationId,
+                    key: `Project:${program._id}`,
+                    prefix: `${program.programCode}-PRJ`,
+                    isTaken: (code) => Project.exists({ organization: organizationId, projectCode: code })
                 });
 
 
@@ -738,9 +721,7 @@ const updateProject = async (
 
 
             project.projectCode =
-                `${program.programCode}-PRJ-${String(
-                    totalProjects + 1
-                ).padStart(3, "0")}`;
+                nextProjectCode;
 
         }
 

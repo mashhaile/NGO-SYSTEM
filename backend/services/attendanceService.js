@@ -1,5 +1,7 @@
 const escapeRegex = require("../utils/escapeRegex");
 const Attendance = require("../models/Attendance");
+const ApiError = require("../utils/apiError");
+const { runInTransaction } = require("../utils/transaction");
 const AttendanceRecord = require("../models/AttendanceRecord");
 const ActivityRun = require("../models/ActivityRun");
 const Beneficiary = require("../models/Beneficiary");
@@ -380,11 +382,24 @@ const createAttendanceLocationResolver = async ({
 // SAVE ATTENDANCE RECORDS
 // ==========================================
 
+// The sheet is saved whole (people removed from it are
+// removed), in one transaction: a failed save leaves the
+// sheet as it was. With "version" (the sheet's
+// recordsVersion when it was opened), a save over a sheet
+// someone else saved in the meantime is refused instead of
+// silently replacing their work. mode "add" keeps the people
+// already on the sheet and adds the new ones.
+const participantKey = (record) =>
+    record.beneficiary ? `b:${record.beneficiary}`
+        : record.staff ? `s:${record.staff}`
+            : `x:${record.participantType}:${String(record.externalParticipant?.name || "").trim().toLowerCase()}:${String(record.externalParticipant?.organizationName || "").trim().toLowerCase()}`;
+
 const saveAttendanceRecords = async (
     attendanceId,
     records,
     organizationId,
-    userId
+    userId,
+    { version = null, mode = "replace" } = {}
 ) => {
 
     const attendance =
@@ -399,24 +414,24 @@ const saveAttendanceRecords = async (
         });
 
     if (!attendance) {
-
         throw new Error(
             "Attendance session not found."
         );
-
     }
 
-    // ==========================================
-    // Remove existing records
-    // ==========================================
+    const currentVersion =
+        Number(attendance.recordsVersion || 0);
 
-    await AttendanceRecord.deleteMany({
-
-        attendance: attendanceId,
-
-        organization: organizationId
-
-    });
+    if (
+        version !== null &&
+        version !== undefined &&
+        Number(version) !== currentVersion
+    ) {
+        throw new ApiError(
+            "Someone else saved this attendance sheet after you opened it. Reload the sheet to see their changes, then make yours again.",
+            409
+        );
+    }
 
     // ==========================================
     // Location snapshot
@@ -519,24 +534,51 @@ const saveAttendanceRecords = async (
         );
 
     // ==========================================
-    // Empty records
+    // Save (one transaction)
     // ==========================================
+    return runInTransaction(async (session) => {
 
-    if (
-        preparedRecords.length === 0
-    ) {
+        // the sheet must still be the version this save started from
+        const claimed =
+            await Attendance.updateOne(
+                { _id: attendance._id, recordsVersion: currentVersion === 0 ? { $in: [null, 0] } : currentVersion },
+                { $inc: { recordsVersion: 1 } },
+                { session }
+            );
 
-        return [];
+        if (!claimed.matchedCount) {
+            throw new ApiError(
+                "Someone else saved this attendance sheet at the same moment. Reload the sheet and save again.",
+                409
+            );
+        }
 
-    }
+        let toInsert = preparedRecords;
 
-    // ==========================================
-    // Save records
-    // ==========================================
+        if (mode === "add") {
+            const existing =
+                await AttendanceRecord.find({ attendance: attendanceId, organization: organizationId })
+                    .select("participantType beneficiary staff externalParticipant")
+                    .session(session)
+                    .lean();
+            const onSheet = new Set(existing.map(participantKey));
+            toInsert = preparedRecords.filter(record => !onSheet.has(participantKey(record)));
+        }
+        else {
+            await AttendanceRecord.deleteMany(
+                { attendance: attendanceId, organization: organizationId },
+                { session }
+            );
+        }
 
-    return await AttendanceRecord.insertMany(
-        preparedRecords
-    );
+        const saved =
+            toInsert.length
+                ? await AttendanceRecord.insertMany(toInsert, { session })
+                : [];
+
+        return { records: saved, version: currentVersion + 1 };
+
+    });
 
 };
 
