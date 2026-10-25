@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NGO Management System – Quick Start Guide</title>
+<style>
+    @page { size: A4; margin: 16mm 15mm 18mm; }
+    :root { --green: #166048; --green-soft: #e8f3ee; --ink: #1d2433; --muted: #5b6475; --line: #dfe4ea; }
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.5; margin: 0; }
+    h1 { font-size: 26pt; margin: 0 0 6px; color: var(--green); }
+    h2 { font-size: 15pt; color: var(--green); margin: 0 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--green-soft); }
+    h3 { font-size: 11.5pt; margin: 14px 0 4px; }
+    p { margin: 4px 0 8px; }
+    .page { page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+    .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; }
+    .cover .sub { font-size: 14pt; color: var(--muted); margin-bottom: 28px; }
+    .cover .box { border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; max-width: 120mm; }
+    .cover .box div { margin: 3px 0; }
+    .muted { color: var(--muted); }
+    ol.steps { padding-left: 0; list-style: none; counter-reset: s; margin: 6px 0 10px; }
+    ol.steps > li { counter-increment: s; position: relative; padding: 3px 0 3px 30px; }
+    ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #fff; font-size: 9pt; font-weight: 700; text-align: center; line-height: 20px; }
+    .menu { font-weight: 600; color: var(--green); white-space: nowrap; }
+    table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 10pt; }
+    th, td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+    th { background: var(--green-soft); }
+    img.shot { width: 100%; border: 1px solid var(--line); border-radius: 6px; margin: 6px 0 4px; }
+    .caption { font-size: 9pt; color: var(--muted); margin-bottom: 8px; }
+    .note { background: #fff8e6; border-left: 4px solid #e0a100; padding: 7px 10px; margin: 8px 0; border-radius: 4px; }
+    .tip { background: var(--green-soft); border-left: 4px solid var(--green); padding: 7px 10px; margin: 8px 0; border-radius: 4px; }
+    .flow { display: flex; gap: 6px; margin: 10px 0 14px; }
+    .flow div { flex: 1; background: var(--green-soft); border-radius: 8px; padding: 8px; font-size: 9.5pt; }
+    .flow b { display: block; color: var(--green); font-size: 10.5pt; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER -->
+<section class="page cover">
+    <h1>NGO Management System</h1>
+    <div class="sub">Quick Start Guide: step by step</div>
+    <div class="box">
+        <div><b>Web address:</b> https://ngo-system-e5af.onrender.com</div>
+        <div><b>Your login:</b> sent to you separately (email and password)</div>
+        <div><b>Works in:</b> Chrome, Edge or Firefox, on a computer or tablet</div>
+        <div class="muted" style="margin-top:8px">Version 1.0 · October 2026</div>
+    </div>
+    <p class="muted" style="margin-top:28px; max-width:140mm">
+        This guide shows the main steps for trying the system. Page 2 explains how to sign in and what each
+        type of user can do. Page 3 shows the order of work. The rest of the guide walks through each step.
+    </p>
+</section>
+
+<!-- ============================== 1. START -->
+<section class="page">
+    <h2>1. Sign in</h2>
+    <ol class="steps">
+        <li>Open <b>https://ngo-system-e5af.onrender.com</b> in your browser.</li>
+        <li>Enter the <b>Email</b> and <b>Password</b> you were given, then click <b>Sign in</b>.</li>
+        <li>The <span class="menu">Dashboard</span> opens. The menu on the left shows only what your login is allowed to use.</li>
+        <li>To leave, open the menu under your name at the top right and choose <b>Logout</b>.</li>
+    </ol>
+    <img class="shot" src="img/login.png" style="width:70%">
+    <div class="note">
+        <b>First visit of the day:</b> the site may take up to one minute to open while the server starts. After that it is fast.
+        <br><b>Forgot your password?</b> Ask your organization administrator to reset it. You will be asked to choose a new
+        password at your next sign-in.
+    </div>
+
+    <h3>What each user type can do</h3>
+    <table>
+        <tr><th style="width:26%">User type</th><th>Can do</th></tr>
+        <tr><td><b>Organization Admin</b></td><td>Everything: settings, users and roles, lists (lookups), programs, projects, approvals, reports.</td></tr>
+        <tr><td><b>Finance Officer</b></td><td>Budgets, expenses, donors and donations, including <b>approving</b> budgets and expenses.</td></tr>
+        <tr><td><b>Data Entry</b></td><td>Daily records: beneficiaries, enrollments, enterprises, terms of reference, activity runs, attendance, service deliveries, expenses (to be approved by finance).</td></tr>
+        <tr><td><b>Viewer</b></td><td>Can look at everything and run reports, but cannot change anything.</td></tr>
+    </table>
+    <p class="muted">The administrator can also create custom roles (<span class="menu">Administration › Roles</span>) and choose exactly what each one may do.</p>
+</section>
+
+<!-- ============================== 2. FLOW -->
+<section class="page">
+    <h2>2. How the work flows</h2>
+    <p>Work in this order. Each step uses what the earlier steps created, so the lists you need appear in the forms.</p>
+    <div class="flow">
+        <div><b>1 · Set up</b>Organization, users, lists (lookups)</div>
+        <div><b>2 · Plan</b>Programs, projects, budgets, terms of reference, activities</div>
+        <div><b>3 · Fund</b>Donors and donations</div>
+        <div><b>4 · Do the work</b>Beneficiaries, activity runs, attendance, service delivery, expenses</div>
+        <div><b>5 · Report</b>Dashboard and reports, with Excel/PDF export</div>
+    </div>
+
+    <h3>How things connect</h3>
+    <table>
+        <tr><th style="width:28%">Record</th><th>Belongs to</th><th>Example</th></tr>
+        <tr><td>Program</td><td>The organization</td><td>Women and Youth Livelihoods</td></tr>
+        <tr><td>Project (and its phases)</td><td>A program</td><td>Small Business Start-up Grants, Phase 1</td></tr>
+        <tr><td>Activity</td><td>A project</td><td>Business skills training</td></tr>
+        <tr><td>Activity run</td><td>An activity (one batch, place and dates)</td><td>Batch 2, Adigrat town</td></tr>
+        <tr><td>Attendance session</td><td>An activity run</td><td>Training session 1, 5 May</td></tr>
+        <tr><td>Service delivery</td><td>A program (and optionally a project, activity or run)</td><td>Hygiene kits to 40 households</td></tr>
+    </table>
+
+    <h3>Statuses: what they mean</h3>
+    <table>
+        <tr><th style="width:22%">Status</th><th>Meaning</th></tr>
+        <tr><td>Planned</td><td>Not started yet.</td></tr>
+        <tr><td>Active</td><td>Running: everything can be added.</td></tr>
+        <tr><td>Suspended</td><td>Paused: nothing new can be added until it is Active again.</td></tr>
+        <tr><td>Completed</td><td>Finished: no new plans, but late records (deliveries, attendance, expenses) can still be added.</td></tr>
+        <tr><td>Cancelled</td><td>Stopped: nothing new can be added, and it is not counted in reports.</td></tr>
+    </table>
+    <p class="muted">Budgets, terms of reference and expenses go through approval: <b>Draft → Submitted → Approved</b> (or <b>Returned</b> for changes).</p>
+</section>
+
+<!-- ============================== 3. SETUP -->
+<section class="page">
+    <h2>3. Set up (Organization Admin, once)</h2>
+    <ol class="steps">
+        <li><span class="menu">Administration › Organization</span>: check your organization's name, contact and logo.</li>
+        <li><span class="menu">Administration › User Management › Create User</span>: create a login for each staff member and choose their role.</li>
+        <li><span class="menu">Administration › Lookup Management</span>: review the lists used in forms (service types, items, units, activity types, gender and others), and add your own.</li>
+        <li><span class="menu">Administration › Custom Fields</span> (optional): add extra questions to the beneficiary form, for example "Disability type".</li>
+        <li><span class="menu">Administration › Wording</span> (optional): use your organization's own words, for example "Fund" instead of "Donation", or "Ongoing" instead of "Active". Screens and reports change at once.</li>
+    </ol>
+
+    <h2 style="margin-top:18px">4. Plan the work</h2>
+    <ol class="steps">
+        <li><span class="menu">Programs › Programs › Add Program</span>: name, dates, target and status.</li>
+        <li><span class="menu">Programs › Projects › Add Project</span>: choose the program, set the donor, manager and dates. For a project in phases, open the project and use <b>Add Phase</b> in the Phases card.</li>
+        <li><span class="menu">Finance › Budgets › New Budget</span>: budget lines per year (fiscal year = January–December). Click <b>Submit for Approval</b>. A finance officer or admin then <b>Approves</b> it or <b>Returns</b> it for changes.</li>
+        <li><span class="menu">Activities › Terms of Reference › New TOR</span>: write the TOR for an activity and submit it. Once approved, the activity can be created from it.</li>
+        <li><span class="menu">Activities › Activities › Create Activity</span>: the activity under its project (dates must be inside the project's dates).</li>
+        <li><span class="menu">Activities › Activity Runs › Create Activity Run</span>: each batch or round of the activity, with location and dates.</li>
+    </ol>
+    <img class="shot" src="img/budgets.png" style="width:78%">
+    <div class="caption">Budgets: each line shows its period, total and approval status.</div>
+</section>
+
+<!-- ============================== 5. FUNDING + PEOPLE -->
+<section class="page">
+    <h2>5. Record funding</h2>
+    <ol class="steps">
+        <li><span class="menu">Funding › Donors › Add Donor</span>: the donor's name, type and contact.</li>
+        <li><span class="menu">Funding › Donations › Add Donation</span>: donor, amount, currency (ETB, USD, EUR, GBP or CHF) and the program or project it funds. For a foreign currency, enter the exchange rate on the day it was received. Reports also show the value in ETB.</li>
+        <li>Status: <b>Pledged</b> (promised) or <b>Received</b>. Only received money counts as funding received.</li>
+    </ol>
+
+    <h2 style="margin-top:16px">6. Register beneficiaries</h2>
+    <ol class="steps">
+        <li><span class="menu">Beneficiaries › Beneficiaries › Add Beneficiary</span>: name, gender, date of birth, phone, and location (choose Region, then Zone, then Woreda).</li>
+        <li>For many people at once, click <b>Import Excel</b>, then <b>Download Template</b>. Fill in the template and upload it. Rows with problems are listed so you can correct them.</li>
+        <li><span class="menu">Beneficiaries › Enrollments › Create Enrollment</span>: enroll each person in the program they belong to.</li>
+        <li>For groups and businesses: <span class="menu">Enterprises</span> (the group) and <span class="menu">Enterprise Members</span> (its members).</li>
+    </ol>
+    <img class="shot" src="img/beneficiaries.png">
+    <div class="caption">Beneficiaries: search, filter, open, edit, or import from Excel.</div>
+</section>
+
+<!-- ============================== 7. DO THE WORK -->
+<section class="page">
+    <h2>7. Record what was done</h2>
+
+    <h3>Trainings and meetings: attendance</h3>
+    <ol class="steps">
+        <li><span class="menu">Activities › Attendance › Create Attendance</span>: choose the activity run and the session date.</li>
+        <li>Open the session's <b>sheet</b> and mark each person <b>Present, Late, Excused or Absent</b>. Enrolled people are listed for you.</li>
+        <li>You can also add other participants: staff, partners, government officials and community members.</li>
+    </ol>
+    <img class="shot" src="img/attendance.png" style="width:70%">
+
+    <h3>Goods, cash and services: service delivery</h3>
+    <ol class="steps">
+        <li><span class="menu">Services › Service Delivery › Create Service Delivery</span>: choose who receives it (individual, household, group or institution) and how it is shared.</li>
+        <li>Choose the program (and project, activity or run if it belongs to one), the date and the location.</li>
+        <li>Add the items (for example hygiene kits or cash) with quantity, unit cost and currency, and pick the people or groups who received them.</li>
+        <li>If the items were bought with an expense, link that expense so the cost is not counted twice.</li>
+    </ol>
+    <img class="shot" src="img/delivery.png" style="width:62%">
+</section>
+
+<!-- ============================== 8. MONEY + REPORTS -->
+<section class="page">
+    <h2>8. Record spending</h2>
+    <ol class="steps">
+        <li><span class="menu">Finance › Expenses › Record Expense</span>: the budget line, amount, date, payment method, receipt or invoice number, and the donation that pays for it.</li>
+        <li><b>Submit</b> it. A finance officer or admin <b>Approves</b> it (it then counts as spent and is locked) or <b>Returns</b> it for changes. A wrong approved expense can be <b>Voided</b>.</li>
+        <li>If a line would go over budget, the system warns you. You can still submit it, but the approver must confirm and give a reason.</li>
+    </ol>
+
+    <h2 style="margin-top:16px">9. See results: dashboard and reports</h2>
+    <ol class="steps">
+        <li><span class="menu">Dashboard</span>: the key numbers at a glance.</li>
+        <li><span class="menu">Reports</span>: choose a report (overview, beneficiaries, programs and projects, activities and training, service delivery, enterprises, donors and funding, budget and spending).</li>
+        <li>Choose the <b>period</b> (year, half year, quarter, month, date range or all time) and filters such as program, project, region and gender.</li>
+        <li>Click any row to open that record's full report. Download with <b>Excel</b>, <b>PDF</b> or <b>CSV</b>.</li>
+    </ol>
+    <img class="shot" src="img/reports.png">
+</section>
+
+<!-- ============================== 10. TIPS -->
+<section class="page">
+    <h2>10. Good to know</h2>
+    <h3>The system checks your entries</h3>
+    <ul>
+        <li><b>Dates:</b> an end date cannot be before its start date. Records must fall inside their parent's dates (for example an activity inside its project's dates). Completed work cannot have a future date.</li>
+        <li><b>Status:</b> nothing new can be added to suspended or cancelled work, and inactive people or donors cannot receive anything new.</li>
+        <li><b>Money:</b> each amount keeps its own currency. Totals are shown per currency, plus the ETB value where a rate is known.</li>
+        <li>If something is refused, the message says which field to check and why.</li>
+    </ul>
+    <h3>Tips</h3>
+    <ul>
+        <li>Each list has <b>Search</b>, filters and <b>Reset</b>. Click a name to open the record.</li>
+        <li>Codes (BEN-000123, PRG-000001-PRJ-002 …) are created automatically. Use them when talking about a record.</li>
+        <li>Everything you change is saved immediately and recorded in the history (audit log).</li>
+    </ul>
+    <div class="tip">
+        <b>Trying the system:</b> the demo organization already has sample data (500 beneficiaries, programs, projects,
+        donations, budgets and reports). Feel free to add, change and approve records. Everything you enter is
+        real in the demo and can be reset afterwards.
+    </div>
+    <h3>Need help?</h3>
+    <p>Contact your system provider with a short description of the problem, the page you were on and a screenshot.</p>
+</section>
+
+</body>
+</html>
