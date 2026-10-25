@@ -1,4 +1,10 @@
 import {
+    useRoleOptions,
+    rolePayload,
+    roleValueOf
+} from "../../roles/rolesApi";
+
+import {
     PageHeader
 } from "../../../components/ui";
 
@@ -54,6 +60,9 @@ const UserEditPage = () => {
 
     const [saving, setSaving] = useState(false);
 
+
+    const roleOptions =
+        useRoleOptions();
 
     const [formData, setFormData] = useState({
 
@@ -129,7 +138,7 @@ const UserEditPage = () => {
                     user.name || "",
 
                 role:
-                    user.role || "data_entry",
+                    roleValueOf(user) || "data_entry",
 
                 status:
                     user.status || "active"
@@ -225,7 +234,7 @@ const UserEditPage = () => {
             const response =
                 await updateUserService(
                     id,
-                    formData
+                    { ...formData, ...rolePayload(formData.role) }
                 );
 
 
@@ -376,26 +385,11 @@ const UserEditPage = () => {
                                 label="Role"
                                 onChange={handleChange}
                             >
-
-                                <MenuItem value="data_entry">
-                                    Data Entry
-                                </MenuItem>
-
-
-                                <MenuItem value="finance_officer">
-                                    Finance Officer
-                                </MenuItem>
-
-
-                                <MenuItem value="viewer">
-                                    Viewer
-                                </MenuItem>
-
-
-                                <MenuItem value="organization_admin">
-                                    Organization Admin
-                                </MenuItem>
-
+                                {roleOptions.map(option => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </MenuItem>
+                                ))}
                             </Select>
 
                         </FormControl>

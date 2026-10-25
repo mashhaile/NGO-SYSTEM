@@ -214,6 +214,7 @@ const lazyPage = (load) =>
 const DashboardPage = lazyPage(() => import("../features/dashboard/pages/DashboardPage"));
 const OrganizationSettingsPage = lazyPage(() => import("../features/organizations/pages/OrganizationSettingsPage"));
 const CustomFieldListPage = lazyPage(() => import("../features/customfields/pages/CustomFieldListPage"));
+const RolesPage = lazyPage(() => import("../features/roles/RolesPage"));
 const CustomFieldCreatePage = lazyPage(() => import("../features/customfields/pages/CustomFieldCreatePage"));
 const CustomFieldEditPage = lazyPage(() => import("../features/customfields/pages/CustomFieldEditPage"));
 const BeneficiaryImportPage = lazyPage(() => import("../features/beneficiaries/pages/BeneficiaryImportPage"));
@@ -1104,6 +1105,17 @@ const AppRoutes = () => {
                 {/* ==================================================
                     CUSTOM FIELDS
                 ================================================== */}
+
+                <Route
+                    path="/settings/roles"
+                    element={
+                        <PermissionRoute
+                            permission="role.manage"
+                        >
+                            <RolesPage />
+                        </PermissionRoute>
+                    }
+                />
 
                 <Route
                     path="/settings/custom-fields"

@@ -310,7 +310,7 @@ const authMiddleware = async (
         // ==========================================
 
         const permissions =
-            rolePermissions[role] || [];
+            await require("../services/roleService").permissionsOf(user);
 
 
         // ==========================================

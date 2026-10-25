@@ -1,3 +1,4 @@
+const roleService = require("../services/roleService");
 const {
     getErrorStatus,
     getErrorMessage
@@ -123,13 +124,25 @@ const createUserController = async (
         const {
             name,
             email,
-            password,
-            role
+            password
         } = req.body;
-
-
         const organizationId =
             req.user.organizationId;
+        // A custom role (made by the organization admin): only
+        // those who manage roles give one; the built-in role
+        // underneath is Viewer
+        const customRole =
+            req.body.customRole
+                ? await roleService.resolveCustomRole(organizationId, req.body.customRole)
+                : null;
+        if (customRole && !hasPermission(req, PERMISSIONS.ROLE_MANAGE)) {
+            return res.status(403).json({
+                success: false,
+                message: "You do not have permission to give custom roles."
+            });
+        }
+        const role =
+            customRole ? ROLES.VIEWER : req.body.role;
 
 
         // ==========================================
@@ -299,12 +312,11 @@ const createUserController = async (
 
                 password:
                     hashedPassword,
-
                 role,
-
+                customRole:
+                    customRole ? customRole._id : null,
                 status:
                     USER_STATUS.ACTIVE
-
             });
 
 
@@ -435,7 +447,8 @@ const getUsersController = async (
                 }
 
             })
-            .select("-password");
+            .select("-password")
+            .populate("customRole", "name");
 
 
         return res.json({
@@ -482,9 +495,10 @@ const updateUserController = async (
 
         const {
             name,
-            role,
             status
         } = req.body;
+        let role =
+            req.body.role;
 
 
         const user =
@@ -547,6 +561,27 @@ const updateUserController = async (
         }
 
 
+        // ==========================================
+        // CUSTOM ROLE (given, or taken away)
+        // ==========================================
+        let customRoleChange;
+        if (req.body.customRole !== undefined) {
+            if (!hasPermission(req, PERMISSIONS.ROLE_MANAGE)) {
+                return res.status(403).json({
+                    success: false,
+                    message: "You do not have permission to give custom roles."
+                });
+            }
+            if (user._id.toString() === req.user.userId.toString() && String(req.body.customRole || "") !== String(user.customRole || "")) {
+                return res.status(400).json({
+                    success: false,
+                    message: "You cannot change your own role."
+                });
+            }
+            customRoleChange =
+                await roleService.resolveCustomRole(req.user.organizationId, req.body.customRole);
+            if (customRoleChange) role = ROLES.VIEWER;
+        }
         // ==========================================
         // VALID USER STATUS
         // ==========================================
@@ -672,10 +707,16 @@ const updateUserController = async (
 
 
         if (role) {
-
             user.role =
                 role;
-
+        }
+        if (customRoleChange !== undefined) {
+            user.customRole =
+                customRoleChange ? customRoleChange._id : null;
+        }
+        else if (req.body.role) {
+            // a built-in role chosen: no custom role any more
+            user.customRole = null;
         }
 
 

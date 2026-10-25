@@ -71,13 +71,18 @@ const userSchema = new mongoose.Schema(
 
 
     role: {
-
         type:String,
-
         enum:Object.values(ROLES),
-
         default:ROLES.VIEWER
+    },
 
+    // A role the organization made (models/Role.js): its
+    // permissions replace those of the built-in role, which
+    // is kept as Viewer underneath
+    customRole: {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Role",
+        default:null
     },
 
 

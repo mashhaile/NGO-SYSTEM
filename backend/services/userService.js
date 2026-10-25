@@ -1,3 +1,4 @@
+const roleService = require("./roleService");
 const bcrypt = require("bcrypt");
 
 const User = require("../models/user");
@@ -42,12 +43,11 @@ const getOrganizationUsers = async (
 
         })
         .select("-password")
+        .populate("customRole", "name")
         .sort({
             createdAt: -1
         })
         .lean();
-
-
     return users;
 
 };
@@ -135,9 +135,15 @@ const createOrganizationUser = async (
     const {
         name,
         email,
-        password,
-        role
+        password
     } = userData;
+
+    // a custom role: Viewer underneath, its own permissions
+    const customRole =
+        await roleService.resolveCustomRole(organizationId, userData.customRole);
+
+    const role =
+        customRole ? ROLES.VIEWER : userData.role;
 
 
     // ==========================================
@@ -294,10 +300,10 @@ const createOrganizationUser = async (
                 hashedPassword,
 
             role,
-
+            customRole:
+                customRole ? customRole._id : null,
             status:
                 USER_STATUS.ACTIVE
-
         });
 
 
@@ -520,7 +526,19 @@ const updateOrganizationUser = async (
 
         user.role =
             userData.role;
-
+        // a built-in role chosen: no custom role
+        if (userData.customRole === undefined) user.customRole = null;
+    }
+    if (
+        Object.prototype.hasOwnProperty.call(
+            userData,
+            "customRole"
+        )
+    ) {
+        const customRole =
+            await roleService.resolveCustomRole(user.organization, userData.customRole);
+        user.customRole = customRole ? customRole._id : null;
+        if (customRole) user.role = ROLES.VIEWER;
     }
 
 

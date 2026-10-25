@@ -47,6 +47,9 @@ const rolePermissions = {
         PERMISSIONS.USER_ASSIGN_FINANCE,
         PERMISSIONS.USER_ASSIGN_ORG_ADMIN,
 
+        // Custom roles
+        PERMISSIONS.ROLE_MANAGE,
+
 
         // Beneficiaries
 

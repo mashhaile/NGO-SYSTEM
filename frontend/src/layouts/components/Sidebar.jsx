@@ -180,6 +180,7 @@ const SECTIONS = [
         items: [
             { label: "Organization", path: "/settings/organization", icon: <Business />, permission: PERMISSIONS.ORGANIZATION_READ },
             { label: "User Management", path: "/users", icon: <ManageAccounts />, permission: PERMISSIONS.USER_READ },
+            { label: "Roles", path: "/settings/roles", icon: <ManageAccounts />, permission: PERMISSIONS.ROLE_MANAGE },
             // Admin only: other roles read lookups / custom fields
             // for their forms, they do not manage them
             { label: "Lookup Management", path: "/lookups", icon: <ManageSearch />, permission: PERMISSIONS.LOOKUP_UPDATE },

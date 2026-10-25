@@ -262,8 +262,9 @@ const UserListPage = () => {
             field: "role",
             headerName: "Role",
             minWidth: 160,
-            valueGetter: (value) =>
-                roleLabel(value)
+            // a custom role shows its own name
+            valueGetter: (value, row) =>
+                row?.customRole?.name || roleLabel(value)
         },
 
         {

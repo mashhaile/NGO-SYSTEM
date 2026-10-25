@@ -1,3 +1,4 @@
+const roleService = require("./roleService");
 const bcrypt = require("bcrypt");
 
 const User = require("../models/user");
@@ -52,10 +53,15 @@ const toLoginUser = (user) => ({
 
     permissions:
         rolePermissions[user.role] || [],
-
     mustChangePassword:
         Boolean(user.mustChangePassword)
+});
 
+// with a custom role: its permissions and name
+const withRole = async (loginUser, user) => ({
+    ...loginUser,
+    permissions: await roleService.permissionsOf(user),
+    roleName: await roleService.roleNameOf(user)
 });
 
 
@@ -211,7 +217,7 @@ const login = async ({
     return {
 
         user:
-            toLoginUser(user),
+            await withRole(toLoginUser(user), user),
 
         token:
             generateToken(user)
@@ -306,7 +312,7 @@ const changePassword = async (
     return {
 
         user:
-            toLoginUser(user),
+            await withRole(toLoginUser(user), user),
 
         token:
             generateToken(user)
@@ -346,7 +352,7 @@ const getCurrentUser = async (userId) => {
     // ==========================================
 
     const permissions =
-        rolePermissions[user.role] || [];
+        await roleService.permissionsOf(user);
 
 
     // ==========================================
@@ -366,9 +372,8 @@ const getCurrentUser = async (userId) => {
         email: user.email,
 
         role: user.role,
-
+        roleName: await roleService.roleNameOf(user),
         status: user.status,
-
         permissions,
 
         mustChangePassword:

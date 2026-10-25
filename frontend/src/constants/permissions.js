@@ -177,6 +177,7 @@ const PERMISSIONS = {
     CUSTOMFIELD_CREATE: "customfield.create",
     CUSTOMFIELD_READ: "customfield.read",
     CUSTOMFIELD_UPDATE: "customfield.update",
+    ROLE_MANAGE: "role.manage",
     CUSTOMFIELD_DELETE: "customfield.delete"
 
 };

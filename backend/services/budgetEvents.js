@@ -31,10 +31,9 @@ const userName = (user) =>
 
 
 // The people who can approve budgets in this organization
+// (built-in roles with budget.approve, and custom roles with it)
 const getApprovers = async (organizationId) =>
-    (await User.find({ organization: organizationId, role: { $in: approverRoles() }, status: "active" })
-        .select("name firstName lastName email role")
-        .lean())
+    (await require("./roleService").usersWithPermission(organizationId, "budget.approve"))
         .map(user => ({ id: String(user._id), name: userName(user), role: user.role }));
 
 

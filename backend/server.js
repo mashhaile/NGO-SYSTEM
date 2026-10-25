@@ -317,6 +317,9 @@ app.use("/api/v1/super-admin/analytics", superAdminAnalyticsRoutes);
 
 app.use("/api/v1/custom-fields", customfieldsRoutes);
 
+// the organization's custom roles
+app.use("/api/v1/roles", require("./routes/roleRoutes"));
+
 app.use("/api/v1/activities", activityRoutes);
 
 app.use("/api/v1/activity-runs", activityRunRoutes);

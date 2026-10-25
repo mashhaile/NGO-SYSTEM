@@ -2087,6 +2087,50 @@ test("codes never collide; an attendance sheet saved from an old copy is refused
 });
 
 
+test("custom roles: the admin makes a role; its users can do exactly what it allows", { skip }, async () => {
+
+    const token = state.tokenA;
+
+    // a role: programs and projects (view + create), reports
+    const made = await api("POST", "/roles", { token, body: { name: "Program Manager", description: "Runs programs and projects", permissions: ["program.create", "project.create", "report.read"] } });
+    assert.equal(made.status, 201, made.data?.message);
+    assert.ok(made.data.data.permissions.includes("program.read"), "seeing what you may create is added");
+
+    // names and permissions are checked
+    assert.equal((await api("POST", "/roles", { token, body: { name: "program manager", permissions: [] } })).status, 409);
+    assert.equal((await api("POST", "/roles", { token, body: { name: "Viewer", permissions: [] } })).status, 409);
+    assert.equal((await api("POST", "/roles", { token, body: { name: "Platform", permissions: ["plan.update"] } })).status, 400);
+
+    // a user with the role
+    const user = await api("POST", "/users", { token, body: { name: "Meron PM", email: "pm@test.local", password: "ProgMgr2026x", customRole: made.data.data._id } });
+    assert.ok(user.status < 300, user.data?.message);
+    const login = (await api("POST", "/auth/login", { body: { email: "pm@test.local", password: "ProgMgr2026x" } })).data.data;
+    assert.equal(login.user.roleName, "Program Manager");
+    assert.ok(login.user.permissions.includes("program.create"));
+    const pm = login.token;
+
+    assert.equal((await api("POST", "/programs", { token: pm, body: { name: "PM's program", startDate: "2026-01-01" } })).status, 201);
+    assert.equal((await api("GET", "/beneficiaries", { token: pm })).status, 403, "not in the role");
+    assert.equal((await api("POST", "/budgets", { token: pm, body: { level: "program", name: "x", program: state.adminAId, startYear: 2026, endYear: 2026 } })).status, 403);
+
+    // the role changes: so do its users' permissions
+    assert.ok((await api("PUT", `/roles/${made.data.data._id}`, { token, body: { permissions: ["program.create", "project.create", "report.read", "beneficiary.read"] } })).status < 300);
+    assert.equal((await api("GET", "/beneficiaries", { token: pm })).status, 200);
+
+    // the roles list shows it with its user; it cannot be deleted while used
+    const roles = (await api("GET", "/roles", { token })).data.data;
+    assert.equal(roles.custom.find(role => role.name === "Program Manager").users, 1);
+    assert.ok(roles.builtIn.some(role => role.key === "finance_officer"));
+    assert.ok(roles.catalog.some(group => group.module === "budget"));
+    assert.equal((await api("DELETE", `/roles/${made.data.data._id}`, { token })).status, 409);
+
+    // other organizations do not see it; only admins manage roles
+    assert.equal((await api("GET", "/roles", { token: state.tokenB })).data.data.custom.length, 0);
+    assert.equal((await api("POST", "/roles", { token: pm, body: { name: "Mine", permissions: [] } })).status, 403);
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

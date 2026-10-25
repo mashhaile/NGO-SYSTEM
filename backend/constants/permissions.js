@@ -13,6 +13,10 @@ const PERMISSIONS = {
     ORGANIZATION_DELETE:
         "organization.delete",
 
+    // custom roles of the organization
+    ROLE_MANAGE:
+        "role.manage",
+
 
     // =====================================================
     // PLAN MANAGEMENT

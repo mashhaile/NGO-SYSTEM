@@ -53,7 +53,7 @@ const buildReportContext = async (req) => {
         // So individual reports can require a permission
         // (finance reports need budget.read)
         permissions:
-            rolePermissions[req.user.role] || [],
+            req.user.permissions || rolePermissions[req.user.role] || [],
 
         user,
 
