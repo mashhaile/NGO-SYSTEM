@@ -963,25 +963,15 @@ LookupSchema.index({
 
         code: {
 
+            // a non-empty code ($gt "" instead of $ne "":
+            // Atlas does not accept $ne in a partial index)
             $type:
-                "string"
+                "string",
 
-        },
+            $gt:
+                ""
 
-        $and: [
-
-            {
-
-                code: {
-
-                    $ne:
-                        ""
-
-                }
-
-            }
-
-        ]
+        }
 
     }
 
