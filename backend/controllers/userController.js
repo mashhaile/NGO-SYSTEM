@@ -316,7 +316,11 @@ const createUserController = async (
                 customRole:
                     customRole ? customRole._id : null,
                 status:
-                    USER_STATUS.ACTIVE
+                    USER_STATUS.ACTIVE,
+                // the user chooses their own password at first
+                // sign-in (the admin only knows the first one)
+                mustChangePassword:
+                    req.body.mustChangePassword !== false
             });
 
 

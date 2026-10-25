@@ -255,7 +255,8 @@ const setupOrganization = async () => {
 
     const user = (name, email, role) =>
         step(`Admin creates user: ${name} (${role})`, () =>
-            api("POST", "/users", { token: ids.admin, body: { name, email, password: PASSWORD, role } }));
+            // shared demo logins keep the known password (not asked to choose their own)
+            api("POST", "/users", { token: ids.admin, body: { name, email, password: PASSWORD, role, mustChangePassword: false } }));
 
     await user("Mesfin Alemu", `data@${DOMAIN}`, "data_entry");
     await user("Hirut Bekele", `finance@${DOMAIN}`, "finance_officer");

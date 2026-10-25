@@ -13,7 +13,8 @@ const {
 } = require("../utils/password");
 
 const {
-    USER_STATUS
+    USER_STATUS,
+    ROLES
 } = require("../config/constants");
 
 const rolePermissions =
@@ -231,6 +232,13 @@ const login = async ({
 // CHANGE OWN PASSWORD
 // ==========================================
 //
+// Only when the account waits for the user's own password:
+// at first sign-in, or after an administrator reset it
+// (mustChangePassword). After that the organization admin
+// manages passwords (Reset password) if one is forgotten.
+// The platform super admin, whom nobody resets, may change
+// theirs at any time.
+//
 // Requires the current password. Ends the user's other
 // sessions (tokens issued before the change) and
 // returns a fresh token for this one.
@@ -252,6 +260,13 @@ const changePassword = async (
         throw new ApiError(
             "User not found",
             404
+        );
+    }
+
+    if (!user.mustChangePassword && user.role !== ROLES.SUPER_ADMIN) {
+        throw new ApiError(
+            "Your password is managed by your organization administrator. If you forget it, ask them to reset it.",
+            403
         );
     }
 

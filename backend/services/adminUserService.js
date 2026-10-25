@@ -144,7 +144,11 @@ const createUser = async (
             role,
 
             status:
-                USER_STATUS.ACTIVE
+                USER_STATUS.ACTIVE,
+
+            // the user chooses their own password at first sign-in
+            mustChangePassword:
+                data.mustChangePassword !== false
 
         });
 

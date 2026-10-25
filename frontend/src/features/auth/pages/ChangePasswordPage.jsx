@@ -83,6 +83,11 @@ const ChangePasswordPage = () => {
     const forced =
         Boolean(user?.mustChangePassword);
 
+    // the platform super admin (whom nobody resets) may
+    // change theirs at any time; others only when asked
+    const managed =
+        !forced && user?.role !== "super_admin";
+
     const [form, setForm] =
         useState({
             currentPassword: "",
@@ -237,8 +242,24 @@ const ChangePasswordPage = () => {
                             severity="warning"
                             sx={{ mb: 2 }}
                         >
-                            You signed in with a temporary password.
-                            Choose a new password to continue.
+                            You signed in with a password you were given.
+                            Choose your own password to continue: only you
+                            will know it. If you forget it later, your
+                            organization administrator can reset it.
+                        </Alert>
+
+                    )}
+
+                    {/* after the first sign-in the administrator manages passwords */}
+                    {managed && !done && (
+
+                        <Alert
+                            severity="info"
+                            sx={{ mb: 2 }}
+                        >
+                            Your password is managed by your organization
+                            administrator. If you forget it, ask them to
+                            reset it.
                         </Alert>
 
                     )}
@@ -266,13 +287,14 @@ const ChangePasswordPage = () => {
 
                     )}
 
+                    {!managed && (
                     <form onSubmit={handleSubmit}>
 
                         <Stack spacing={2}>
 
                             {passwordField(
                                 "currentPassword",
-                                forced ? "Temporary password" : "Current password",
+                                forced ? "Password you were given" : "Current password",
                                 "current-password"
                             )}
 
@@ -310,6 +332,7 @@ const ChangePasswordPage = () => {
                         </Stack>
 
                     </form>
+                    )}
 
                 </PageCard>
 

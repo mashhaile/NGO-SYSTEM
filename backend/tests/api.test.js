@@ -366,7 +366,7 @@ test("users: weak passwords are rejected on create", { skip }, async () => {
 
     const created = await api("POST", "/users", {
         token: state.tokenA,
-        body: { name: "Field Officer", email: "officer@test.local", password: "Officer2026x", role: "data_entry" }
+        body: { name: "Field Officer", email: "officer@test.local", password: "Officer2026x", role: "data_entry", mustChangePassword: false }
     });
 
     assert.ok(created.status < 300, created.data?.message);
@@ -544,7 +544,7 @@ test("budgets: finance officer approves; approved budgets are locked", { skip },
 
     const created = await api("POST", "/users", {
         token: state.tokenA,
-        body: { name: "Finance Officer", email: "finance@test.local", password: "Finance2026x", role: "finance_officer" }
+        body: { name: "Finance Officer", email: "finance@test.local", password: "Finance2026x", role: "finance_officer", mustChangePassword: false }
     });
     assert.ok(created.status < 300, created.data?.message);
 
@@ -864,14 +864,14 @@ test("free plan: 5 users (admin + 4), the 6th is refused", { skip }, async () =>
     for (let i = 1; i <= 4; i++) {
         const res = await api("POST", "/users", {
             token: state.tokenB,
-            body: { name: `Free User ${i}`, email: `free${i}@test.local`, password: "FreeUser2026x", role: i === 1 ? "finance_officer" : "data_entry" }
+            body: { name: `Free User ${i}`, email: `free${i}@test.local`, password: "FreeUser2026x", role: i === 1 ? "finance_officer" : "data_entry", mustChangePassword: false }
         });
         assert.ok(res.status < 300, `user ${i}: ${res.status} ${res.data?.message}`);
     }
 
     const sixth = await api("POST", "/users", {
         token: state.tokenB,
-        body: { name: "Free User 5", email: "free5@test.local", password: "FreeUser2026x", role: "viewer" }
+        body: { name: "Free User 5", email: "free5@test.local", password: "FreeUser2026x", role: "viewer", mustChangePassword: false }
     });
     assert.ok(sixth.status >= 400 && sixth.status < 500, `6th user: ${sixth.status}`);
 
@@ -2102,7 +2102,7 @@ test("custom roles: the admin makes a role; its users can do exactly what it all
     assert.equal((await api("POST", "/roles", { token, body: { name: "Platform", permissions: ["plan.update"] } })).status, 400);
 
     // a user with the role
-    const user = await api("POST", "/users", { token, body: { name: "Meron PM", email: "pm@test.local", password: "ProgMgr2026x", customRole: made.data.data._id } });
+    const user = await api("POST", "/users", { token, body: { name: "Meron PM", email: "pm@test.local", password: "ProgMgr2026x", customRole: made.data.data._id, mustChangePassword: false } });
     assert.ok(user.status < 300, user.data?.message);
     const login = (await api("POST", "/auth/login", { body: { email: "pm@test.local", password: "ProgMgr2026x" } })).data.data;
     assert.equal(login.user.roleName, "Program Manager");
@@ -2254,6 +2254,42 @@ test("search: regex characters do not break the query", { skip }, async () => {
 
     const literal = await api("GET", `/programs?search=${encodeURIComponent(".*")}`, { token: state.tokenA });
     assert.equal((literal.data.data || []).length, 0, "'.*' must not match everything");
+
+});
+
+
+// =====================================================
+// PASSWORDS: OWN AT FIRST SIGN-IN, THEN THE ADMIN MANAGES
+// =====================================================
+
+test("passwords: a new user chooses their own at first sign-in; after that only the admin resets it", { skip }, async () => {
+
+    const created = await api("POST", "/users", { token: state.tokenA, body: { name: "First Login", email: "firstlogin@test.local", password: "Given2026x", role: "viewer" } });
+    assert.ok(created.status < 300, created.data?.message);
+    const userId = created.data.data._id || created.data.data.id;
+
+    // first sign-in: asked to choose their own, nothing else works
+    const first = await login("firstlogin@test.local", "Given2026x");
+    assert.equal(first.data.data.user.mustChangePassword, true);
+    assert.equal((await api("GET", "/programs", { token: first.data.data.token })).data.code, "PASSWORD_CHANGE_REQUIRED");
+    const own = await api("POST", "/auth/change-password", { token: first.data.data.token, body: { currentPassword: "Given2026x", newPassword: "Mine2026x" } });
+    assert.equal(own.status, 200);
+
+    // after that: no changing it themselves
+    const again = await api("POST", "/auth/change-password", { token: own.data.data.token, body: { currentPassword: "Mine2026x", newPassword: "Other2026x" } });
+    assert.equal(again.status, 403);
+    assert.match(again.data.message, /organization administrator/);
+
+    // forgotten: the admin resets it, and the user chooses a new one again
+    const reset = await api("POST", `/users/${userId}/reset-password`, { token: state.tokenA });
+    assert.equal(reset.status, 200);
+    const afterReset = await login("firstlogin@test.local", reset.data.data.temporaryPassword);
+    assert.equal(afterReset.data.data.user.mustChangePassword, true);
+
+    // an admin cannot reset their own password
+    const me = (await api("GET", "/auth/me", { token: state.tokenA })).data.data;
+    const self = await api("POST", `/users/${me.id || me._id || me.user?.id}/reset-password`, { token: state.tokenA });
+    assert.equal(self.status, 400);
 
 });
 

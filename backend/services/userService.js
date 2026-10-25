@@ -303,7 +303,10 @@ const createOrganizationUser = async (
             customRole:
                 customRole ? customRole._id : null,
             status:
-                USER_STATUS.ACTIVE
+                USER_STATUS.ACTIVE,
+            // the user chooses their own password at first sign-in
+            mustChangePassword:
+                userData.mustChangePassword !== false
         });
 
 

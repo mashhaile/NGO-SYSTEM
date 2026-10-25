@@ -68,7 +68,7 @@ const assertNotSelf = (userId, actorUserId) => {
 
     if (String(userId) === String(actorUserId)) {
         throw new ApiError(
-            "Use Change Password to change your own password.",
+            "You cannot reset your own password. Ask another administrator of your organization (or the platform administrator) to reset it.",
             400
         );
     }

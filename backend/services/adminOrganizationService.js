@@ -492,7 +492,12 @@ const createOrganization = async (
                 ROLES.ORG_ADMIN,
 
             status:
-                USER_STATUS.ACTIVE
+                USER_STATUS.ACTIVE,
+
+            // the platform admin set this password: the
+            // organization admin chooses their own at first sign-in
+            mustChangePassword:
+                true
 
         });
 

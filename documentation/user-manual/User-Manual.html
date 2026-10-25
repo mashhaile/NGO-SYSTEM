@@ -155,7 +155,8 @@
     <ul>
         <li>A password needs <b>at least 8 characters</b>, with <b>letters and numbers</b>, and must not be your email address.</li>
         <li>After <b>5 wrong passwords</b> the account is locked for <b>15 minutes</b>. It unlocks by itself, or an administrator can reset the password.</li>
-        <li><b>Forgot your password?</b> Ask your organization administrator. They give you a temporary password, and the system asks you to choose your own password the next time you sign in.</li>
+        <li><b>First sign-in:</b> you sign in with the password your administrator gave you, and the system asks you to choose your own. Only you know it.</li>
+        <li><b>After that</b>, your organization administrator manages your password. <b>Forgot it?</b> Ask them to reset it: you get a temporary password and choose your own again at the next sign-in.</li>
     </ul>
 
     <h3>User types (roles)</h3>
@@ -646,12 +647,12 @@
     <div class="who">Organization Admin</div>
     <ol class="steps">
         <li>Go to <span class="menu">Administration › User Management</span> and click <b>Create User</b>.</li>
-        <li>Enter the <b>Full Name</b>, <b>Email</b> and <b>Role</b>, and a password that follows the rules in chapter 2.</li>
-        <li>Then use <b>Reset password</b> on the new user. The system makes a temporary password, and the user must choose their own at first sign-in, so only they know it.</li>
-        <li>Give the person their email and the temporary password.</li>
+        <li>Enter the <b>Full Name</b>, <b>Email</b> and <b>Role</b>, and a <b>First password</b> that follows the rules in chapter 2.</li>
+        <li>Give the person their email and that first password. At their first sign-in they must choose their own, so only they know it.</li>
     </ol>
     <ul>
-        <li><b>Reset a password:</b> the system creates a temporary password (use <b>Copy</b> to copy it). The user must choose a new password at their next sign-in.</li>
+        <li><b>A user forgot their password:</b> use <b>Reset password</b>. The system creates a temporary password (use <b>Copy</b> to copy it), and the user chooses a new one at their next sign-in. Users cannot change their password themselves after the first sign-in.</li>
+        <li><b>An administrator forgot theirs:</b> another administrator of the organization, or the platform administrator, resets it.</li>
         <li><b>Locked</b> users (too many wrong passwords) unlock after 15 minutes, or when you reset their password.</li>
         <li><b>Deactivate User</b> when someone leaves: they can no longer sign in, but their work stays in the records and history.</li>
     </ul>

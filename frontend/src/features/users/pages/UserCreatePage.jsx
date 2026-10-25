@@ -281,14 +281,14 @@ const UserCreatePage = () => {
                         {/* PASSWORD */}
 
                         <TextField
-                            label="Password"
+                            label="First password"
                             name="password"
                             type="password"
                             value={formData.password}
                             onChange={handleChange}
                             fullWidth
                             required
-                            helperText={PASSWORD_RULE_TEXT}
+                            helperText={`${PASSWORD_RULE_TEXT} Give it to the user: at first sign-in they choose their own. If they forget it later, use Reset password.`}
                         />
 
 
