@@ -2709,6 +2709,11 @@ const ServiceDeliveryItemRow = ({
                         ) ||
                         null;
 
+                    // another donation: its own received rate applies
+                    if (String(updatedItem.donation || "") !== String(existingItem.donation || "")) {
+                        updatedItem.donationRate = null;
+                    }
+
                 }
 
 
@@ -3498,12 +3503,31 @@ const ServiceDeliveryItemRow = ({
             item?.unitCost
         );
 
+    // An ETB item (cash, fees) paid from a donation in another
+    // currency: at this rate (1 USD = ? ETB), by default the rate
+    // the donation was received at
+    const donationCurrencyCode =
+        String(selectedDonationRecord?.currency || BASE_CURRENCY).toUpperCase();
+
+    const paidFromForeignDonation =
+        Boolean(selectedDonationRecord) &&
+        donationCurrencyCode !== BASE_CURRENCY &&
+        itemCurrency(item) === BASE_CURRENCY;
+
+    const donationRateValue =
+        Number(item?.donationRate) > 0
+            ? Number(item.donationRate)
+            : Number(selectedDonationRecord?.receivedRate) > 0
+                ? Number(selectedDonationRecord.receivedRate)
+                : 0;
+
     // What the item costs in its donation's currency (null: cannot compare)
     const itemCostInDonationCurrency = (() => {
         if (!selectedDonationRecord) return null;
-        const donationCurrency = String(selectedDonationRecord.currency || BASE_CURRENCY).toUpperCase();
+        const donationCurrency = donationCurrencyCode;
         if (donationCurrency === itemCurrency(item)) return itemTotalCost;
         if (donationCurrency === BASE_CURRENCY && Number(item?.exchangeRate) > 0) return itemTotalCost * Number(item.exchangeRate);
+        if (paidFromForeignDonation && donationRateValue > 0) return Math.round((itemTotalCost / donationRateValue) * 100) / 100;
         return null;
     })();
 
@@ -3891,6 +3915,28 @@ const ServiceDeliveryItemRow = ({
                 />
 
             </Box>
+
+            {/* ETB item paid from a foreign donation: its rate */}
+
+            {paidFromForeignDonation && (
+
+                <Box sx={{ mt: 1.5, maxWidth: 420 }}>
+                    <AppTextField
+                        label={`Exchange rate for this donation (1 ${donationCurrencyCode} = ? ETB)`}
+                        type="number"
+                        value={item?.donationRate ?? (Number(selectedDonationRecord?.receivedRate) > 0 ? selectedDonationRecord.receivedRate : "")}
+                        onChange={(event) => updateItem("donationRate", event?.target?.value ?? event)}
+                        inputProps={{ min: 0, step: "any" }}
+                        helperText={
+                            donationRateValue > 0
+                                ? `This item costs ETB ${formatAmount(itemTotalCost)}: ${donationCurrencyCode} ${formatAmount(itemCostInDonationCurrency)} is charged to the donation.${Number(item?.donationRate) > 0 ? "" : " Filled in with the rate the donation was received at."}`
+                                : `The donation is in ${donationCurrencyCode}: give the rate to charge it.`
+                        }
+                        fullWidth
+                    />
+                </Box>
+
+            )}
 
             {/* Donation trace: unlinked costs reach no donor. */}
 

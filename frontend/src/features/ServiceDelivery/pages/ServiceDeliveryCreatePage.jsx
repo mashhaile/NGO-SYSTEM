@@ -1418,6 +1418,9 @@ const ServiceDeliveryCreatePage = () => {
                                     item?.currency || "ETB",
                                 exchangeRate:
                                     item?.exchangeRate ?? null,
+                                // ETB item paid from a foreign donation
+                                donationRate:
+                                    Number(item?.donationRate) > 0 ? Number(item.donationRate) : null,
                                 paidByExpense:
                                     item?.paidByExpense
                                         ? String(item.paidByExpense?._id || item.paidByExpense)

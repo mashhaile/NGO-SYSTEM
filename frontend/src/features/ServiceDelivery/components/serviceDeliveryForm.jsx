@@ -2978,6 +2978,8 @@ const ServiceDeliveryForm = ({
                             item?.currency || "ETB",
                         exchangeRate:
                             item?.exchangeRate ?? null,
+                        donationRate:
+                            Number(item?.donationRate) > 0 ? Number(item.donationRate) : null,
                         // bought with this expense (not charged twice)
                         paidByExpense:
                             normalizeLookupValue(

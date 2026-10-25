@@ -1334,6 +1334,10 @@ const normalizeItems = (
                     ? null
                     : item?.exchangeRate ?? null;
 
+            // ETB item paid from a foreign donation
+            normalizedItem.donationRate =
+                Number(item?.donationRate) > 0 ? Number(item.donationRate) : null;
+
 
             // Bought with this expense (not charged twice)
             normalizedItem.paidByExpense =
@@ -1571,6 +1575,8 @@ const normalizeItemsForSubmit = (
                     item?.currency || "ETB",
                 exchangeRate:
                     item?.exchangeRate ?? null,
+                donationRate:
+                    Number(item?.donationRate) > 0 ? Number(item.donationRate) : null,
                 paidByExpense:
                     getId(
                         item?.paidByExpense

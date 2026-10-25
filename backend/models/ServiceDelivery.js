@@ -351,6 +351,16 @@ const serviceItemSchema = new mongoose.Schema(
         min: 0
     },
 
+    // An ETB item (cash, fees) paid from a donation in another
+    // currency: 1 unit of the donation's currency = donationRate
+    // ETB (by default the rate the donation was received at).
+    // The donation is charged totalCost / donationRate.
+    donationRate: {
+        type: Number,
+        default: null,
+        min: 0
+    },
+
     originalUnitCost: {
         type: Number,
         default: null

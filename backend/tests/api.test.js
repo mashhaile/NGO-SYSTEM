@@ -2259,6 +2259,43 @@ test("search: regex characters do not break the query", { skip }, async () => {
 
 
 // =====================================================
+// ETB CASH PAID FROM A FOREIGN DONATION
+// =====================================================
+
+test("service delivery: ETB cash paid from a USD donation is charged at the donation's rate", { skip }, async () => {
+
+    const { token, item, create, people } = await serviceDeliverySetup();
+    const donor = (await api("POST", "/donors", { token, body: { name: "Dollar Foundation", donorType: "Foundation" } })).data.data._id;
+    const usd = (await api("POST", "/donations", { token, body: { donor, title: "USD cash grant", amount: 1000, currency: "USD", status: "Received", donationDate: "2026-03-01", receivedRate: 150 } })).data.data._id;
+    const funding = async (id) => (await api("GET", `/donations/${id}`, { token })).data.data.funding;
+    const cash = (amount, extra = {}) => item("Cash Assistance", "ETB", 1, amount, { donor, donation: usd, ...extra });
+
+    // ETB 15,000 at the received rate (150) = USD 100
+    const first = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(15000)], beneficiaries: people });
+    assert.ok(first.status < 300, first.data?.message);
+    assert.equal(first.data.data.items[0].donationRate, 150);
+    assert.equal((await funding(usd)).byDeliveries, 100);
+
+    // a rate given on the item: ETB 10,000 at 100 = USD 100
+    const second = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(10000, { donationRate: 100 })], beneficiaries: people });
+    assert.ok(second.status < 300, second.data?.message);
+    assert.equal((await funding(usd)).byDeliveries, 200);
+
+    // more than is left (USD 800): refused in USD
+    const tooMuch = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(150000)], beneficiaries: people });
+    assert.equal(tooMuch.status, 400);
+    assert.match(tooMuch.data.message, /has USD 800\.00 left/);
+
+    // a USD pledge has no rate yet: the item must give one
+    const pledge = (await api("POST", "/donations", { token, body: { donor, title: "USD pledge", amount: 500, currency: "USD", status: "Pledged", donationDate: "2026-03-01" } })).data.data._id;
+    const noRate = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [cash(1500, { donation: pledge })], beneficiaries: people });
+    assert.equal(noRate.status, 400);
+    assert.match(noRate.data.message, /give the exchange rate \(1 USD = \? ETB\)/);
+
+});
+
+
+// =====================================================
 // PASSWORDS: OWN AT FIRST SIGN-IN, THEN THE ADMIN MANAGES
 // =====================================================
 

@@ -709,6 +709,9 @@ const calculateItems = (
                     ),
                 currency,
                 exchangeRate,
+                // an ETB item on a foreign donation (see the model)
+                donationRate:
+                    normalizeNumber(item?.donationRate, 0) > 0 ? normalizeNumber(item?.donationRate, 0) : null,
                 originalUnitCost:
                     currency === "ETB" ? null : enteredUnitCost,
                 originalTotal:
@@ -1624,12 +1627,30 @@ const validateDonationBalances = async (
 
         const donation =
             await Donation.findOne({ _id: donationId, organization: organizationId, isDeleted: false })
-                .select("currency")
+                .select("currency receivedRate donationCode title")
                 .lean();
 
         if (!donation) continue;
 
         const currency = String(donation.currency || donationFunding.BASE_CURRENCY).toUpperCase();
+
+        // ETB items (cash, fees) paid from a donation in another
+        // currency: at the item's rate, or the rate the donation
+        // was received at (kept on the item)
+        if (currency !== donationFunding.BASE_CURRENCY) {
+            for (const item of chargedItems) {
+                if (String(item.currency || donationFunding.BASE_CURRENCY).toUpperCase() !== donationFunding.BASE_CURRENCY) continue;
+                if (Number(item.donationRate) > 0) continue;
+                if (Number(donation.receivedRate) > 0) {
+                    item.donationRate = Number(donation.receivedRate);
+                    continue;
+                }
+                throw new ApiError(
+                    `${donationFunding.label(donation)} is in ${currency} and this item in ETB: give the exchange rate (1 ${currency} = ? ETB), or record the rate the donation was received at.`,
+                    400
+                );
+            }
+        }
         const use = await donationFunding.donationUse(donationId, organizationId, { excludeDeliveryId });
         const toCharge = chargedItems.filter(item => !(item.paidByExpense && use.paidExpenses.has(String(item.paidByExpense))));
         if (!toCharge.length) {
@@ -5321,6 +5342,8 @@ const updateServiceDelivery = async (
                     item.currency || "ETB",
                 exchangeRate:
                     item.exchangeRate ?? 1,
+                donationRate:
+                    Number(item.donationRate) > 0 ? Number(item.donationRate) : null,
                 originalUnitCost:
                     item.originalUnitCost ?? null,
                 originalTotal:

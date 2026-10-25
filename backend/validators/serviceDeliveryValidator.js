@@ -271,6 +271,13 @@ const serviceItemSchema =
             Joi.number().greater(0).allow(null)
                 .messages({ "number.greater": "The exchange rate must be more than 0." }),
 
+        // an ETB item paid from a donation in another currency:
+        // 1 unit of the donation's currency = ? ETB
+        donationRate:
+            Joi.number().greater(0).allow(null, "")
+                .empty("")
+                .messages({ "number.greater": "The donation's exchange rate must be more than 0." }),
+
 
 
         // --------------------------------------------------

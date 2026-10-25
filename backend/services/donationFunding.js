@@ -121,6 +121,11 @@ const itemInCurrency = (item, currency) => {
             : toNumber(item.originalTotal ?? toNumber(item.quantity) * toNumber(item.originalUnitCost));
     }
     if (currency === BASE_CURRENCY) return toNumber(item.totalCost);
+    // an ETB item (cash, fees) paid from a foreign donation, at
+    // its rate (1 unit of the donation's currency = donationRate ETB)
+    if (original === BASE_CURRENCY && toNumber(item.donationRate) > 0) {
+        return roundMoney(toNumber(item.totalCost) / toNumber(item.donationRate));
+    }
     return null;
 };
 
