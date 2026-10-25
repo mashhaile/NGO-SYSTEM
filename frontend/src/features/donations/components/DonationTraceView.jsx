@@ -137,6 +137,16 @@ const DonationTraceView = ({
     const currency =
         totals.currency;
 
+    // a donation in another currency: ETB shown alongside
+    const etb =
+        currency !== "ETB" ? totals.etb : null;
+
+    const inEtb = (value) =>
+        value === null || value === undefined ? "-" : formatMoney(value, "ETB");
+
+    const etbColumn =
+        etb ? [{ key: "amountEtb", label: "In ETB", align: "right", render: row => inEtb(row.amountEtb) }] : [];
+
 
     return (
         <>
@@ -164,7 +174,11 @@ const DonationTraceView = ({
                     <Tile
                         label="Received"
                         value={formatMoney(totals.received, currency)}
-                        hint={totals.pledged ? `Pledged: ${formatMoney(totals.pledged, currency)}` : donation.status}
+                        hint={
+                            etb?.received
+                                ? `= ${inEtb(etb.received)} at 1 ${currency} = ETB ${etb.rate}`
+                                : totals.pledged ? `Pledged: ${formatMoney(totals.pledged, currency)}` : donation.status
+                        }
                     />
                 </Grid>
 
@@ -172,7 +186,7 @@ const DonationTraceView = ({
                     <Tile
                         label="Used so far"
                         value={formatMoney(totals.used, currency)}
-                        hint={`${totals.percentUsed}% of received`}
+                        hint={etb ? `= ${inEtb(etb.used)} when given · ${totals.percentUsed}% of received` : `${totals.percentUsed}% of received`}
                     />
                 </Grid>
 
@@ -180,7 +194,11 @@ const DonationTraceView = ({
                     <Tile
                         label="Remaining"
                         value={formatMoney(totals.remaining, currency)}
-                        hint={totals.overspent ? `Overspent by ${formatMoney(totals.overspent, currency)}` : " "}
+                        hint={
+                            totals.overspent
+                                ? `Overspent by ${formatMoney(totals.overspent, currency)}`
+                                : etb?.remaining !== null && etb?.remaining !== undefined ? `= ${inEtb(etb.remaining)} at the received rate` : " "
+                        }
                     />
                 </Grid>
 
@@ -249,7 +267,8 @@ const DonationTraceView = ({
                             { key: "service", label: "Service" },
                             { key: "quantity", label: "Quantity", align: "right", render: row => (row.quantity === row.amount && row.amount > 0 && /^(ETB|USD|EUR|BIRR)$/i.test(String(row.unit || "")) ? "—" : `${Number(row.quantity).toLocaleString("en-US")} ${row.unit}`.trim()) },
                             { key: "deliveries", label: "Deliveries", align: "right" },
-                            { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) }
+                            { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) },
+                            ...etbColumn
                         ]}
                     />
                 </FormSection>
@@ -269,7 +288,8 @@ const DonationTraceView = ({
                             columns={[
                                 { key: "location", label: "Location" },
                                 { key: "deliveries", label: "Deliveries", align: "right" },
-                                { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) }
+                                { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) },
+                                ...etbColumn
                             ]}
                         />
 
@@ -280,7 +300,8 @@ const DonationTraceView = ({
                             columns={[
                                 { key: "project", label: "Project", render: row => nameOf(row.project) },
                                 { key: "deliveries", label: "Deliveries", align: "right" },
-                                { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) }
+                                { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) },
+                                ...etbColumn
                             ]}
                         />
 
@@ -338,7 +359,8 @@ const DonationTraceView = ({
                             { key: "services", label: "Services", render: row => row.services.map(s => s.service).join(", ") },
                             { key: "location", label: "Location", render: row => row.location || "-" },
                             { key: "beneficiaries", label: "Reached", align: "right", render: reachedCell },
-                            { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) }
+                            { key: "amount", label: "Amount", align: "right", render: row => formatMoney(row.amount, currency) },
+                            ...etbColumn
                         ]}
                     />
                 </FormSection>

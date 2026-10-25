@@ -34,6 +34,10 @@ import {
     AppButton
 } from "../../../components/ui";
 
+import useEnterpriseDates from "../hooks/useEnterpriseDates";
+
+import { dayOf, rangeHint } from "../../../utils/date";
+
 
 import {
     createEnterpriseMemberThunk
@@ -66,6 +70,10 @@ const EnterpriseMemberCreatePage = () => {
     const {
         enterpriseId
     } = useParams();
+
+    // a membership is dated inside its enterprise
+    const enterpriseDates =
+        useEnterpriseDates(enterpriseId);
 
 
     // =================================================
@@ -454,6 +462,12 @@ const EnterpriseMemberCreatePage = () => {
                             label="Joined Date"
 
                             name="joinedDate"
+
+                            helperText={rangeHint("enterprise", enterpriseDates.startDate, enterpriseDates.endDate)}
+
+                            minDate={dayOf(enterpriseDates.startDate)}
+
+                            maxDate={dayOf(enterpriseDates.endDate)}
 
                             value={
                                 form.joinedDate ||

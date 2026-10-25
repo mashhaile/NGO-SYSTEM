@@ -234,7 +234,7 @@ const getActivityRunLookup = async (
     })
 
         .select(
-            "_id runCode name activity"
+            "_id runCode name activity project startDate endDate"
         )
 
         .sort({

@@ -1,5 +1,5 @@
 import { WORK_STATUS_OPTIONS, WORK_STATUS_HELP } from "../../../constants/workStatus";
-import { formatDate } from "../../../utils/date";
+import { dayOf, formatDate, rangeHint } from "../../../utils/date";
 import {
     useEffect,
     useState
@@ -720,6 +720,19 @@ const ProjectForm = ({
     const selectedMainProject =
         mainProjects.find(project => getEntityId(project) === form.parentProject) || null;
 
+    // the dates the project must fall in: its main project's
+    // (a phase) or its program's, shown under the date fields
+    const datesParent =
+        selectedMainProject
+            ? { what: "main project", start: selectedMainProject.startDate, end: selectedMainProject.endDate }
+            : (() => {
+                const program = programs.find(item => getEntityId(item) === form.program);
+                return program ? { what: "program", start: program.startDate, end: program.endDate } : null;
+            })();
+
+    const datesHint =
+        datesParent ? rangeHint(datesParent.what, datesParent.start, datesParent.end) : "";
+
     const mainProjectOptions = [
         { value: "", label: "Not a phase (a project on its own)" },
         ...mainProjects
@@ -1028,6 +1041,9 @@ const ProjectForm = ({
                             label="Start Date"
                             required
                             name="startDate"
+                            helperText={datesHint}
+                            minDate={dayOf(datesParent?.start)}
+                            maxDate={dayOf(datesParent?.end)}
                             value={
                                 form.startDate
                             }
@@ -1050,6 +1066,9 @@ const ProjectForm = ({
                             label="End Date"
                             required
                             name="endDate"
+                            helperText={datesHint}
+                            minDate={dayOf(datesParent?.start)}
+                            maxDate={dayOf(datesParent?.end)}
                             value={
                                 form.endDate
                             }

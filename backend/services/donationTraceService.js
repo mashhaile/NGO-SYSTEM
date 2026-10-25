@@ -91,10 +91,36 @@ const isMoneyUnit = (unit) => {
     return [unit?.code, unit?.value].some(code => code && getUnitSemantics(code) === "monetary");
 };
 
+// money items: the amount given, in the item's own currency
 const shownQuantity = (item) =>
     isMoneyUnit(item.unit)
-        ? toNumber(item.totalCost)
+        ? (String(item.currency || "ETB").toUpperCase() !== "ETB" && item.originalTotal != null
+            ? toNumber(item.originalTotal)
+            : toNumber(item.totalCost))
         : toNumber(item.quantity);
+
+
+const roundedTotals = (map) =>
+    Array.from(map.values()).map(row => ({
+        ...row,
+        amount: roundMoney(row.amount),
+        amountEtb: roundMoney(row.amountEtb),
+        ...(row.quantity !== undefined ? { quantity: Math.round(toNumber(row.quantity) * 1000) / 1000 } : {})
+    }));
+
+
+// What an item used of the donation, in the donation's own
+// currency (a USD donation: the item's USD amount), and in
+// ETB (what it was worth when given: totalCost). An ETB item
+// on a foreign donation (older records) is converted at the
+// rate the donation was received at.
+const valueInDonation = (item, donation) => {
+    const currency = String(donation.currency || "ETB").toUpperCase();
+    const value = require("./donationFunding").itemInCurrency(item, currency);
+    if (value !== null && value !== undefined) return toNumber(value);
+    const rate = toNumber(donation.receivedRate);
+    return rate > 0 ? toNumber(item.totalCost) / rate : toNumber(item.totalCost);
+};
 
 
 const fullName = (person) =>
@@ -231,6 +257,9 @@ const traceDonation = async (
 
     let used = 0;
 
+    // the same in ETB, at the rates when given
+    let usedEtb = 0;
+
     const deliveryRows = [];
 
     const serviceTypeTotals = new Map();
@@ -259,14 +288,22 @@ const traceDonation = async (
 
         let deliveryAmount = 0;
 
+        let deliveryEtb = 0;
+
         fundedItems.forEach(item => {
 
             fundedItemIds.add(toId(item._id));
 
+            // in the donation's currency; ETB alongside
             const cost =
+                valueInDonation(item, donation);
+
+            const costEtb =
                 toNumber(item.totalCost);
 
             deliveryAmount += cost;
+
+            deliveryEtb += costEtb;
 
             const typeName =
                 item.serviceType?.value || "Service";
@@ -283,11 +320,13 @@ const traceDonation = async (
                     unit: unitName,
                     quantity: 0,
                     amount: 0,
+                    amountEtb: 0,
                     deliveries: 0
                 };
 
             current.quantity += shownQuantity(item);
             current.amount += cost;
+            current.amountEtb += costEtb;
             current.deliveries += 1;
 
             serviceTypeTotals.set(key, current);
@@ -295,6 +334,8 @@ const traceDonation = async (
         });
 
         used += deliveryAmount;
+
+        usedEtb += deliveryEtb;
 
         const addTo = (map, key, label) => {
 
@@ -306,10 +347,12 @@ const traceDonation = async (
                 map.get(key) || {
                     ...label,
                     amount: 0,
+                    amountEtb: 0,
                     deliveries: 0
                 };
 
             current.amount += deliveryAmount;
+            current.amountEtb += deliveryEtb;
             current.deliveries += 1;
 
             map.set(key, current);
@@ -353,12 +396,15 @@ const traceDonation = async (
             allocationMethod: delivery.allocationMethod,
             location: place,
             amount: roundMoney(deliveryAmount),
+            amountEtb: roundMoney(deliveryEtb),
             services:
                 fundedItems.map(item => ({
                     service: item.serviceType?.value || "Service",
                     quantity: shownQuantity(item),
                     unit: item.unit?.value || "",
-                    amount: roundMoney(item.totalCost)
+                    currency: String(item.currency || "ETB").toUpperCase(),
+                    amount: roundMoney(valueInDonation(item, donation)),
+                    amountEtb: roundMoney(item.totalCost)
                 })),
             beneficiaries: 0
         });
@@ -618,6 +664,20 @@ const traceDonation = async (
         groupsReached: groupRecipients.length
     };
 
+    // a donation in another currency: the same in ETB
+    // (received and remaining at the rate it was received at;
+    // used at the rates when each item was given)
+    if (String(totals.currency).toUpperCase() !== "ETB") {
+        const rate = toNumber(donation.receivedRate);
+        totals.etb = {
+            rate: rate > 0 ? rate : null,
+            rateDate: donation.receivedRateDate || null,
+            received: rate > 0 ? roundMoney(received * rate) : null,
+            used: roundMoney(usedEtb),
+            remaining: rate > 0 ? roundMoney(totals.remaining * rate) : null
+        };
+    }
+
 
     // ---------------- Timeline ----------------------
 
@@ -677,10 +737,10 @@ const traceDonation = async (
         totals,
 
         breakdown: {
-            byProject: Array.from(projectTotals.values()),
-            byActivity: Array.from(activityTotals.values()),
-            byService: Array.from(serviceTypeTotals.values()),
-            byLocation: Array.from(locationTotals.values())
+            byProject: roundedTotals(projectTotals),
+            byActivity: roundedTotals(activityTotals),
+            byService: roundedTotals(serviceTypeTotals),
+            byLocation: roundedTotals(locationTotals)
         },
 
         reach: {

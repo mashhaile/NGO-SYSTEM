@@ -56,6 +56,8 @@ import LocationCascadeFields
 import TorBudgetLines
     from "./TorBudgetLines";
 
+import { dayOf, rangeHint } from "../../../utils/date";
+
 
 
 // =====================================================
@@ -751,16 +753,20 @@ const TorForm = ({
                         <AppDatePicker
                             label="Start Date"
                             value={form.startDate || null}
-                            maxDate={form.endDate || undefined}
+                            minDate={dayOf(selectedProject?.startDate)}
+                            maxDate={form.endDate || dayOf(selectedProject?.endDate)}
+                            // a TOR is dated inside its project
+                            helperText={rangeHint("project", selectedProject?.startDate, selectedProject?.endDate)}
                             onChange={dateChange("startDate")}
                         />
 
                         <AppDatePicker
                             label="End Date"
                             value={form.endDate || null}
-                            minDate={form.startDate || undefined}
+                            minDate={form.startDate || dayOf(selectedProject?.startDate)}
+                            maxDate={dayOf(selectedProject?.endDate)}
                             error={Boolean(errors.endDate)}
-                            helperText={errors.endDate || ""}
+                            helperText={errors.endDate || rangeHint("project", selectedProject?.startDate, selectedProject?.endDate)}
                             onChange={dateChange("endDate")}
                         />
 

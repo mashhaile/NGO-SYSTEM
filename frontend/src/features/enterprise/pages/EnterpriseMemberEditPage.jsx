@@ -33,6 +33,10 @@ import {
     AppButton
 } from "../../../components/ui";
 
+import useEnterpriseDates from "../hooks/useEnterpriseDates";
+
+import { dayOf, rangeHint } from "../../../utils/date";
+
 
 import {
     getEnterpriseMemberByIdThunk,
@@ -111,6 +115,15 @@ const EnterpriseMemberEditPage = () => {
             state.enterpriseMembers || {}
 
     );
+
+
+    // a membership is dated inside its enterprise (from the
+    // address, or the member's own enterprise)
+    const enterpriseDates =
+        useEnterpriseDates(
+            enterpriseId ||
+            (typeof selectedMember?.enterprise === "object" ? selectedMember?.enterprise?._id : selectedMember?.enterprise)
+        );
 
 
     // =====================================================
@@ -665,6 +678,12 @@ const EnterpriseMemberEditPage = () => {
 
                             name="joinedDate"
 
+                            helperText={rangeHint("enterprise", enterpriseDates.startDate, enterpriseDates.endDate)}
+
+                            minDate={dayOf(enterpriseDates.startDate)}
+
+                            maxDate={dayOf(enterpriseDates.endDate)}
+
                             value={
                                 form.joinedDate ||
                                 null
@@ -702,6 +721,12 @@ const EnterpriseMemberEditPage = () => {
                             label="Left Date"
 
                             name="leftDate"
+
+                            helperText={rangeHint("enterprise", enterpriseDates.startDate, enterpriseDates.endDate)}
+
+                            minDate={dayOf(enterpriseDates.startDate)}
+
+                            maxDate={dayOf(enterpriseDates.endDate)}
 
                             value={
                                 form.leftDate ||

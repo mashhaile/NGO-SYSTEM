@@ -1085,6 +1085,13 @@ const getEnterpriseLookup = async (
                 1,
 
             status:
+                1,
+
+            // forms show the dates a membership must fall in
+            startDate:
+                1,
+
+            endDate:
                 1
 
         }

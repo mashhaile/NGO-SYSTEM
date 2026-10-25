@@ -34,6 +34,8 @@ import LocationCascadeFields
 import ServiceDeliveryAllocations
     from "./serviceDeliveryAllocations";
 
+import { dayOf, rangeHint } from "../../../utils/date";
+
 
 // =====================================================
 // OBJECT ID DETECTION
@@ -1627,6 +1629,14 @@ const ServiceDeliveryForm = ({
                 programs
             ]
         );
+
+
+    // a delivery under a project is dated inside it: its
+    // dates are shown under the delivery date
+    const projectForDates =
+        projectValue
+            ? (Array.isArray(projects) ? projects : []).find(project => String(project?._id || project?.id) === String(projectValue)) || null
+            : null;
 
 
     // =================================================
@@ -3577,6 +3587,12 @@ const ServiceDeliveryForm = ({
                             label="Service Delivery Date"
 
                             required
+
+                            helperText={rangeHint("project", projectForDates?.startDate, projectForDates?.endDate)}
+
+                            minDate={dayOf(projectForDates?.startDate)}
+
+                            maxDate={dayOf(projectForDates?.endDate)}
 
                             value={
                                 formData?.deliveryDate ||

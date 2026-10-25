@@ -588,7 +588,7 @@ const getProgramsLookup = async (
 
         })
             .select(
-                "_id programCode name"
+                "_id programCode name startDate endDate"
             )
             .sort({
                 createdAt: -1

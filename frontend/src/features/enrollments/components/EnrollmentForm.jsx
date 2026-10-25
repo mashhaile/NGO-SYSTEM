@@ -21,6 +21,8 @@ import {
     getBeneficiariesLookupService
 } from "../services/lookupService";
 
+import { dayOf, rangeHint } from "../../../utils/date";
+
 const initialState = {
     program: null,
     beneficiary: null,
@@ -137,6 +139,12 @@ const EnrollmentForm = ({
 
     };
 
+
+    // the chosen program, with its dates (from the program list)
+    const programForDates =
+        programs.find(item => item._id === (formData.program?._id || formData.program)) ||
+        (typeof formData.program === "object" ? formData.program : null);
+
     return (
         <Box
             component="form"
@@ -243,6 +251,10 @@ const EnrollmentForm = ({
 
                     <AppDatePicker
                         label="Enrollment Date"
+                        // an enrollment is dated inside its program
+                        helperText={rangeHint("program", programForDates?.startDate, programForDates?.endDate)}
+                        minDate={dayOf(programForDates?.startDate)}
+                        maxDate={dayOf(programForDates?.endDate)}
                         value={formData.enrollmentDate || null}
                         onChange={(date) =>
                             changeField(

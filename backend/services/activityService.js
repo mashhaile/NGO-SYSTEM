@@ -812,6 +812,21 @@ const getActivityLookup = async (
             name:
                 1
 
+        })
+
+        .lean()
+
+        // the project's dates, for the date fields of runs
+        .then(async (activities) => {
+            const projects = await Project.find({ _id: { $in: [...new Set(activities.map(item => String(item.project)).filter(Boolean))] } })
+                .select("startDate endDate")
+                .lean();
+            const dates = new Map(projects.map(project => [String(project._id), project]));
+            return activities.map(item => ({
+                ...item,
+                projectStartDate: dates.get(String(item.project))?.startDate || null,
+                projectEndDate: dates.get(String(item.project))?.endDate || null
+            }));
         });
 
 };

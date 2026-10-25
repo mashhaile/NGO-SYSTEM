@@ -23,6 +23,8 @@ import {
 
 import AppDatePicker from "../../../components/ui/AppDatePicker";
 
+import { dayOf, rangeHint } from "../../../utils/date";
+
 const initialState = {
 
     activityRun: null,
@@ -136,6 +138,11 @@ const AttendanceForm = ({
         });
 
     };
+
+    // the chosen run, with its dates (from the run list)
+    const runForDates =
+        activityRuns.find(run => run._id === (formData.activityRun?._id || formData.activityRun)) ||
+        (typeof formData.activityRun === "object" ? formData.activityRun : null);
 
     return (
         <Box
@@ -305,6 +312,13 @@ const AttendanceForm = ({
                         required
 
                         label="Session Date"
+
+                        // a session is dated inside its activity run
+                        helperText={rangeHint("activity run", runForDates?.startDate, runForDates?.endDate)}
+
+                        minDate={dayOf(runForDates?.startDate)}
+
+                        maxDate={dayOf(runForDates?.endDate)}
 
                         value={formData.sessionDate || null}
 

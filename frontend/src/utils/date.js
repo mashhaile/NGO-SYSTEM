@@ -45,6 +45,23 @@ export const formatDateTime = (value, fallback = "-") => {
 };
 
 
+// The dates a record must fall in, shown under its date field:
+// rangeHint("program", start, end) -> "The program runs 01/01/2026 – 31/12/2026."
+export const rangeHint = (what, start, end) => {
+    if (!start && !end) return "";
+    return `The ${what} runs ${start ? formatDate(start) : "…"} – ${end ? formatDate(end) : "no end date"}.`;
+};
+
+// "YYYY-MM-DD" of a stored date (for minDate / maxDate)
+export const dayOf = (value) => {
+    const date = toDate(value);
+    if (!date) return undefined;
+    return isCalendarDay(value, date)
+        ? date.toISOString().slice(0, 10)
+        : `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`;
+};
+
+
 // "just now", "5 min ago", "3 h ago", "yesterday", then the date
 export const timeAgo = (value) => {
     const date = toDate(value);

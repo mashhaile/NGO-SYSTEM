@@ -37,6 +37,8 @@ import {
 import LocationCascadeFields
     from "../../locations/components/LocationCascadeFields";
 
+import { dayOf, rangeHint } from "../../../utils/date";
+
 
 
 // =====================================================
@@ -340,6 +342,11 @@ const ActivityRunForm = ({
                 item._id === getId(formData.activity)
         ) || null;
 
+    // a run is dated inside its project: the range under the dates
+    const projectStart = selectedActivity?.projectStartDate;
+    const projectEnd = selectedActivity?.projectEndDate;
+    const datesHint = rangeHint("project", projectStart, projectEnd);
+
 
 
     // =================================================
@@ -444,11 +451,12 @@ const ActivityRunForm = ({
                             value={
                                 formData.startDate || null
                             }
+                            minDate={dayOf(projectStart)}
                             maxDate={
-                                formData.endDate || undefined
+                                formData.endDate || dayOf(projectEnd)
                             }
                             error={Boolean(errors.startDate)}
-                            helperText={errors.startDate}
+                            helperText={errors.startDate || datesHint}
                             onChange={changeDate("startDate")}
                         />
 
@@ -459,10 +467,11 @@ const ActivityRunForm = ({
                                 formData.endDate || null
                             }
                             minDate={
-                                formData.startDate || undefined
+                                formData.startDate || dayOf(projectStart)
                             }
+                            maxDate={dayOf(projectEnd)}
                             error={Boolean(errors.endDate)}
-                            helperText={errors.endDate}
+                            helperText={errors.endDate || datesHint}
                             onChange={changeDate("endDate")}
                         />
 

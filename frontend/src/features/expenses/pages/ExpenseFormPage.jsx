@@ -356,10 +356,15 @@ const ExpenseFormPage = () => {
                             required
                             value={form.expenseDate || null}
                             onChange={(date) => change({ expenseDate: date ? date.format("YYYY-MM-DD") : "" })}
+                            // inside the budget's period, and not in the future
+                            minDate={budget ? `${budget.startYear}-01-01` : undefined}
+                            maxDate={budget && `${budget.endYear}-12-31` < today() ? `${budget.endYear}-12-31` : today()}
                             helperText={
                                 budget && !inPeriod
                                     ? `${fiscalYearLabel(fiscalYear)} is outside this budget (${fiscalYearLabel(budget.startYear)}–${fiscalYearLabel(budget.endYear)})`
-                                    : `Charged to ${fiscalYearLabel(fiscalYear)}`
+                                    : budget
+                                        ? `The budget runs 01/01/${budget.startYear} – 31/12/${budget.endYear}. Charged to ${fiscalYearLabel(fiscalYear)}.`
+                                        : `Charged to ${fiscalYearLabel(fiscalYear)}`
                             }
                             error={Boolean(budget && !inPeriod)}
                         />
