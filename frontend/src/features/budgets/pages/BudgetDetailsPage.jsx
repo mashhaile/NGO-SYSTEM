@@ -486,6 +486,17 @@ const BudgetDetailsPage = () => {
                                             {summary.programBudget.budgetCode}
                                         </Link>
                                     </Typography>
+                                    {/* the program budget in its own currency; what is
+                                        available converted at this budget's rate */}
+                                    {summary.programBudget.currency !== currency && summary.programBudget.exchangeRate > 0 && (
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                            The program budget is in {summary.programBudget.currency}. Available for this project is converted at{" "}
+                                            {currency === "ETB"
+                                                ? `1 ${summary.programBudget.currency} = ${Number((1 / summary.programBudget.exchangeRate).toPrecision(8)).toLocaleString()} ${currency}`
+                                                : `1 ${currency} = ${Number(Number(summary.programBudget.exchangeRate).toPrecision(8)).toLocaleString()} ${summary.programBudget.currency}`}
+                                            {summary.programBudget.exchangeRateDate ? ` (rate of ${new Date(summary.programBudget.exchangeRateDate).toLocaleDateString()})` : ""}.
+                                        </Typography>
+                                    )}
                                     <TableContainer sx={tableSx}>
                                         <Table size="small">
                                             <TableHead>
@@ -503,8 +514,8 @@ const BudgetDetailsPage = () => {
                                                     return (
                                                         <TableRow key={item.fiscalYear}>
                                                             <TableCell>{fiscalYearLabel(item.fiscalYear)}</TableCell>
-                                                            <TableCell align="right" sx={nowrap}>{formatMoney(item.amount, currency)}</TableCell>
-                                                            <TableCell align="right" sx={nowrap}>{formatMoney(item.usedByOtherProjects, currency)}</TableCell>
+                                                            <TableCell align="right" sx={nowrap}>{formatMoney(item.amount, summary.programBudget.currency)}</TableCell>
+                                                            <TableCell align="right" sx={nowrap}>{formatMoney(item.usedByOtherProjects, summary.programBudget.currency)}</TableCell>
                                                             <TableCell align="right" sx={nowrap}>{formatMoney(item.availableForThisProject, currency)}</TableCell>
                                                             <TableCell
                                                                 align="right"
