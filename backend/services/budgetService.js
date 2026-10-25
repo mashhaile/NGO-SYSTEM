@@ -323,11 +323,26 @@ const rateToProgram = (projectBudget, programCurrency) =>
             ? Number(projectBudget.programExchangeRate.rate)
             : null;
 
-const missingRate = (projectBudget, programCurrency) =>
-    new ApiError(
-        `Project budget ${projectBudget.budgetCode || ""} is in ${projectBudget.currency} and the program budget in ${programCurrency}: give the exchange rate (1 ${projectBudget.currency} = ? ${programCurrency}) and its date.`.replace("  ", " "),
+// a rate as people quote it: "1 USD = 188 ETB" (rate is what
+// 1 unit of the budget's currency is worth in the program's)
+const quotedRate = (budgetCurrency, programCurrency, rate) => {
+    const inverted = budgetCurrency === "ETB" && programCurrency !== "ETB";
+    const value = Number((inverted ? 1 / rate : rate).toPrecision(8));
+    return inverted
+        ? `1 ${programCurrency} = ${value.toLocaleString("en-US")} ${budgetCurrency}`
+        : `1 ${budgetCurrency} = ${value.toLocaleString("en-US")} ${programCurrency}`;
+};
+
+// asked the way rates are quoted: 1 unit of the foreign
+// currency in ETB (the form converts it to rateToProgram)
+const missingRate = (projectBudget, programCurrency) => {
+    const base = projectBudget.currency === "ETB" && programCurrency !== "ETB" ? programCurrency : projectBudget.currency;
+    const quote = base === projectBudget.currency ? programCurrency : projectBudget.currency;
+    return new ApiError(
+        `Project budget ${projectBudget.budgetCode || ""} is in ${projectBudget.currency} and the program budget in ${programCurrency}: give the exchange rate (1 ${base} = ? ${quote}) and its date.`.replace("  ", " "),
         400
     );
+};
 
 // Per fiscal year, what project budgets use of the program
 // budget, in the program budget's currency
@@ -422,7 +437,7 @@ const assertWithinProgram = async (budget) => {
 
         if (needed > available) {
             throw new ApiError(
-                `${fiscalYearLabel(item.fiscalYear)}: this budget needs ${money(item.amount, budget.currency)}${rate !== 1 ? ` (${money(needed, programBudget.currency)} at ${rate})` : ""}, but only ${money(Math.max(0, available), programBudget.currency)} of the program budget is unallocated.`,
+                `${fiscalYearLabel(item.fiscalYear)}: this budget needs ${money(item.amount, budget.currency)}${rate !== 1 ? ` (${money(needed, programBudget.currency)} at ${quotedRate(budget.currency, programBudget.currency, rate)})` : ""}, but only ${money(Math.max(0, available), programBudget.currency)} of the program budget is unallocated.`,
                 400
             );
         }

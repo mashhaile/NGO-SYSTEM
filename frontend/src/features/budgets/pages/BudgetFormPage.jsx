@@ -106,6 +106,25 @@ const toNumber = (value) => {
     return Number.isFinite(number) ? number : 0;
 };
 
+// The rate is asked the way people quote it: 1 unit of the
+// foreign currency in ETB ("1 USD = 188 ETB"), whichever of
+// the two budgets is in ETB. It is stored as before: what 1
+// unit of this budget's currency is worth in the program
+// budget's currency.
+const rateQuote = (budgetCurrency, programCurrency) => {
+    const base =
+        budgetCurrency === "ETB" && programCurrency !== "ETB" ? programCurrency : budgetCurrency;
+    return {
+        base,
+        quote: base === budgetCurrency ? programCurrency : budgetCurrency,
+        // entered as 1 program unit = ? budget units: stored the other way round
+        inverted: base !== budgetCurrency
+    };
+};
+
+const tidyRate = (value) =>
+    Number.isFinite(value) && value > 0 ? String(Number(value.toPrecision(8))) : "";
+
 
 // =====================================================
 // CREATE / EDIT BUDGET
@@ -175,7 +194,12 @@ const BudgetFormPage = () => {
                         endYear: String(source.endYear),
                         yearlyAmounts: source.yearlyAmounts || [],
                         reason: budget.revision?.reason || "",
-                        rate: budget.programExchangeRate?.rate ? String(budget.programExchangeRate.rate) : "",
+                        // shown as entered (1 USD = ? ETB)
+                        rate: budget.programExchangeRate?.rate
+                            ? rateQuote(budget.currency, budget.summary?.programBudget?.currency).inverted
+                                ? tidyRate(1 / Number(budget.programExchangeRate.rate))
+                                : String(budget.programExchangeRate.rate)
+                            : "",
                         rateDate: budget.programExchangeRate?.date ? String(budget.programExchangeRate.date).slice(0, 10) : "",
                         lines: (source.lines || []).map(line => ({
                             _id: line._id,
@@ -294,7 +318,12 @@ const BudgetFormPage = () => {
     const needsRate =
         Boolean(programCurrency) && form.currency !== programCurrency;
 
-    const rate = Number(form.rate);
+    // as entered (1 USD = ? ETB), and as stored (1 unit of this
+    // budget's currency in the program budget's currency)
+    const quote = rateQuote(form.currency, programCurrency);
+    const enteredRate = Number(form.rate);
+    const rate =
+        enteredRate > 0 ? (quote.inverted ? 1 / enteredRate : enteredRate) : 0;
 
     const availableInProgramCurrency =
         form.level !== "project" || !programId
@@ -405,7 +434,7 @@ const BudgetFormPage = () => {
         }
 
         if (!isRevise && needsRate && (!(rate > 0) || !form.rateDate)) {
-            setError(`The program budget is in ${programCurrency}: enter the exchange rate (1 ${form.currency} = ? ${programCurrency}) and its date.`);
+            setError(`The program budget is in ${programCurrency}: enter the exchange rate (1 ${quote.base} = ? ${quote.quote}) and its date.`);
             return;
         }
 
@@ -628,13 +657,17 @@ const BudgetFormPage = () => {
                         {needsRate && !isRevise && (
                             <FormGrid columns={2}>
                                 <AppTextField
-                                    label={`Exchange rate: 1 ${form.currency} = ? ${programCurrency}`}
+                                    label={`Exchange rate: 1 ${quote.base} = ? ${quote.quote}`}
                                     type="number"
                                     required
                                     value={form.rate}
                                     onChange={(e) => change({ rate: e.target.value })}
                                     inputProps={{ min: 0, step: "any" }}
-                                    helperText="Used to check the program budget's ceiling"
+                                    helperText={
+                                        enteredRate > 0
+                                            ? `1 ${quote.base} = ${enteredRate.toLocaleString()} ${quote.quote}. Used to check the program budget's ceiling.`
+                                            : "Used to check the program budget's ceiling"
+                                    }
                                 />
                                 <AppTextField
                                     label="Rate date"
