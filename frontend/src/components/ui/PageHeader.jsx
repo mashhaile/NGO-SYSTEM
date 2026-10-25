@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     Box,
     Stack,
@@ -20,6 +21,14 @@ const PageHeader = ({
 
     children
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    title = term(title);
+    subtitle = term(subtitle);
+    actionLabel = term(actionLabel);
+    secondaryActionLabel = term(secondaryActionLabel);
+
 
     return (
         <Box

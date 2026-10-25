@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     Box,
     Stack,
@@ -11,6 +12,12 @@ const SectionHeader = ({
     action,
     sx = {}
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    title = term(title);
+    subtitle = term(subtitle);
+
 
     return (
         <Stack

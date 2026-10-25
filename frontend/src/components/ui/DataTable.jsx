@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useTerm } from "../../utils/terms";
 import {
     Box,
     Typography
@@ -30,6 +32,16 @@ const DataTable = ({
 
     ...props
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    const sourceColumns = columns;
+    // the same column objects while the words do not change (the grid keeps its state)
+    columns = useMemo(
+        () => sourceColumns.map(column => (column?.headerName ? { ...column, headerName: term(column.headerName) } : column)),
+        [sourceColumns, term]
+    );
+
 
     return (
         <Box

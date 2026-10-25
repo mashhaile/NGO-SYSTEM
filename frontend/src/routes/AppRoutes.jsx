@@ -215,6 +215,7 @@ const DashboardPage = lazyPage(() => import("../features/dashboard/pages/Dashboa
 const OrganizationSettingsPage = lazyPage(() => import("../features/organizations/pages/OrganizationSettingsPage"));
 const CustomFieldListPage = lazyPage(() => import("../features/customfields/pages/CustomFieldListPage"));
 const RolesPage = lazyPage(() => import("../features/roles/RolesPage"));
+const WordingPage = lazyPage(() => import("../features/terminology/WordingPage"));
 const CustomFieldCreatePage = lazyPage(() => import("../features/customfields/pages/CustomFieldCreatePage"));
 const CustomFieldEditPage = lazyPage(() => import("../features/customfields/pages/CustomFieldEditPage"));
 const BeneficiaryImportPage = lazyPage(() => import("../features/beneficiaries/pages/BeneficiaryImportPage"));
@@ -1105,6 +1106,17 @@ const AppRoutes = () => {
                 {/* ==================================================
                     CUSTOM FIELDS
                 ================================================== */}
+
+                <Route
+                    path="/settings/wording"
+                    element={
+                        <PermissionRoute
+                            permission="organization.update"
+                        >
+                            <WordingPage />
+                        </PermissionRoute>
+                    }
+                />
 
                 <Route
                     path="/settings/roles"

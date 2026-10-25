@@ -3,6 +3,7 @@
 // =====================================================
 
 const reportCenter = require("../services/reportCenter");
+const terminology = require("../services/terminologyService");
 const { exportReport } = require("../services/reportCenter/export");
 const { buildReportContext } = require("../services/reports/reportContext");
 const { getErrorStatus } = require("../utils/errorStatus");
@@ -15,8 +16,9 @@ const fail = (res, error) => {
 };
 
 // JSON, or the same report as a file
-const send = async (res, report, query, context) => {
-
+const send = async (res, raw, query, context) => {
+    // in the organization's own words (titles, labels; not data)
+    const report = terminology.applyToReport(raw, await terminology.replacerFor(context.organizationId));
     const format = String(query.format || "json").toLowerCase();
 
     if (format === "json") {
@@ -35,7 +37,8 @@ const send = async (res, report, query, context) => {
 const getCatalog = async (req, res) => {
     try {
         const context = await buildReportContext(req);
-        return res.json({ success: true, data: reportCenter.getCatalog(context) });
+        const replace = await terminology.replacerFor(context.organizationId);
+        return res.json({ success: true, data: terminology.applyToCatalog(reportCenter.getCatalog(context), replace) });
     }
     catch (error) {
         return fail(res, error);

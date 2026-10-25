@@ -57,7 +57,8 @@ const roleNameOf = async (user) => {
         const role = await Role.findById(user.customRole).select("name isDeleted").lean();
         if (role && !role.isDeleted) return role.name;
     }
-    return BUILT_IN.find(item => item.key === user?.role)?.name || user?.role || "";
+    const replace = await require("./terminologyService").replacerFor(user?.organization);
+    return replace(BUILT_IN.find(item => item.key === user?.role)?.name || user?.role || "");
 };
 
 
@@ -120,6 +121,8 @@ const checkName = async (organizationId, name, selfId = null) => {
 
 const listRoles = async (organizationId) => {
 
+    const replace = await require("./terminologyService").replacerFor(organizationId);
+
     const custom = await Role.find({ organization: organizationId, isDeleted: false }).sort({ name: 1 }).lean();
     const counts = await User.aggregate([
         { $match: { organization: new mongoose.Types.ObjectId(String(organizationId)) } },
@@ -130,6 +133,7 @@ const listRoles = async (organizationId) => {
     return {
         builtIn: BUILT_IN.map(role => ({
             ...role,
+            name: replace(role.name),
             builtIn: true,
             permissions: rolePermissions[role.key] || [],
             users: usersOf(row => row._id.role === role.key && !row._id.customRole)

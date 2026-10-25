@@ -320,6 +320,20 @@ const organizationSchema = new mongoose.Schema(
 
 
         // =================================================
+        // THE ORGANIZATION'S OWN WORDS
+        // { donation: { singular: "Fund", plural: "Funds" } }
+        // (see config/terminology.js)
+        // =================================================
+
+        terminology: {
+
+            type: mongoose.Schema.Types.Mixed,
+
+            default: {}
+
+        },
+
+        // =================================================
         // ORGANIZATION BRANDING
         // =================================================
 

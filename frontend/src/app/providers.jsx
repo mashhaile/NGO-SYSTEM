@@ -1,3 +1,4 @@
+import { TermsLoader } from "../utils/terms";
 import { Provider } from "react-redux";
 
 import {
@@ -64,6 +65,7 @@ const AppProviders = ({ children }) => {
 
 
                         <AuthInitializer>
+                            <TermsLoader />
 
 
                             {children}

@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     Drawer,
     List,
@@ -181,6 +182,7 @@ const SECTIONS = [
             { label: "Organization", path: "/settings/organization", icon: <Business />, permission: PERMISSIONS.ORGANIZATION_READ },
             { label: "User Management", path: "/users", icon: <ManageAccounts />, permission: PERMISSIONS.USER_READ },
             { label: "Roles", path: "/settings/roles", icon: <ManageAccounts />, permission: PERMISSIONS.ROLE_MANAGE },
+            { label: "Wording", path: "/settings/wording", icon: <Tune />, permission: PERMISSIONS.ORGANIZATION_UPDATE },
             // Admin only: other roles read lookups / custom fields
             // for their forms, they do not manage them
             { label: "Lookup Management", path: "/lookups", icon: <ManageSearch />, permission: PERMISSIONS.LOOKUP_UPDATE },
@@ -312,6 +314,10 @@ const Sidebar = ({
     mobileOpen = false,
     onMobileClose
 }) => {
+
+    // menu labels in the organization's own words
+    const term = useTerm();
+
 
     const dispatch = useDispatch();
 
@@ -498,7 +504,7 @@ const Sidebar = ({
             >
 
                 {sections.map((section, index) => (
-                    <Box key={section.title} sx={{ mt: index === 0 ? 0 : 1 }}>
+                    <Box key={term(section.title)} sx={{ mt: index === 0 ? 0 : 1 }}>
 
                         <ButtonBase
                             onClick={() => toggleSection(section.title)}
@@ -506,7 +512,7 @@ const Sidebar = ({
                             sx={sectionTitleSx}
                         >
                             <Typography component="span" className="title" sx={{ textTransform: "uppercase" }}>
-                                {section.title}
+                                {term(section.title)}
                             </Typography>
                             <ExpandMore
                                 sx={{
@@ -535,7 +541,7 @@ const Sidebar = ({
                                         }}
                                     >
                                         <ListItemIcon>{item.icon}</ListItemIcon>
-                                        <ListItemText primary={item.label} />
+                                        <ListItemText primary={term(item.label)} />
                                         <LockOutlined sx={{ fontSize: 15, color: "text.disabled" }} />
                                     </ListItemButton>
                                 </Box>
@@ -549,7 +555,7 @@ const Sidebar = ({
                                     sx={navItemSx}
                                 >
                                     <ListItemIcon>{item.icon}</ListItemIcon>
-                                    <ListItemText primary={item.label} />
+                                    <ListItemText primary={term(item.label)} />
                                 </ListItemButton>
                             ))}
                         </List>

@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     Button
 } from "@mui/material";
@@ -22,6 +23,11 @@ const AppButton = ({
 
     ...props
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    children = typeof children === "string" ? term(children) : children;
+
 
     return (
         <Button

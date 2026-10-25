@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     Card,
     CardContent,
@@ -15,6 +16,12 @@ const FormSection = ({
     sx = {},
     contentSx = {}
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    title = term(title);
+    subtitle = term(subtitle);
+
 
     return (
         <Card

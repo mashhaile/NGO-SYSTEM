@@ -320,6 +320,9 @@ app.use("/api/v1/custom-fields", customfieldsRoutes);
 // the organization's custom roles
 app.use("/api/v1/roles", require("./routes/roleRoutes"));
 
+// the organization's own words for the main terms
+app.use("/api/v1/terminology", require("./routes/terminologyRoutes"));
+
 app.use("/api/v1/activities", activityRoutes);
 
 app.use("/api/v1/activity-runs", activityRunRoutes);

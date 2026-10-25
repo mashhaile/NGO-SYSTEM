@@ -2131,6 +2131,38 @@ test("custom roles: the admin makes a role; its users can do exactly what it all
 });
 
 
+test("wording: an organization's own words reach reports and role names", { skip }, async () => {
+
+    const token = state.tokenA;
+
+    const saved = await api("PUT", "/terminology", { token, body: { terms: { donation: { singular: "Fund", plural: "Funds" }, organizationAdmin: { singular: "Administrator", plural: "Administrators" } } } });
+    assert.equal(saved.status, 200, saved.data?.message);
+    assert.equal(saved.data.data.find(term => term.key === "donation").own.singular, "Fund");
+
+    // reports (and so their exports) use them
+    const donors = (await api("GET", "/report-center/donors?period=year&year=2026", { token })).data.data;
+    assert.ok(donors.summary.some(item => item.label === "Funds in the period"), donors.summary.map(item => item.label).join(" | "));
+    assert.ok(!JSON.stringify(donors.summary.map(item => item.label)).includes("Donation"));
+    const catalog = (await api("GET", "/report-center", { token })).data.data;
+    assert.ok(Array.isArray(catalog) && !JSON.stringify(catalog).includes("Donation"), "the catalog uses the words too");
+
+    // role names
+    const roles = (await api("GET", "/roles", { token })).data.data;
+    assert.equal(roles.builtIn.find(role => role.key === "organization_admin").name, "Administrator");
+
+    // other organizations keep their words; only admins change them
+    assert.equal((await api("GET", "/terminology", { token: state.tokenB })).data.data.find(term => term.key === "donation").own, null);
+    assert.equal((await api("PUT", "/terminology", { token: state.dataEntryToken, body: { terms: { donation: { singular: "Gift" } } } })).status, 403);
+    assert.equal((await api("PUT", "/terminology", { token, body: { terms: { unknownThing: { singular: "x" } } } })).status, 400);
+
+    // back to the defaults
+    const reset = await api("PUT", "/terminology", { token, body: { terms: { donation: null, organizationAdmin: { singular: "", plural: "" } } } });
+    assert.equal(reset.status, 200);
+    assert.ok(reset.data.data.every(term => term.own === null));
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     Autocomplete,
     TextField
@@ -22,6 +23,13 @@ const AppAutocomplete = ({
     sx = {},
     ...props
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    const shownLabel = term(label);
+    const shownPlaceholder = term(placeholder);
+    const shownHelperText = term(helperText);
+
     const normalizedOptions =
         Array.isArray(options)
             ? options
@@ -74,13 +82,13 @@ const AppAutocomplete = ({
             renderInput={(params) => (
                 <TextField
                     {...params}
-                    label={label}
+                    label={shownLabel}
                     name={name}
                     required={required}
                     error={error}
-                    helperText={helperText}
+                    helperText={shownHelperText}
                     placeholder={
-                        placeholder
+                        shownPlaceholder
                     }
                     size={size}
                     variant="outlined"

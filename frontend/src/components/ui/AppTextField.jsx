@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     TextField
 } from "@mui/material";
@@ -37,6 +38,13 @@ const AppTextField = ({
 
     ...props
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    label = term(label);
+    placeholder = term(placeholder);
+    helperText = term(helperText);
+
 
     const mergedSlotProps = {
         ...slotProps,

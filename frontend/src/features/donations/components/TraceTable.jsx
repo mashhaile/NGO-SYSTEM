@@ -1,3 +1,4 @@
+import { useTerm } from "../../../utils/terms";
 import {
     Table,
     TableBody,
@@ -25,6 +26,12 @@ const TraceTable = ({
     empty = "Nothing recorded yet.",
     getRowKey = (row, index) => row.id || index
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    columns = columns.map(column => (column?.label ? { ...column, label: term(column.label) } : column));
+    empty = term(empty);
+
 
     if (!rows.length) {
 

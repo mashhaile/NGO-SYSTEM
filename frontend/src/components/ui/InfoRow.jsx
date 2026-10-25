@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     Box,
     Typography
@@ -11,6 +12,11 @@ const InfoRow = ({
     labelWidth = 180,
     sx = {}
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    label = term(label);
+
     const displayValue =
         value === null ||
         value === undefined ||

@@ -1,3 +1,4 @@
+import { useTerm } from "../../utils/terms";
 import {
     WarningAmber
 } from "@mui/icons-material";
@@ -26,6 +27,12 @@ const ConfirmDeleteDialog = ({
     onClose,
     onConfirm
 }) => {
+
+    // in the organization's own words (Settings > Wording)
+    const term = useTerm();
+    title = term(title);
+    message = term(message);
+
 
     return (
         <Dialog
