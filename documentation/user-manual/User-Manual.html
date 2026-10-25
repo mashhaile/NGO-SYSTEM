@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NGO Management System – User Manual</title>
+<style>
+    @page { size: A4; margin: 16mm 15mm 18mm; }
+    :root { --green: #166048; --green-soft: #e8f3ee; --ink: #1d2433; --muted: #5b6475; --line: #dfe4ea; }
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); font-size: 10.3pt; line-height: 1.5; margin: 0; }
+    h1 { font-size: 28pt; margin: 0 0 6px; color: var(--green); }
+    h2 { font-size: 16pt; color: var(--green); margin: 0 0 6px; padding-bottom: 4px; border-bottom: 2px solid var(--green-soft); }
+    h3 { font-size: 11.5pt; margin: 14px 0 4px; page-break-after: avoid; }
+    p { margin: 4px 0 8px; }
+    .chapter { page-break-before: always; }
+    .part { page-break-before: always; height: 240mm; display: flex; flex-direction: column; justify-content: center; }
+    .part .label { font-size: 12pt; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+    .part h1 { font-size: 30pt; }
+    .lead { color: var(--muted); font-size: 10.8pt; margin-bottom: 10px; }
+    .who { display: inline-block; background: var(--green-soft); color: var(--green); border-radius: 12px; padding: 1px 10px; font-size: 9pt; font-weight: 600; margin-bottom: 6px; }
+    ol.steps { padding-left: 0; list-style: none; counter-reset: s; margin: 6px 0 10px; }
+    ol.steps > li { counter-increment: s; position: relative; padding: 3px 0 3px 30px; page-break-inside: avoid; }
+    ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #fff; font-size: 9pt; font-weight: 700; text-align: center; line-height: 20px; }
+    ul { margin: 4px 0 8px; padding-left: 20px; }
+    li { margin: 2px 0; }
+    .menu { font-weight: 600; color: var(--green); }
+    table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 9.6pt; page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    th, td { border: 1px solid var(--line); padding: 4px 7px; text-align: left; vertical-align: top; }
+    th { background: var(--green-soft); }
+    td:first-child { white-space: nowrap; }
+    figure { margin: 8px 0 10px; text-align: center; page-break-inside: avoid; }
+    figure img { width: 82%; border: 1px solid var(--line); border-radius: 6px; }
+    figure.small img { width: 66%; }
+    figcaption { font-size: 8.8pt; color: var(--muted); margin-top: 2px; }
+    .note { background: #fff8e6; border-left: 4px solid #e0a100; padding: 7px 10px; margin: 8px 0; border-radius: 4px; page-break-inside: avoid; }
+    .tip { background: var(--green-soft); border-left: 4px solid var(--green); padding: 7px 10px; margin: 8px 0; border-radius: 4px; page-break-inside: avoid; }
+    .flow { display: flex; gap: 6px; margin: 10px 0 14px; }
+    .flow div { flex: 1; background: var(--green-soft); border-radius: 8px; padding: 8px; font-size: 9.3pt; }
+    .flow b { display: block; color: var(--green); font-size: 10.3pt; }
+    .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; }
+    .cover .sub { font-size: 15pt; color: var(--muted); margin-bottom: 26px; }
+    .cover .box { border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; max-width: 125mm; }
+    .cover .box div { margin: 3px 0; }
+    .toc { columns: 2; column-gap: 12mm; font-size: 10pt; }
+    .toc div { break-inside: avoid; padding: 2px 0; border-bottom: 1px dotted var(--line); }
+    .toc .p { font-weight: 700; color: var(--green); border: 0; padding-top: 8px; }
+    .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- =================================================== COVER -->
+<section class="cover">
+    <h1>NGO Management System</h1>
+    <div class="sub">User Manual</div>
+    <div class="box">
+        <div><b>Web address:</b> https://ngo-system-e5af.onrender.com</div>
+        <div><b>For:</b> everyone who uses the system: administrators, program, M&amp;E, finance and data staff</div>
+        <div><b>Works in:</b> Chrome, Edge or Firefox, on a computer or tablet</div>
+        <div class="muted" style="margin-top:8px">Version 1.0 · October 2026</div>
+    </div>
+    <p class="muted" style="margin-top:26px; max-width:150mm">
+        This manual explains every part of the system, one chapter per menu item. Each chapter covers what
+        the module is for, who can use it, how to work with it step by step, and the rules the system checks.
+        For a short introduction, see the separate <b>Quick Start Guide</b>.
+    </p>
+</section>
+
+<!-- =================================================== CONTENTS -->
+<section class="chapter">
+    <h2>Contents</h2>
+    <div class="toc">
+        <div class="p">Part A: Getting started</div>
+        <div>1. About the system</div>
+        <div>2. Signing in and passwords</div>
+        <div>3. Finding your way around</div>
+        <div>4. How the work flows</div>
+        <div class="p">Part B: Working with the modules</div>
+        <div>5. Dashboard</div>
+        <div>6. Beneficiaries</div>
+        <div>7. Enrollments</div>
+        <div>8. Enterprises and members</div>
+        <div>9. Programs</div>
+        <div>10. Projects and phases</div>
+        <div>11. Terms of Reference (TOR)</div>
+        <div>12. Activities</div>
+        <div>13. Activity runs</div>
+        <div>14. Attendance</div>
+        <div>15. Service delivery</div>
+        <div>16. Donors</div>
+        <div>17. Donations</div>
+        <div>18. Budgets</div>
+        <div>19. Expenses</div>
+        <div>20. Reports</div>
+        <div class="p">Part C: Administration</div>
+        <div>21. Organization settings</div>
+        <div>22. Users</div>
+        <div>23. Roles</div>
+        <div>24. Wording</div>
+        <div>25. Lookups</div>
+        <div>26. Custom fields</div>
+        <div class="p">Appendix</div>
+        <div>A. Statuses</div>
+        <div>B. Approvals</div>
+        <div>C. Rules the system checks</div>
+        <div>D. Currencies</div>
+        <div>E. Common messages</div>
+        <div>F. Glossary</div>
+    </div>
+</section>
+
+<!-- =================================================== PART A -->
+<section class="part">
+    <div class="label">Part A</div>
+    <h1>Getting started</h1>
+    <p class="lead">Signing in, finding your way around, and the order of work.</p>
+</section>
+
+<section class="chapter">
+    <h2>1. About the system</h2>
+    <p>The NGO Management System keeps all of an organization's program work in one place: the people it
+    serves, its programs and projects, activities and trainings, the goods and services it delivers, its donors
+    and donations, its budgets and spending, and the reports that bring all of this together.</p>
+    <h3>What you can do with it</h3>
+    <ul>
+        <li><b>Register beneficiaries</b> (one at a time or from Excel), enroll them in programs, and group them in enterprises.</li>
+        <li><b>Plan the work:</b> programs, projects (also in phases), terms of reference, activities and activity runs.</li>
+        <li><b>Record the work:</b> attendance at trainings, and the goods, cash and services delivered to people, households, groups and institutions.</li>
+        <li><b>Manage money:</b> donors, donations in several currencies, approved budgets, and expenses with approval.</li>
+        <li><b>Report:</b> a dashboard and ready-made reports for any period, with Excel, PDF and CSV export.</li>
+    </ul>
+    <h3>Your organization's data is private</h3>
+    <p>Many organizations use the same system, but each one sees only its own records. Within your organization,
+    each user sees and does only what their role allows (see chapter 2).</p>
+    <h3>Words in this manual</h3>
+    <p>Menu paths are written like <span class="menu">Beneficiaries › Enrollments</span>: open the
+    <b>Beneficiaries</b> group in the left menu, then click <b>Enrollments</b>. Buttons are written in
+    <b>bold</b>. Your administrator may have renamed some terms (for example "Fund" instead of "Donation"),
+    so your screens can use different words from this manual (see chapter 24).</p>
+</section>
+
+<section class="chapter">
+    <h2>2. Signing in and passwords</h2>
+    <h3>Signing in</h3>
+    <ol class="steps">
+        <li>Open <b>https://ngo-system-e5af.onrender.com</b>.</li>
+        <li>Enter your <b>Email</b> and <b>Password</b> and click <b>Sign in</b>. The eye icon shows the password as you type.</li>
+        <li>The <span class="menu">Dashboard</span> opens.</li>
+        <li>To leave, open the menu under your name at the top right and choose <b>Logout</b>. Always log out on a shared computer.</li>
+    </ol>
+    <div class="note"><b>First visit of the day:</b> the site may need up to one minute to start. After that it is fast.</div>
+
+    <h3>Passwords</h3>
+    <ul>
+        <li>A password needs <b>at least 8 characters</b>, with <b>letters and numbers</b>, and must not be your email address.</li>
+        <li>After <b>5 wrong passwords</b> the account is locked for <b>15 minutes</b>. It unlocks by itself, or an administrator can reset the password.</li>
+        <li><b>Forgot your password?</b> Ask your organization administrator. They give you a temporary password, and the system asks you to choose your own password the next time you sign in.</li>
+    </ul>
+
+    <h3>User types (roles)</h3>
+    <table>
+        <tr><th>Role</th><th>What it can do</th></tr>
+        <tr><td><b>Organization Admin</b></td><td>Everything in the organization: settings, users, roles, wording, lookups, custom fields, all records, all approvals.</td></tr>
+        <tr><td><b>Finance Officer</b></td><td>Budgets and expenses, including approving them; donors and donations.</td></tr>
+        <tr><td><b>Data Entry</b></td><td>Daily records: beneficiaries, enrollments, enterprises, projects, terms of reference (writing and submitting), activity runs, attendance, service deliveries, donations, expenses (submitted for approval).</td></tr>
+        <tr><td><b>Viewer</b></td><td>Can see everything and run reports, but cannot change anything.</td></tr>
+    </table>
+    <p>Your administrator can also create <b>custom roles</b> such as "Program Manager" or "M&amp;E Officer" with exactly
+    the rights your organization needs (chapter 23). The menu shows only what your role may use.</p>
+</section>
+
+<section class="chapter">
+    <h2>3. Finding your way around</h2>
+    <h3>The screen</h3>
+    <ul>
+        <li><b>Left menu:</b> the modules, in groups (Main, Beneficiaries, Services, Programs, Activities, Funding, Finance, Administration). Click a group title to fold or unfold it.</li>
+        <li><b>Top bar:</b> the bell shows notifications (for example "a budget is waiting for your approval"). Your name and role are at the top right.</li>
+    </ul>
+
+    <h3>Lists</h3>
+    <p>Each module opens with a list of its records.</p>
+    <ul>
+        <li><b>Search</b> finds records by name, code or other text. <b>Filters</b> (status, program, year …) narrow the list. <b>Reset</b> clears them.</li>
+        <li>Click a <b>name</b> (green) to open the record. The icons on the right are <b>view</b>, <b>edit</b> and <b>delete</b>.</li>
+        <li>The button at the top right adds a new record (for example <b>Add Beneficiary</b>, <b>Create Activity</b>, <b>New Budget</b>).</li>
+    </ul>
+    <figure><img src="img/beneficiaries.png" style="width:50%"><figcaption>A list: search and filters on top, records below, actions on the right.</figcaption></figure>
+
+    <h3>Forms</h3>
+    <ul>
+        <li>Fields marked <b>*</b> are required.</li>
+        <li>Lists that depend on each other open in order: choose the <b>Program</b> first, then its <b>Project</b>; choose the <b>Region</b>, then its <b>Zone</b>, then its <b>Woreda</b>.</li>
+        <li>If something is wrong, a message at the top says <b>"Please check: …"</b> and names the field and the problem.</li>
+    </ul>
+
+    <h3>Detail pages</h3>
+    <p>A detail page shows everything about one record and the records linked to it (for example a project's phases,
+    activities and budget). Use <b>Edit</b> to change it and <b>Back</b> to return to the list.</p>
+
+    <h3>Codes and history</h3>
+    <ul>
+        <li>The system gives every record a code automatically, for example <b>BEN-000123</b> for a beneficiary or
+        <b>PRG-000002-PRJ-003-ACT-001-RUN-002</b> for an activity run (the code shows where the run belongs). Use codes when you talk about a record.</li>
+        <li>Every change is saved immediately and recorded in the history, which shows who did what and when.</li>
+        <li>A record that others depend on cannot be deleted. For example, a project with activities cannot be deleted. The message tells you why.</li>
+    </ul>
+</section>
+
+<section class="chapter">
+    <h2>4. How the work flows</h2>
+    <p>Work in this order. Each step uses what the earlier steps created, so the right choices appear in the forms.</p>
+    <div class="flow">
+        <div><b>1 · Set up</b>Organization, users, roles, lookups, custom fields</div>
+        <div><b>2 · Plan</b>Programs, projects, budgets, TORs, activities, runs</div>
+        <div><b>3 · Fund</b>Donors and donations</div>
+        <div><b>4 · Do the work</b>Beneficiaries, enrollments, attendance, service delivery, expenses</div>
+        <div><b>5 · Report</b>Dashboard and reports</div>
+    </div>
+
+    <h3>How records connect</h3>
+    <table>
+        <tr><th>Record</th><th>Belongs to</th><th>Example</th></tr>
+        <tr><td>Program</td><td>The organization</td><td>Women and Youth Livelihoods</td></tr>
+        <tr><td>Project</td><td>A program</td><td>Small Business Start-up Grants</td></tr>
+        <tr><td>Phase</td><td>A project (a phase works like a project of its own)</td><td>Community Water Points, Phase 2</td></tr>
+        <tr><td>Activity</td><td>A project</td><td>Business skills training</td></tr>
+        <tr><td>Activity run</td><td>An activity (one batch, place and dates)</td><td>Batch 2, Adigrat town</td></tr>
+        <tr><td>Attendance session</td><td>An activity run</td><td>Training session 1</td></tr>
+        <tr><td>Enrollment</td><td>A beneficiary and a program</td><td>Hiwot enrolled in Livelihoods</td></tr>
+        <tr><td>Service delivery</td><td>A program, and optionally a project, activity or run</td><td>Hygiene kits to 40 people</td></tr>
+        <tr><td>Donation</td><td>A donor; funds a program or project</td><td>USD 60,000 grant</td></tr>
+        <tr><td>Budget</td><td>A program or a project (or phase)</td><td>Phase 2 Budget, FY 2027</td></tr>
+        <tr><td>Expense</td><td>A line of an approved project budget</td><td>Venue hire, Training &amp; Workshops</td></tr>
+    </table>
+
+    <h3>Statuses of work</h3>
+    <p>Programs, projects, activities and activity runs all use the same five statuses:</p>
+    <table>
+        <tr><th>Status</th><th>Meaning</th><th>What it allows</th></tr>
+        <tr><td>Planned</td><td>Not started yet</td><td>Everything (plans can be prepared)</td></tr>
+        <tr><td>Active</td><td>Running</td><td>Everything</td></tr>
+        <tr><td>Suspended</td><td>Paused</td><td>Nothing new until it is Active again</td></tr>
+        <tr><td>Completed</td><td>Finished</td><td>No new plans; late records (deliveries, attendance, expenses) are still allowed</td></tr>
+        <tr><td>Cancelled</td><td>Stopped</td><td>Nothing new; not counted in reports</td></tr>
+    </table>
+    <p class="muted">The fiscal year is the calendar year: <b>FY 2026</b> = 1 January to 31 December 2026.</p>
+</section>
+
+<!-- =================================================== PART B -->
+<section class="part">
+    <div class="label">Part B</div>
+    <h1>Working with the modules</h1>
+    <p class="lead">One chapter per menu item, in the order of the left menu.</p>
+</section>
+
+<!-- 5. DASHBOARD -->
+<section class="chapter">
+    <h2>5. Dashboard</h2>
+    <div class="who">Everyone</div>
+    <p>The dashboard opens after you sign in. It shows your organization's key figures at a glance:
+    beneficiaries, programs, donors, funding received (per currency), services delivered and their value,
+    followed by charts about beneficiaries (gender, age, location), programs and services.</p>
+    <figure><img src="img/dashboard.png"><figcaption>The organization dashboard.</figcaption></figure>
+    <div class="tip">The dashboard shows the current picture. For a chosen period, filters or an export, use <span class="menu">Reports</span> (chapter 20).</div>
+</section>
+
+<!-- 6. BENEFICIARIES -->
+<section class="chapter">
+    <h2>6. Beneficiaries</h2>
+    <div class="who">Admin · Data Entry (add and edit) · others view</div>
+    <p>The people your organization serves, with their personal, contact, location and vulnerability information.
+    A beneficiary is registered once and can then be enrolled in programs, take part in activities and receive services.</p>
+
+    <h3>Add a beneficiary</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Beneficiaries › Beneficiaries</span> and click <b>Add Beneficiary</b>.</li>
+        <li><b>Personal Information:</b> First, Middle and Last Name, Gender, Date of Birth (the age is calculated for you) and Marital Status.</li>
+        <li><b>Contact Information:</b> Phone, Alternative Phone, Email.</li>
+        <li><b>Address Information:</b> Country, then <b>Region › Zone › Woreda</b> (each list opens after the previous one is chosen), Kebele and Address.</li>
+        <li><b>Socio Economic</b> and <b>Vulnerability Information:</b> Education Level, Occupation, Person With Disability, Disability Type and Vulnerable Groups.</li>
+        <li><b>Custom Fields:</b> any extra questions your organization added.</li>
+        <li>Click <b>Save</b>. The beneficiary gets a number such as <b>BEN-000501</b>.</li>
+    </ol>
+    <figure><img src="img/beneficiary-form.png"><figcaption>The beneficiary form.</figcaption></figure>
+
+    <h3>Import many beneficiaries from Excel</h3>
+    <ol class="steps">
+        <li>On the beneficiary list click <b>Import Excel</b>, then <b>Download Template</b>.</li>
+        <li>Fill in one row per person. Use the official region, zone and woreda names. Do not type the age: it is calculated from the date of birth.</li>
+        <li>Upload the file (.xlsx, at most 10 MB). The system imports the correct rows and lists the rows with problems so you can fix and upload them again.</li>
+    </ol>
+
+    <h3>The beneficiary page</h3>
+    <p>Open a beneficiary to see all their information: personal, contact, address, socio-economic, vulnerability,
+    custom fields and documents. Use <b>Edit Beneficiary</b> to change details. To see the programs, trainings and
+    services a person received, use the <b>Beneficiaries</b> report (chapter 20).</p>
+    <figure class="small"><img src="img/beneficiary-details.png"><figcaption>A beneficiary's page.</figcaption></figure>
+
+    <h3>Status</h3>
+    <ul>
+        <li><b>Active:</b> normal.</li>
+        <li><b>Inactive:</b> the person has left (moved, passed away, no longer served). Their history stays, but they cannot be enrolled, receive services or be added to anything new.</li>
+    </ul>
+</section>
+
+<!-- 7. ENROLLMENTS -->
+<section class="chapter">
+    <h2>7. Enrollments</h2>
+    <div class="who">Admin · Data Entry</div>
+    <p>An enrollment records that a beneficiary is part of a program, from a date, with a status.
+    Reports use enrollments to count the people enrolled in each program.</p>
+    <h3>Enroll a beneficiary</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Beneficiaries › Enrollments</span> and click <b>Create Enrollment</b>.</li>
+        <li>Choose the <b>Beneficiary</b> and the <b>Program</b>, and enter the <b>Enrollment Date</b> (inside the program's dates).</li>
+        <li>Set the <b>Status</b> and add <b>Remarks</b> if needed, then save.</li>
+    </ol>
+    <table>
+        <tr><th>Status</th><th>Use when</th></tr>
+        <tr><td>Pending</td><td>Selected but not started yet</td></tr>
+        <tr><td>Active</td><td>Taking part</td></tr>
+        <tr><td>Suspended</td><td>Paused for a while</td></tr>
+        <tr><td>Completed</td><td>Finished the program: enter the <b>Completion Date</b></td></tr>
+        <tr><td>Dropped</td><td>Left before finishing: enter the <b>Exit Reason</b></td></tr>
+    </table>
+    <div class="note">A person can be enrolled in a program only once, and only while the program is not Completed, Suspended or Cancelled.</div>
+    <figure><img src="img/enrollments.png"><figcaption>The enrollment list.</figcaption></figure>
+</section>
+
+<!-- 8. ENTERPRISES -->
+<section class="chapter">
+    <h2>8. Enterprises and members</h2>
+    <div class="who">Admin · Data Entry</div>
+    <p>Enterprises are businesses, cooperatives and groups run by beneficiaries, for example a dairy cooperative
+    or a women's savings group. Their members are beneficiaries.</p>
+    <h3>Add an enterprise</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Beneficiaries › Enterprises</span> and click <b>Add Enterprise</b>.</li>
+        <li>Enter the <b>Enterprise Name</b>, <b>Enterprise Type</b>, <b>Ownership Type</b>, <b>Business Sector</b>, <b>Business Status</b>, <b>Registration Number</b>, <b>Capital</b>, <b>Start Date</b>, contact and location, then save.</li>
+    </ol>
+    <h3>Add members</h3>
+    <ol class="steps">
+        <li>Open the enterprise and use <b>Add Enterprise Member</b> in its Members table (or <span class="menu">Enterprise Members</span> in the menu).</li>
+        <li>Choose the <b>Beneficiary</b>, the <b>Member Role</b> (Member, Partner, Shareholder, Manager, Employee) and the <b>Joined Date</b>.</li>
+        <li>When a member leaves, edit the membership and enter the <b>Left Date</b>.</li>
+    </ol>
+    <figure><img src="img/enterprise-details.png"><figcaption>An enterprise with its members table.</figcaption></figure>
+    <div class="note">An enterprise is <b>Active</b> or <b>Inactive</b>. No new members can be added to an inactive enterprise or from inactive beneficiaries.</div>
+</section>
+
+<!-- 9. PROGRAMS -->
+<section class="chapter">
+    <h2>9. Programs</h2>
+    <div class="who">Admin (others view)</div>
+    <p>A program is a large area of work, such as "WASH and Climate Resilience" or "Child Protection and Inclusion".
+    Projects, enrollments, service deliveries, donations and budgets all belong to a program.</p>
+    <ol class="steps">
+        <li>Go to <span class="menu">Programs › Programs</span> and click <b>Add Program</b>.</li>
+        <li>Enter the <b>Program Name</b>, <b>Category</b>, <b>Description</b> and <b>Target Beneficiaries</b>.</li>
+        <li>Set the <b>Start Date</b> and <b>End Date</b>, and the <b>Status</b> (see chapter 4). Save.</li>
+    </ol>
+    <p>The program page shows its projects, budget and spending, and the people it reached.</p>
+    <figure><img src="img/program-details.png"><figcaption>A program's page.</figcaption></figure>
+    <div class="note">A program's dates cannot be shortened so that its projects or enrollments fall outside them.</div>
+</section>
+
+<!-- 10. PROJECTS -->
+<section class="chapter">
+    <h2>10. Projects and phases</h2>
+    <div class="who">Admin · Data Entry</div>
+    <p>A project is a piece of work inside a program, usually with its own donor, manager, dates and budget.</p>
+    <h3>Add a project</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Programs › Projects</span> and click <b>Add Project</b>.</li>
+        <li>Choose the <b>Program</b> and enter the <b>Project Name</b> and <b>Description</b>. Choose the <b>Donor</b> and the <b>Project Manager</b>.</li>
+        <li>Enter the <b>Start Date</b> and <b>End Date</b> (inside the program's dates) and the <b>Status</b>. Save.</li>
+    </ol>
+    <p class="muted">The project's money is not entered on this form. It is planned in <span class="menu">Finance › Budgets</span> (chapter 18) and then shows on the project page.</p>
+
+    <h3>Projects in phases</h3>
+    <p>When a project runs in phases (Phase 1 in 2026, Phase 2 in 2027 …), each phase is created as its own project linked to the main project:</p>
+    <ol class="steps">
+        <li>Open the main project.</li>
+        <li>In the <b>Phases</b> card click <b>Add Phase</b>. Give it a name and dates inside the main project's dates.</li>
+        <li>Each phase then has its own activities, budget, deliveries and reports, just like a single project. The main project's page and reports add up all its phases.</li>
+    </ol>
+    <figure><img src="img/project-details.png"><figcaption>A project's page: information, phases, budget and activities.</figcaption></figure>
+</section>
+
+<!-- 11. TOR -->
+<section class="chapter">
+    <h2>11. Terms of Reference (TOR)</h2>
+    <div class="who">Data Entry writes · Admin approves</div>
+    <p>A TOR describes a planned activity or training before it happens: why, what, who, where, how and at what
+    cost. After approval, the activity can be created directly from it.</p>
+    <h3>Write and submit a TOR</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Activities › Terms of Reference</span> and click <b>New TOR</b>.</li>
+        <li><b>TOR Information:</b> Title, Project, Activity Type, and an existing Activity or Activity Run if it is for one (usually left empty).</li>
+        <li><b>Purpose:</b> Background, Objectives and Expected Outputs (all three are required before submitting).</li>
+        <li><b>Participants and Facilitators:</b> who will attend, the expected number, and facilitators or resource persons.</li>
+        <li><b>Date and Venue:</b> start and end dates, region, woreda and venue.</li>
+        <li><b>Methodology</b>, <b>Logistics and Reporting</b>, and the <b>Budget</b> lines (description, amount, currency).</li>
+        <li>Save, then click <b>Submit for Approval</b>.</li>
+    </ol>
+    <h3>Approve</h3>
+    <p>The approver opens the TOR and clicks <b>Approve</b>, or <b>Return</b> it with a comment. A returned TOR can be corrected and submitted again.
+    The <b>Approval History</b> shows who submitted and approved it and when. Use <b>Download PDF</b> to print or share it.</p>
+    <h3>Create the activity from the TOR</h3>
+    <p>On an approved TOR, click <b>Create Activity from TOR</b>. The activity is filled in from the TOR (name, type, project, dates, place).</p>
+    <figure><img src="img/tor-details.png"><figcaption>An approved TOR with its activity.</figcaption></figure>
+</section>
+
+<!-- 12. ACTIVITIES -->
+<section class="chapter">
+    <h2>12. Activities</h2>
+    <div class="who">Admin (Data Entry through an approved TOR)</div>
+    <p>An activity is something a project does: a training, workshop, meeting, campaign, field visit,
+    assessment, distribution and so on. An activity can run several times (see Activity runs).</p>
+    <ol class="steps">
+        <li>Go to <span class="menu">Activities › Activities</span> and click <b>Create Activity</b> (or create it from an approved TOR).</li>
+        <li><b>Activity Information:</b> Project, Activity Name, Activity Type, Participant Source (enrolled beneficiaries, staff, partners, mixed …), Target Participants, Target Groups, Facilitator and the Terms of Reference.</li>
+        <li><b>Date and Location:</b> Activity Date (inside the project's dates), Region, Woreda and Venue / Site.</li>
+        <li>Add a <b>Description</b> or <b>Remarks</b>, set the <b>Status</b> and save.</li>
+    </ol>
+    <figure><img src="img/activity-form.png"><figcaption>The activity form. The dates allowed by the project are shown under the date.</figcaption></figure>
+</section>
+
+<!-- 13. ACTIVITY RUNS -->
+<section class="chapter">
+    <h2>13. Activity runs</h2>
+    <div class="who">Admin · Data Entry</div>
+    <p>An activity run is one implementation of an activity: one batch, in one place, on certain dates. For example,
+    "Business skills training" may have Batch 1 in Adama and Batch 2 in Adigrat. Attendance is recorded per run.</p>
+    <ol class="steps">
+        <li>Go to <span class="menu">Activities › Activity Runs</span> and click <b>Create Activity Run</b>.</li>
+        <li>Choose the <b>Activity</b>. Enter the <b>Run Name</b>, <b>Trainer</b> and <b>Target Group</b>.</li>
+        <li><b>Schedule and Location:</b> Start Date and End Date (inside the project's dates), Region, Woreda and Venue / Site.</li>
+        <li>Add <b>Notes</b>, set the <b>Status</b> and save. The run gets a code such as <b>…-ACT-001-RUN-002</b>.</li>
+    </ol>
+    <figure><img src="img/activity-run-details.png"><figcaption>An activity run's page, with its sessions and attendance.</figcaption></figure>
+</section>
+
+<!-- 14. ATTENDANCE -->
+<section class="chapter">
+    <h2>14. Attendance</h2>
+    <div class="who">Admin · Data Entry</div>
+    <p>Attendance records who took part in each session of an activity run. It feeds the reports on people trained,
+    completion and attendance rate.</p>
+    <h3>Create a session</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Activities › Attendance</span> and click <b>Create Attendance</b>.</li>
+        <li>Choose the <b>Activity Run</b>, enter the <b>Session Number</b>, <b>Session Title</b> and <b>Session Date</b> (inside the run's dates), and save.</li>
+    </ol>
+    <h3>Fill in the attendance sheet</h3>
+    <ol class="steps">
+        <li>Open the session's <b>sheet</b> (the sheet icon in the list).</li>
+        <li>With <b>Beneficiary</b> selected as the Participant Type, pick a person in <b>Select Beneficiary</b> and click <b>Add</b>. Repeat for each person.</li>
+        <li>To add others, choose their <b>Participant Type</b> (Staff, Board, Partner, Government, Community, Other), enter their name, gender, age group, organization, position and phone, and click <b>Add</b>.</li>
+        <li>In <b>Attendance Records</b>, set each person's status: <b>Present</b>, <b>Late</b>, <b>Excused</b> or <b>Absent</b>, then save. The totals at the top (participants, present, absent, late) update.</li>
+    </ol>
+    <figure><img src="img/attendance-sheet.png"><figcaption>An attendance sheet with totals and participant types.</figcaption></figure>
+    <div class="note"><b>Two people editing the same sheet:</b> if someone else saved the sheet after you opened it, your save is refused
+    so that their work is not overwritten. Reload the sheet and enter your changes again.</div>
+</section>
+
+<!-- 15. SERVICE DELIVERY -->
+<section class="chapter">
+    <h2>15. Service delivery</h2>
+    <div class="who">Admin · Data Entry</div>
+    <p>A service delivery records goods, cash or services given out: what, how much, to whom, where, when, and
+    which donation paid for it. Reports use it to count the people reached and the value delivered.</p>
+
+    <h3>Who receives it</h3>
+    <table>
+        <tr><th>Recipient Type</th><th>Allocation</th><th>Example</th></tr>
+        <tr><td>Individual</td><td><b>Individual:</b> each person's own quantity is entered.<br><b>Shared:</b> the total is shared equally by the people chosen.</td><td>Hygiene kits to 20 women; a training shared by its participants</td></tr>
+        <tr><td>Household</td><td>To the household as a whole</td><td>Food package per household</td></tr>
+        <tr><td>Group / Community</td><td>To the group as a whole</td><td>Water point for a community</td></tr>
+        <tr><td>Institution</td><td>To the institution as a whole</td><td>Furniture for a school or health post</td></tr>
+    </table>
+
+    <h3>Record a delivery</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Services › Service Delivery</span> and click <b>Create Service Delivery</b>.</li>
+        <li>Choose the <b>Recipient Type</b> and <b>Allocation Method</b>, then the <b>Program</b> and, if it belongs to them, the <b>Project</b>, <b>Activity</b> and <b>Activity Run</b>.</li>
+        <li>Choose the <b>Beneficiaries</b> (or the household, group or institution) and the <b>Service Delivery Date</b>.</li>
+        <li><b>Delivery Location:</b> Region › Zone › Woreda and Venue / Site.</li>
+        <li><b>Service Items:</b> for each item, the Service Category, Service Type, item, Unit, Quantity, Unit Cost and Currency. Add details (for example what a kit contains) if needed.</li>
+        <li><b>Funding:</b> choose the <b>Donation</b> that paid for each item. If the item was bought with an expense, choose it in <b>Bought with expense</b> so that the cost is not counted twice.</li>
+        <li>Check the allocation per person and save.</li>
+    </ol>
+    <figure><img src="img/delivery-form.png"><figcaption>The service delivery form.</figcaption></figure>
+
+    <h3>The delivery page</h3>
+    <p>Shows the overview (people reached, value), the items, how they were allocated to each person, and the donations and expenses that paid for them.</p>
+    <figure class="small"><img src="img/delivery-details.png"><figcaption>A delivery's page.</figcaption></figure>
+    <div class="note">
+        Only services allowed for the chosen recipient type are offered (set by the administrator in Lookups).
+        Inactive beneficiaries and suspended or cancelled programs, projects and activities cannot receive new deliveries.
+        A delivery that did not happen should be set to <b>Cancelled</b>; it is then left out of the reports.
+    </div>
+</section>
+
+<!-- 16. DONORS -->
+<section class="chapter">
+    <h2>16. Donors</h2>
+    <div class="who">Admin · Finance Officer</div>
+    <p>Donors and funding partners: governments, foundations, NGOs, companies and individuals.</p>
+    <ol class="steps">
+        <li>Go to <span class="menu">Funding › Donors</span> and click <b>Add Donor</b>.</li>
+        <li><b>Basic Information:</b> Donor Name, Donor Type (Individual, Organization, Government, NGO, Corporate, Foundation), Registration Number, Status.</li>
+        <li><b>Contact Information:</b> Contact Person, Phone, Email, Website, Country, Address.</li>
+        <li><b>Donor Dates:</b> Donor Since, Last Contact Date, Next Follow-up Date, and Notes.</li>
+        <li><b>Reporting and Privacy:</b> tick <b>Share beneficiary names with this donor</b> only if the donor may see names. Otherwise they see numbers only.</li>
+    </ol>
+    <h3>Share results with a donor (share link)</h3>
+    <p>On the donor's page you can create a <b>private link</b> that lets the donor see where their donations went
+    (people reached, places, services), without an account. Choose all donations or one, and how long the link is
+    valid (90 days recommended). You can <b>revoke</b> a link at any time, and the page shows when it was last viewed.</p>
+    <figure><img src="img/donor-details.png"><figcaption>A donor's page.</figcaption></figure>
+</section>
+
+<!-- 17. DONATIONS -->
+<section class="chapter">
+    <h2>17. Donations</h2>
+    <div class="who">Admin · Finance Officer · Data Entry (add)</div>
+    <p>Money and in-kind support received or promised by donors, and what each donation is allocated to.</p>
+    <h3>Record a donation</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Funding › Donations</span> and click <b>Add Donation</b>.</li>
+        <li>Choose the <b>Donor</b> and enter the <b>Donation Title</b>, <b>Donation Type</b> (Cash, Bank Transfer, Material, Equipment, Service, Other), <b>Funding Source</b> and <b>Funding Restriction</b> (Restricted or Unrestricted).</li>
+        <li>Enter the <b>Amount</b>, <b>Currency</b> and <b>Donation Date</b>. For a currency other than ETB, also enter the <b>Exchange rate when received</b>.</li>
+        <li>Choose the <b>Program</b> and, if any, the <b>Project</b> it funds, and enter the <b>Receipt Number</b> and <b>Reference Number</b>.</li>
+        <li>Set the <b>Status</b>: <b>Pledged</b> (promised), <b>Received</b>, or <b>Cancelled</b>. Save.</li>
+    </ol>
+    <figure><img src="img/donations.png"><figcaption>The donation list, with a warning about possible double counting.</figcaption></figure>
+
+    <h3>Where the donation went</h3>
+    <p>Open a donation and click <b>Where Did It Go?</b> to see what it paid for: expenses, items given out, places and
+    people reached, and how much is left. For a foreign currency it also shows the value in ETB (received, used,
+    exchange gain or loss). <b>Download Donor Statement</b> gives a PDF for the donor.</p>
+    <figure class="small"><img src="img/donation-trace.png"><figcaption>"Where the donation went": received, used, remaining, people reached.</figcaption></figure>
+    <div class="note">
+        <b>Possible double counting:</b> when items were given out and an expense on the same donation has about the same amount
+        but they are not linked, the list shows a warning. Open it and link the items to the expense, or confirm they are different.
+        <b>Untraced spending</b> lists deliveries that are not linked to any donation.
+    </div>
+</section>
+
+<!-- 18. BUDGETS -->
+<section class="chapter">
+    <h2>18. Budgets</h2>
+    <div class="who">Admin · Finance Officer</div>
+    <p>Budgets plan the money per year and per cost category. A <b>program budget</b> sets the total per year;
+    <b>project budgets</b> plan the details and draw on their program's budget. Expenses are charged to the lines of approved project budgets.</p>
+    <h3>Create a budget</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Finance › Budgets</span> and click <b>New Budget</b>.</li>
+        <li>Choose <b>Project budget</b> or <b>Program budget</b>, then the project or program, the <b>Budget name</b>, the <b>Currency</b> and the <b>Period</b> (From FY … To FY …; one or several years).</li>
+        <li><b>Budget Lines:</b> for each line, the <b>Category</b> (Personnel, Training &amp; Workshops, Travel &amp; Per Diem, Direct Beneficiary Support, Supplies &amp; Materials, Equipment, Consultancy &amp; Services, Administration &amp; Overhead, Other), a description and the amount for each year.</li>
+        <li>Totals shown in red go over what is left in the program budget. Save.</li>
+        <li>Click <b>Submit for Approval</b>. The budget is locked while it is reviewed, and the approvers are notified.</li>
+    </ol>
+    <figure class="small"><img src="img/budget-form.png"><figcaption>A new budget with its lines per year.</figcaption></figure>
+    <h3>Approve or return</h3>
+    <p>A finance officer or admin opens the budget and clicks <b>Approve</b>, or <b>Return</b> it with a comment. A returned budget can be corrected and submitted again.</p>
+    <h3>Change an approved budget (revision)</h3>
+    <ol class="steps">
+        <li>Open the approved budget and start a <b>revision</b>.</li>
+        <li>Change the figures and give the <b>Reason for this revision</b> (what changed and why).</li>
+        <li>Click <b>Submit Revision</b>. Once approved, the old figures are kept as a version in the <b>History</b>, and expenses stay attached. <b>Cancel Revision</b> discards the proposal.</li>
+    </ol>
+    <figure class="small"><img src="img/budget-details.png"><figcaption>A budget: budget, spent, pending and remaining.</figcaption></figure>
+    <p class="muted"><b>Spent</b> = approved expenses. <b>Pending</b> = expenses recorded but not yet approved (not deducted yet). For a project in phases, each phase has its own budget.</p>
+</section>
+
+<!-- 19. EXPENSES -->
+<section class="chapter">
+    <h2>19. Expenses</h2>
+    <div class="who">Data Entry / Finance record · Finance Officer / Admin approve</div>
+    <p>Actual spending, charged to a line of an approved project budget and, if known, paid from a donation.</p>
+    <h3>Record an expense</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Finance › Expenses</span> and click <b>Record Expense</b>.</li>
+        <li><b>Charge To:</b> choose the approved <b>Project budget</b>, the <b>Expense date</b> (its fiscal year is shown) and the <b>Budget line</b>.</li>
+        <li><b>Expense Details:</b> Description, <b>Paid to (payee)</b>, <b>Amount</b>, <b>Currency</b>, <b>Payment method</b> (Cash, Bank Transfer, Cheque, Mobile Money, Other) and <b>Receipt / invoice no.</b></li>
+        <li><b>Links (optional):</b> the Activity it was for, and the donation it was <b>Paid from</b>.</li>
+        <li>Save, then <b>Submit for Approval</b>.</li>
+    </ol>
+    <figure><img src="img/expense-form.png" style="width:45%"><figcaption>Recording an expense.</figcaption></figure>
+    <h3>Approve, return or void</h3>
+    <ul>
+        <li><b>Approve Expense:</b> it now counts as spent on the budget line and is locked.</li>
+        <li><b>Return for Changes:</b> it goes back to the person who recorded it.</li>
+        <li><b>Over budget:</b> if the line would go over budget, the form warns you. It can still be submitted, but the approver must click <b>Approve over budget</b> and give a reason.</li>
+        <li><b>Void Expense:</b> cancels an approved expense that was wrong (with a reason). It then no longer counts as spent but stays in the history.</li>
+    </ul>
+    <figure><img src="img/expense-details.png" style="width:45%"><figcaption>An expense with its effect on the budget line.</figcaption></figure>
+</section>
+
+<!-- 20. REPORTS -->
+<section class="chapter">
+    <h2>20. Reports</h2>
+    <div class="who">Everyone (money figures only for roles that may see finance)</div>
+    <p>Ready-made reports for any period, with filters, charts, and Excel, PDF or CSV export.</p>
+    <table>
+        <tr><th>Report</th><th>Shows</th></tr>
+        <tr><td>Organization overview</td><td>The period at a glance: people, programs, activities, services, enterprises, funding and spending</td></tr>
+        <tr><td>Beneficiaries</td><td>Who you serve: gender, age, location, programs, and what each person received</td></tr>
+        <tr><td>Programs &amp; projects</td><td>Each program and project: people reached, what was delivered, funding, budget and spending</td></tr>
+        <tr><td>Activities &amp; training</td><td>Trainings (people trained, completion, attendance) and other activities (what they delivered and to whom)</td></tr>
+        <tr><td>Service delivery</td><td>Goods, cash and services delivered: where, to whom, people reached, who paid</td></tr>
+        <tr><td>Enterprises</td><td>Enterprises, their members, and the support members received</td></tr>
+        <tr><td>Donors &amp; funding</td><td>Donors and donations: received, pledged, what each paid for and who it reached</td></tr>
+        <tr><td>Budget &amp; spending</td><td>Approved budgets against spending: by budget, category, donor and month; lines over budget</td></tr>
+    </table>
+    <h3>Run a report</h3>
+    <ol class="steps">
+        <li>Go to <span class="menu">Reports</span> and click a report card.</li>
+        <li>Choose the <b>Period</b>: year (Jan–Dec), half year, quarter, month, date range, or all time.</li>
+        <li>Add filters if offered: program, project, region, gender, status.</li>
+        <li>Click any row to open that record's full report (for example one project).</li>
+        <li>Download with <b>Excel</b>, <b>PDF</b> or <b>CSV</b>.</li>
+    </ol>
+    <figure><img src="img/reports.png" style="width:56%"><figcaption>The report center with the organization overview.</figcaption></figure>
+    <div class="tip">The report address in the browser keeps the period and filters, so you can bookmark a report or send its link to a colleague who has access.</div>
+</section>
+
+<!-- =================================================== PART C -->
+<section class="part">
+    <div class="label">Part C</div>
+    <h1>Administration</h1>
+    <p class="lead">For organization administrators. These pages are under <span class="menu">Administration</span> in the menu.</p>
+</section>
+
+<section class="chapter">
+    <h2>21. Organization settings</h2>
+    <div class="who">Organization Admin</div>
+    <p><span class="menu">Administration › Organization</span> holds your organization's details: Basic Information (name,
+    type, description, founded year), Legal Information (legal name, registration and tax numbers), Contact Information,
+    Primary Contact Person, Address, and <b>Branding</b> (logo). Keep them up to date: they appear on reports and statements.</p>
+
+    <h2 style="margin-top:18px">22. Users</h2>
+    <div class="who">Organization Admin</div>
+    <ol class="steps">
+        <li>Go to <span class="menu">Administration › User Management</span> and click <b>Create User</b>.</li>
+        <li>Enter the <b>Full Name</b>, <b>Email</b> and <b>Role</b>, and a password that follows the rules in chapter 2.</li>
+        <li>Then use <b>Reset password</b> on the new user. The system makes a temporary password, and the user must choose their own at first sign-in, so only they know it.</li>
+        <li>Give the person their email and the temporary password.</li>
+    </ol>
+    <ul>
+        <li><b>Reset a password:</b> the system creates a temporary password (use <b>Copy</b> to copy it). The user must choose a new password at their next sign-in.</li>
+        <li><b>Locked</b> users (too many wrong passwords) unlock after 15 minutes, or when you reset their password.</li>
+        <li><b>Deactivate User</b> when someone leaves: they can no longer sign in, but their work stays in the records and history.</li>
+    </ul>
+    <figure><img src="img/users.png" style="width:40%"><figcaption>User management.</figcaption></figure>
+</section>
+
+<section class="chapter">
+    <h2>23. Roles</h2>
+    <div class="who">Organization Admin</div>
+    <p>The four built-in roles (chapter 2) cannot be changed. If your organization needs different rights, make your own roles:</p>
+    <ol class="steps">
+        <li>Go to <span class="menu">Administration › Roles</span> and click <b>New Role</b>, or <b>Copy as new role</b> next to a built-in role to start from it.</li>
+        <li>Give the <b>Role name</b> (for example "Program Manager" or "M&amp;E Officer") and a <b>Description</b>.</li>
+        <li>Tick the permissions per module: view, add, edit, delete, approve.</li>
+        <li>Save, then give the role to users in <span class="menu">User Management</span>.</li>
+    </ol>
+    <figure class="small"><img src="img/roles.png"><figcaption>Your roles and the built-in roles.</figcaption></figure>
+
+    <h2 style="margin-top:14px">24. Wording</h2>
+    <div class="who">Organization Admin</div>
+    <p><span class="menu">Administration › Wording</span> lets your organization use its own words. For example,
+    "Fund" instead of "Donation", "Administrator" instead of "Organization Admin", or "Ongoing" instead of the status "Active".</p>
+    <ol class="steps">
+        <li>Type your word (and its plural) next to the term. Leave the box empty to keep the default.</li>
+        <li>Check the <b>Preview</b>, then click <b>Save Wording</b>. Menus, pages, forms, reports and exports use the new words at once.</li>
+        <li><b>Default</b> returns a term to its original word.</li>
+    </ol>
+    <p class="muted">Only words are changed, never your data. Renaming a status changes only how it is shown; its meaning and rules stay the same.</p>
+</section>
+
+<section class="chapter">
+    <h2>25. Lookups</h2>
+    <div class="who">Organization Admin</div>
+    <p><span class="menu">Administration › Lookup Management</span> holds the choices that appear in drop-down lists, by
+    module and category: gender, education level, occupation, disability type, service categories and service types,
+    items and units, and so on.</p>
+    <ol class="steps">
+        <li>Open a module and category and click <b>Manage</b>, or click <b>Add Lookup</b>.</li>
+        <li>Enter the <b>Value</b> (and a <b>Code</b> if you use one). Codes must be unique.</li>
+        <li>For service types, also set <b>Can be given to</b> (individuals, households, groups, institutions), the <b>Allowed Units</b> and the <b>Allocation Behavior</b>.</li>
+        <li>A value that is no longer used can be <b>deactivated</b>. It disappears from new forms but stays on old records.</li>
+    </ol>
+    <figure class="small"><img src="img/lookups.png"><figcaption>Lookup management.</figcaption></figure>
+
+    <h2 style="margin-top:14px">26. Custom fields</h2>
+    <div class="who">Organization Admin</div>
+    <p><span class="menu">Administration › Custom Fields</span> adds extra questions to the standard forms, for example
+    "Household size" or "Mobile money user" on the beneficiary form.</p>
+    <ol class="steps">
+        <li>Click <b>Create Custom Field</b>. Choose the <b>Module</b> (Beneficiary, Donor, Program, Service Delivery, User, Enterprise, Enterprise Member).</li>
+        <li>Enter the <b>Field Label</b> (what users see) and <b>Field Key</b> (a short internal name), and choose the <b>Field Type</b> (text, number, date, a list of choices …).</li>
+        <li>Tick <b>Required field</b> if it must be filled in, and <b>Active field</b> to show it. Save.</li>
+    </ol>
+</section>
+
+<!-- =================================================== APPENDIX -->
+<section class="chapter">
+    <h2>Appendix A: Statuses</h2>
+    <table>
+        <tr><th>Records</th><th>Statuses</th></tr>
+        <tr><td>Programs, projects, activities, runs</td><td>Planned → Active → Completed, or Suspended / Cancelled (see chapter 4)</td></tr>
+        <tr><td>Beneficiaries, donors, enterprises, members</td><td>Active, Inactive (inactive ones receive nothing new)</td></tr>
+        <tr><td>Enrollments</td><td>Pending, Active, Suspended, Completed, Dropped</td></tr>
+        <tr><td>Budgets, TORs</td><td>Draft → Submitted → Approved, or Returned</td></tr>
+        <tr><td>Expenses</td><td>Draft → Submitted → Approved, or Returned; Voided</td></tr>
+        <tr><td>Donations</td><td>Pledged, Received, Cancelled</td></tr>
+        <tr><td>Service deliveries</td><td>Delivered, Cancelled</td></tr>
+        <tr><td>Attendance</td><td>Present, Late, Excused, Absent</td></tr>
+    </table>
+
+    <h2 style="margin-top:14px">Appendix B: Approvals</h2>
+    <table>
+        <tr><th>What</th><th>Prepared by</th><th>Approved by</th><th>After approval</th></tr>
+        <tr><td>Budget</td><td>Finance Officer, Admin</td><td>Finance Officer, Admin</td><td>Locked; changed only by a revision with a reason</td></tr>
+        <tr><td>TOR</td><td>Data Entry, Admin</td><td>Admin</td><td>The activity can be created from it</td></tr>
+        <tr><td>Expense</td><td>Data Entry, Finance, Admin</td><td>Finance Officer, Admin</td><td>Counts as spent; locked; can only be voided</td></tr>
+    </table>
+    <p class="muted">Custom roles can be given approval rights too. Approvers get a notification (the bell) when something waits for them.</p>
+
+    <h2 style="margin-top:14px">Appendix C: Rules the system checks</h2>
+    <ul>
+        <li><b>Dates:</b> an end date is never before its start date. Records stay inside their parent's dates: a project inside its program, an activity and its runs inside the project, a session inside its run, an enrollment inside the program, a membership inside the enterprise's dates. A parent's dates cannot be shortened past its records. Work that is already done cannot be dated in the future.</li>
+        <li><b>Status:</b> see chapter 4 and Appendix A.</li>
+        <li><b>Money:</b> expenses only go to approved project budgets. A project budget cannot exceed what is left in its program budget. Items bought with an expense are not charged to the donation a second time.</li>
+        <li><b>Duplicates:</b> a person is enrolled in a program only once. Lookup codes are unique.</li>
+    </ul>
+</section>
+
+<section class="chapter">
+    <h2>Appendix D: Currencies</h2>
+    <p>The system works in <b>ETB</b>, <b>USD</b>, <b>EUR</b>, <b>GBP</b> and <b>CHF</b>. Each amount keeps its own currency. Totals are shown
+    per currency (for example "ETB 124,950,000 + USD 80,000"). For a donation in a foreign currency, the exchange rate on the day it was
+    received is recorded, so reports can also show its value in ETB, the value of what was used, and the exchange gain or loss.</p>
+
+    <h2 style="margin-top:14px">Appendix E: Common messages</h2>
+    <table>
+        <tr><th>Message</th><th>What to do</th></tr>
+        <tr><td>"Please check: …"</td><td>A field is missing or wrong. The message names it. Correct it and save again.</td></tr>
+        <tr><td>"… is Completed / Suspended / Cancelled"</td><td>The program, project or activity no longer accepts this kind of record. Change its status if the work continues.</td></tr>
+        <tr><td>"… is Inactive …"</td><td>The beneficiary, donor or enterprise is inactive. Make it Active if appropriate.</td></tr>
+        <tr><td>Date outside the project's dates</td><td>Use a date inside the dates shown, or ask an admin to extend the parent's dates.</td></tr>
+        <tr><td>Cannot be deleted</td><td>Other records depend on it. Delete or move those first, or set the record to Inactive or Cancelled instead.</td></tr>
+        <tr><td>Someone else saved the sheet</td><td>Reload the page and enter your changes again.</td></tr>
+        <tr><td>Account locked</td><td>Wait 15 minutes or ask your administrator to reset your password.</td></tr>
+    </table>
+
+    <h2 style="margin-top:14px">Appendix F: Glossary</h2>
+    <table>
+        <tr><th>Term</th><th>Meaning</th></tr>
+        <tr><td>Beneficiary</td><td>A person the organization serves</td></tr>
+        <tr><td>Enrollment</td><td>A beneficiary's membership in a program</td></tr>
+        <tr><td>Enterprise</td><td>A business, cooperative or group run by beneficiaries</td></tr>
+        <tr><td>Program / Project / Phase</td><td>Area of work / piece of work in a program / stage of a project</td></tr>
+        <tr><td>TOR</td><td>Terms of Reference: the plan of an activity, approved before it happens</td></tr>
+        <tr><td>Activity / Activity run</td><td>What is done / one batch of it, at one place and time</td></tr>
+        <tr><td>Session</td><td>One day or meeting of an activity run, with attendance</td></tr>
+        <tr><td>Service delivery</td><td>Goods, cash or services given out</td></tr>
+        <tr><td>Pledged / Received</td><td>Promised by a donor / actually received</td></tr>
+        <tr><td>Budget line</td><td>One cost category and its amount per year in a budget</td></tr>
+        <tr><td>Revision</td><td>An approved change to an approved budget, with its reason</td></tr>
+        <tr><td>Void</td><td>Cancel an approved expense while keeping its history</td></tr>
+        <tr><td>Lookup</td><td>A choice in a drop-down list, managed by the administrator</td></tr>
+        <tr><td>FY</td><td>Fiscal year = calendar year (January–December)</td></tr>
+    </table>
+</section>
+
+</body>
+</html>
