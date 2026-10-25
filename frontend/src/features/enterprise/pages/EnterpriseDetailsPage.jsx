@@ -1,3 +1,6 @@
+import TraceTable
+    from "../../donations/components/TraceTable";
+
 import {
     useEffect
 } from "react";
@@ -22,6 +25,7 @@ import {
 
 import {
     Box,
+    Link,
     Typography
 } from "@mui/material";
 
@@ -711,161 +715,36 @@ const EnterpriseDetailsPage = () => {
 
                     ) : (
 
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                flexWrap: "wrap",
-                                gap: 2,
-                                width: "100%"
-                            }}
-                        >
-
-                            {enterpriseMembers.map(
-                                member => {
-
-                                    const beneficiary =
-                                        member?.beneficiary ||
-                                        member?.beneficiaryId ||
-                                        member?.beneficiaryData ||
-                                        {};
-
-
-                                    const memberId =
-                                        member?._id ||
-                                        member?.id;
-
-
-                                    const memberRole =
-                                        getLookupValue(
-                                            member?.memberRole ||
-                                            member?.role
-                                        );
-
-
-                                    const memberStatus =
-                                        getLookupValue(
-                                            member?.status
-                                        );
-
-
-                                    return (
-
-                                        <Box
-                                            key={
-                                                memberId
-                                            }
-                                            sx={{
-                                                flex: {
-                                                    xs: "1 1 100%",
-                                                    sm: "1 1 calc(50% - 8px)",
-                                                    md: "1 1 calc(33.333% - 11px)"
-                                                },
-                                                minWidth: 0
-                                            }}
-                                        >
-
-                                            <PageCard
-                                                sx={{
-                                                    height: "100%",
-                                                    border: "1px solid",
-                                                    borderColor: "divider",
-                                                    borderRadius: 2
-                                                }}
+                        // one row per member (the cards were too narrow
+                        // for their values)
+                        <TraceTable
+                            rows={enterpriseMembers}
+                            getRowKey={(member, index) => member?._id || member?.id || index}
+                            columns={[
+                                {
+                                    key: "name",
+                                    label: "Member",
+                                    render: member => {
+                                        const beneficiary = member?.beneficiary || member?.beneficiaryId || member?.beneficiaryData || {};
+                                        return (
+                                            <Link
+                                                component="button"
+                                                underline="hover"
+                                                sx={{ fontWeight: 600, textAlign: "left" }}
+                                                onClick={() => navigate(`/enterprises/${id}/members/${member?._id || member?.id}`)}
                                             >
-
-                                                <FormSection
-                                                    title={
-                                                        getBeneficiaryName(
-                                                            beneficiary
-                                                        )
-                                                    }
-                                                >
-
-                                                    <InfoRow
-                                                        label="Beneficiary Number"
-                                                        value={
-                                                            beneficiary?.beneficiaryNumber ||
-                                                            "-"
-                                                        }
-                                                    />
-
-
-                                                    <InfoRow
-                                                        label="Member Role"
-                                                        value={
-                                                            memberRole
-                                                        }
-                                                    />
-
-
-                                                    <InfoRow
-                                                        label="Joined Date"
-                                                        value={
-                                                            formatDate(
-                                                                member?.joinedDate
-                                                            )
-                                                        }
-                                                    />
-
-
-                                                    <InfoRow
-                                                        label="Left Date"
-                                                        value={
-                                                            formatDate(
-                                                                member?.leftDate
-                                                            )
-                                                        }
-                                                    />
-
-
-                                                    <InfoRow
-                                                        label="Status"
-                                                        value={
-
-                                                            <StatusChip
-                                                                status={
-                                                                    memberStatus ||
-                                                                    "Active"
-                                                                }
-                                                            />
-
-                                                        }
-                                                    />
-
-
-                                                    <Box
-                                                        sx={{
-                                                            mt: 2
-                                                        }}
-                                                    >
-
-                                                        <AppButton
-                                                            variant="outlined"
-                                                            size="small"
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/enterprises/${id}/members/${memberId}`
-                                                                )
-                                                            }
-                                                        >
-                                                            View Member
-                                                        </AppButton>
-
-                                                    </Box>
-
-                                                </FormSection>
-
-                                            </PageCard>
-
-                                        </Box>
-
-                                    );
-
-                                }
-                            )}
-
-                        </Box>
+                                                {getBeneficiaryName(beneficiary)}
+                                            </Link>
+                                        );
+                                    }
+                                },
+                                { key: "number", label: "Beneficiary No.", render: member => (member?.beneficiary || {}).beneficiaryNumber || "-" },
+                                { key: "role", label: "Role", render: member => getLookupValue(member?.memberRole || member?.role) || "-" },
+                                { key: "joined", label: "Joined", render: member => formatDate(member?.joinedDate) },
+                                { key: "left", label: "Left", render: member => formatDate(member?.leftDate) },
+                                { key: "status", label: "Status", render: member => <StatusChip status={getLookupValue(member?.status) || "Active"} /> }
+                            ]}
+                        />
 
                     )}
 

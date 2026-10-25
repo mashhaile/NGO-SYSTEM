@@ -117,11 +117,21 @@ const ReportCenterPage = () => {
         setParams(next);
     };
 
-    const changeFilters = (nextValues) => {
-        const next = new URLSearchParams();
-        next.set("report", selectedKey);
-        for (const [key, value] of Object.entries(nextValues)) if (value !== "" && value !== null && value !== undefined) next.set(key, value);
-        setParams(next);
+    // a change of one or more filters, merged into the address
+    // as it is now (not as it was when the change was made)
+    const changeFilters = (change) => {
+        setParams(previous => {
+            const next = new URLSearchParams(previous);
+            next.set("report", selectedKey);
+            // the defaults shown (this year) stay when another filter changes
+            if (!next.has("period")) next.set("period", values.period);
+            if (!next.has("year") && values.year) next.set("year", values.year);
+            for (const [key, value] of Object.entries(change)) {
+                if (value === "" || value === null || value === undefined) next.delete(key);
+                else next.set(key, value);
+            }
+            return next;
+        });
     };
 
     const download = async (format) => {

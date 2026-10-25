@@ -1559,9 +1559,8 @@ const validateItemDonation = async (
                 false
 
         }).select(
-            "_id"
-        );
-
+            "_id donor donationCode title"
+        ).lean();
     if (
         !donation
     ) {
@@ -1569,7 +1568,7 @@ const validateItemDonation = async (
             "Donation not found."
         );
     }
-
+    return donation;
 };
 
 
@@ -1879,11 +1878,22 @@ const validateServiceItems = async (
             item.donor,
             organizationId
         );
-
-        await validateItemDonation(
-            item.donation,
-            organizationId
-        );
+        const itemDonation =
+            await validateItemDonation(
+                item.donation,
+                organizationId
+            );
+        // The donor of an item is its donation's donor: filled
+        // in when only the donation is given; a different donor
+        // is refused
+        if (itemDonation?.donor) {
+            if (item.donor && String(item.donor) !== String(itemDonation.donor)) {
+                throw new Error(
+                    `${itemDonation.donationCode} ${itemDonation.title} is from another donor than the one chosen for this item. Choose the donation's own donor, or another donation.`
+                );
+            }
+            item.donor = itemDonation.donor;
+        }
 
         item.allocationBehavior =
             allocationBehavior;

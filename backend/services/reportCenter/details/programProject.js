@@ -142,6 +142,37 @@ const build = async (level, id, query, context, period) => {
                 .lean()
             : [];
 
+    // The budget for the report's period, like the budget
+    // report: the approved amounts of the fiscal years the
+    // period covers, and what was spent in the period. "All
+    // time" shows the whole budget and spending to date.
+    const yearOf = (date) => new Date(date.getTime() + 3 * 3600 * 1000).getUTCFullYear();
+    const periodYears =
+        period.start && period.end
+            ? Array.from({ length: yearOf(new Date(period.end.getTime() - 1)) - yearOf(period.start) + 1 }, (_, k) => yearOf(period.start) + k)
+            : null;
+    // budgets are planned per fiscal year: "FY 2026" also for a quarter of it
+    const periodLabel = periodYears ? `FY ${periodYears.join(", ")}` : "the period";
+    let periodFigure = null;
+    if (money && figure && periodYears) {
+        const Budget = require("../../../models/Budget");
+        const budgetIds =
+            !isProgram && phases.length
+                ? projectIds.map(id => figures.projects?.[toId(id)]?.budgetId).filter(Boolean)
+                : [figure.budgetId].filter(Boolean);
+        const budgets = await Budget.find({ _id: { $in: budgetIds } }).select("status yearlyAmounts lines").lean();
+        const yearTotal = (budget, year) =>
+            (budget.yearlyAmounts?.length
+                ? budget.yearlyAmounts.filter(item => item.fiscalYear === year).reduce((sum, item) => sum + toNumber(item.amount), 0)
+                : (budget.lines || []).reduce((sum, line) => sum + (line.amounts || []).filter(item => item.fiscalYear === year).reduce((total, item) => total + toNumber(item.amount), 0), 0));
+        const covered = budgets.some(budget => periodYears.some(year => yearTotal(budget, year) > 0));
+        const approved = budgets.filter(budget => budget.status === "Approved").reduce((sum, budget) => sum + periodYears.reduce((total, year) => total + yearTotal(budget, year), 0), 0);
+        const spent = expenses.reduce((sum, expense) => sum + toNumber(expense.budgetAmount ?? expense.amount), 0);
+        periodFigure = covered
+            ? { ...figure, approvedAmount: round2(approved), spent: round2(spent), remaining: round2(approved - spent), years: periodYears }
+            : { none: true };
+    }
+
     const received = donations.filter(donation => donation.status === "Received")
         .reduce((totals, donation) => addTo(totals, donation.currency, donation.amount), {});
 
@@ -169,9 +200,12 @@ const build = async (level, id, query, context, period) => {
             ];
 
     if (money && figure) {
+        const shown = periodFigure && !periodFigure.none ? periodFigure : figure;
         fields.push(
             { label: "Budget", value: `${figure.budgetCode || ""} (${figure.status})` },
-            { label: "Approved budget", value: `${figure.currency} ${round2(figure.approvedAmount).toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
+            periodFigure?.none
+                ? { label: `Budget for ${periodLabel}`, value: "None (the budget does not cover this period)" }
+                : { label: periodFigure ? `Approved budget for ${periodLabel}` : "Approved budget", value: `${shown.currency} ${round2(shown.approvedAmount).toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
         );
     }
 
@@ -195,11 +229,17 @@ const build = async (level, id, query, context, period) => {
             summaryItem("Value delivered", valueDelivered, "money", { currency: "ETB" }),
             summaryItem("Activities", activities.length),
             summaryItem("Funding received", formatTotals(received), "text"),
-            ...(money && figure
-                ? [
-                    summaryItem("Spent to date", round2(figure.spent), "money", { currency: figure.currency }),
-                    summaryItem("Remaining", round2(figure.remaining), "money", { currency: figure.currency })
-                ]
+            ...(money && figure && !periodFigure?.none
+                ? periodFigure
+                    ? [
+                        summaryItem(`Budget for ${periodLabel}`, round2(periodFigure.approvedAmount), "money", { currency: periodFigure.currency }),
+                        summaryItem("Spent in the period", round2(periodFigure.spent), "money", { currency: periodFigure.currency }),
+                        summaryItem(`Remaining of ${periodLabel}`, round2(periodFigure.remaining), "money", { currency: periodFigure.currency })
+                    ]
+                    : [
+                        summaryItem("Spent to date", round2(figure.spent), "money", { currency: figure.currency }),
+                        summaryItem("Remaining", round2(figure.remaining), "money", { currency: figure.currency })
+                    ]
                 : [])
         ],
         sections: [

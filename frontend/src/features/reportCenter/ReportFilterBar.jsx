@@ -1,6 +1,7 @@
 import {
     useEffect,
     useMemo,
+    useRef,
     useState
 } from "react";
 
@@ -20,6 +21,63 @@ import axiosClient
 import {
     getLocationsApi
 } from "../locations/api/locationApi";
+
+
+// =====================================================
+// A DATE THAT APPLIES ONCE IT IS COMPLETE
+// =====================================================
+//
+// Typing a date goes through half dates (year "0002" ...).
+// Each change used to rebuild the report, so typing was
+// slow. The date is kept here while it is typed and applied
+// when it is a whole date (after a short pause) or when the
+// field is left.
+//
+// =====================================================
+
+const isWholeDate = (value) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(value || "") &&
+    Number(value.slice(0, 4)) >= 2000 &&
+    Number(value.slice(0, 4)) <= 2100;
+
+const DateFilter = ({ label, value, onApply }) => {
+
+    const [draft, setDraft] = useState(value || "");
+    const [shown, setShown] = useState(value || "");
+
+    // a new value from outside (another filter, reset)
+    if ((value || "") !== shown) {
+        setShown(value || "");
+        setDraft(value || "");
+    }
+
+    // the latest onApply, so the page re-rendering (a report
+    // loading) does not restart the pause
+    const applyRef = useRef(onApply);
+    useEffect(() => {
+        applyRef.current = onApply;
+    });
+
+    useEffect(() => {
+        if (draft === (value || "") || (draft && !isWholeDate(draft))) return undefined;
+        const timer = setTimeout(() => applyRef.current(draft), 600);
+        return () => clearTimeout(timer);
+    }, [draft, value]);
+
+    return (
+        <AppTextField
+            label={label}
+            type="date"
+            value={draft}
+            onChange={event => setDraft(event.target.value)}
+            onBlur={() => {
+                if (draft !== (value || "") && (!draft || isWholeDate(draft))) onApply(draft);
+            }}
+            InputLabelProps={{ shrink: true }}
+        />
+    );
+
+};
 
 
 // =====================================================
@@ -100,9 +158,11 @@ const ReportFilterBar = ({ report, values, onChange }) => {
 
     const set = (name) => (event) => {
         const value = event?.target?.value ?? event;
-        const next = { ...values, [name]: value };
-        if (name === "program") next.project = "";
-        onChange(next);
+        // only what changed: merged into the current filters, so
+        // two quick changes (From, To) cannot undo each other
+        const change = { [name]: value };
+        if (name === "program") change.project = "";
+        onChange(change);
     };
 
     const period = values.period || "year";
@@ -137,8 +197,8 @@ const ReportFilterBar = ({ report, values, onChange }) => {
 
                 {period === "custom" && (
                     <>
-                        <AppTextField label="From" type="date" value={values.startDate || ""} onChange={set("startDate")} InputLabelProps={{ shrink: true }} />
-                        <AppTextField label="To" type="date" value={values.endDate || ""} onChange={set("endDate")} InputLabelProps={{ shrink: true }} />
+                        <DateFilter label="From" value={values.startDate} onApply={set("startDate")} />
+                        <DateFilter label="To" value={values.endDate} onApply={set("endDate")} />
                     </>
                 )}
 

@@ -155,6 +155,44 @@ const main = async () => {
     console.log(`  ${tors} TORs (${fromTor} turned into activities)`);
 
 
+    // ---------------- indirect participants in attendance
+    section("Indirect participants (government, partner, community, other)");
+    const INDIRECT = [
+        ["Government", "Woreda Education Office", "Education expert", "Ato Getnet Ayalew", "Male"],
+        ["Government", "Woreda Women and Children Affairs", "Focal person", "W/ro Tsige Bekele", "Female"],
+        ["Government", "Kebele Administration", "Kebele manager", "Ato Mohammed Ali", "Male"],
+        ["Partner", "Ethiopian Red Cross Society", "Field officer", "Liya Tadesse", "Female"],
+        ["Partner", "Woreda Health Office", "Health extension worker", "Meron Haile", "Female"],
+        ["Community", "Kebele elders council", "Elder", "Aba Gemechu Tola", "Male"],
+        ["Community", "Women development army", "Group leader", "Almaz Desta", "Female"],
+        ["Other", "Local radio", "Journalist", "Dawit Mekonnen", "Male"]
+    ];
+    const sessions = await db.collection("attendances").find(mine()).sort({ sessionDate: 1 }).toArray();
+    let indirect = 0;
+    for (const [n, session] of sessions.entries()) {
+        const group = [0, 1, 2].map(k => INDIRECT[(n * 3 + k) % INDIRECT.length]);
+        // saving a sheet replaces it: send the people already on it too
+        const current = (await db.collection("attendancerecords").find({ attendance: session._id, isDeleted: { $ne: true } }).toArray())
+            .map(row => ({
+                participantType: row.participantType, gender: row.gender, ageGroup: row.ageGroup, disabilityStatus: Boolean(row.disabilityStatus), status: row.status,
+                ...(row.beneficiary ? { beneficiary: id(row.beneficiary) } : {}),
+                ...(row.staff ? { staff: id(row.staff) } : {}),
+                ...(row.externalParticipant?.name ? { externalParticipant: { name: row.externalParticipant.name, gender: row.externalParticipant.gender, organizationName: row.externalParticipant.organizationName, position: row.externalParticipant.position, phone: row.externalParticipant.phone || "" } } : {})
+            }));
+        const ok = await attempt(`indirect participants ${n + 1}`, () => api("POST", `/attendance/${session._id}/records`, data, {
+            records: [
+                ...current,
+                ...group.map(([participantType, organizationName, position, name, gender]) => ({
+                    participantType, gender, ageGroup: "Adult", disabilityStatus: false, status: "Present",
+                    externalParticipant: { name, gender, organizationName, position, phone: "" }
+                }))
+            ]
+        }));
+        if (ok !== null) indirect += group.length;
+    }
+    console.log(`  ${indirect} indirect participants in ${sessions.length} sessions`);
+
+
     // ---------------- custom fields
     section("Custom fields and values");
     const fieldDefs = [

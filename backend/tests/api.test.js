@@ -2008,6 +2008,38 @@ test("currencies: one list (CHF included); others are refused; CHF converts like
 });
 
 
+test("an item's donor is its donation's donor; a project report shows the budget of its period", { skip }, async () => {
+
+    const { token, people, item, create } = await serviceDeliverySetup();
+
+    const donorA = (await api("POST", "/donors", { token, body: { name: "Donor A", donorType: "Foundation" } })).data.data._id;
+    const donorB = (await api("POST", "/donors", { token, body: { name: "Donor B", donorType: "Foundation" } })).data.data._id;
+    const donation = (await api("POST", "/donations", { token, body: { donor: donorA, title: "A's grant", amount: 100000, currency: "ETB", status: "Received", donationDate: "2026-03-01", fundingRestriction: "Unrestricted" } })).data.data._id;
+
+    // only the donation: the donor is filled in
+    const saved = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 750, { donation })], beneficiaries: people });
+    assert.ok(saved.status < 300, saved.data?.message);
+    const delivery = (await api("GET", `/service-deliveries/${saved.data.data._id}`, { token })).data.data;
+    assert.equal(String(delivery.items[0].donor?._id || delivery.items[0].donor), donorA);
+
+    // another donor than the donation's: refused
+    const wrong = await create({ recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 750, { donation, donor: donorB })], beneficiaries: people });
+    assert.equal(wrong.status, 400);
+    assert.match(wrong.data.message, /from another donor/);
+
+    // the budget of project one covers 2026-2027: FY 2020 has none, FY 2026 its own year
+    const budget = (await api("GET", `/budgets/${state.budgetOneId}`, { token })).data.data;
+    const project = String(budget.project?._id || budget.project);
+    const field = (report, pattern) => report.record.fields.find(entry => pattern.test(entry.label));
+    const fy2020 = (await api("GET", `/report-center/detail/project/${project}?period=year&year=2020`, { token })).data.data;
+    assert.match(field(fy2020, /Budget for FY 2020/).value, /None/);
+    const fy2026 = (await api("GET", `/report-center/detail/project/${project}?period=year&year=2026`, { token })).data.data;
+    assert.ok(field(fy2026, /Approved budget for FY 2026/), "the FY 2026 budget is shown");
+    assert.ok(fy2026.summary.some(entry => entry.label === "Spent in the period"));
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

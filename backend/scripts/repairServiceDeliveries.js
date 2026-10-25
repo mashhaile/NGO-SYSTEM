@@ -117,6 +117,25 @@ const main = async () => {
 
     console.log(`${typesFilled} service types ${DRY_RUN ? "would get" : "got"} their allowed recipients (cash, fees).`);
 
+    // Items charged to a donation get the donation's donor
+    // (some were saved with the donation only)
+    const donorOf = new Map((await db.collection("donations").find({}).project({ donor: 1 }).toArray()).map(row => [String(row._id), row.donor]));
+    let donorsFilled = 0;
+    for (const delivery of await db.collection("servicedeliveries").find({ "items.donation": { $ne: null } }).project({ items: 1 }).toArray()) {
+        let changed = false;
+        const items = (delivery.items || []).map(item => {
+            const donor = item.donation ? donorOf.get(String(item.donation)) : null;
+            if (donor && String(item.donor || "") !== String(donor)) {
+                changed = true;
+                donorsFilled++;
+                return { ...item, donor };
+            }
+            return item;
+        });
+        if (changed && !DRY_RUN) await db.collection("servicedeliveries").updateOne({ _id: delivery._id }, { $set: { items } });
+    }
+    console.log(`${donorsFilled} service items ${DRY_RUN ? "would get" : "got"} their donation's donor.`);
+
     const deliveries =
         await db.collection("servicedeliveries")
             .find({ isDeleted: { $ne: true } })
