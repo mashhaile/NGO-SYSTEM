@@ -644,15 +644,15 @@ const setupActivities = async () => {
 
     await activity("feeding", "materials", "School Feeding Distribution", {
         activityType: "Distribution", participantSource: "Enrolled Beneficiaries", targetGroups: ["Children", "Students"],
-        activityDate: "2026-02-20", ...am, location: "Debre Berhan primary schools", targetParticipants: 600, status: "Ongoing"
+        activityDate: "2026-02-20", ...am, location: "Debre Berhan primary schools", targetParticipants: 600, status: "Active"
     });
     await activity("water", "water", "Water Point Rehabilitation", {
         activityType: "Field Visit", participantSource: "Mixed", targetGroups: ["Farmers", "Community Leaders"],
-        activityDate: "2026-03-10", ...af, targetParticipants: 500, status: "Ongoing"
+        activityDate: "2026-03-10", ...af, targetParticipants: 500, status: "Active"
     });
     await activity("girls", "girls", "Girls Life-Skills Clubs", {
         activityType: "Training", participantSource: "Enrolled Beneficiaries", targetGroups: ["Youth", "Women"],
-        activityDate: "2026-03-01", ...am, targetParticipants: 200, status: "Ongoing"
+        activityDate: "2026-03-01", ...am, targetParticipants: 200, status: "Active"
     });
 
     // Activity runs (batches)

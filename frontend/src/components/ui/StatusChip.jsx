@@ -2,6 +2,8 @@ import {
     Chip
 } from "@mui/material";
 
+import { useStatusLabel } from "../../utils/terms";
+
 
 const STATUS_STYLES = {
     active: {
@@ -93,6 +95,64 @@ const STATUS_STYLES = {
     voided: {
         bgcolor: "action.hover",
         color: "text.secondary"
+    },
+
+    // paused work: nothing new until it is Active again
+    suspended: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+
+    // attendance and delivery results
+    present: {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+
+    participated: {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+
+    late: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+
+    excused: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+
+    referred: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+
+    absent: {
+        bgcolor: "error.light",
+        color: "error.dark"
+    },
+
+    missed: {
+        bgcolor: "error.light",
+        color: "error.dark"
+    },
+
+    // accounts and plans (lowercase values)
+    trialing: {
+        bgcolor: "info.light",
+        color: "info.dark"
+    },
+
+    trial: {
+        bgcolor: "info.light",
+        color: "info.dark"
+    },
+
+    past_due: {
+        bgcolor: "warning.light",
+        color: "warning.dark"
     }
 };
 
@@ -101,6 +161,9 @@ const StatusChip = ({
     status,
     size = "small"
 }) => {
+
+    // the organization's label (Settings > Wording)
+    const statusLabel = useStatusLabel();
 
     const normalized =
         String(status || "")
@@ -119,7 +182,7 @@ const StatusChip = ({
         <Chip
             label={
                 status
-                    ? String(status)
+                    ? String(statusLabel(status))
                         .replace(/_/g, " ")
                         .replace(/^\w/, char => char.toUpperCase())
                     : "Unknown"

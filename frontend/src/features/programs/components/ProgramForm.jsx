@@ -1,3 +1,4 @@
+import { WORK_STATUS_OPTIONS, WORK_STATUS_HELP } from "../../../constants/workStatus";
 import {
     useEffect,
     useState
@@ -454,34 +455,9 @@ const ProgramForm = ({
 
                             placeholder="Select Status"
 
-                            options={[
+                            options={WORK_STATUS_OPTIONS}
 
-                                {
-                                    value: "Planned",
-                                    label: "Planned"
-                                },
-
-                                {
-                                    value: "Active",
-                                    label: "Active"
-                                },
-
-                                {
-                                    value: "Completed",
-                                    label: "Completed"
-                                },
-
-                                {
-                                    value: "Suspended",
-                                    label: "Suspended"
-                                },
-
-                                {
-                                    value: "Cancelled",
-                                    label: "Cancelled"
-                                }
-
-                            ]}
+                            helperText={WORK_STATUS_HELP}
 
                             onChange={(event) =>
                                 changeField(

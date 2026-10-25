@@ -1,3 +1,4 @@
+const { workStatusField } = require("../constants/workStatus");
 const mongoose = require("mongoose");
 
 
@@ -127,25 +128,8 @@ required:true
 
 
 
-status:{
-
-type:String,
-
-enum:[
-
-"Draft",
-
-"Active",
-
-"Completed",
-
-"Cancelled"
-
-],
-
-default:"Draft"
-
-},
+// Planned / Active / Suspended / Completed / Cancelled (constants/workStatus.js)
+status: workStatusField(),
 
 
 
@@ -291,6 +275,13 @@ projectSchema.plugin(
         }
         ]
     }
+);
+
+
+// what the status of its parents allows (see plugins/statusRules)
+projectSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This project", parents: [{ ref: "program", model: "Program", label: "program", kind: "plan" }, { ref: "parentProject", model: "Project", label: "main project", kind: "plan" }] }
 );
 
 

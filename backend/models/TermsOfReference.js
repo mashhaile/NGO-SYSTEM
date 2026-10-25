@@ -468,6 +468,13 @@ termsOfReferenceSchema.plugin(
 );
 
 
+// what the status of its parents allows (see plugins/statusRules)
+termsOfReferenceSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This TOR", parents: [{ ref: "project", model: "Project", label: "project", kind: "plan" }, { ref: "activity", model: "Activity", label: "activity", kind: "plan" }] }
+);
+
+
 const TermsOfReference =
     mongoose.model(
         "TermsOfReference",

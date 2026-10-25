@@ -13,7 +13,7 @@
 
 const Organization = require("../models/organization");
 const ApiError = require("../utils/apiError");
-const { TERMS, makeReplacer } = require("../config/terminology");
+const { TERMS, makeReplacer, makeStatusLabel } = require("../config/terminology");
 
 
 const MAX_LENGTH = 40;
@@ -68,7 +68,7 @@ const updateTerms = async (organizationId, terms = {}) => {
             delete next[key];
             continue;
         }
-        next[key] = { singular, plural: plural || singular };
+        next[key] = { singular, plural: term.status ? singular : plural || singular };
     }
 
     organization.terminology = next;
@@ -81,14 +81,32 @@ const updateTerms = async (organizationId, terms = {}) => {
 };
 
 
-const replacerFor = async (organizationId) =>
-    makeReplacer(await overridesOf(organizationId));
+// replace(text) for words; replace.status(value) for a status label
+const replacerFor = async (organizationId) => {
+    const overrides = await overridesOf(organizationId);
+    const replace = makeReplacer(overrides);
+    replace.status = makeStatusLabel(overrides);
+    return replace;
+};
 
 
-// the words of a report (not its data)
+// the words of a report (not its data - except status labels
+// in "status" columns)
 const applyToReport = (report, replace) => {
     if (!report || typeof report !== "object") return report;
+    const status = replace.status || ((value) => value);
     const label = (item) => (item && typeof item === "object" ? { ...item, ...(item.label ? { label: replace(item.label) } : {}), ...(item.note ? { note: replace(item.note) } : {}), ...(item.title ? { title: replace(item.title) } : {}) } : item);
+    const table = (item) => {
+        if (!item || typeof item !== "object") return item;
+        const statusKeys = (item.columns || []).filter(column => column?.key === "status" || column?.label === "Status").map(column => column.key);
+        return {
+            ...label(item),
+            columns: (item.columns || []).map(label),
+            ...(Array.isArray(item.rows) && statusKeys.length
+                ? { rows: item.rows.map(row => (row && typeof row === "object" ? { ...row, ...Object.fromEntries(statusKeys.map(key => [key, status(row[key])])) } : row)) }
+                : {})
+        };
+    };
     return {
         ...report,
         title: replace(report.title),
@@ -96,8 +114,9 @@ const applyToReport = (report, replace) => {
         summary: Array.isArray(report.summary) ? report.summary.map(label) : report.summary,
         record: report.record ? { ...report.record, fields: (report.record.fields || []).map(label) } : report.record,
         sections: Array.isArray(report.sections)
-            ? report.sections.map(item => item ? { ...label(item), columns: (item.columns || []).map(label) } : item)
-            : report.sections
+            ? report.sections.map(table)
+            : report.sections,
+        details: report.details ? table(report.details) : report.details
     };
 };
 

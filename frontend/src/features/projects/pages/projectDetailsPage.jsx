@@ -516,7 +516,7 @@ const ProjectDetailsPage = () => {
                                     )
                                 },
                                 { key: "dates", label: "Dates", render: row => `${formatDate(row.startDate)} - ${formatDate(row.endDate)}` },
-                                { key: "status", label: "Status", render: row => <StatusChip status={row.status || "Draft"} /> },
+                                { key: "status", label: "Status", render: row => <StatusChip status={row.status || "Planned"} /> },
                                 { key: "budget", label: "Approved budget", align: "right", render: row => (row.budget ? money(row.budget, "approvedAmount") : "No budget yet") },
                                 { key: "spent", label: "Spent", align: "right", render: row => money(row.budget, "spent") },
                                 { key: "left", label: "Left", align: "right", render: row => money(row.budget, "remaining") }
@@ -559,7 +559,7 @@ const ProjectDetailsPage = () => {
                         label="Status"
                         value={
                             <StatusChip
-                                status={project.status || "Draft"}
+                                status={project.status || "Planned"}
                             />
                         }
                     />

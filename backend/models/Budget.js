@@ -391,6 +391,13 @@ BudgetSchema.index(
 BudgetSchema.index({ organization: 1, isDeleted: 1, level: 1, status: 1 });
 
 
+// what the status of its parents allows (see plugins/statusRules)
+BudgetSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This budget", parents: [{ ref: "program", model: "Program", label: "program", kind: "plan" }, { ref: "project", model: "Project", label: "project", kind: "plan" }] }
+);
+
+
 module.exports =
     mongoose.models.Budget ||
     mongoose.model("Budget", BudgetSchema);

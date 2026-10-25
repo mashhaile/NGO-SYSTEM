@@ -1,3 +1,4 @@
+import { WORK_STATUSES } from "../../../constants/workStatus";
 import {
     useEffect,
     useState
@@ -52,7 +53,7 @@ import { getApiErrorMessage } from "../../../utils/apiError";
 
 
 const STATUS_OPTIONS =
-    ["Draft", "Active", "Completed", "Cancelled"]
+    WORK_STATUSES
         .map(value => ({ value, label: value }));
 
 const formatDate = (value) =>
@@ -252,7 +253,7 @@ const ProjectListPage = () => {
             field: "status",
             headerName: "Status",
             minWidth: 120,
-            renderCell: (params) => <StatusChip status={params.value || "Draft"} />
+            renderCell: (params) => <StatusChip status={params.value || "Planned"} />
         },
 
         {

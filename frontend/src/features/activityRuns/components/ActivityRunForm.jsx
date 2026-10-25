@@ -1,3 +1,4 @@
+import { WORK_STATUSES } from "../../../constants/workStatus";
 import {
     useCallback,
     useEffect,
@@ -42,12 +43,7 @@ import LocationCascadeFields
 // OPTIONS
 // =====================================================
 
-const STATUSES = [
-    "Planned",
-    "Active",
-    "Completed",
-    "Cancelled"
-].map(
+const STATUSES = WORK_STATUSES.map(
     item => ({
         value: item,
         label: item

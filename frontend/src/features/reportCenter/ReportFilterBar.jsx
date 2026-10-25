@@ -1,3 +1,4 @@
+import { WORK_STATUSES } from "../../constants/workStatus";
 import {
     useEffect,
     useMemo,
@@ -109,8 +110,8 @@ const PERIODS = [
 // status choices of each report that filters by status
 const STATUS_OPTIONS = {
     beneficiaries: ["Active", "Inactive"],
-    programs: ["Planned", "Active", "Completed", "Suspended", "Cancelled"],
-    activities: ["Planned", "Ongoing", "Completed", "Cancelled"],
+    programs: WORK_STATUSES,
+    activities: WORK_STATUSES,
     enterprises: ["Active", "Inactive"],
     budgets: ["Draft", "Submitted", "Approved", "Returned"]
 };

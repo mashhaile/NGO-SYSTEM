@@ -154,6 +154,13 @@ ExpenseSchema.plugin(
 );
 
 
+// what the status of its parents allows (see plugins/statusRules)
+ExpenseSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This expense", parents: [{ ref: "project", model: "Project", label: "project", kind: "record" }, { ref: "activity", model: "Activity", label: "activity", kind: "record" }] }
+);
+
+
 module.exports =
     mongoose.models.Expense ||
     mongoose.model("Expense", ExpenseSchema);

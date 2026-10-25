@@ -1,3 +1,4 @@
+const ApiError = require("../utils/apiError");
 const mongoose =
     require("mongoose");
 
@@ -1051,7 +1052,8 @@ const getBeneficiaryIds = (
 
 const validateBeneficiaries = async (
     beneficiaryIds,
-    organizationId
+    organizationId,
+    keepIds = []
 ) => {
 
     if (
@@ -1089,17 +1091,25 @@ const validateBeneficiaries = async (
 
             isDeleted:
                 false
-
         }).select(
-            "_id"
+            "_id status firstName middleName lastName beneficiaryNumber"
         );
-
     if (
         beneficiaries.length !==
         beneficiaryIds.length
     ) {
         throw new Error(
             "One or more selected beneficiaries were not found."
+        );
+    }
+    // an Inactive beneficiary receives nothing new (those
+    // already on the delivery being edited stay)
+    const keep = new Set(keepIds.map(String));
+    const inactive = beneficiaries.filter(person => person.status === "Inactive" && !keep.has(String(person._id)));
+    if (inactive.length) {
+        throw new ApiError(
+            `${inactive.map(person => [person.firstName, person.middleName].filter(Boolean).join(" ") || person.beneficiaryNumber).join(", ")} ${inactive.length === 1 ? "is" : "are"} Inactive and cannot receive new services. Make them Active first, or remove them from this delivery.`,
+            400
         );
     }
 
@@ -1909,7 +1919,8 @@ const validateServiceItems = async (
 
 const validateServiceDeliveryReferences = async (
     data,
-    organizationId
+    organizationId,
+    { deliveryId = null } = {}
 ) => {
 
     if (
@@ -1930,10 +1941,17 @@ const validateServiceDeliveryReferences = async (
             beneficiaryRecords
         );
 
+    // people already on the delivery being edited (kept even if Inactive now)
+    const keepIds =
+        deliveryId
+            ? await ServiceDeliveryBeneficiary.distinct("beneficiary", { serviceDelivery: deliveryId })
+            : [];
+
     const validatedBeneficiaries =
         await validateBeneficiaries(
             beneficiaryIds,
-            organizationId
+            organizationId,
+            keepIds
         );
 
     if (
@@ -5604,7 +5622,8 @@ const updateServiceDelivery = async (
     const referenceValidation =
         await validateServiceDeliveryReferences(
             referenceValidationData,
-            organizationId
+            organizationId,
+            { deliveryId: service._id }
         );
 
     const beneficiaryIds =

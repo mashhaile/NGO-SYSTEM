@@ -1,3 +1,4 @@
+import { WORK_STATUSES } from "../../../constants/workStatus";
 import {
     useEffect,
     useState
@@ -60,12 +61,7 @@ const toOptions = (values) =>
     }));
 
 
-const STATUS_OPTIONS = toOptions([
-    "Planned",
-    "Ongoing",
-    "Completed",
-    "Cancelled"
-]);
+const STATUS_OPTIONS = toOptions(WORK_STATUSES);
 
 
 const TYPE_OPTIONS = toOptions([

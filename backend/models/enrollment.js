@@ -301,6 +301,13 @@ enrollmentSchema.plugin(
 );
 
 
+// what the status of its parents allows (see plugins/statusRules)
+enrollmentSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This enrollment", parents: [{ ref: "program", model: "Program", label: "program", kind: "plan" }], inactive: [{ ref: "beneficiary", model: "Beneficiary", label: "beneficiary" }] }
+);
+
+
 module.exports =
     mongoose.models.Enrollment ||
     mongoose.model(

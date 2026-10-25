@@ -570,6 +570,13 @@ donationSchema.plugin(
 );
 
 
+// what the status of its parents allows (see plugins/statusRules)
+donationSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This donation", parents: [{ ref: "program", model: "Program", label: "program", kind: "record" }, { ref: "project", model: "Project", label: "project", kind: "record" }], inactive: [{ ref: "donor", model: "Donor", label: "donor" }] }
+);
+
+
 module.exports =
 
     mongoose.models.Donation ||

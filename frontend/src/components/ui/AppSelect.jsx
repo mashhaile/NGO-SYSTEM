@@ -1,4 +1,4 @@
-import { useTerm } from "../../utils/terms";
+import { useStatusLabel, useTerm } from "../../utils/terms";
 import {
     TextField,
     MenuItem
@@ -40,6 +40,7 @@ const AppSelect = ({
     label = term(label);
     placeholder = term(placeholder);
     helperText = term(helperText);
+    const status = useStatusLabel();
 
 
     const selectPlaceholder =
@@ -73,11 +74,11 @@ const AppSelect = ({
                                 optionValue
                             ),
 
+                        // a status ("Active") in the organization's label
                         label:
-                            option?.label ??
-                            option?.name ??
-                            option?.text ??
-                            "",
+                            (option?.label ?? option?.name ?? option?.text ?? "") === String(optionValue)
+                                ? status(String(optionValue))
+                                : option?.label ?? option?.name ?? option?.text ?? "",
 
                         key:
                             String(

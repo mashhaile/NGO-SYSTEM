@@ -1,3 +1,4 @@
+import { WORK_STATUSES } from "../../../constants/workStatus";
 import {
     useEffect,
     useState
@@ -53,12 +54,7 @@ import {
 
 
 
-const STATUS_OPTIONS = [
-    "Planned",
-    "Active",
-    "Completed",
-    "Cancelled"
-].map(value => ({
+const STATUS_OPTIONS = WORK_STATUSES.map(value => ({
     value,
     label: value
 }));

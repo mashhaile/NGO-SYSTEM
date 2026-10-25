@@ -139,16 +139,21 @@ const WordingPage = () => {
 
             {groups.map(group => (
                 <PageCard key={group}>
-                    <FormSection title={group}>
+                    <FormSection
+                        title={group}
+                        subtitle={group === "Statuses" ? "Only the label shown is renamed (status boxes, status choices, report status columns). Each status keeps its meaning and rules." : undefined}
+                    >
                         <Stack spacing={1.5}>
                             {terms.filter(term => term.group === group).map(term => (
                                 <Box key={term.key} sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "220px 1fr 1fr auto" }, gap: 1.5, alignItems: "center" }}>
                                     <Box>
                                         <Typography sx={{ fontWeight: 600 }}>{term.singular}</Typography>
-                                        <Typography variant="caption" color="text.secondary">plural: {term.plural}</Typography>
+                                        {!term.status && <Typography variant="caption" color="text.secondary">plural: {term.plural}</Typography>}
                                     </Box>
                                     <WordBox label={`Your word for "${term.singular}"`} value={draft[term.key]?.singular || ""} onChange={change(term.key, "singular")} />
-                                    <WordBox label={`Plural ("${term.plural}")`} value={draft[term.key]?.plural || ""} onChange={change(term.key, "plural")} />
+                                    {term.status
+                                        ? <Box />
+                                        : <WordBox label={`Plural ("${term.plural}")`} value={draft[term.key]?.plural || ""} onChange={change(term.key, "plural")} />}
                                     <AppButton size="small" variant="text" startIcon={<Restore />} onClick={() => reset(term.key)} disabled={!draft[term.key]?.singular && !draft[term.key]?.plural}>
                                         Default
                                     </AppButton>

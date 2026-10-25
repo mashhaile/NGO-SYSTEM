@@ -32,7 +32,7 @@ export const makeReplacer = (terms = []) => {
 
     const pairs = [];
     for (const term of terms) {
-        if (!term?.own) continue;
+        if (!term?.own || term.status) continue;
         const singular = String(term.own.singular || "").trim();
         const plural = String(term.own.plural || "").trim() || singular;
         if (plural && plural !== term.plural) pairs.push([term.plural, plural]);
@@ -53,13 +53,26 @@ export const makeReplacer = (terms = []) => {
 };
 
 
+// a status shown as a label: "Active" -> "Ongoing" (the exact
+// value only; the stored value and its rules stay)
+export const makeStatusLabel = (terms = []) => {
+    const labels = new Map();
+    for (const term of terms) {
+        const own = String(term?.own?.singular || "").trim();
+        if (term?.status && own && own !== term.singular) labels.set(term.singular.toLowerCase(), own);
+    }
+    return (value) =>
+        (typeof value === "string" && labels.get(value.trim().toLowerCase())) || value;
+};
+
+
 // ---------------------------------------------------------------- the store
 
-let state = { terms: [], replace: (text) => text };
+let state = { terms: [], replace: (text) => text, status: (value) => value };
 const listeners = new Set();
 
 const publish = (terms) => {
-    state = { terms, replace: makeReplacer(terms) };
+    state = { terms, replace: makeReplacer(terms), status: makeStatusLabel(terms) };
     listeners.forEach(listener => listener());
 };
 
@@ -85,6 +98,12 @@ export const term = (text) => state.replace(text);
 // in a component: re-renders when the words change
 export const useTerm = () =>
     useSyncExternalStore(subscribe, () => state.replace);
+
+// statusLabel("Active") -> the organization's label
+export const statusLabel = (value) => state.status(value);
+
+export const useStatusLabel = () =>
+    useSyncExternalStore(subscribe, () => state.status);
 
 export const useTerms = () =>
     useSyncExternalStore(subscribe, () => state.terms);

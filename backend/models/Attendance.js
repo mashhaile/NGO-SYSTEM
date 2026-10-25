@@ -251,6 +251,13 @@ attendanceSchema.plugin(
 );
 
 
+// what the status of its parents allows (see plugins/statusRules)
+attendanceSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This attendance session", parents: [{ ref: "activityRun", model: "ActivityRun", label: "activity run", kind: "record" }] }
+);
+
+
 module.exports = mongoose.model(
     "Attendance",
     attendanceSchema

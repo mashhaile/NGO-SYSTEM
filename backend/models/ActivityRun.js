@@ -1,3 +1,4 @@
+const { workStatusField } = require("../constants/workStatus");
 const mongoose = require("mongoose");
 
 
@@ -135,16 +136,8 @@ targetGroup:{
 
 
 
-status:{
-    type:String,
-    enum:[
-        "Planned",
-        "Active",
-        "Completed",
-        "Cancelled"
-    ],
-    default:"Planned"
-},
+// Planned / Active / Suspended / Completed / Cancelled (constants/workStatus.js)
+status: workStatusField(),
 
 
 
@@ -261,6 +254,13 @@ ActivityRunSchema.plugin(
 ActivityRunSchema.plugin(
     require("./plugins/insideProjectDates"),
     { dates: ["startDate", "endDate"], what: "This activity run", labels: { startDate: "start date", endDate: "end date" } }
+);
+
+
+// what the status of its parents allows (see plugins/statusRules)
+ActivityRunSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This activity run", parents: [{ ref: "activity", model: "Activity", label: "activity", kind: "plan" }, { ref: "project", model: "Project", label: "project", kind: "plan" }] }
 );
 
 

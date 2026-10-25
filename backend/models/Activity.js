@@ -1,3 +1,4 @@
+const { workStatusField } = require("../constants/workStatus");
 const mongoose = require("mongoose");
 
 
@@ -227,22 +228,8 @@ const activitySchema = new mongoose.Schema(
     },
 
 
-    status:{
-
-        type:String,
-
-        enum:[
-
-            "Planned",
-            "Ongoing",
-            "Completed",
-            "Cancelled"
-
-        ],
-
-        default:"Planned"
-
-    },
+    // Planned / Active / Suspended / Completed / Cancelled (constants/workStatus.js)
+    status: workStatusField(),
 
 
     remarks:{
@@ -428,6 +415,13 @@ activitySchema.index({
 activitySchema.plugin(
     require("./plugins/insideProjectDates"),
     { dates: ["activityDate"], what: "This activity", labels: { activityDate: "date" } }
+);
+
+
+// what the status of its parents allows (see plugins/statusRules)
+activitySchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This activity", parents: [{ ref: "project", model: "Project", label: "project", kind: "plan" }] }
 );
 
 

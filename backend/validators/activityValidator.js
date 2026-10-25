@@ -1,3 +1,4 @@
+const { WORK_STATUS_INPUT } = require("../constants/workStatus");
 const Joi = require("joi");
 
 
@@ -128,12 +129,7 @@ exports.createActivitySchema = Joi.object({
 
     status:
         Joi.string()
-            .valid(
-                "Planned",
-                "Ongoing",
-                "Completed",
-                "Cancelled"
-            )
+            .valid(...WORK_STATUS_INPUT)
             .default("Planned"),
 
     remarks:
@@ -264,12 +260,7 @@ exports.updateActivitySchema = Joi.object({
 
     status:
         Joi.string()
-            .valid(
-                "Planned",
-                "Ongoing",
-                "Completed",
-                "Cancelled"
-            ),
+            .valid(...WORK_STATUS_INPUT),
 
     remarks:
         Joi.string()

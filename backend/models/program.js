@@ -1,3 +1,4 @@
+const { workStatusField } = require("../constants/workStatus");
 const mongoose = require("mongoose");
 
 const programSchema = new mongoose.Schema(
@@ -103,27 +104,8 @@ const programSchema = new mongoose.Schema(
 
 
 
-    status:{
-
-        type:String,
-
-        enum:[
-
-            "Planned",
-
-            "Active",
-
-            "Completed",
-
-            "Suspended",
-
-            "Cancelled"
-
-        ],
-
-        default:"Planned"
-
-    },
+    // Planned / Active / Suspended / Completed / Cancelled (constants/workStatus.js)
+    status: workStatusField(),
 
 
 

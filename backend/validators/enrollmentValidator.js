@@ -39,7 +39,9 @@ const createEnrollmentSchema = Joi.object({
 
             "Completed",
 
-            "Dropped"
+            "Dropped",
+
+        "Suspended"
 
         )
 
@@ -77,7 +79,9 @@ const updateEnrollmentSchema = Joi.object({
 
             "Completed",
 
-            "Dropped"
+            "Dropped",
+
+        "Suspended"
 
         ),
 

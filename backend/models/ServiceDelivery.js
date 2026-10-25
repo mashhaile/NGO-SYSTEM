@@ -1546,6 +1546,13 @@ serviceDeliverySchema.plugin(
 );
 
 
+// what the status of its parents allows (see plugins/statusRules)
+serviceDeliverySchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This service delivery", parents: [{ ref: "program", model: "Program", label: "program", kind: "record" }, { ref: "project", model: "Project", label: "project", kind: "record" }, { ref: "activity", model: "Activity", label: "activity", kind: "record" }, { ref: "activityRun", model: "ActivityRun", label: "activity run", kind: "record" }] }
+);
+
+
 module.exports = mongoose.model(
 
     "ServiceDelivery",

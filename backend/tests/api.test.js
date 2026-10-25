@@ -2163,6 +2163,59 @@ test("wording: an organization's own words reach reports and role names", { skip
 });
 
 
+test("statuses: one lifecycle for work; what a status allows", { skip }, async () => {
+
+    const { people, item, create } = await serviceDeliverySetup();
+    const token = state.tokenA;
+
+    const program = (await api("POST", "/programs", { token, body: { name: "Status Program", startDate: "2026-01-01", status: "Active" } })).data.data._id;
+    const newProject = (name, status) => api("POST", "/projects", { token, body: { program, name, startDate: "2026-01-01", endDate: "2026-12-31", ...(status ? { status } : {}) } });
+
+    // one lifecycle: new projects are Planned; older values are read as their new ones
+    assert.equal((await newProject("Plain")).data.data.status, "Planned");
+    assert.equal((await newProject("Old draft", "Draft")).data.data.status, "Planned");
+    const project = (await newProject("Status Project", "Active")).data.data._id;
+    const activity = await api("POST", "/activities", { token, body: { project, name: "Old ongoing", activityType: "Training", activityDate: "2026-03-01", status: "Ongoing" } });
+    assert.equal(activity.data.data.status, "Active");
+
+    // Completed: no new plans, late records still allowed
+    assert.ok((await api("PUT", `/projects/${project}`, { token, body: { status: "Completed" } })).status < 300);
+    const plan = await api("POST", "/activities", { token, body: { project, name: "Too late", activityType: "Training", activityDate: "2026-04-01" } });
+    assert.equal(plan.status, 400);
+    assert.match(plan.data.message, /is Completed/);
+    const late = await create({ program, project, recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 750)], beneficiaries: people });
+    assert.ok(late.status < 300, late.data?.message);
+
+    // Suspended / Cancelled: nothing new
+    assert.ok((await api("PUT", `/projects/${project}`, { token, body: { status: "Suspended" } })).status < 300);
+    const paused = await create({ program, project, recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 2, 750)], beneficiaries: people });
+    assert.equal(paused.status, 400);
+    assert.match(paused.data.message, /is Suspended/);
+
+    // an Inactive beneficiary or donor receives nothing new
+    const person = (await api("POST", "/beneficiaries", { token, body: { firstName: "Inactive", lastName: "Person", gender: (await api("GET", "/lookups/module/Beneficiary/category/Gender", { token })).data.data[0]._id, dateOfBirth: "1990-01-01", phone: "0912999001" } })).data.data._id;
+    assert.ok((await api("PUT", `/beneficiaries/${person}`, { token, body: { status: "Inactive" } })).status < 300);
+    const toInactive = await create({ program, recipientType: "Individual", allocationMethod: "Shared", items: [item("Hygiene Kit", "Set", 1, 750)], beneficiaries: [person] });
+    assert.equal(toInactive.status, 400);
+    assert.match(toInactive.data.message, /Inactive and cannot receive new services/);
+    assert.equal((await api("POST", "/enrollments", { token, body: { program, beneficiary: person, enrollmentDate: "2026-02-01" } })).status, 400);
+
+    const donor = (await api("POST", "/donors", { token, body: { name: "Gone Donor", donorType: "Foundation", status: "Inactive" } })).data.data._id;
+    const gift = await api("POST", "/donations", { token, body: { donor, title: "Late gift", amount: 100, currency: "ETB", status: "Received", donationDate: "2026-03-01" } });
+    assert.equal(gift.status, 400);
+    assert.match(gift.data.message, /donor .* is Inactive/);
+
+    // the organization renames a status label: reports show it, the value stays
+    assert.ok((await api("PUT", "/terminology", { token, body: { terms: { statusSuspended: { singular: "On hold" } } } })).status < 300);
+    const report = await api("GET", "/report-center/programs?period=all", { token });
+    const shown = report.data.data.details.rows.find(row => row.name === "Status Project");
+    assert.equal(shown?.status, "On hold");
+    assert.equal((await api("GET", `/projects/${project}`, { token })).data.data.status, "Suspended");
+    await api("PUT", "/terminology", { token, body: { terms: { statusSuspended: null } } });
+
+});
+
+
 test("projects and activities move to another parent only while nothing is recorded under them", { skip }, async () => {
 
     const token = state.tokenA;

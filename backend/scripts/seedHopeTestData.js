@@ -255,7 +255,7 @@ const main = async () => {
         for (const [n, [start, end]] of [["2026-01-01", "2026-12-31"], ["2027-01-01", "2027-12-31"]].entries()) {
             const created = await attempt(`phase ${n + 1}`, () => api("POST", "/projects", admin, {
                 program: waterMain.program.id, parentProject: waterMain.id, name: `Community Water Points - Phase ${n + 1}`,
-                startDate: start, endDate: end, status: n === 0 ? "Active" : "Draft"
+                startDate: start, endDate: end, status: n === 0 ? "Active" : "Planned"
             }));
             if (created) projects.push({ id: created._id, name: `Community Water Points - Phase ${n + 1}`, program: waterMain.program, index: projects.length, endDate: end, phase: n + 1, main: false });
         }
@@ -384,7 +384,7 @@ const main = async () => {
             project: project.id, name: `${type}: ${project.name}${i >= workProjects.length ? " (round 2)" : ""}`,
             activityType: type, participantSource: type === "Training" || type === "Workshop" ? "Enrolled Beneficiaries" : "Mixed",
             activityDate: date(2 + (i % 6), 3 + (i % 20)), ...place, targetParticipants: 20 + (i % 6) * 10,
-            status: i % 4 === 0 ? "Completed" : "Ongoing", description: `${type} for ${project.name}.`
+            status: i % 4 === 0 ? "Completed" : "Active", description: `${type} for ${project.name}.`
         }));
         if (created) activities.push({ id: created._id, project, type, place, index: i });
     }

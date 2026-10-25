@@ -265,7 +265,7 @@ const createProject = async (
                 data.endDate,
 
             status:
-                data.status || "Draft",
+                data.status || "Planned",
             parentProject:
                 parent ? parent._id : null,
             phaseNumber:

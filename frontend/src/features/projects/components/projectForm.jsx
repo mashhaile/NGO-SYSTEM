@@ -1,3 +1,4 @@
+import { WORK_STATUS_OPTIONS, WORK_STATUS_HELP } from "../../../constants/workStatus";
 import {
     useEffect,
     useState
@@ -53,7 +54,7 @@ const initialState = {
     projectManager: "",
     startDate: "",
     endDate: "",
-    status: "Draft"
+    status: "Planned"
 };
 
 
@@ -374,7 +375,7 @@ const ProjectForm = ({
 
             status:
                 initialData.status ??
-                "Draft"
+                "Planned"
 
         });
 
@@ -591,7 +592,7 @@ const ProjectForm = ({
 
             status:
                 form.status ||
-                "Draft"
+                "Planned"
 
         };
 
@@ -1092,29 +1093,8 @@ const ProjectForm = ({
                                 form.status
                             }
                             placeholder="Select Status"
-                            options={[
-
-                                {
-                                    value: "Draft",
-                                    label: "Draft"
-                                },
-
-                                {
-                                    value: "Active",
-                                    label: "Active"
-                                },
-
-                                {
-                                    value: "Completed",
-                                    label: "Completed"
-                                },
-
-                                {
-                                    value: "Cancelled",
-                                    label: "Cancelled"
-                                }
-
-                            ]}
+                            options={WORK_STATUS_OPTIONS}
+                            helperText={WORK_STATUS_HELP}
                             onChange={(e) =>
                                 changeField(
                                     "status",

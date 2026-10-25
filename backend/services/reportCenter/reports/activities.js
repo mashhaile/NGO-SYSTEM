@@ -303,8 +303,9 @@ const generate = async (query, context, period) => {
         description: "Trainings (people trained, completion, attendance) and other activities (what they delivered and to whom). Each participant is counted once.",
         period,
         summary: [
-            summaryItem("Activities", periodActivities.length, "number", { note: `${trainings.length} trainings, ${others.length} other` }),
-            summaryItem("Activity runs", periodRuns.length),
+            // cancelled work is listed but not counted as done
+            summaryItem("Activities", periodActivities.filter(item => item.status !== "Cancelled").length, "number", { note: `${trainings.filter(item => item.status !== "Cancelled").length} trainings, ${others.filter(item => item.status !== "Cancelled").length} other${periodActivities.some(item => item.status === "Cancelled") ? `; ${periodActivities.filter(item => item.status === "Cancelled").length} cancelled not counted` : ""}` }),
+            summaryItem("Activity runs", periodRuns.filter(run => run.status !== "Cancelled").length, "number", { note: periodRuns.some(run => run.status === "Cancelled") ? `${periodRuns.filter(run => run.status === "Cancelled").length} cancelled not counted` : undefined }),
             summaryItem("Training sessions held", sessions.length),
             summaryItem("People trained", trainees.size, "number", { note: trainingTarget ? `${percent(trainees.size, trainingTarget)}% of target ${trainingTarget}` : undefined }),
             summaryItem("Completed every session", completedAll.size, "number", { note: `${percent(completedAll.size, trainees.size)}% of people trained` }),

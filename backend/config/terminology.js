@@ -41,7 +41,19 @@ const TERMS = [
     { key: "financeOfficer", group: "Roles", singular: "Finance Officer", plural: "Finance Officers" },
     { key: "dataEntry", group: "Roles", singular: "Data Entry", plural: "Data Entry" },
     { key: "viewer", group: "Roles", singular: "Viewer", plural: "Viewers" },
-    { key: "projectManager", group: "Roles", singular: "Project Manager", plural: "Project Managers" }
+    { key: "projectManager", group: "Roles", singular: "Project Manager", plural: "Project Managers" },
+
+    // statuses: only the label shown is renamed (a status box
+    // reading exactly "Active"), never words inside sentences;
+    // the stored value and its rules stay
+    ...[
+        "Planned", "Active", "Suspended", "Completed", "Cancelled", "Inactive",
+        "Pending", "Dropped",
+        "Draft", "Submitted", "Approved", "Returned", "Voided",
+        "Pledged", "Received", "Delivered",
+        "Present", "Absent", "Late", "Excused",
+        "Participated", "Missed", "Referred"
+    ].map(word => ({ key: `status${word}`, group: "Statuses", singular: word, plural: word, status: true }))
 ];
 
 
@@ -70,7 +82,7 @@ const makeReplacer = (overrides = {}) => {
     const pairs = [];
     for (const term of TERMS) {
         const own = overrides?.[term.key];
-        if (!own) continue;
+        if (!own || term.status) continue;
         const singular = String(own.singular || "").trim();
         const plural = String(own.plural || "").trim() || singular;
         if (plural && plural !== term.plural) pairs.push([term.plural, plural]);
@@ -93,7 +105,21 @@ const makeReplacer = (overrides = {}) => {
 };
 
 
+// a status shown as a label: "Active" -> "Ongoing" (exact
+// value only, any case)
+const makeStatusLabel = (overrides = {}) => {
+    const labels = new Map();
+    for (const term of TERMS) {
+        const own = String(overrides?.[term.key]?.singular || "").trim();
+        if (term.status && own && own !== term.singular) labels.set(term.singular.toLowerCase(), own);
+    }
+    return (value) =>
+        (typeof value === "string" && labels.get(value.trim().toLowerCase())) || value;
+};
+
+
 module.exports = {
     TERMS,
-    makeReplacer
+    makeReplacer,
+    makeStatusLabel
 };

@@ -413,6 +413,13 @@ enterpriseMemberSchema.plugin(
 );
 
 
+// what the status of its parents allows (see plugins/statusRules)
+enterpriseMemberSchema.plugin(
+    require("./plugins/statusRules"),
+    { what: "This member", inactive: [{ ref: "enterprise", model: "Enterprise", label: "enterprise" }, { ref: "beneficiary", model: "Beneficiary", label: "beneficiary" }] }
+);
+
+
 module.exports =
     mongoose.model(
 

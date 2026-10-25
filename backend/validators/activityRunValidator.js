@@ -1,3 +1,4 @@
+const { WORK_STATUS_INPUT } = require("../constants/workStatus");
 const Joi = require("joi");
 
 
@@ -110,17 +111,7 @@ const createActivityRunSchema = Joi.object({
 
     status:
         Joi.string()
-            .valid(
-
-                "Planned",
-
-                "Active",
-
-                "Completed",
-
-                "Cancelled"
-
-            )
+            .valid(...WORK_STATUS_INPUT)
             .default("Planned"),
 
 
@@ -218,17 +209,7 @@ const updateActivityRunSchema = Joi.object({
 
     status:
         Joi.string()
-            .valid(
-
-                "Planned",
-
-                "Active",
-
-                "Completed",
-
-                "Cancelled"
-
-            ),
+            .valid(...WORK_STATUS_INPUT),
 
 
     notes:

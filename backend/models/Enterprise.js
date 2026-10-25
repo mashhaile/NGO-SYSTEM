@@ -144,13 +144,18 @@ const enterpriseSchema = new mongoose.Schema(
         // Therefore DO NOT use ObjectId here.
         // =====================================================
 
+        // a business that runs (Active) or one that stopped
+        // (Inactive); anything else used to be accepted
         status: {
 
             type:
                 String,
 
+            enum:
+                ["Active", "Inactive"],
+
             default:
-                null,
+                "Active",
 
             trim:
                 true

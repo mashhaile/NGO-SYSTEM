@@ -1,3 +1,4 @@
+import { WORK_STATUSES } from "../../../constants/workStatus";
 import {
     useCallback,
     useEffect,
@@ -98,12 +99,7 @@ const TARGET_GROUPS = [
 ];
 
 
-const STATUSES = toOptions([
-    "Planned",
-    "Ongoing",
-    "Completed",
-    "Cancelled"
-]);
+const STATUSES = toOptions(WORK_STATUSES);
 
 
 

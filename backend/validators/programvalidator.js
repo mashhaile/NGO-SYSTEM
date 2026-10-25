@@ -1,3 +1,4 @@
+const { WORK_STATUS_INPUT } = require("../constants/workStatus");
 const Joi = require("joi");
 
 // ==========================================
@@ -34,13 +35,7 @@ const createProgramSchema = Joi.object({
         .optional(),
 
     status: Joi.string()
-        .valid(
-            "Planned",
-            "Active",
-            "Completed",
-            "Suspended",
-            "Cancelled"
-        )
+        .valid(...WORK_STATUS_INPUT)
         .default("Planned")
 
 });
@@ -73,13 +68,7 @@ const updateProgramSchema = Joi.object({
         .allow(null),
 
     status: Joi.string()
-        .valid(
-            "Planned",
-            "Active",
-            "Completed",
-            "Suspended",
-            "Cancelled"
-        )
+        .valid(...WORK_STATUS_INPUT)
 
 }).min(1);
 

@@ -1,3 +1,4 @@
+const { WORK_STATUS_INPUT } = require("../constants/workStatus");
 const Joi = require("joi");
 
 
@@ -43,13 +44,8 @@ exports.createProjectSchema = Joi.object({
 
     status:
         Joi.string()
-            .valid(
-                "Draft",
-                "Active",
-                "Completed",
-                "Cancelled"
-            )
-            .default("Draft")
+            .valid(...WORK_STATUS_INPUT)
+            .default("Planned")
 
 });
 
@@ -91,11 +87,6 @@ exports.updateProjectSchema = Joi.object({
 
     status:
         Joi.string()
-            .valid(
-                "Draft",
-                "Active",
-                "Completed",
-                "Cancelled"
-            )
+            .valid(...WORK_STATUS_INPUT)
 
 });
