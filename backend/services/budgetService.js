@@ -675,6 +675,28 @@ const createBudget = async (data, organizationId, userId) => {
 
 
 // =====================================================
+// WHAT ALREADY HAS A BUDGET
+// =====================================================
+//
+// One budget per program and per project (or phase): the
+// new budget form offers only those without one.
+//
+// =====================================================
+
+const getBudgetedTargets = async (organizationId) => {
+    const base = { organization: organizationId, isDeleted: false };
+    const [programs, projects] = await Promise.all([
+        Budget.distinct("program", { ...base, level: BUDGET_LEVEL.PROGRAM }),
+        Budget.distinct("project", { ...base, level: BUDGET_LEVEL.PROJECT })
+    ]);
+    return {
+        programs: programs.filter(Boolean).map(String),
+        projects: projects.filter(Boolean).map(String)
+    };
+};
+
+
+// =====================================================
 // LIST
 // =====================================================
 
@@ -981,6 +1003,7 @@ const transitionAndTell = async (options) => {
 
 module.exports = {
     createBudget,
+    getBudgetedTargets,
     getBudgets,
     getBudgetById,
     updateBudget,

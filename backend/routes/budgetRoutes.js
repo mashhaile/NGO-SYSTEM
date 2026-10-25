@@ -43,6 +43,9 @@ const base = [
 
 router.get("/", ...base, authorize(PERMISSIONS.BUDGET_READ), controller.getBudgets);
 
+// { programs: [ids], projects: [ids] } that already have a budget
+router.get("/budgeted", ...base, authorize(PERMISSIONS.BUDGET_READ), controller.getBudgetedTargets);
+
 router.post("/", ...base, authorize(PERMISSIONS.BUDGET_CREATE), validate(createBudgetSchema), controller.createBudget);
 
 router.get("/:id", ...base, authorize(PERMISSIONS.BUDGET_READ), controller.getBudgetById);

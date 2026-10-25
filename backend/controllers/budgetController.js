@@ -33,6 +33,11 @@ module.exports = {
         { message: "Budgets fetched successfully" }
     ),
 
+    getBudgetedTargets: handle(
+        req => budgetService.getBudgetedTargets(org(req)),
+        { message: "Programs and projects with a budget" }
+    ),
+
     getBudgetById: handle(
         req => budgetService.getBudgetById(req.params.id, org(req)),
         { message: "Budget fetched successfully" }

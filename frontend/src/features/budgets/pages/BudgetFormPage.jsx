@@ -48,6 +48,7 @@ import {
     updateRevisionApi,
     getProgramOptionsApi,
     getProjectOptionsApi,
+    getBudgetedApi,
     getApiErrorMessage
 } from "../api/budgetApi";
 
@@ -162,6 +163,14 @@ const BudgetFormPage = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
+    // programs / projects that already have a budget: not offered
+    const [budgeted, setBudgeted] =
+        useState({ programs: new Set(), projects: new Set() });
+
+    // the name follows the chosen program / project until the
+    // user types their own (clearing it hands it back)
+    const [nameTyped, setNameTyped] = useState(isEdit);
+
 
     // ---------------- load ----------------
 
@@ -172,14 +181,18 @@ const BudgetFormPage = () => {
         Promise.all([
             getProgramOptionsApi(),
             getProjectOptionsApi(),
-            isEdit ? getBudgetByIdApi(id) : Promise.resolve(null)
+            isEdit ? getBudgetByIdApi(id) : Promise.resolve(null),
+            isEdit ? Promise.resolve(null) : getBudgetedApi().catch(() => null)
         ])
-            .then(([programList, projectList, budget]) => {
+            .then(([programList, projectList, budget, taken]) => {
 
                 if (cancelled) return;
 
                 setPrograms(programList);
                 setProjects(projectList);
+                if (taken) {
+                    setBudgeted({ programs: new Set(taken.programs || []), projects: new Set(taken.projects || []) });
+                }
 
                 if (budget) {
                     setExisting(budget);
@@ -385,17 +398,34 @@ const BudgetFormPage = () => {
             };
         });
 
+    // the name follows the choice unless the user typed their own
     const selectProject = (project) =>
         change({
             project: project?._id || "",
-            name: form.name || (project ? `${project.name} Budget` : "")
+            name: nameTyped ? form.name : (project ? `${project.name} Budget` : "")
         });
 
     const selectProgram = (program) =>
         change({
             program: program?._id || "",
-            name: form.name || (program ? `${program.name} Program Budget` : "")
+            name: nameTyped ? form.name : (program ? `${program.name} Program Budget` : "")
         });
+
+    const typeName = (value) => {
+        change({ name: value });
+        setNameTyped(Boolean(String(value).trim()));
+    };
+
+    // a new budget: only what has no budget yet (the chosen one
+    // stays listed, e.g. preselected from a program page)
+    const programChoices =
+        isEdit ? programs : programs.filter(item => item._id === form.program || !budgeted.programs.has(String(item._id)));
+
+    const projectChoices =
+        isEdit ? projects : projects.filter(item => item._id === form.project || !budgeted.projects.has(String(item._id)));
+
+    const allTaken = (level) =>
+        !isEdit && (level === "project" ? projects.length > 0 && projectChoices.length === 0 : programs.length > 0 && programChoices.length === 0);
 
 
     // ---------------- save ----------------
@@ -575,7 +605,7 @@ const BudgetFormPage = () => {
                                 size="small"
                                 color="primary"
                                 value={form.level}
-                                onChange={(event, value) => value && change({ level: value, name: "" })}
+                                onChange={(event, value) => { if (value) { change({ level: value, name: "" }); setNameTyped(false); } }}
                             >
                                 <ToggleButton value="project">Project budget</ToggleButton>
                                 <ToggleButton value="program">Program budget</ToggleButton>
@@ -608,13 +638,19 @@ const BudgetFormPage = () => {
                                     label="Project"
                                     required
                                     disabled={isEdit}
-                                    options={projects}
+                                    options={projectChoices}
                                     value={selectedProject}
                                     placeholder="Select Project"
                                     getOptionLabel={(option) => option ? `${option.projectCode} - ${option.name}` : ""}
                                     isOptionEqualToValue={(a, b) => a._id === b._id}
                                     onChange={selectProject}
-                                    helperText={projectProgram ? `Program: ${projectProgram.name}` : ""}
+                                    helperText={
+                                        projectProgram
+                                            ? `Program: ${projectProgram.name}`
+                                            : allTaken("project")
+                                                ? "All projects already have a budget. To change one, open it and use Edit or Revise."
+                                                : "Only projects without a budget are listed."
+                                    }
                                 />
                             )
                             : (
@@ -622,12 +658,19 @@ const BudgetFormPage = () => {
                                     label="Program"
                                     required
                                     disabled={isEdit}
-                                    options={programs}
+                                    options={programChoices}
                                     value={selectedProgram}
                                     placeholder="Select Program"
                                     getOptionLabel={(option) => option ? `${option.programCode} - ${option.name}` : ""}
                                     isOptionEqualToValue={(a, b) => a._id === b._id}
                                     onChange={selectProgram}
+                                    helperText={
+                                        isEdit
+                                            ? ""
+                                            : allTaken("program")
+                                                ? "All programs already have a budget. To change one, open it and use Edit or Revise."
+                                                : "Only programs without a budget are listed."
+                                    }
                                 />
                             )}
 
@@ -636,7 +679,7 @@ const BudgetFormPage = () => {
                             required
                             disabled={isRevise}
                             value={form.name}
-                            onChange={(e) => change({ name: e.target.value })}
+                            onChange={(e) => typeName(e.target.value)}
                         />
 
                         <AppSelect

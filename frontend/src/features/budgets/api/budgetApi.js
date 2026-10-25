@@ -60,6 +60,10 @@ export const getProgramOptionsApi = async () =>
 export const getProjectOptionsApi = async () =>
     (await axiosClient.get("/projects/lookup")).data?.data || [];
 
+// the programs and projects that already have a budget (one each)
+export const getBudgetedApi = async () =>
+    (await axiosClient.get("/budgets/budgeted")).data?.data || { programs: [], projects: [] };
+
 
 export const getApiErrorMessage = (error, fallback) => {
 
