@@ -47,6 +47,7 @@ import {
 
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { formatDate } from "../../../utils/date";
 
 
 const STATUS_OPTIONS =
@@ -219,7 +220,7 @@ const ServiceDeliveryListPage = () => {
                     </Link>
                     {params.row.deliveryDate && (
                         <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
-                            {new Date(params.row.deliveryDate).toLocaleDateString()}
+                            {formatDate(params.row.deliveryDate)}
                         </Typography>
                     )}
                 </Box>

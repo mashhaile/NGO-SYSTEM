@@ -24,6 +24,23 @@ const escapeRegex = require("../utils/escapeRegex");
 
 const generateSequence = require("../utils/generateSequence");
 
+const notifications = require("./notificationService");
+
+// "EXP-000115 Generator repair (urgent)"
+const expenseLabel = (expense) =>
+    `${expense.expenseCode || ""} ${expense.description || ""}`.trim();
+
+// the person who submitted it (or recorded it) hears the decision
+const tellSubmitter = (expense, organizationId, userId, title, message) =>
+    notifications.notifyUser({
+        organizationId,
+        to: expense.submittedBy || expense.createdBy,
+        byUserId: userId,
+        title,
+        message,
+        link: `/expenses/${expense._id}`
+    });
+
 const {
     runInTransaction
 } = require("../utils/transaction");
@@ -607,7 +624,19 @@ const submitExpense = async (id, organizationId, userId) => {
         throw new ApiError("This expense was changed by someone else. Reload and try again.", 409);
     }
 
-    return getExpenseById(id, organizationId);
+    const submitted = await getExpenseById(id, organizationId);
+
+    // the people who can approve expenses
+    await notifications.notifyPermission({
+        organizationId,
+        permission: "expense.approve",
+        byUserId: userId,
+        title: "Expense waiting for approval",
+        message: `${expenseLabel(submitted)} (${money(submitted.amount, submitted.currency)}) was submitted for approval.`,
+        link: `/expenses/${submitted._id}`
+    });
+
+    return submitted;
 
 };
 
@@ -665,7 +694,15 @@ const approveExpense = async (id, organizationId, userId, { comment = "", allowO
 
     });
 
-    return getExpenseById(id, organizationId);
+    const approved = await getExpenseById(id, organizationId);
+
+    await tellSubmitter(
+        approved, organizationId, userId,
+        approved.approvedOverBudget ? "Expense approved over budget" : "Expense approved",
+        `${expenseLabel(approved)} was approved${approved.approvedOverBudget ? ` over budget${comment ? `: ${comment}` : ""}` : "."}`
+    );
+
+    return approved;
 
 };
 
@@ -687,7 +724,15 @@ const returnExpense = async (id, organizationId, userId, comment) => {
         throw new ApiError(`This expense is ${current.status.toLowerCase()} and cannot be returned.`, 409);
     }
 
-    return getExpenseById(id, organizationId);
+    const returned = await getExpenseById(id, organizationId);
+
+    await tellSubmitter(
+        returned, organizationId, userId,
+        "Expense returned for changes",
+        `${expenseLabel(returned)} was returned${comment ? `: ${comment}` : "."}`
+    );
+
+    return returned;
 
 };
 
@@ -715,7 +760,15 @@ const voidExpense = async (id, organizationId, userId, reason) => {
 
     });
 
-    return getExpenseById(id, organizationId);
+    const voided = await getExpenseById(id, organizationId);
+
+    await tellSubmitter(
+        voided, organizationId, userId,
+        "Expense voided",
+        `${expenseLabel(voided)} was voided and no longer counts as spent${reason ? `: ${reason}` : "."}`
+    );
+
+    return voided;
 
 };
 

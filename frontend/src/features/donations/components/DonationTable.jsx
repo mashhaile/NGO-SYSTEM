@@ -23,6 +23,7 @@ import {
     AppIconButton,
     ConfirmDeleteDialog
 } from "../../../components/ui";
+import { formatDate } from "../../../utils/date";
 
 
 // =====================================================
@@ -297,7 +298,7 @@ const DonationTable = ({
                     }
 
 
-                    return date.toLocaleDateString();
+                    return formatDate(date);
 
                 }
 

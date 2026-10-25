@@ -189,7 +189,9 @@ const getUnreadCount = async (
         const data =
             await service.getUnreadCount(
 
-                req.user.userId
+                req.user.userId,
+
+                req.user.organizationId
 
             );
 
@@ -222,8 +224,35 @@ const getUnreadCount = async (
 
 
 
+// ==========================================
+// Mark All Read
+// ==========================================
+
+const markAllAsRead = async (req, res) => {
+
+    try {
+
+        const data =
+            await service.markAllAsRead(req.user.userId, req.user.organizationId);
+
+        res.json({ success: true, message: "All notifications marked as read", data });
+
+    }
+    catch(error){
+
+        res.status(getErrorStatus(error)).json({ success: false, message: getErrorMessage(error) });
+
+    }
+
+};
+
+
+
+
 module.exports = {
 
+
+    markAllAsRead,
 
     getMyNotifications,
 

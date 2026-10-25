@@ -27,6 +27,7 @@ import {
     AppAlert,
     StatusChip
 } from "../../../components/ui";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 // =====================================================
@@ -68,59 +69,13 @@ const DonationDetailsPage = () => {
     // DATE
     // =================================================
 
-    const formatDate = (
-        value
-    ) => {
 
-        if (!value) {
-            return "-";
-        }
-
-        const date =
-            new Date(value);
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "-";
-        }
-
-        return date.toLocaleDateString();
-
-    };
-
-
-    // =================================================
+// =================================================
     // DATE TIME
     // =================================================
 
-    const formatDateTime = (
-        value
-    ) => {
 
-        if (!value) {
-            return "-";
-        }
-
-        const date =
-            new Date(value);
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "-";
-        }
-
-        return date.toLocaleString();
-
-    };
-
-
-    // =================================================
+// =================================================
     // AMOUNT
     // =================================================
 
@@ -468,7 +423,7 @@ const DonationDetailsPage = () => {
                                         <>
                                             <InfoRow
                                                 label="Exchange rate when received"
-                                                value={`1 ${currentDonation.funding.currency} = ETB ${currentDonation.funding.inBase.rate}${currentDonation.funding.inBase.rateDate ? ` (${new Date(currentDonation.funding.inBase.rateDate).toLocaleDateString()})` : ""}`}
+                                                value={`1 ${currentDonation.funding.currency} = ETB ${currentDonation.funding.inBase.rate}${currentDonation.funding.inBase.rateDate ? ` (${formatDate(currentDonation.funding.inBase.rateDate)})` : ""}`}
                                             />
                                             <InfoRow
                                                 label="Received, in ETB"

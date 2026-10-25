@@ -48,6 +48,7 @@ import {
 
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { formatDate } from "../../../utils/date";
 
 
 const twoLine = (main, caption) => (
@@ -147,7 +148,7 @@ const AttendanceListPage = () => {
             field: "sessionDate",
             headerName: "Date",
             minWidth: 110,
-            valueGetter: (value) => (value ? new Date(value).toLocaleDateString() : "-")
+            valueGetter: (value) => (value ? formatDate(value) : "-")
         },
 
         {

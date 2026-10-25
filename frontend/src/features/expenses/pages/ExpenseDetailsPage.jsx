@@ -72,10 +72,11 @@ import {
 import {
     fiscalYearLabel
 } from "../../../utils/fiscalYear";
+import { formatDateTime } from "../../../utils/date";
 
 
 const dateTime = (value) =>
-    value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-";
+    value ? formatDateTime(value) : "-";
 
 
 // =====================================================

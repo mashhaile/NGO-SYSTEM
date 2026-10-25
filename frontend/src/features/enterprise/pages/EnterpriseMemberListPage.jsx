@@ -49,6 +49,7 @@ import {
 
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { formatDate } from "../../../utils/date";
 
 
 const STATUS_OPTIONS =
@@ -63,7 +64,7 @@ const personName = (person) =>
         : [person.firstName, person.middleName, person.lastName].filter(Boolean).join(" ") || person.beneficiaryNumber || "-";
 
 const dateOf = (value) =>
-    value ? new Date(value).toLocaleDateString() : "";
+    value ? formatDate(value) : "";
 
 const enterpriseIdOf = (member) =>
     member.enterprise?._id || (typeof member.enterprise === "string" ? member.enterprise : member.enterpriseId);

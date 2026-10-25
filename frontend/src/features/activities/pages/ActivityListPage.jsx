@@ -51,6 +51,7 @@ import {
 import {
     hasPermission
 } from "../../tor/utils/torPermissions";
+import { formatDate } from "../../../utils/date";
 
 
 
@@ -78,12 +79,6 @@ const TYPE_OPTIONS = toOptions([
     "Community Dialogue",
     "Other"
 ]);
-
-
-const formatDate = (value) =>
-    value
-        ? new Date(value).toLocaleDateString()
-        : "-";
 
 
 const errorMessage = (error, fallback) =>

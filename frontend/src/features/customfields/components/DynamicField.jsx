@@ -10,6 +10,8 @@ import {
     FormGroup
 } from "@mui/material";
 
+import AppDatePicker from "../../../components/ui/AppDatePicker";
+
 
 // ==========================================================
 // DYNAMIC FIELD
@@ -222,28 +224,23 @@ const DynamicField = ({
 
         case "date":
 
+            // DD/MM/YYYY, stored as YYYY-MM-DD
             return (
-                <TextField
+                <AppDatePicker
 
-                    {...commonProps}
+                    label={commonProps.label}
 
-                    type="date"
+                    required={commonProps.required}
 
                     value={
-                        value ?? ""
+                        value || null
                     }
 
-                    onChange={(e) =>
+                    onChange={(newValue) =>
                         handleChange(
-                            e.target.value
+                            newValue ? newValue.format("YYYY-MM-DD") : ""
                         )
                     }
-
-                    slotProps={{
-                        inputLabel: {
-                            shrink: true
-                        }
-                    }}
 
                 />
             );

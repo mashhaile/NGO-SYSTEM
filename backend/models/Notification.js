@@ -52,7 +52,11 @@ new mongoose.Schema(
 
             "user",
 
-            "organization"
+            "organization",
+
+            // something waits for this user's approval, or
+            // their submission was decided
+            "approval"
 
         ],
 
@@ -77,6 +81,18 @@ new mongoose.Schema(
         type:String,
 
         required:true,
+
+        trim:true
+
+    },
+
+
+    // the page it is about ("/budgets/<id>"); the bell opens it
+    link: {
+
+        type:String,
+
+        default:"",
 
         trim:true
 
@@ -159,6 +175,18 @@ NotificationSchema.index({
     type:1,
 
     createdAt:-1
+
+});
+
+
+// The bell: a user's unread notifications
+NotificationSchema.index({
+
+    user:1,
+
+    isRead:1,
+
+    isDeleted:1
 
 });
 

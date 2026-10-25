@@ -1890,7 +1890,7 @@ test("work is dated inside its project: activities, runs and deliveries", { skip
 
     const before = await activity("2025-06-01");
     assert.equal(before.status, 400);
-    assert.match(before.data.message, /outside its project's dates: ABC 2026 runs from 1 Jan 2026 to 31 Dec 2026/);
+    assert.match(before.data.message, /outside its project's dates: ABC 2026 runs from 01\/01\/2026 to 31\/12\/2026/);
 
     const inside = await activity("2026-06-01");
     assert.equal(inside.status, 201, inside.data?.message);
@@ -1935,7 +1935,7 @@ test("dates make sense: order, inside the parent, nothing done in the future", {
 
     const outside = await api("POST", "/projects", { token, body: { program, name: "Too long", startDate: "2026-01-01", endDate: "2027-06-30" } });
     assert.equal(outside.status, 400);
-    assert.match(outside.data.message, /outside its program's dates: Dates Program runs from 1 Jan 2026 to 31 Dec 2026/);
+    assert.match(outside.data.message, /outside its program's dates: Dates Program runs from 01\/01\/2026 to 31\/12\/2026/);
 
     const project = (await api("POST", "/projects", { token, body: { program, name: "Dates Project", startDate: "2026-01-01", endDate: "2026-12-31" } })).data.data._id;
     const activity = await api("POST", "/activities", { token, body: { project, name: "Late survey", activityType: "Assessment", activityDate: "2026-09-01" } });
@@ -2254,6 +2254,54 @@ test("search: regex characters do not break the query", { skip }, async () => {
 
     const literal = await api("GET", `/programs?search=${encodeURIComponent(".*")}`, { token: state.tokenA });
     assert.equal((literal.data.data || []).length, 0, "'.*' must not match everything");
+
+});
+
+
+// =====================================================
+// NOTIFICATIONS: APPROVERS AND SUBMITTERS ARE TOLD
+// =====================================================
+
+test("notifications: approvers told of what waits, submitters of the decision; everyone reads their own", { skip }, async () => {
+
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const notes = async (token, query = "") => (await api("GET", `/notifications${query}`, { token })).data.data;
+
+    // data entry has no notification permission, but reads their own
+    assert.equal((await api("GET", "/notifications/unread-count", { token: de })).status, 200);
+    await api("PATCH", "/notifications/read-all", { token: de });
+    await api("PATCH", "/notifications/read-all", { token: fin });
+
+    const { line } = await lineOf(de, state.budgetOneId, "Personnel");
+    const expense = (await newExpense(de, { budgetLine: line._id, description: "Notified expense", payee: "Shop", amount: 10 })).data.data;
+    assert.equal((await api("POST", `/expenses/${expense._id}/submit`, { token: de })).status, 200);
+
+    // the finance officer (an approver) is told, with a link to it
+    const waiting = (await notes(fin, "?unread=true")).notifications.find(note => note.title === "Expense waiting for approval" && note.message.includes("Notified expense"));
+    assert.ok(waiting, "approver notified");
+    assert.equal(waiting.type, "approval");
+    assert.equal(waiting.link, `/expenses/${expense._id}`);
+    // not the person who submitted it
+    assert.ok(!(await notes(de)).notifications.some(note => note.title === "Expense waiting for approval" && note.message.includes("Notified expense")));
+
+    // returned: the submitter is told
+    assert.equal((await api("POST", `/expenses/${expense._id}/return`, { token: fin, body: { comment: "Add the receipt" } })).status, 200);
+    const mine = await notes(de, "?unread=true");
+    const returned = mine.notifications.find(note => note.title === "Expense returned for changes");
+    assert.ok(returned, "submitter notified");
+    assert.match(returned.message, /Add the receipt/);
+    assert.ok(mine.unread >= 1);
+
+    // read one, then all
+    assert.equal((await api("PATCH", `/notifications/${returned._id}/read`, { token: de })).status, 200);
+    await api("PATCH", "/notifications/read-all", { token: de });
+    assert.equal((await api("GET", "/notifications/unread-count", { token: de })).data.data.unread, 0);
+
+    // someone else's notification cannot be marked read
+    assert.equal((await api("PATCH", `/notifications/${waiting._id}/read`, { token: de })).status, 404);
+
+    await api("DELETE", `/expenses/${expense._id}`, { token: de });
 
 });
 

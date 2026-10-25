@@ -30,6 +30,7 @@ import {
     FormSection,
     FormGrid,
     FormActions,
+    AppDatePicker,
     AppTextField,
     AppSelect,
     AppAutoComplete,
@@ -669,13 +670,11 @@ const BudgetFormPage = () => {
                                             : "Used to check the program budget's ceiling"
                                     }
                                 />
-                                <AppTextField
+                                <AppDatePicker
                                     label="Rate date"
-                                    type="date"
                                     required
-                                    value={form.rateDate}
-                                    onChange={(e) => change({ rateDate: e.target.value })}
-                                    InputLabelProps={{ shrink: true }}
+                                    value={form.rateDate || null}
+                                    onChange={(newValue) => change({ rateDate: newValue ? newValue.format("YYYY-MM-DD") : "" })}
                                 />
                             </FormGrid>
                         )}

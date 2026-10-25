@@ -2,7 +2,6 @@ import { WORK_STATUSES } from "../../constants/workStatus";
 import {
     useEffect,
     useMemo,
-    useRef,
     useState
 } from "react";
 
@@ -12,8 +11,8 @@ import {
 } from "@mui/material";
 
 import {
-    AppSelect,
-    AppTextField
+    AppDatePicker,
+    AppSelect
 } from "../../components/ui";
 
 import axiosClient
@@ -28,57 +27,28 @@ import {
 // A DATE THAT APPLIES ONCE IT IS COMPLETE
 // =====================================================
 //
-// Typing a date goes through half dates (year "0002" ...).
-// Each change used to rebuild the report, so typing was
-// slow. The date is kept here while it is typed and applied
-// when it is a whole date (after a short pause) or when the
-// field is left.
+// DD/MM/YYYY like every date. While a date is typed the
+// picker passes half dates (year 2, 20, 202 …); only a whole
+// date (year 2000–2100) or a cleared box rebuilds the report,
+// so typing stays quick.
 //
 // =====================================================
 
-const isWholeDate = (value) =>
-    /^\d{4}-\d{2}-\d{2}$/.test(value || "") &&
-    Number(value.slice(0, 4)) >= 2000 &&
-    Number(value.slice(0, 4)) <= 2100;
-
-const DateFilter = ({ label, value, onApply }) => {
-
-    const [draft, setDraft] = useState(value || "");
-    const [shown, setShown] = useState(value || "");
-
-    // a new value from outside (another filter, reset)
-    if ((value || "") !== shown) {
-        setShown(value || "");
-        setDraft(value || "");
-    }
-
-    // the latest onApply, so the page re-rendering (a report
-    // loading) does not restart the pause
-    const applyRef = useRef(onApply);
-    useEffect(() => {
-        applyRef.current = onApply;
-    });
-
-    useEffect(() => {
-        if (draft === (value || "") || (draft && !isWholeDate(draft))) return undefined;
-        const timer = setTimeout(() => applyRef.current(draft), 600);
-        return () => clearTimeout(timer);
-    }, [draft, value]);
-
-    return (
-        <AppTextField
-            label={label}
-            type="date"
-            value={draft}
-            onChange={event => setDraft(event.target.value)}
-            onBlur={() => {
-                if (draft !== (value || "") && (!draft || isWholeDate(draft))) onApply(draft);
-            }}
-            InputLabelProps={{ shrink: true }}
-        />
-    );
-
-};
+const DateFilter = ({ label, value, onApply }) => (
+    <AppDatePicker
+        label={label}
+        value={value || null}
+        onChange={(newValue) => {
+            if (!newValue) {
+                if (value) onApply("");
+                return;
+            }
+            if (!newValue.isValid() || newValue.year() < 2000 || newValue.year() > 2100) return;
+            const day = newValue.format("YYYY-MM-DD");
+            if (day !== value) onApply(day);
+        }}
+    />
+);
 
 
 // =====================================================

@@ -51,6 +51,7 @@ import {
 import {
     hasPermission
 } from "../../tor/utils/torPermissions";
+import { formatDate } from "../../../utils/date";
 
 
 
@@ -58,12 +59,6 @@ const STATUS_OPTIONS = WORK_STATUSES.map(value => ({
     value,
     label: value
 }));
-
-
-const formatDate = (value) =>
-    value
-        ? new Date(value).toLocaleDateString()
-        : "-";
 
 
 const errorMessage = (error, fallback) =>

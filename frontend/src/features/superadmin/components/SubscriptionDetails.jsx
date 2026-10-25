@@ -6,6 +6,7 @@ import {
     Chip,
     Divider
 } from "@mui/material";
+import { formatDate } from "../../../utils/date";
 
 
 // =====================================================
@@ -75,45 +76,7 @@ const SubscriptionDetails = ({
         String(status).toLowerCase();
 
 
-    const formatDate = (
-        value
-    ) => {
-
-        if (!value) {
-
-            return "—";
-
-        }
-
-
-        const date =
-            new Date(value);
-
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-
-            return "—";
-
-        }
-
-
-        return date.toLocaleDateString(
-            undefined,
-            {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-            }
-        );
-
-    };
-
-
-    const getEndDateDisplay = () => {
+const getEndDateDisplay = () => {
 
         // =============================================
         // TRIALING

@@ -87,7 +87,4 @@ export const formatMoney = (value, currency = "ETB") =>
     })}`;
 
 
-export const formatDate = (value) =>
-    value
-        ? new Date(value).toLocaleDateString()
-        : "-";
+export { formatDate } from "../../../utils/date";

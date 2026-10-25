@@ -13,23 +13,12 @@ import {
     Business,
     EventNote
 } from "@mui/icons-material";
+import { formatDateTime } from "../../../utils/date";
 
 
 // "2026-10-19T16:56:29Z" -> "Oct 19, 2026, 4:56 PM"
 
-const formatTime = (value) => {
-
-    const date =
-        new Date(value);
-
-    return Number.isNaN(date.getTime())
-        ? value
-        : date.toLocaleString(undefined, {
-            dateStyle: "medium",
-            timeStyle: "short"
-        });
-
-};
+const formatTime = formatDateTime;
 
 
 const RecentActivity = ({

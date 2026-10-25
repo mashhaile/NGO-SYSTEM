@@ -254,6 +254,7 @@ const DonorSharePage = lazyPage(() => import("../features/donations/pages/DonorS
 const ReportCenterPage = lazyPage(() => import("../features/reportCenter/ReportCenterPage"));
 const ReportDetailPage = lazyPage(() => import("../features/reportCenter/ReportDetailPage"));
 const ChangePasswordPage = lazyPage(() => import("../features/auth/pages/ChangePasswordPage"));
+const NotificationsPage = lazyPage(() => import("../features/notifications/NotificationsPage"));
 const SuperAdminDashboardPage = lazyPage(() => import("../features/superadmin/pages/SuperAdminDashboardPage"));
 const OrganizationListPage = lazyPage(() => import("../features/superadmin/pages/OrganizationListPage"));
 const OrganizationCreatePage = lazyPage(() => import("../features/superadmin/pages/OrganizationCreatePage"));
@@ -369,6 +370,13 @@ const AppRoutes = () => {
                     path="/account/password"
                     element={
                         <ChangePasswordPage />
+                    }
+                />
+
+                <Route
+                    path="/notifications"
+                    element={
+                        <NotificationsPage />
                     }
                 />
 

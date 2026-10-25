@@ -42,12 +42,7 @@ import useAuth
 import {
     hasPermission
 } from "../../tor/utils/torPermissions";
-
-
-const formatDate = (value) =>
-    value
-        ? new Date(value).toLocaleDateString()
-        : "-";
+import { formatDate } from "../../../utils/date";
 
 
 // ==========================================

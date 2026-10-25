@@ -57,6 +57,7 @@ import {
 import {
     CURRENCIES
 } from "../../budgets/utils/budgetUtils";
+import { formatDate } from "../../../utils/date";
 
 
 // A service item may be priced in another currency (USD,
@@ -3990,7 +3991,7 @@ const ServiceDeliveryItemRow = ({
                         </Box>
                     }
                 >
-                    {`Expense ${suggestedExpense.expenseCode}${suggestedExpense.description ? ` "${suggestedExpense.description}"` : ""} (${suggestedExpense.currency || "ETB"} ${Number(suggestedExpense.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, ${suggestedExpense.expenseDate ? new Date(suggestedExpense.expenseDate).toLocaleDateString() : ""}) is on the same donation, with about the same amount. Were these items bought with it? If so, the donation is charged once.`}
+                    {`Expense ${suggestedExpense.expenseCode}${suggestedExpense.description ? ` "${suggestedExpense.description}"` : ""} (${suggestedExpense.currency || "ETB"} ${Number(suggestedExpense.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, ${suggestedExpense.expenseDate ? formatDate(suggestedExpense.expenseDate) : ""}) is on the same donation, with about the same amount. Were these items bought with it? If so, the donation is charged once.`}
                 </Alert>
 
             )}

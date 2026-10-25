@@ -95,23 +95,13 @@ import TorLinkActivityDialog
 
 import TorEditActivityDialog
     from "../components/TorEditActivityDialog";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 
 // =====================================================
 // FORMATTERS
 // =====================================================
-
-const formatDate = (value) =>
-    value
-        ? new Date(value).toLocaleDateString()
-        : "-";
-
-
-const formatDateTime = (value) =>
-    value
-        ? new Date(value).toLocaleString()
-        : "-";
 
 
 const codeName = (item, codeKey) =>

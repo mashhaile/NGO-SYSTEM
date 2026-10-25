@@ -22,14 +22,9 @@ const PDFDocument = require("pdfkit");
 const isDateValue = (value) =>
     value instanceof Date || (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value));
 
-const dateText = (value) => {
-    if (!value) return "";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return String(value);
-    // the calendar day in Addis Ababa
-    const local = new Date(date.getTime() + 3 * 3600 * 1000);
-    return `${String(local.getUTCDate()).padStart(2, "0")}/${String(local.getUTCMonth() + 1).padStart(2, "0")}/${local.getUTCFullYear()}`;
-};
+// DD/MM/YYYY, the calendar day in Addis Ababa
+const dateText = (value) =>
+    !value ? "" : require("../../utils/dateFormat").formatDate(value, String(value));
 
 const numberText = (value, digits = 0) =>
     value === null || value === undefined || value === ""

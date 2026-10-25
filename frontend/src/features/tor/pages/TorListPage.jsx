@@ -58,6 +58,7 @@ import {
 import {
     formatAmount
 } from "../utils/torBudget";
+import { formatDate } from "../../../utils/date";
 
 
 
@@ -71,13 +72,6 @@ const STATUS_OPTIONS = [
         label: status
     }))
 ];
-
-
-const formatDate = (value) =>
-    value
-        ? new Date(value).toLocaleDateString()
-        : "-";
-
 
 
 // =====================================================

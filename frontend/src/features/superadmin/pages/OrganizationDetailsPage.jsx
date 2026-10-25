@@ -80,6 +80,7 @@ import {
     renewSubscriptionApi,
     cancelSubscriptionApi
 } from "../api/planApi";
+import { formatDate } from "../../../utils/date";
 
 
 // =====================================================
@@ -212,8 +213,6 @@ const Field = ({
     </Box>
 
 );
-
-
 
 
 const OrganizationDetailsPage = () => {
@@ -605,45 +604,8 @@ const isTrialing =
     // DATE
     // =================================================
 
-    const formatDate = (
-        value
-    ) => {
 
-        if (!value) {
-
-            return "—";
-
-        }
-
-
-        const date =
-            new Date(value);
-
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-
-            return "—";
-
-        }
-
-
-        return date.toLocaleDateString(
-            undefined,
-            {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-            }
-        );
-
-    };
-
-
-    // =================================================
+// =================================================
     // SUBSCRIPTION END DATE
     // =================================================
 

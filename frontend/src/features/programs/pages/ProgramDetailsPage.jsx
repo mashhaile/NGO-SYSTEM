@@ -32,6 +32,7 @@ import useAuth
 
 import BudgetFigureCard
     from "../../budgets/components/BudgetFigureCard";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 // =====================================================
@@ -123,65 +124,13 @@ const ProgramDetailsPage = () => {
     // FORMAT DATE
     // =====================================================
 
-    const formatDate = (value) => {
 
-        if (!value) {
-            return "-";
-        }
-
-
-        const date =
-            new Date(value);
-
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-
-            return "-";
-
-        }
-
-
-        return date.toLocaleDateString();
-
-    };
-
-
-    // =====================================================
+// =====================================================
     // FORMAT DATE TIME
     // =====================================================
 
-    const formatDateTime = (value) => {
 
-        if (!value) {
-            return "-";
-        }
-
-
-        const date =
-            new Date(value);
-
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-
-            return "-";
-
-        }
-
-
-        return date.toLocaleString();
-
-    };
-
-
-    // =====================================================
+// =====================================================
     // FORMAT NUMBER
     // =====================================================
 

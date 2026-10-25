@@ -59,7 +59,8 @@ const submitted = async ({ budget, organizationId, userId, revision = false }) =
             await notificationService.createNotification({
                 organization: organizationId,
                 user: approver.id,
-                type: "organization",
+                type: "approval",
+                link: `/budgets/${budget._id}`,
                 title: revision ? "Budget revision waiting for approval" : "Budget waiting for approval",
                 message: revision
                     ? `Revision v${(budget.version || 1) + 1} of ${label(budget)} was submitted: ${budget.revision?.reason || ""}`.trim()
@@ -84,7 +85,8 @@ const decided = async ({ budget, organizationId, userId, approved, revision = fa
         await notificationService.createNotification({
             organization: organizationId,
             user: to,
-            type: "organization",
+            type: "approval",
+            link: `/budgets/${budget._id}`,
             title: approved ? (revision ? "Budget revision approved" : "Budget approved") : (revision ? "Budget revision returned" : "Budget returned"),
             message: approved ? `${what} was approved.` : `${what} was returned: ${comment}`,
             createdBy: userId

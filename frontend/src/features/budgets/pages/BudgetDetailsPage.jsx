@@ -81,6 +81,7 @@ import {
 import {
     fiscalYearLabel
 } from "../../../utils/fiscalYear";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 const tableSx = {
@@ -93,7 +94,7 @@ const tableSx = {
 const nowrap = { whiteSpace: "nowrap" };
 
 const dateTime = (value) =>
-    value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-";
+    value ? formatDateTime(value) : "-";
 
 
 // =====================================================
@@ -494,7 +495,7 @@ const BudgetDetailsPage = () => {
                                             {currency === "ETB"
                                                 ? `1 ${summary.programBudget.currency} = ${Number((1 / summary.programBudget.exchangeRate).toPrecision(8)).toLocaleString()} ${currency}`
                                                 : `1 ${currency} = ${Number(Number(summary.programBudget.exchangeRate).toPrecision(8)).toLocaleString()} ${summary.programBudget.currency}`}
-                                            {summary.programBudget.exchangeRateDate ? ` (rate of ${new Date(summary.programBudget.exchangeRateDate).toLocaleDateString()})` : ""}.
+                                            {summary.programBudget.exchangeRateDate ? ` (rate of ${formatDate(summary.programBudget.exchangeRateDate)})` : ""}.
                                         </Typography>
                                     )}
                                     <TableContainer sx={tableSx}>
@@ -586,7 +587,7 @@ const BudgetDetailsPage = () => {
                                                             {item.expenseCode}
                                                         </Typography>
                                                     </TableCell>
-                                                    <TableCell sx={nowrap}>{new Date(item.expenseDate).toLocaleDateString()}</TableCell>
+                                                    <TableCell sx={nowrap}>{formatDate(item.expenseDate)}</TableCell>
                                                     <TableCell>{item.category}</TableCell>
                                                     <TableCell align="right" sx={nowrap}>{formatMoney(item.budgetAmount, item.budgetCurrency)}</TableCell>
                                                     <TableCell><StatusChip status={item.status} /></TableCell>

@@ -54,6 +54,7 @@ import {
 import {
     getMembersByEnterpriseThunk
 } from "../store/enterpriseMemberThunks";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 // =========================================================
@@ -107,70 +108,10 @@ const getLookupValue = (
 // DATE
 // =========================================================
 
-const formatDate = (
-    value
-) => {
-
-    if (!value) {
-
-        return "-";
-
-    }
-
-
-    const date =
-        new Date(value);
-
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return "-";
-
-    }
-
-
-    return date.toLocaleDateString();
-
-};
-
 
 // =========================================================
 // DATE TIME
 // =========================================================
-
-const formatDateTime = (
-    value
-) => {
-
-    if (!value) {
-
-        return "-";
-
-    }
-
-
-    const date =
-        new Date(value);
-
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return "-";
-
-    }
-
-
-    return date.toLocaleString();
-
-};
 
 
 // =========================================================

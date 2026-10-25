@@ -34,6 +34,7 @@ import {
 } from "../../projects/services/projectService";
 
 
+import { formatDate } from "../../../utils/date";
 import LocationCascadeFields
     from "../../locations/components/LocationCascadeFields";
 
@@ -340,7 +341,7 @@ const ActivityForm = ({
         // inside the project's dates (the server checks it too)
         const range = projectRange(formData.project);
         if (range && (formData.activityDate < range.start || formData.activityDate > range.end)) {
-            setDateError(`The date must be inside the project's dates (${range.start} to ${range.end}).`);
+            setDateError(`The date must be inside the project's dates (${formatDate(range.start)} to ${formatDate(range.end)}).`);
             return;
         }
 
@@ -609,7 +610,7 @@ const ActivityForm = ({
                             helperText={
                                 dateError ||
                                 (projectRange(formData.project)
-                                    ? `Inside the project's dates: ${projectRange(formData.project).start} to ${projectRange(formData.project).end}`
+                                    ? `Inside the project's dates: ${formatDate(projectRange(formData.project).start)} to ${formatDate(projectRange(formData.project).end)}`
                                     : "")
                             }
                             minDate={projectRange(formData.project)?.start}

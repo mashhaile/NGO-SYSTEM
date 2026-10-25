@@ -32,7 +32,8 @@ const toId = (value) => String(value?._id || value || "");
 
 const day = (value) => (value ? new Date(value).toISOString().slice(0, 10) : "");
 
-const dateText = (value) => (value ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "");
+// DD/MM/YYYY
+const dateText = (value) => require("../utils/dateFormat").formatDate(value);
 
 
 const notDeleted = (organizationId, extra = {}) => ({ organization: organizationId, isDeleted: false, ...extra });

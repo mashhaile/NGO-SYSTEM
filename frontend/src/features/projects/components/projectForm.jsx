@@ -1,4 +1,5 @@
 import { WORK_STATUS_OPTIONS, WORK_STATUS_HELP } from "../../../constants/workStatus";
+import { formatDate } from "../../../utils/date";
 import {
     useEffect,
     useState
@@ -562,7 +563,7 @@ const ProjectForm = ({
         ) {
 
             setFormError(
-                `A phase must lie inside its main project's dates (${String(selectedMainProject.startDate || "").slice(0, 10)} to ${String(selectedMainProject.endDate || "").slice(0, 10)}).`
+                `A phase must lie inside its main project's dates (${formatDate(selectedMainProject.startDate)} to ${formatDate(selectedMainProject.endDate)}).`
             );
 
             return;
@@ -909,7 +910,7 @@ const ProjectForm = ({
                                 hasPhases
                                     ? "This project has phases of its own"
                                     : selectedMainProject
-                                        ? `Dates must lie inside ${String(selectedMainProject.startDate || "").slice(0, 10)} to ${String(selectedMainProject.endDate || "").slice(0, 10)} and not overlap another phase`
+                                        ? `Dates must lie inside ${formatDate(selectedMainProject.startDate)} to ${formatDate(selectedMainProject.endDate)} and not overlap another phase`
                                         : "Leave empty for a project on its own. A phase has its own budget, activities and reports."
                             }
                         />

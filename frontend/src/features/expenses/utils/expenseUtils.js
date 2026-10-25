@@ -23,7 +23,4 @@ export const PAYMENT_METHODS = [
     "Other"
 ];
 
-export const formatDate = (value) =>
-    value
-        ? new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
-        : "-";
+export { formatDate } from "../../../utils/date";

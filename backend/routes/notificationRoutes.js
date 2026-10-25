@@ -15,7 +15,12 @@ require("../controllers/notificationController");
 
 
 // ==========================================
-// User Notifications
+// My Notifications (the bell)
+// ==========================================
+//
+// Every signed-in user reads their own notifications; no
+// role permission is needed for that.
+//
 // ==========================================
 
 router.get(
@@ -24,15 +29,46 @@ router.get(
 
     authMiddleware,
 
-    authorize("notification.read"),
-
     controller.getMyNotifications
 
 );
 
 
+router.get(
+
+    "/unread-count",
+
+    authMiddleware,
+
+    controller.getUnreadCount
+
+);
+
+
+router.patch(
+
+    "/read-all",
+
+    authMiddleware,
+
+    controller.markAllAsRead
+
+);
+
+
+router.patch(
+
+    "/:id/read",
+
+    authMiddleware,
+
+    controller.markAsRead
+
+);
+
+
 // ==========================================
-// Organization Notifications
+// Organization Notifications (everyone's)
 // ==========================================
 
 router.get(
@@ -44,40 +80,6 @@ router.get(
     authorize("notification.read"),
 
     controller.getOrganizationNotifications
-
-);
-
-
-// ==========================================
-// Mark Read
-// ==========================================
-
-router.patch(
-
-    "/:id/read",
-
-    authMiddleware,
-
-    authorize("notification.read"),
-
-    controller.markAsRead
-
-);
-
-
-// ==========================================
-// Unread Count
-// ==========================================
-
-router.get(
-
-    "/unread-count",
-
-    authMiddleware,
-
-    authorize("notification.read"),
-
-    controller.getUnreadCount
 
 );
 

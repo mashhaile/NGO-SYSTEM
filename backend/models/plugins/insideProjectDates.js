@@ -31,8 +31,9 @@ const day = (value) => {
     return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
 };
 
+// DD/MM/YYYY
 const shown = (value) =>
-    new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+    require("../../utils/dateFormat").formatDate(value);
 
 
 const check = async ({ projectId, values, what, labels }) => {

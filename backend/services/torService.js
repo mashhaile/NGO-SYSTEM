@@ -29,6 +29,13 @@ const ApiError =
 const generateSequence =
     require("../utils/generateSequence");
 
+const notifications =
+    require("./notificationService");
+
+// "TOR-000012 Workshop - Community Protection Committees"
+const torLabel = (tor) =>
+    `${tor.torNumber || ""} ${tor.title || ""}`.trim();
+
 const {
     createPdfDocument,
     drawTitle,
@@ -815,7 +822,7 @@ const submitTor = async (
         );
     }
 
-    return transition({
+    const submitted = await transition({
         id,
         organizationId,
         userId,
@@ -830,6 +837,18 @@ const submitTor = async (
         }
     });
 
+    // the people who can approve TORs
+    await notifications.notifyPermission({
+        organizationId,
+        permission: "tor.approve",
+        byUserId: userId,
+        title: "TOR waiting for approval",
+        message: `${torLabel(submitted)} was submitted for approval.`,
+        link: `/tors/${submitted._id}`
+    });
+
+    return submitted;
+
 };
 
 
@@ -838,8 +857,9 @@ const approveTor = async (
     organizationId,
     userId,
     comment = ""
-) =>
-    transition({
+) => {
+
+    const approved = await transition({
         id,
         organizationId,
         userId,
@@ -854,14 +874,29 @@ const approveTor = async (
         }
     });
 
+    // the person who submitted it
+    await notifications.notifyUser({
+        organizationId,
+        to: approved.submittedBy,
+        byUserId: userId,
+        title: "TOR approved",
+        message: `${torLabel(approved)} was approved. Its activity can now be created.`,
+        link: `/tors/${approved._id}`
+    });
+
+    return approved;
+
+};
+
 
 const returnTor = async (
     id,
     organizationId,
     userId,
     comment
-) =>
-    transition({
+) => {
+
+    const returned = await transition({
         id,
         organizationId,
         userId,
@@ -874,6 +909,19 @@ const returnTor = async (
             reviewComment: comment
         }
     });
+
+    await notifications.notifyUser({
+        organizationId,
+        to: returned.submittedBy,
+        byUserId: userId,
+        title: "TOR returned for changes",
+        message: `${torLabel(returned)} was returned${comment ? `: ${comment}` : "."}`,
+        link: `/tors/${returned._id}`
+    });
+
+    return returned;
+
+};
 
 
 

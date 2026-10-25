@@ -43,8 +43,9 @@ const day = (value) => {
     return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
 };
 
+// DD/MM/YYYY
 const shown = (value) =>
-    new Date(`${day(value)}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+    require("../../utils/dateFormat").formatDate(new Date(`${day(value)}T00:00:00Z`));
 
 const words = (field) => field.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/ time$/i, "").toLowerCase();
 

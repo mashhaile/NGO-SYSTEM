@@ -46,14 +46,14 @@ import BudgetFigureCell
 
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { formatDate } from "../../../utils/date";
 
 
 const STATUS_OPTIONS =
     WORK_STATUSES
         .map(value => ({ value, label: value }));
 
-const formatDate = (value) =>
-    value ? new Date(value).toLocaleDateString() : "";
+
 
 const formatNumber = (value) =>
     value === null || value === undefined || value === "" ? "-" : Number(value).toLocaleString();

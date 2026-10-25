@@ -10,9 +10,6 @@ import {
 } from "react-router-dom";
 
 
-
-
-
 import {
     Edit,
     Add
@@ -46,12 +43,10 @@ import BudgetFigureCard
     from "../../budgets/components/BudgetFigureCard";
 
 
-
-
-
 import {
     getProjectByIdService
 } from "../services/projectService";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 const ProjectDetailsPage = () => {
@@ -66,10 +61,7 @@ const ProjectDetailsPage = () => {
     const { user } = useAuth();
 
 
-
-
-
-    const [
+const [
         project,
         setProject
     ] = useState(null);
@@ -87,10 +79,7 @@ const ProjectDetailsPage = () => {
     ] = useState("");
 
 
-
-
-
-    // =====================================================
+// =====================================================
     // LOAD PROJECT
     // =====================================================
 
@@ -154,21 +143,8 @@ const ProjectDetailsPage = () => {
     // FORMAT DATE
     // =====================================================
 
-    const formatDate = (value) => {
 
-        if (!value) {
-            return "-";
-        }
-
-
-        return new Date(
-            value
-        ).toLocaleDateString();
-
-    };
-
-
-    // =====================================================
+// =====================================================
     // LOADING
     // =====================================================
 
@@ -318,8 +294,7 @@ const ProjectDetailsPage = () => {
             ? `${figure.currency} ${Number(figure[key] || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : "-";
 
-    const formatDateTime = (value) =>
-        value ? new Date(value).toLocaleString() : "-";
+    
 
     const backButton = (
 

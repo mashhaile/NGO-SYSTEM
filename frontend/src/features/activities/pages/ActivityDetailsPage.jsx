@@ -67,43 +67,13 @@ import {
 import {
     hasPermission
 } from "../../tor/utils/torPermissions";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 
 // =====================================================
 // FORMATTERS
 // =====================================================
-
-const formatDate = (value) => {
-
-    if (!value) {
-        return "-";
-    }
-
-    const date =
-        new Date(value);
-
-    return Number.isNaN(date.getTime())
-        ? "-"
-        : date.toLocaleDateString();
-
-};
-
-
-const formatDateTime = (value) => {
-
-    if (!value) {
-        return "-";
-    }
-
-    const date =
-        new Date(value);
-
-    return Number.isNaN(date.getTime())
-        ? "-"
-        : date.toLocaleString();
-
-};
 
 
 const formatCodeName = (item, codeKey) =>

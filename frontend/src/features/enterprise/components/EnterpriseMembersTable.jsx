@@ -12,6 +12,7 @@ import {
     Delete,
     Visibility
 } from "@mui/icons-material";
+import { formatDate } from "../../../utils/date";
 
 
 // =====================================================
@@ -205,38 +206,8 @@ const EnterpriseMemberTable = ({
     // DATE
     // =================================================
 
-    const formatDate = (
-        value
-    ) => {
 
-        if (!value) {
-
-            return "—";
-
-        }
-
-
-        const date =
-            new Date(value);
-
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-
-            return "—";
-
-        }
-
-
-        return date.toLocaleDateString();
-
-    };
-
-
-    // =================================================
+// =================================================
     // COLUMNS
     // =================================================
 

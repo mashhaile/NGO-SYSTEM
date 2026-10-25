@@ -21,6 +21,8 @@ import {
     getActivityRunLookupService
 } from "../../activityRuns/services/lookupService";
 
+import AppDatePicker from "../../../components/ui/AppDatePicker";
+
 const initialState = {
 
     activityRun: null,
@@ -297,32 +299,23 @@ const AttendanceForm = ({
                     size={{ xs: 12, md: 6 }}
                 >
 
-                    <TextField
-
-                        fullWidth
+                    {/* DD/MM/YYYY, like every date in the system */}
+                    <AppDatePicker
 
                         required
 
-                        type="date"
-
                         label="Session Date"
 
-                        value={formData.sessionDate}
+                        value={formData.sessionDate || null}
 
-                        onChange={(e) =>
+                        onChange={(newValue) =>
 
                             change(
                                 "sessionDate",
-                                e.target.value
+                                newValue ? newValue.format("YYYY-MM-DD") : ""
                             )
 
                         }
-
-                        slotProps={{
-                            inputLabel: {
-                                shrink: true
-                            }
-                        }}
 
                     />
 

@@ -52,6 +52,7 @@ import {
     fiscalYearLabel,
     fiscalYearRange
 } from "../../../utils/fiscalYear";
+import { formatDateTime } from "../../../utils/date";
 
 
 const tableSx = { border: "1px solid", borderColor: "divider", borderRadius: 2, overflowX: "auto" };
@@ -63,7 +64,7 @@ const amountIn = (amounts = [], year) =>
     Number(amounts.find(item => item.fiscalYear === year)?.amount || 0);
 
 const dateTime = (value) =>
-    value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-";
+    value ? formatDateTime(value) : "-";
 
 // figures of one year, for a budget or a revision
 const yearTotal = (source, isProgram, year) =>

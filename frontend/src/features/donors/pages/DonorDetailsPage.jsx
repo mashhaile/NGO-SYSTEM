@@ -31,6 +31,7 @@ import DonorTraceSection
 
 import DonorShareLinksSection
     from "../../donations/components/DonorShareLinksSection";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 // =====================================================
@@ -191,73 +192,13 @@ const DonorDetailsPage = () => {
     // DATE FORMAT
     // =================================================
 
-    const formatDate = (
-        value
-    ) => {
 
-        if (
-            value === null ||
-            value === undefined ||
-            value === ""
-        ) {
-            return "-";
-        }
-
-
-        const date =
-            new Date(value);
-
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "-";
-        }
-
-
-        return date.toLocaleDateString();
-
-    };
-
-
-    // =================================================
+// =================================================
     // DATE TIME FORMAT
     // =================================================
 
-    const formatDateTime = (
-        value
-    ) => {
 
-        if (
-            value === null ||
-            value === undefined ||
-            value === ""
-        ) {
-            return "-";
-        }
-
-
-        const date =
-            new Date(value);
-
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "-";
-        }
-
-
-        return date.toLocaleString();
-
-    };
-
-
-    // =================================================
+// =================================================
     // RENDER
     // =================================================
 

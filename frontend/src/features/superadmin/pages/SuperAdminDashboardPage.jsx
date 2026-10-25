@@ -34,6 +34,7 @@ import {
 import {
     getPlatformAnalyticsService
 } from "../services/superAdminAnalyticsService";
+import { formatDateTime } from "../../../utils/date";
 
 
 // =====================================================
@@ -1470,9 +1471,7 @@ const SuperAdminDashboardPage = () => {
                                                             >
                                                                 {
                                                                     activity?.createdAt
-                                                                        ? new Date(
-                                                                            activity.createdAt
-                                                                        ).toLocaleString()
+                                                                        ? formatDateTime(activity.createdAt)
                                                                         : "—"
                                                                 }
                                                             </Typography>

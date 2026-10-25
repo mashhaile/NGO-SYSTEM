@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 
 import {
-    NotificationsNone,
     Logout,
     LockReset,
     Menu as MenuIcon
@@ -35,6 +34,8 @@ import {
     logoutThunk,
     selectUser
 } from "../../features/auth/store";
+
+import NotificationBell from "./NotificationBell";
 
 
 const GREEN = "#166534";
@@ -289,42 +290,7 @@ const TopBar = ({
                     NOTIFICATIONS
                 ================================================== */}
 
-                <Tooltip
-                    title="Notifications"
-                >
-
-                    <IconButton
-
-                        sx={{
-
-                            width: 42,
-
-                            height: 42,
-
-                            borderRadius: 2,
-
-                            color:
-                                "text.secondary",
-
-                            "&:hover": {
-
-                                backgroundColor:
-                                    "#f0fdf4",
-
-                                color:
-                                    GREEN
-
-                            }
-
-                        }}
-
-                    >
-
-                        <NotificationsNone />
-
-                    </IconButton>
-
-                </Tooltip>
+                <NotificationBell />
 
 
                 {/* ==================================================

@@ -110,7 +110,19 @@ const resetOrganizationUserPassword = async (
         );
     }
 
-    return applyReset(user);
+    const result = await applyReset(user);
+
+    // the user sees it after signing in with the new password
+    await require("./notificationService").notifyUser({
+        organizationId,
+        to: user._id,
+        byUserId: actorUserId,
+        type: "security",
+        title: "Your password was reset",
+        message: "An administrator reset your password. If you did not ask for this, tell your administrator."
+    });
+
+    return result;
 
 };
 

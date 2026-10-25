@@ -33,6 +33,7 @@ import {
     AppButton,
     StatusChip
 } from "../../../components/ui";
+import { formatDate, formatDateTime } from "../../../utils/date";
 
 
 // =====================================================
@@ -428,59 +429,13 @@ const BeneficiaryDetailsPage = () => {
     // DATE
     // =====================================================
 
-    const formatDate = (
-        value
-    ) => {
 
-        if (!value) {
-            return "-";
-        }
-
-        const date =
-            new Date(value);
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "-";
-        }
-
-        return date.toLocaleDateString();
-
-    };
-
-
-    // =====================================================
+// =====================================================
     // DATE TIME
     // =====================================================
 
-    const formatDateTime = (
-        value
-    ) => {
 
-        if (!value) {
-            return "-";
-        }
-
-        const date =
-            new Date(value);
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "-";
-        }
-
-        return date.toLocaleString();
-
-    };
-
-
-    // =====================================================
+// =====================================================
     // VULNERABLE GROUPS
     // =====================================================
 
@@ -919,9 +874,7 @@ const BeneficiaryDetailsPage = () => {
                                             );
 
 
-
-
-                                        return (
+return (
 
                                             <InfoRow
                                                 key={

@@ -53,6 +53,7 @@ import { getApiErrorMessage } from "../../../utils/apiError";
 import {
     getDoubleCountingApi
 } from "../../ServiceDelivery/api/serviceDeliveryApi";
+import { formatDate } from "../../../utils/date";
 
 
 const STATUS_OPTIONS =
@@ -278,7 +279,7 @@ const DonationListPage = () => {
             field: "donationDate",
             headerName: "Date",
             minWidth: 110,
-            valueGetter: (value) => (value ? new Date(value).toLocaleDateString() : "-")
+            valueGetter: (value) => (value ? formatDate(value) : "-")
         },
 
         {

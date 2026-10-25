@@ -37,6 +37,7 @@ import {
     getEnterpriseMemberByIdThunk,
     deleteEnterpriseMemberThunk
 } from "../store/enterpriseMemberThunks";
+import { formatDate } from "../../../utils/date";
 
 
 // =====================================================
@@ -313,7 +314,7 @@ const EnterpriseMemberDetailsPage = () => {
         }
 
 
-        return date.toLocaleDateString();
+        return formatDate(date);
 
     };
 

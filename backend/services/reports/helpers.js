@@ -356,61 +356,18 @@ const formatNumber = (
     );
 };
 
+// DD/MM/YYYY (and HH:mm), like every other date in the system
 const formatDate = (
     value,
     fallback = "—"
-) => {
-    if (!value) {
-        return fallback;
-    }
-
-    const date =
-        value instanceof Date
-            ? value
-            : new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return fallback;
-    }
-
-    return date.toLocaleDateString(
-        "en-GB",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
-};
+) =>
+    require("../../utils/dateFormat").formatDate(value, fallback);
 
 const formatDateTime = (
     value,
     fallback = "—"
-) => {
-    if (!value) {
-        return fallback;
-    }
-
-    const date =
-        value instanceof Date
-            ? value
-            : new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return fallback;
-    }
-
-    return date.toLocaleString(
-        "en-GB",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        }
-    );
-};
+) =>
+    require("../../utils/dateFormat").formatDateTime(value, fallback);
 
 
 /* =========================================================
