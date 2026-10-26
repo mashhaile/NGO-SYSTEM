@@ -750,6 +750,28 @@ const importBeneficiariesController =
 // DOWNLOAD BENEFICIARY TEMPLATE
 // =====================================================
 
+// A Region > Zone > Woreda that exists in the official list
+// (Oromia > Arsi > Amigna when present), for the sample row
+const sampleLocationOf = async () => {
+    try {
+        const AdminArea = require("../models/AdminArea");
+        const region =
+            await AdminArea.findOne({ level: 1, name: "Oromia" }).lean() ||
+            await AdminArea.findOne({ level: 1 }).lean();
+        const zone = region
+            ? await AdminArea.findOne({ level: 2, parentPcode: region.pcode }).sort({ name: 1 }).lean()
+            : null;
+        const woreda = zone
+            ? await AdminArea.findOne({ level: 3, parentPcode: zone.pcode }).sort({ name: 1 }).lean()
+            : null;
+        return { region: region?.name || "", zone: zone?.name || "", woreda: woreda?.name || "" };
+    }
+    catch {
+        return { region: "", zone: "", woreda: "" };
+    }
+};
+
+
 const downloadBeneficiaryTemplateController =
     async (
         req,
@@ -1055,6 +1077,12 @@ const downloadBeneficiaryTemplateController =
             // =============================================
             // SAMPLE DATA
             // =============================================
+            //
+            // A real Region > Zone > Woreda from the official
+            // list, so the sample row itself imports.
+
+            const sampleLocation =
+                await sampleLocationOf();
 
             const sampleRow =
                 sheet.addRow({
@@ -1092,13 +1120,13 @@ const downloadBeneficiaryTemplateController =
                         "Ethiopia",
 
                     region:
-                        "Addis Ababa",
+                        sampleLocation.region,
 
                     zone:
-                        "",
+                        sampleLocation.zone,
 
                     woreda:
-                        "01",
+                        sampleLocation.woreda,
 
                     kebele:
                         "01",

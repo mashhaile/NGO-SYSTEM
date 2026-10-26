@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 
 import {
+    Alert,
+    Box,
     Stack,
     Typography
 } from "@mui/material";
@@ -50,6 +52,10 @@ const BeneficiaryImportPage = () => {
 
     const [error, setError] =
         useState("");
+
+    // the rows that could not be imported, and why
+    const [rowErrors, setRowErrors] =
+        useState([]);
 
 
     // =====================================================
@@ -139,10 +145,33 @@ const BeneficiaryImportPage = () => {
     // IMPORT
     // =====================================================
 
+    // how many were imported, and each row that was not (with
+    // why), so the file can be fixed and those rows sent again
+    const showSummary = (summary, fallbackMessage) => {
+        if (!summary || summary.totalRows === undefined) {
+            setMessage(fallbackMessage || "Beneficiary import completed successfully.");
+            return;
+        }
+        const failed = Number(summary.failed) || 0;
+        const created = Number(summary.created) || 0;
+        if (created > 0) {
+            setMessage(`${created} of ${summary.totalRows} beneficiar${summary.totalRows === 1 ? "y" : "ies"} imported.`);
+        }
+        if (failed > 0) {
+            setRowErrors(summary.errors || []);
+            setError(`${failed} row${failed === 1 ? "" : "s"} could not be imported. Fix ${failed === 1 ? "it" : "them"} in the file and upload only ${failed === 1 ? "that row" : "those rows"} again.`);
+        }
+        if (!created && !failed) {
+            setError("The file has no beneficiary rows. Fill in the template from row 2.");
+        }
+    };
+
+
     const handleImport = async () => {
 
         setMessage("");
         setError("");
+        setRowErrors([]);
 
 
         // =================================================
@@ -170,11 +199,7 @@ const BeneficiaryImportPage = () => {
                     file
                 );
 
-
-            setMessage(
-                result?.message ||
-                "Beneficiary import completed successfully."
-            );
+            showSummary(result?.data, result?.message);
 
 
             setFile(null);
@@ -184,17 +209,25 @@ const BeneficiaryImportPage = () => {
 
         catch (error) {
 
-            setError(
+            const responseData =
+                error?.response?.data;
 
-                error?.response?.data?.message ||
+            if (responseData?.data?.totalRows !== undefined) {
+                showSummary(responseData.data, responseData.message);
+            }
+            else {
+                setError(
 
-                error?.response?.data?.error ||
+                    responseData?.message ||
 
-                error?.message ||
+                    responseData?.error ||
 
-                "Beneficiary import failed."
+                    error?.message ||
 
-            );
+                    "Beneficiary import failed."
+
+                );
+            }
 
         }
 
@@ -527,7 +560,7 @@ const BeneficiaryImportPage = () => {
                         ERROR
                     ====================================== */}
 
-                    {error && (
+                    {error && rowErrors.length === 0 && (
 
                         <AppAlert
 
@@ -538,6 +571,25 @@ const BeneficiaryImportPage = () => {
                             }
 
                         />
+
+                    )}
+
+                    {/* each row that was not imported, and why */}
+                    {error && rowErrors.length > 0 && (
+
+                        <Alert severity="error">
+
+                            {error}
+
+                            <Box component="ul" sx={{ m: 0, mt: 1, pl: 2.5, maxHeight: 280, overflowY: "auto" }}>
+                                {rowErrors.map((item, index) => (
+                                    <li key={`${item.row}-${index}`}>
+                                        <b>Row {item.row}:</b> {item.error}
+                                    </li>
+                                ))}
+                            </Box>
+
+                        </Alert>
 
                     )}
 
