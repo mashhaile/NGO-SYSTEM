@@ -28,9 +28,10 @@ const {
 // `budgetAmount` = estimatedTotal x exchangeRate, in the
 // budget's currency, and is what is committed.
 //
-// Quotations, purchase orders and goods received (later
-// steps) carry the request on; its status then moves past
-// Approved.
+// After approval, `sourcing` holds the quotations and the
+// bid analysis (services/sourcingService.js). When the
+// purchase order is issued the request becomes Ordered and
+// the order's total is committed instead of the estimate.
 //
 // =====================================================
 
@@ -40,8 +41,19 @@ const PURCHASE_REQUEST_STATUS = {
     APPROVED: "Approved",
     RETURNED: "Returned",
     REJECTED: "Rejected",
-    CANCELLED: "Cancelled"
+    CANCELLED: "Cancelled",
+    ORDERED: "Ordered"
 };
+
+// the bid analysis of an approved request
+const SOURCING_STATUS = {
+    DRAFT: "Draft",
+    SUBMITTED: "Submitted",
+    APPROVED: "Approved",
+    RETURNED: "Returned"
+};
+
+const PROCUREMENT_METHODS = ["direct", "rfq", "tender"];
 
 // the statuses whose estimate is reserved on the budget line
 const COMMITTING_STATUSES = [
@@ -59,6 +71,85 @@ const itemSchema =
             unitPrice: { type: Number, required: true, min: 0 },
             total: { type: Number, required: true, min: 0 }
         }
+    );
+
+
+// ---------------------------------------------------------------- quotations and bid analysis
+
+const quoteItemSchema =
+    new mongoose.Schema(
+        {
+            item: { type: mongoose.Schema.Types.ObjectId, required: true },
+            unitPrice: { type: Number, required: true, min: 0 },
+            total: { type: Number, required: true, min: 0 }
+        },
+        { _id: false }
+    );
+
+const quoteSchema =
+    new mongoose.Schema(
+        {
+            supplier: { type: mongoose.Schema.Types.ObjectId, ref: "Supplier", required: true },
+            reference: { type: String, trim: true, default: "" },
+            quoteDate: { type: Date, default: null },
+            validUntil: { type: Date, default: null },
+            deliveryDays: { type: Number, min: 0, default: null },
+            items: { type: [quoteItemSchema], default: [] },
+            // in the request's currency
+            total: { type: Number, required: true, min: 0 },
+            notes: { type: String, trim: true, default: "" },
+            enteredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            enteredAt: { type: Date, default: Date.now }
+        }
+    );
+
+const panelSchema =
+    new mongoose.Schema(
+        {
+            user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+            role: { type: String, default: "Member" },
+            // "Approve" | "Object" | null (not yet)
+            decision: { type: String, enum: ["Approve", "Object"], default: null },
+            comment: { type: String, default: "" },
+            at: { type: Date, default: null }
+        },
+        { _id: false }
+    );
+
+const sourcingSchema =
+    new mongoose.Schema(
+        {
+            method: { type: String, enum: PROCUREMENT_METHODS, required: true },
+            methodName: { type: String, default: "" },
+            minQuotes: { type: Number, min: 1, default: 1 },
+            needsCommittee: { type: Boolean, default: false },
+            // the request's value in ETB that decided the method
+            etbValue: { type: Number, min: 0, default: 0 },
+
+            quotes: { type: [quoteSchema], default: [] },
+
+            selectedQuote: { type: mongoose.Schema.Types.ObjectId, default: null },
+            // needed when the selected quote is not the lowest
+            selectionReason: { type: String, trim: true, default: "" },
+            // needed when there are fewer quotes than the method asks for
+            fewerQuotesReason: { type: String, trim: true, default: "" },
+
+            committee: { type: mongoose.Schema.Types.ObjectId, ref: "ProcurementCommittee", default: null },
+            committeeName: { type: String, default: "" },
+            approvalsNeeded: { type: Number, default: 0 },
+            panel: { type: [panelSchema], default: [] },
+
+            status: { type: String, enum: Object.values(SOURCING_STATUS), default: SOURCING_STATUS.DRAFT },
+            reviewComment: { type: String, default: "" },
+
+            startedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            startedAt: { type: Date, default: null },
+            submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            submittedAt: { type: Date, default: null },
+            approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            approvedAt: { type: Date, default: null }
+        },
+        { _id: false }
     );
 
 
@@ -122,6 +213,12 @@ const PurchaseRequestSchema =
 
             reviewComment: { type: String, default: "" },
 
+            // quotations and bid analysis (after approval)
+            sourcing: { type: sourcingSchema, default: null },
+
+            // the issued purchase order (status Ordered)
+            purchaseOrder: { type: mongoose.Schema.Types.ObjectId, ref: "PurchaseOrder", default: null },
+
             submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
             submittedAt: { type: Date, default: null },
             approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
@@ -180,3 +277,5 @@ module.exports =
 
 module.exports.PURCHASE_REQUEST_STATUS = PURCHASE_REQUEST_STATUS;
 module.exports.COMMITTING_STATUSES = COMMITTING_STATUSES;
+module.exports.SOURCING_STATUS = SOURCING_STATUS;
+module.exports.PROCUREMENT_METHODS = PROCUREMENT_METHODS;

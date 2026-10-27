@@ -362,6 +362,21 @@ const organizationSchema = new mongoose.Schema(
         },
 
         // =================================================
+        // PROCUREMENT: METHODS BY AMOUNT
+        // { methods: { direct: { upTo, minQuotes, committee },
+        // rfq: {...}, tender: {...} } } (empty: the defaults,
+        // see services/procurementSettingsService.js)
+        // =================================================
+
+        procurementSettings: {
+
+            type: mongoose.Schema.Types.Mixed,
+
+            default: {}
+
+        },
+
+        // =================================================
         // ORGANIZATION BRANDING
         // =================================================
 

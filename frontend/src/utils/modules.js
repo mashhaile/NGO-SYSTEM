@@ -35,7 +35,10 @@ const MODULE_OF_PREFIX = {
     expense: "finance",
     indicator: "me",
     supplier: "procurement",
-    purchase_request: "procurement"
+    purchase_request: "procurement",
+    quotation: "procurement",
+    purchase_order: "procurement",
+    committee: "procurement"
 };
 
 export const moduleOfPermission = (permission) =>

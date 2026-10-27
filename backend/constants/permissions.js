@@ -465,7 +465,45 @@ const PERMISSIONS = {
 
     // Approve / return / reject / cancel
     PURCHASE_REQUEST_APPROVE:
-        "purchase_request.approve"
+        "purchase_request.approve",
+
+    // Quotations and bid analysis (create: start and enter
+    // quotations; update: choose and submit; approve: approve
+    // or return when no committee decides)
+    QUOTATION_CREATE:
+        "quotation.create",
+
+    QUOTATION_READ:
+        "quotation.read",
+
+    QUOTATION_UPDATE:
+        "quotation.update",
+
+    QUOTATION_APPROVE:
+        "quotation.approve",
+
+    // Purchase orders (update: correct delivery / terms, cancel)
+    PURCHASE_ORDER_CREATE:
+        "purchase_order.create",
+
+    PURCHASE_ORDER_READ:
+        "purchase_order.read",
+
+    PURCHASE_ORDER_UPDATE:
+        "purchase_order.update",
+
+    // Procurement committees
+    COMMITTEE_CREATE:
+        "committee.create",
+
+    COMMITTEE_READ:
+        "committee.read",
+
+    COMMITTEE_UPDATE:
+        "committee.update",
+
+    COMMITTEE_DELETE:
+        "committee.delete"
 
 };
 

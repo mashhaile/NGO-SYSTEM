@@ -22,8 +22,30 @@ export const PURCHASE_REQUEST_STATUS = {
     APPROVED: "Approved",
     RETURNED: "Returned",
     REJECTED: "Rejected",
+    CANCELLED: "Cancelled",
+    ORDERED: "Ordered"
+};
+
+export const SOURCING_STATUS = {
+    DRAFT: "Draft",
+    SUBMITTED: "Submitted",
+    APPROVED: "Approved",
+    RETURNED: "Returned"
+};
+
+export const PURCHASE_ORDER_STATUS = {
+    ISSUED: "Issued",
     CANCELLED: "Cancelled"
 };
+
+export const METHOD_KEYS = ["direct", "rfq", "tender"];
+
+export const COMMITTEE_ROLES = ["Chair", "Member", "Secretary"];
+
+export const idOf = (value) => String(value?._id || value || "");
+
+// the signed-in user's id
+export const userIdOf = (user) => String(user?.id || user?._id || "");
 
 export const EDITABLE_STATUSES = [
     PURCHASE_REQUEST_STATUS.DRAFT,

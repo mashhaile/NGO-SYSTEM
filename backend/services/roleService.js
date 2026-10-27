@@ -78,7 +78,8 @@ const MODULES = {
     tor: "Terms of reference", attendance: "Attendance sessions", attendance_record: "Attendance records",
     donor: "Donors", donation: "Donations", notification: "Notifications", report: "Reports",
     budget: "Budgets", expense: "Expenses", indicator: "M&E indicators",
-    supplier: "Suppliers", purchase_request: "Purchase requests"
+    supplier: "Suppliers", purchase_request: "Purchase requests", quotation: "Quotations and bid analysis",
+    purchase_order: "Purchase orders", committee: "Procurement committees"
 };
 
 const ACTIONS = {

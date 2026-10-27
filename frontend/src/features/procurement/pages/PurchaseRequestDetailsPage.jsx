@@ -52,6 +52,9 @@ import {
 import ExpenseActionDialog
     from "../../expenses/components/ExpenseActionDialog";
 
+import SourcingCard
+    from "../components/SourcingCard";
+
 import useAuth
     from "../../auth/hooks/useAuth";
 
@@ -228,6 +231,16 @@ const PurchaseRequestDetailsPage = () => {
                 </Alert>
             )}
 
+            {request.status === PURCHASE_REQUEST_STATUS.ORDERED && request.purchaseOrder && (
+                <Alert severity="success" sx={{ mb: 3 }}>
+                    Ordered:{" "}
+                    <Link component="button" underline="hover" onClick={() => navigate(`/purchase-orders/${request.purchaseOrder._id}`)}>
+                        {request.purchaseOrder.poCode}
+                    </Link>{" "}
+                    for {formatMoney(request.purchaseOrder.total, request.currency)}; this amount is now committed on the budget line instead of the estimate.
+                </Alert>
+            )}
+
             {(editable || submitted) && overText && (
                 <Alert severity="warning" sx={{ mb: 3 }}>
                     {overText} It cannot be {submitted ? "approved" : "submitted"} until it is reduced or the budget is revised.
@@ -253,7 +266,7 @@ const PurchaseRequestDetailsPage = () => {
             <StatsCards
                 valueSize="small"
                 items={[
-                    { label: "This request", value: formatMoney(request.budgetAmount, budgetCurrency) },
+                    { label: request.status === PURCHASE_REQUEST_STATUS.ORDERED ? "Ordered" : "This request", value: formatMoney(line.takes ?? request.budgetAmount, budgetCurrency) },
                     { label: `Line budget ${fiscalYearLabel(line.fiscalYear)}`, value: formatMoney(line.budget, budgetCurrency) },
                     { label: "Spent + committed by others", value: formatMoney(line.spent + line.committedByOthers, budgetCurrency) },
                     { label: "Left after this", value: formatMoney(line.remainingAfter, budgetCurrency) }
@@ -304,6 +317,9 @@ const PurchaseRequestDetailsPage = () => {
                     </TableContainer>
                 </FormSection>
             </PageCard>
+
+
+            <SourcingCard request={request} user={user} onChange={setRequest} navigate={navigate} />
 
 
             <PageCard>

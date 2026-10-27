@@ -16,6 +16,10 @@ const {
 
 const Expense = require("../models/Expense");
 
+const PurchaseOrder = require("../models/PurchaseOrder");
+
+const { PO_COMMITTING_STATUSES } = require("../models/PurchaseOrder");
+
 const { EXPENSE_STATUS } = require("../models/Expense");
 
 const Supplier = require("../models/Supplier");
@@ -81,7 +85,14 @@ const DETAIL_POPULATE = [
     { path: "approvedBy", select: USER_FIELDS },
     { path: "rejectedBy", select: USER_FIELDS },
     { path: "cancelledBy", select: USER_FIELDS },
-    { path: "history.by", select: USER_FIELDS }
+    { path: "history.by", select: USER_FIELDS },
+    { path: "sourcing.quotes.supplier", select: "supplierCode name status" },
+    { path: "sourcing.quotes.enteredBy", select: USER_FIELDS },
+    { path: "sourcing.panel.user", select: USER_FIELDS },
+    { path: "sourcing.startedBy", select: USER_FIELDS },
+    { path: "sourcing.submittedBy", select: USER_FIELDS },
+    { path: "sourcing.approvedBy", select: USER_FIELDS },
+    { path: "purchaseOrder", select: "poCode status total currency budgetAmount orderDate supplier" }
 ];
 
 
@@ -245,7 +256,11 @@ const convert = (estimatedTotal, currency, exchangeRate, budgetCurrency) => {
 // COMMITTED (approved requests not yet spent)
 // =====================================================
 
-// Committed on one line for one year (other requests than excludeId)
+// Committed = approved requests not yet ordered (their
+// estimate) + issued purchase orders (their total).
+
+// Committed on one line for one year, leaving out one request
+// and its order (excludeId: the request)
 const lineCommitted = async (organizationId, budgetId, lineId, fiscalYear, { excludeId = null, session = null } = {}) => {
 
     if (!(await procurementOn(organizationId))) return 0;
@@ -254,20 +269,22 @@ const lineCommitted = async (organizationId, budgetId, lineId, fiscalYear, { exc
         organization: objectId(organizationId),
         budget: objectId(budgetId),
         budgetLine: objectId(lineId),
-        fiscalYear,
-        isDeleted: false,
-        status: { $in: COMMITTING_STATUSES }
+        fiscalYear
     };
 
-    if (excludeId) match._id = { $ne: objectId(excludeId) };
+    const [requests, orders] =
+        await Promise.all([
+            PurchaseRequest.aggregate([
+                { $match: { ...match, isDeleted: false, status: { $in: COMMITTING_STATUSES }, ...(excludeId ? { _id: { $ne: objectId(excludeId) } } : {}) } },
+                { $group: { _id: null, total: { $sum: "$budgetAmount" } } }
+            ]).session(session),
+            PurchaseOrder.aggregate([
+                { $match: { ...match, status: { $in: PO_COMMITTING_STATUSES }, ...(excludeId ? { purchaseRequest: { $ne: objectId(excludeId) } } : {}) } },
+                { $group: { _id: null, total: { $sum: "$budgetAmount" } } }
+            ]).session(session)
+        ]);
 
-    const [row] =
-        await PurchaseRequest.aggregate([
-            { $match: match },
-            { $group: { _id: null, total: { $sum: "$budgetAmount" } } }
-        ]).session(session);
-
-    return roundMoney(row?.total || 0);
+    return roundMoney((requests[0]?.total || 0) + (orders[0]?.total || 0));
 
 };
 
@@ -277,25 +294,25 @@ const committedByLine = async (organizationId, budgetIds) => {
 
     if (!budgetIds.length || !(await procurementOn(organizationId))) return {};
 
-    const rows =
-        await PurchaseRequest.aggregate([
-            {
-                $match: {
-                    organization: objectId(organizationId),
-                    budget: { $in: budgetIds.map(objectId) },
-                    isDeleted: false,
-                    status: { $in: COMMITTING_STATUSES }
-                }
-            },
-            { $group: { _id: { line: "$budgetLine", year: "$fiscalYear" }, total: { $sum: "$budgetAmount" } } }
+    const match = {
+        organization: objectId(organizationId),
+        budget: { $in: budgetIds.map(objectId) }
+    };
+
+    const group = { $group: { _id: { line: "$budgetLine", year: "$fiscalYear" }, total: { $sum: "$budgetAmount" } } };
+
+    const [requests, orders] =
+        await Promise.all([
+            PurchaseRequest.aggregate([{ $match: { ...match, isDeleted: false, status: { $in: COMMITTING_STATUSES } } }, group]),
+            PurchaseOrder.aggregate([{ $match: { ...match, status: { $in: PO_COMMITTING_STATUSES } } }, group])
         ]);
 
     const totals = {};
 
-    for (const row of rows) {
+    for (const row of [...requests, ...orders]) {
         const line = String(row._id.line);
         totals[line] = totals[line] || {};
-        totals[line][row._id.year] = roundMoney(row.total);
+        totals[line][row._id.year] = roundMoney((totals[line][row._id.year] || 0) + row.total);
     }
 
     return totals;
@@ -504,7 +521,7 @@ const getPurchaseRequests = async (organizationId, query = {}) => {
     const [data, total] =
         await Promise.all([
             PurchaseRequest.find(filter)
-                .select("requestCode title requestDate neededBy fiscalYear category estimatedTotal currency budgetAmount budgetCurrency status budget project suggestedSupplier createdBy items")
+                .select("requestCode title requestDate neededBy fiscalYear category estimatedTotal currency budgetAmount budgetCurrency status budget project suggestedSupplier createdBy items sourcing.status sourcing.methodName purchaseOrder")
                 .populate("budget", "budgetCode name")
                 .populate("project", "projectCode name")
                 .populate("suggestedSupplier", "supplierCode name")
@@ -555,8 +572,11 @@ const getPurchaseRequestById = async (id, organizationId) => {
 
     const available = roundMoney(lineBudget - spent - committedByOthers);
 
-    // what it takes (or would take) from the line
+    // what it takes (or would take) from the line: the order's
+    // total once ordered, otherwise the estimate
     const counts = ![PURCHASE_REQUEST_STATUS.REJECTED, PURCHASE_REQUEST_STATUS.CANCELLED].includes(request.status);
+    const ordered = request.status === PURCHASE_REQUEST_STATUS.ORDERED && request.purchaseOrder;
+    const takes = ordered ? request.purchaseOrder.budgetAmount : request.budgetAmount;
 
     return {
         ...request,
@@ -569,8 +589,9 @@ const getPurchaseRequestById = async (id, organizationId) => {
             spent,
             committedByOthers,
             available,
-            remainingAfter: roundMoney(available - (counts ? request.budgetAmount : 0)),
-            overBudget: counts && request.budgetAmount > available + 0.005
+            takes: counts ? takes : 0,
+            remainingAfter: roundMoney(available - (counts ? takes : 0)),
+            overBudget: counts && !ordered && request.budgetAmount > available + 0.005
         }
     };
 
@@ -816,7 +837,9 @@ const cancelPurchaseRequest = async (id, organizationId, userId, reason) => {
             throw new ApiError(
                 request.status === PURCHASE_REQUEST_STATUS.CANCELLED
                     ? "This purchase request is already cancelled."
-                    : "Only approved purchase requests are cancelled. A draft or returned one can simply be deleted.",
+                    : request.status === PURCHASE_REQUEST_STATUS.ORDERED
+                        ? "This purchase request has a purchase order. Cancel the purchase order first."
+                        : "Only approved purchase requests are cancelled. A draft or returned one can simply be deleted.",
                 409
             );
         }
@@ -859,5 +882,16 @@ module.exports = {
     rejectPurchaseRequest,
     cancelPurchaseRequest,
     lineCommitted,
-    committedByLine
+    committedByLine,
+    // for the bid analysis and purchase orders
+    internals: {
+        resolveCharge,
+        linePosition,
+        findRequest,
+        tellRequester,
+        requestLabel,
+        money,
+        roundMoney,
+        historyEntry
+    }
 };

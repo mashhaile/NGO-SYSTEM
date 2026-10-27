@@ -174,7 +174,9 @@ const SECTIONS = [
         title: "Procurement",
         items: [
             { label: "Purchase Requests", path: "/purchase-requests", icon: <ShoppingCart />, permission: "purchase_request.read" },
-            { label: "Suppliers", path: "/suppliers", icon: <LocalMall />, permission: "supplier.read" }
+            { label: "Purchase Orders", path: "/purchase-orders", icon: <ReceiptLong />, permission: "purchase_order.read" },
+            { label: "Suppliers", path: "/suppliers", icon: <LocalMall />, permission: "supplier.read" },
+            { label: "Procurement Setup", path: "/procurement/setup", icon: <Tune />, permission: "committee.read" }
         ]
     },
 

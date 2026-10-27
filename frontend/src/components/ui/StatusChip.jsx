@@ -97,7 +97,17 @@ const STATUS_STYLES = {
         color: "text.secondary"
     },
 
-    // suppliers
+    // procurement
+    ordered: {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+
+    issued: {
+        bgcolor: "info.light",
+        color: "info.dark"
+    },
+
     blacklisted: {
         bgcolor: "error.light",
         color: "error.dark"

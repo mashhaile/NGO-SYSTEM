@@ -372,6 +372,16 @@ app.use(
 );
 
 app.use(
+    "/api/v1/purchase-orders",
+    require("./routes/purchaseOrderRoutes")
+);
+
+app.use(
+    "/api/v1/procurement",
+    require("./routes/procurementRoutes")
+);
+
+app.use(
     "/api/v1/donation-trace",
     require("./routes/donationTraceRoutes")
 );

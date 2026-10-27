@@ -294,6 +294,9 @@ const SupplierDetailsPage = lazyPage(() => import("../features/procurement/pages
 const PurchaseRequestListPage = lazyPage(() => import("../features/procurement/pages/PurchaseRequestListPage"));
 const PurchaseRequestFormPage = lazyPage(() => import("../features/procurement/pages/PurchaseRequestFormPage"));
 const PurchaseRequestDetailsPage = lazyPage(() => import("../features/procurement/pages/PurchaseRequestDetailsPage"));
+const PurchaseOrderListPage = lazyPage(() => import("../features/procurement/pages/PurchaseOrderListPage"));
+const PurchaseOrderDetailsPage = lazyPage(() => import("../features/procurement/pages/PurchaseOrderDetailsPage"));
+const ProcurementSetupPage = lazyPage(() => import("../features/procurement/pages/ProcurementSetupPage"));
 const BudgetFormPage = lazyPage(() => import("../features/budgets/pages/BudgetFormPage"));
 const BudgetDetailsPage = lazyPage(() => import("../features/budgets/pages/BudgetDetailsPage"));
 const ExpenseListPage = lazyPage(() => import("../features/expenses/pages/ExpenseListPage"));
@@ -996,7 +999,10 @@ const AppRoutes = () => {
                     ["/purchase-requests", "purchase_request.read", <PurchaseRequestListPage />],
                     ["/purchase-requests/create", "purchase_request.create", <PurchaseRequestFormPage />],
                     ["/purchase-requests/:id", "purchase_request.read", <PurchaseRequestDetailsPage />],
-                    ["/purchase-requests/:id/edit", "purchase_request.update", <PurchaseRequestFormPage />]
+                    ["/purchase-requests/:id/edit", "purchase_request.update", <PurchaseRequestFormPage />],
+                    ["/purchase-orders", "purchase_order.read", <PurchaseOrderListPage />],
+                    ["/purchase-orders/:id", "purchase_order.read", <PurchaseOrderDetailsPage />],
+                    ["/procurement/setup", "committee.read", <ProcurementSetupPage />]
                 ].map(([path, permission, page]) => (
                     <Route
                         key={path}

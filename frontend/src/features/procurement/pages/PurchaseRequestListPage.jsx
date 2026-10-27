@@ -227,8 +227,17 @@ const PurchaseRequestListPage = () => {
         {
             field: "status",
             headerName: "Status",
-            minWidth: 130,
-            renderCell: (params) => <StatusChip status={params.value} />
+            minWidth: 150,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5 }}>
+                    <StatusChip status={params.value} />
+                    {params.value === "Approved" && (
+                        <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 0.5 }}>
+                            {params.row.sourcing ? `Bid analysis: ${params.row.sourcing.status.toLowerCase()}` : "Quotations not started"}
+                        </Typography>
+                    )}
+                </Box>
+            )
         },
 
         {

@@ -100,13 +100,13 @@ const MODULES = [
         key: "procurement",
         name: "Procurement",
         group: "Finance",
-        description: "Suppliers and purchase requests charged to budget lines, with approval; approved requests reserve their money as \"Committed\".",
-        permissions: ["supplier", "purchase_request"],
+        description: "Suppliers, purchase requests charged to budget lines, quotations and bid analysis (methods by amount, committees), purchase orders; approved requests and orders reserve their money as \"Committed\".",
+        permissions: ["supplier", "purchase_request", "quotation", "purchase_order", "committee"],
         // checks requests against the budget lines
         requires: ["finance"],
         // new: only for the organizations it is switched on for
         defaultEnabled: false,
-        records: [{ model: "Supplier", label: "suppliers" }, { model: "PurchaseRequest", label: "purchase requests" }]
+        records: [{ model: "Supplier", label: "suppliers" }, { model: "PurchaseRequest", label: "purchase requests" }, { model: "PurchaseOrder", label: "purchase orders" }]
     }
 ];
 

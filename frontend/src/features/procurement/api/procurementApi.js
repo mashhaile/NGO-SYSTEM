@@ -58,3 +58,93 @@ export const rejectPurchaseRequestApi = async (id, comment) =>
 
 export const cancelPurchaseRequestApi = async (id, comment) =>
     (await axiosClient.post(`/purchase-requests/${id}/cancel`, { comment })).data?.data;
+
+
+// ---------------- quotations and bid analysis (on a request)
+
+const pr = (id, path) => `/purchase-requests/${id}${path}`;
+
+export const startSourcingApi = async (id, body = {}) =>
+    (await axiosClient.post(pr(id, "/sourcing/start"), body)).data?.data;
+
+export const addQuoteApi = async (id, body) =>
+    (await axiosClient.post(pr(id, "/quotes"), body)).data?.data;
+
+export const updateQuoteApi = async (id, quoteId, body) =>
+    (await axiosClient.put(pr(id, `/quotes/${quoteId}`), body)).data?.data;
+
+export const removeQuoteApi = async (id, quoteId) =>
+    (await axiosClient.delete(pr(id, `/quotes/${quoteId}`))).data?.data;
+
+export const updateBidApi = async (id, body) =>
+    (await axiosClient.put(pr(id, "/sourcing"), body)).data?.data;
+
+export const submitBidApi = async (id) =>
+    (await axiosClient.post(pr(id, "/sourcing/submit"))).data?.data;
+
+export const approveBidApi = async (id, comment = "") =>
+    (await axiosClient.post(pr(id, "/sourcing/approve"), { comment })).data?.data;
+
+export const returnBidApi = async (id, comment) =>
+    (await axiosClient.post(pr(id, "/sourcing/return"), { comment })).data?.data;
+
+export const decideBidApi = async (id, decision, comment = "") =>
+    (await axiosClient.post(pr(id, "/sourcing/decision"), { decision, comment })).data?.data;
+
+export const issuePurchaseOrderApi = async (id, body = {}) =>
+    (await axiosClient.post(pr(id, "/purchase-order"), body)).data?.data;
+
+
+// ---------------- purchase orders
+
+export const getPurchaseOrdersApi = async (params = {}) =>
+    (await axiosClient.get("/purchase-orders", { params })).data;
+
+export const getPurchaseOrderByIdApi = async (id) =>
+    (await axiosClient.get(`/purchase-orders/${id}`)).data?.data;
+
+export const updatePurchaseOrderApi = async (id, body) =>
+    (await axiosClient.put(`/purchase-orders/${id}`, body)).data?.data;
+
+export const cancelPurchaseOrderApi = async (id, comment) =>
+    (await axiosClient.post(`/purchase-orders/${id}/cancel`, { comment })).data?.data;
+
+export const downloadPurchaseOrderPdfApi = async (id, fileName) => {
+    const response = await axiosClient.get(`/purchase-orders/${id}/pdf`, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName || "purchase-order.pdf";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+};
+
+
+// ---------------- setup: methods by amount, committees
+
+export const getProcurementSettingsApi = async () =>
+    (await axiosClient.get("/procurement/settings")).data?.data;
+
+// { methods } or { reset: true }
+export const updateProcurementSettingsApi = async (body) =>
+    (await axiosClient.put("/procurement/settings", body)).data?.data;
+
+export const getCommitteesApi = async (params = {}) =>
+    (await axiosClient.get("/procurement/committees", { params })).data?.data || [];
+
+export const getCommitteeMemberOptionsApi = async () =>
+    (await axiosClient.get("/procurement/committees/members")).data?.data || [];
+
+export const createCommitteeApi = async (body) =>
+    (await axiosClient.post("/procurement/committees", body)).data?.data;
+
+export const updateCommitteeApi = async (id, body) =>
+    (await axiosClient.put(`/procurement/committees/${id}`, body)).data?.data;
+
+export const deleteCommitteeApi = async (id) =>
+    (await axiosClient.delete(`/procurement/committees/${id}`)).data;
+
+export const getWaitingForMeApi = async () =>
+    (await axiosClient.get("/procurement/waiting-for-me")).data?.data || [];

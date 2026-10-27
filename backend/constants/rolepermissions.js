@@ -473,8 +473,30 @@ for (const [role, permissions] of Object.entries(INDICATORS_FOR)) {
 // PROCUREMENT (module "procurement")
 // =====================================
 // Organization admins do everything; finance keeps the
-// supplier list and approves requests; data entry (program
-// staff) write and submit requests; viewers see them.
+// supplier list, approves requests, runs quotations and
+// issues orders; data entry (program staff) write and
+// submit requests; viewers see them. Committees: the admin
+// sets them up; finance can too.
+
+const SOURCING_ALL = [
+    PERMISSIONS.QUOTATION_CREATE,
+    PERMISSIONS.QUOTATION_READ,
+    PERMISSIONS.QUOTATION_UPDATE,
+    PERMISSIONS.QUOTATION_APPROVE,
+    PERMISSIONS.PURCHASE_ORDER_CREATE,
+    PERMISSIONS.PURCHASE_ORDER_READ,
+    PERMISSIONS.PURCHASE_ORDER_UPDATE,
+    PERMISSIONS.COMMITTEE_CREATE,
+    PERMISSIONS.COMMITTEE_READ,
+    PERMISSIONS.COMMITTEE_UPDATE,
+    PERMISSIONS.COMMITTEE_DELETE
+];
+
+const SOURCING_READ = [
+    PERMISSIONS.QUOTATION_READ,
+    PERMISSIONS.PURCHASE_ORDER_READ,
+    PERMISSIONS.COMMITTEE_READ
+];
 
 const PROCUREMENT_FOR = {
     [ROLES.ORG_ADMIN]: [
@@ -508,6 +530,11 @@ const PROCUREMENT_FOR = {
     ],
     [ROLES.VIEWER]: [PERMISSIONS.SUPPLIER_READ, PERMISSIONS.PURCHASE_REQUEST_READ]
 };
+
+PROCUREMENT_FOR[ROLES.ORG_ADMIN].push(...SOURCING_ALL);
+PROCUREMENT_FOR[ROLES.FINANCE].push(...SOURCING_ALL);
+PROCUREMENT_FOR[ROLES.DATA_ENTRY].push(...SOURCING_READ);
+PROCUREMENT_FOR[ROLES.VIEWER].push(...SOURCING_READ);
 
 for (const [role, permissions] of Object.entries(PROCUREMENT_FOR)) {
     if (Array.isArray(rolePermissions[role])) rolePermissions[role].push(...permissions);

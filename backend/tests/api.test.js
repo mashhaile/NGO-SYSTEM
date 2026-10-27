@@ -2557,6 +2557,160 @@ test("procurement: suppliers; purchase requests commit budget money only within 
 });
 
 
+test("procurement: methods by amount; quotations, bid analysis by an approver or a committee; purchase orders commit the real price", { skip }, async () => {
+
+    const admin = state.tokenA;
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const sa = (await login("sa@test.local", "SuperTest2026x")).data.data.token;
+    const me = (await api("GET", "/auth/me", { token: admin })).data.data;
+    const orgA = String(me.organizationId?._id || me.organizationId);
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: true } } });
+
+    // ---------------- the organization's limits
+    const defaults = (await api("GET", "/procurement/settings", { token: de })).data.data;
+    assert.equal(defaults.methods.direct.upTo, 50000);
+    assert.equal(defaults.methods.tender.committee, true);
+    assert.equal((await api("PUT", "/procurement/settings", { token: fin, body: { methods: { direct: { upTo: 10000 } } } })).status, 403, "only the organization admin");
+    assert.equal((await api("PUT", "/procurement/settings", { token: admin, body: { methods: { direct: { upTo: 400000 } } } })).status, 400, "direct must stay below RFQ");
+    const set = await api("PUT", "/procurement/settings", { token: admin, body: { methods: { direct: { upTo: 5000 }, rfq: { upTo: 20000 } } } });
+    assert.equal(set.status, 200, set.data?.message);
+    assert.equal(set.data.data.methods.rfq.upTo, 20000);
+
+    // ---------------- suppliers and a committee
+    const supplierIds = [];
+    for (const name of ["Alpha Computers", "Beta Tech", "Gamma Trading"]) {
+        supplierIds.push((await api("POST", "/suppliers", { token: fin, body: { name } })).data.data._id);
+    }
+    const people = (await api("GET", "/procurement/committees/members", { token: fin })).data.data;
+    const idOfUser = (email) => people.find(person => person.email === email)._id;
+    assert.equal((await api("POST", "/procurement/committees", { token: de, body: { name: "Tender Committee" } })).status, 403);
+    assert.equal((await api("POST", "/procurement/committees", { token: admin, body: { name: "Tender Committee", members: [{ user: idOfUser("admin-a@test.local") }], approvalsNeeded: 2 } })).status, 400, "not more approvals than members");
+    const committee = await api("POST", "/procurement/committees", {
+        token: admin,
+        body: { name: "Tender Committee", members: [{ user: idOfUser("admin-a@test.local"), role: "Chair" }, { user: idOfUser("finance@test.local") }], approvalsNeeded: 2 }
+    });
+    assert.equal(committee.status, 201, committee.data?.message);
+    const committeeId = committee.data.data._id;
+
+    // ---------------- a 24,000 request: above RFQ (20,000) -> tender with a committee
+    const position = async () => (await lineOf(de, state.budgetOneId, "Personnel")).line.amounts.find(item => item.fiscalYear === 2026);
+    const before = await position();
+    const { line: personnel } = await lineOf(de, state.budgetOneId, "Personnel");
+    const newApproved = async (title, items) => {
+        const made = await api("POST", "/purchase-requests", { token: de, body: { budget: state.budgetOneId, budgetLine: personnel._id, requestDate: "2026-05-02", title, items } });
+        assert.equal(made.status, 201, made.data?.message);
+        const sent = await api("POST", `/purchase-requests/${made.data.data._id}/submit`, { token: de });
+        assert.equal(sent.status, 200, sent.data?.message);
+        assert.equal((await api("POST", `/purchase-requests/${made.data.data._id}/approve`, { token: fin, body: {} })).status, 200);
+        return made.data.data;
+    };
+    const request = await newApproved("Laptops", [{ description: "Laptop", quantity: 2, unitPrice: 12000 }]);
+    const itemId = request.items[0]._id;
+    const pr = (path) => `/purchase-requests/${request._id}${path}`;
+
+    assert.equal((await api("POST", pr("/quotes"), { token: fin, body: {} })).status, 409, "start first");
+    const started = await api("POST", pr("/sourcing/start"), { token: fin, body: {} });
+    assert.equal(started.status, 200, started.data?.message);
+    assert.equal(started.data.data.sourcing.method, "tender");
+    assert.equal(started.data.data.sourcing.minQuotes, 3);
+    assert.equal(started.data.data.sourcing.needsCommittee, true);
+
+    assert.equal((await api("POST", pr("/quotes"), { token: fin, body: { supplier: supplierIds[0], items: [] } })).status, 400, "a price for every item");
+    const first = await api("POST", pr("/quotes"), { token: fin, body: { supplier: supplierIds[0], reference: "Q-11", items: [{ item: itemId, unitPrice: 11500 }], deliveryDays: 5 } });
+    assert.equal(first.status, 201, first.data?.message);
+    assert.equal(first.data.data.sourcing.quotes[0].total, 23000);
+    assert.equal((await api("POST", pr("/quotes"), { token: fin, body: { supplier: supplierIds[0], items: [{ item: itemId, unitPrice: 1 }] } })).status, 409, "one quotation per supplier");
+    const second = await api("POST", pr("/quotes"), { token: fin, body: { supplier: supplierIds[1], items: [{ item: itemId, unitPrice: 10500 }] } });
+    const [quoteAlpha, quoteBeta] = second.data.data.sourcing.quotes;
+    assert.equal(quoteBeta.total, 21000);
+
+    // Alpha is not the lowest: a reason; only 2 of 3 quotes: a reason; a tender: a committee
+    await api("PUT", pr("/sourcing"), { token: fin, body: { selectedQuote: quoteAlpha._id } });
+    assert.match((await api("POST", pr("/sourcing/submit"), { token: fin })).data.message, /not the lowest/);
+    await api("PUT", pr("/sourcing"), { token: fin, body: { selectionReason: "Beta cannot deliver before the training" } });
+    assert.match((await api("POST", pr("/sourcing/submit"), { token: fin })).data.message, /at least 3 quotations/);
+    await api("PUT", pr("/sourcing"), { token: fin, body: { fewerQuotesReason: "Only two suppliers in the region" } });
+    assert.match((await api("POST", pr("/sourcing/submit"), { token: fin })).data.message, /committee/i);
+    assert.equal((await api("PUT", pr("/sourcing"), { token: fin, body: { committee: committeeId } })).status, 200);
+    const submitted = await api("POST", pr("/sourcing/submit"), { token: fin });
+    assert.equal(submitted.status, 200, submitted.data?.message);
+    assert.equal(submitted.data.data.sourcing.panel.length, 2);
+
+    // the committee decides; nobody else
+    assert.equal((await api("DELETE", `/procurement/committees/${committeeId}`, { token: admin })).status, 409, "a decision is waiting");
+    assert.equal((await api("POST", pr("/sourcing/approve"), { token: fin, body: {} })).status, 409, "its members approve it");
+    assert.equal((await api("POST", pr("/sourcing/decision"), { token: de, body: { decision: "Approve" } })).status, 403, "not a member");
+    assert.equal((await api("GET", "/procurement/waiting-for-me", { token: fin })).data.data.length, 1);
+    const one = await api("POST", pr("/sourcing/decision"), { token: admin, body: { decision: "Approve" } });
+    assert.equal(one.data.data.sourcing.status, "Submitted", "1 of 2 needed");
+    assert.equal((await api("POST", pr("/sourcing/decision"), { token: admin, body: { decision: "Approve" } })).status, 409, "once");
+    assert.equal((await api("POST", pr("/sourcing/decision"), { token: fin, body: { decision: "Object" } })).status, 400, "an objection needs a reason");
+    const two = await api("POST", pr("/sourcing/decision"), { token: fin, body: { decision: "Approve", comment: "Delivery matters" } });
+    assert.equal(two.status, 200, two.data?.message);
+    assert.equal(two.data.data.sourcing.status, "Approved");
+
+    // still the estimate committed until the order is issued
+    assert.equal((await position()).committed, 24000);
+
+    // ---------------- the purchase order: the real price is committed
+    assert.equal((await api("POST", pr("/purchase-order"), { token: de, body: {} })).status, 403);
+    const issued = await api("POST", pr("/purchase-order"), { token: fin, body: { paymentTerms: "30 days after delivery" } });
+    assert.equal(issued.status, 201, issued.data?.message);
+    const order = issued.data.data;
+    assert.match(order.poCode, /^PO-\d{6}$/);
+    assert.equal(order.total, 23000);
+    assert.equal(order.supplier.name, "Alpha Computers");
+    assert.equal(order.items[0].unitPrice, 11500);
+    assert.ok(order.deliveryDate, "from the quoted delivery time");
+    assert.equal((await api("GET", pr(""), { token: de })).data.data.status, "Ordered");
+    let year = await position();
+    assert.equal(year.committed, 23000);
+    assert.equal(year.remaining, before.remaining - 23000);
+    assert.equal((await api("POST", pr("/purchase-order"), { token: fin, body: {} })).status, 409, "one order per request");
+    assert.equal((await api("POST", pr("/cancel"), { token: fin, body: { comment: "Not needed" } })).status, 409, "cancel the order first");
+
+    const pdf = await fetch(`${BASE}/purchase-orders/${order._id}/pdf`, { headers: { Authorization: `Bearer ${de}` } });
+    assert.equal(pdf.status, 200);
+    assert.match(pdf.headers.get("content-type"), /pdf/);
+    assert.equal((await pdf.arrayBuffer()).byteLength > 1000, true);
+    assert.equal((await api("GET", "/purchase-orders?search=Alpha", { token: de })).data.data.length, 1);
+
+    // cancelling the order gives the request back to choose again
+    const cancelled = await api("POST", `/purchase-orders/${order._id}/cancel`, { token: fin, body: { comment: "Supplier out of stock" } });
+    assert.equal(cancelled.data.data.status, "Cancelled");
+    const back = (await api("GET", pr(""), { token: de })).data.data;
+    assert.equal(back.status, "Approved");
+    assert.equal(back.sourcing.status, "Draft");
+    assert.equal((await position()).committed, 24000, "the estimate again");
+    await api("POST", pr("/cancel"), { token: fin, body: { comment: "Bought by the donor" } });
+    assert.equal((await position()).committed, 0);
+
+    // ---------------- a 4,000 request: direct purchase, one approver
+    const small = await newApproved("Toner", [{ description: "Toner", quantity: 4, unitPrice: 1000 }]);
+    const sp = (path) => `/purchase-requests/${small._id}${path}`;
+    const direct = (await api("POST", sp("/sourcing/start"), { token: fin, body: {} })).data.data.sourcing;
+    assert.equal(direct.method, "direct");
+    assert.equal(direct.needsCommittee, false);
+    const quoted = await api("POST", sp("/quotes"), { token: fin, body: { supplier: supplierIds[2], items: [{ item: small.items[0]._id, unitPrice: 950 }] } });
+    await api("PUT", sp("/sourcing"), { token: fin, body: { selectedQuote: quoted.data.data.sourcing.quotes[0]._id } });
+    assert.equal((await api("POST", sp("/sourcing/submit"), { token: fin })).status, 200);
+    assert.equal((await api("POST", sp("/sourcing/return"), { token: fin, body: {} })).status, 400, "returning needs a comment");
+    assert.equal((await api("POST", sp("/sourcing/return"), { token: fin, body: { comment: "Add the quotation number" } })).data.data.sourcing.status, "Returned");
+    await api("PUT", sp(`/quotes/${quoted.data.data.sourcing.quotes[0]._id}`), { token: fin, body: { reference: "INV-55" } });
+    await api("POST", sp("/sourcing/submit"), { token: fin });
+    assert.equal((await api("POST", sp("/sourcing/approve"), { token: de, body: {} })).status, 403);
+    assert.equal((await api("POST", sp("/sourcing/approve"), { token: admin, body: {} })).data.data.sourcing.status, "Approved");
+    assert.equal((await api("POST", sp("/purchase-order"), { token: fin, body: {} })).data.data.total, 3800);
+    assert.equal((await position()).committed, 3800);
+
+    // back to the defaults
+    assert.equal((await api("PUT", "/procurement/settings", { token: admin, body: { reset: true } })).data.data.methods.direct.upTo, 50000);
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
+
+});
+
+
 // =====================================================
 // PASSWORDS: OWN AT FIRST SIGN-IN, THEN THE ADMIN MANAGES
 // =====================================================
