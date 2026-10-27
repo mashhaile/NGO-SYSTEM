@@ -39,6 +39,9 @@ import {
 import useAuth
     from "../../auth/hooks/useAuth";
 
+import IndicatorsCard
+    from "../../indicators/components/IndicatorsCard";
+
 import BudgetFigureCard
     from "../../budgets/components/BudgetFigureCard";
 
@@ -460,6 +463,9 @@ const [
                     navigate={navigate}
                 />
             )}
+
+            {/* M&E indicators (when the module is on) */}
+            <IndicatorsCard program={project.program?._id || project.program} project={project._id} />
 
             {/* PHASES (each one works like a project) */}
 

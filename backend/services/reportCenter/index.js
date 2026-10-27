@@ -27,7 +27,8 @@ const REPORTS = [
     require("./reports/serviceDelivery"),
     require("./reports/enterprises"),
     require("./reports/donors"),
-    require("./reports/budgets")
+    require("./reports/budgets"),
+    require("./reports/indicators")
 ];
 
 const DETAILS = [
@@ -46,7 +47,8 @@ const REPORT_MODULE = {
     serviceDelivery: "serviceDelivery",
     enterprises: "enterprises",
     donors: "funding",
-    budgets: "finance"
+    budgets: "finance",
+    indicators: "me"
 };
 
 const moduleOn = (context, key) =>

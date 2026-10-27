@@ -97,6 +97,32 @@ const STATUS_STYLES = {
         color: "text.secondary"
     },
 
+    // M&E indicator progress
+    "on track": {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+
+    "at risk": {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+
+    "off track": {
+        bgcolor: "error.light",
+        color: "error.dark"
+    },
+
+    "no data": {
+        bgcolor: "action.hover",
+        color: "text.secondary"
+    },
+
+    "not started": {
+        bgcolor: "action.hover",
+        color: "text.secondary"
+    },
+
     // paused work: nothing new until it is Active again
     suspended: {
         bgcolor: "warning.light",

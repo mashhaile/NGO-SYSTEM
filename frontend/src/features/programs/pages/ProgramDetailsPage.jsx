@@ -30,6 +30,9 @@ import {
 import useAuth
     from "../../auth/hooks/useAuth";
 
+import IndicatorsCard
+    from "../../indicators/components/IndicatorsCard";
+
 import BudgetFigureCard
     from "../../budgets/components/BudgetFigureCard";
 import { formatDate, formatDateTime } from "../../../utils/date";
@@ -412,6 +415,9 @@ const ProgramDetailsPage = () => {
                 user={user}
                 navigate={navigate}
             />
+
+            {/* M&E indicators (when the module is on) */}
+            <IndicatorsCard program={program._id} />
 
 
             {/* =================================================

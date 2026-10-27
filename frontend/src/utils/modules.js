@@ -32,7 +32,8 @@ const MODULE_OF_PREFIX = {
     donor: "funding",
     donation: "funding",
     budget: "finance",
-    expense: "finance"
+    expense: "finance",
+    indicator: "me"
 };
 
 export const moduleOfPermission = (permission) =>

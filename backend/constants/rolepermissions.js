@@ -445,5 +445,29 @@ const rolePermissions = {
 
 
 
+// =====================================
+// M&E INDICATORS (module "me")
+// =====================================
+// Organization admins manage indicators; data entry enters
+// actual values; finance and viewers see them.
+
+const INDICATORS_FOR = {
+    [ROLES.ORG_ADMIN]: [
+        PERMISSIONS.INDICATOR_CREATE,
+        PERMISSIONS.INDICATOR_READ,
+        PERMISSIONS.INDICATOR_UPDATE,
+        PERMISSIONS.INDICATOR_DELETE,
+        PERMISSIONS.INDICATOR_REPORT
+    ],
+    [ROLES.DATA_ENTRY]: [PERMISSIONS.INDICATOR_READ, PERMISSIONS.INDICATOR_REPORT],
+    [ROLES.FINANCE]: [PERMISSIONS.INDICATOR_READ],
+    [ROLES.VIEWER]: [PERMISSIONS.INDICATOR_READ]
+};
+
+for (const [role, permissions] of Object.entries(INDICATORS_FOR)) {
+    if (Array.isArray(rolePermissions[role])) rolePermissions[role].push(...permissions);
+}
+
+
 module.exports =
     rolePermissions;

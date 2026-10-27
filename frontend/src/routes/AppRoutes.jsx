@@ -283,6 +283,9 @@ const TorCreatePage = lazyPage(() => import("../features/tor/pages/TorCreatePage
 const TorDetailsPage = lazyPage(() => import("../features/tor/pages/TorDetailsPage"));
 const TorEditPage = lazyPage(() => import("../features/tor/pages/TorEditPage"));
 const BudgetListPage = lazyPage(() => import("../features/budgets/pages/BudgetListPage"));
+const IndicatorListPage = lazyPage(() => import("../features/indicators/pages/IndicatorListPage"));
+const IndicatorFormPage = lazyPage(() => import("../features/indicators/pages/IndicatorFormPage"));
+const IndicatorDetailsPage = lazyPage(() => import("../features/indicators/pages/IndicatorDetailsPage"));
 const BudgetFormPage = lazyPage(() => import("../features/budgets/pages/BudgetFormPage"));
 const BudgetDetailsPage = lazyPage(() => import("../features/budgets/pages/BudgetDetailsPage"));
 const ExpenseListPage = lazyPage(() => import("../features/expenses/pages/ExpenseListPage"));
@@ -941,6 +944,40 @@ const AppRoutes = () => {
                 {/* ==================================================
                     BUDGETS
                 ================================================== */}
+
+                {/* M&E: indicators (module "me") */}
+                <Route
+                    path="/indicators"
+                    element={
+                        <PermissionRoute permission="indicator.read">
+                            <IndicatorListPage />
+                        </PermissionRoute>
+                    }
+                />
+                <Route
+                    path="/indicators/create"
+                    element={
+                        <PermissionRoute permission="indicator.create">
+                            <IndicatorFormPage />
+                        </PermissionRoute>
+                    }
+                />
+                <Route
+                    path="/indicators/:id"
+                    element={
+                        <PermissionRoute permission="indicator.read">
+                            <IndicatorDetailsPage />
+                        </PermissionRoute>
+                    }
+                />
+                <Route
+                    path="/indicators/:id/edit"
+                    element={
+                        <PermissionRoute permission="indicator.update">
+                            <IndicatorFormPage />
+                        </PermissionRoute>
+                    }
+                />
 
                 <Route
                     path="/budgets"

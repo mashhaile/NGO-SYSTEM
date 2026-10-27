@@ -41,6 +41,7 @@ import {
     Storefront,
     Savings,
     ReceiptLong,
+    TrackChanges,
     Group,
     HowToReg,
     LockOutlined,
@@ -164,6 +165,13 @@ const SECTIONS = [
         items: [
             { label: "Budgets", path: "/budgets", icon: <Savings />, permission: "budget.read" },
             { label: "Expenses", path: "/expenses", icon: <ReceiptLong />, permission: "expense.read" }
+        ]
+    },
+
+    {
+        title: "M&E",
+        items: [
+            { label: "Indicators", path: "/indicators", icon: <TrackChanges />, permission: "indicator.read" }
         ]
     },
 

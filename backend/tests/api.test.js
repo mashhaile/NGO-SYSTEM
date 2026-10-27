@@ -2310,7 +2310,8 @@ test("modules: the super admin switches modules off and on per organization; off
     // only the super admin manages modules
     assert.equal((await api("GET", `/admin/organizations/${orgA}/modules`, { token: state.tokenA })).status, 403);
     const list = (await api("GET", `/admin/organizations/${orgA}/modules`, { token: sa })).data.data;
-    assert.ok(list.modules.every(module => module.enabled), "all on at first");
+    assert.ok(list.modules.every(module => module.enabled || module.key === "me"), "all on at first, except new modules (M&E)");
+    assert.equal(list.modules.find(module => module.key === "me").enabled, false);
 
     // TOR and funding off
     const off = await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { tor: false, funding: false } } });
@@ -2339,6 +2340,81 @@ test("modules: the super admin switches modules off and on per organization; off
     const back = (await api("GET", "/tors", { token: state.tokenA })).data.data;
     assert.equal((Array.isArray(back) ? back : back.items || []).length, torCount);
     assert.equal((await api("GET", "/donations", { token: state.tokenA })).status, 200);
+
+});
+
+
+// =====================================================
+// M&E: INDICATORS (module "me", off until switched on)
+// =====================================================
+
+test("M&E: indicators with targets; entered and automatic actuals; progress and the indicators report", { skip }, async () => {
+
+    const token = state.tokenA;
+    const sa = (await login("sa@test.local", "SuperTest2026x")).data.data.token;
+    const me = (await api("GET", "/auth/me", { token })).data.data;
+    const orgA = String(me.organizationId?._id || me.organizationId);
+
+    // a new module: off until the platform admin switches it on
+    assert.equal((await api("GET", "/indicators", { token })).status, 403);
+    assert.equal((await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { me: true } } })).status, 200);
+    assert.equal((await api("GET", "/indicators", { token })).status, 200);
+
+    await serviceDeliverySetup();
+    const programs = (await api("GET", `/programs?search=${encodeURIComponent("Service Delivery Test Program")}`, { token })).data.data;
+    const program = (Array.isArray(programs) ? programs : programs.items)[0]._id;
+
+    // entered: quarterly targets, values per quarter
+    const manual = await api("POST", "/indicators", {
+        token,
+        body: {
+            program, level: "Outcome", result: "Households earn more", name: "Households with improved income",
+            unit: "number", frequency: "Quarterly", source: "manual", baseline: { value: 10, date: "2026-01-01" },
+            targets: [{ period: "2026-Q1", value: 50 }, { period: "2026-Q2", value: 60 }]
+        }
+    });
+    assert.equal(manual.status, 201, manual.data?.message);
+    assert.match(manual.data.data.code, /^IND-\d{6}$/);
+    const manualId = manual.data.data._id;
+
+    assert.equal((await api("PUT", `/indicators/${manualId}/values/2026-Q1`, { token, body: { value: 45, female: 30, male: 15 } })).status, 200);
+    const both = await api("PUT", `/indicators/${manualId}/values/2026-Q2`, { token, body: { value: 30 } });
+    const rows = both.data.data.progress.rows;
+    assert.equal(rows.find(row => row.period === "2026-Q1").percent, 90);
+    assert.equal(rows.find(row => row.period === "2026-Q1").status, "On track");
+    assert.equal(rows.find(row => row.period === "2026-Q2").status, "Off track");
+
+    // the wrong kind of period, a future one, a bad split
+    assert.equal((await api("PUT", `/indicators/${manualId}/values/2026`, { token, body: { value: 5 } })).status, 400);
+    assert.equal((await api("PUT", `/indicators/${manualId}/values/2030-Q1`, { token, body: { value: 5 } })).status, 400);
+    assert.equal((await api("PUT", `/indicators/${manualId}/values/2026-Q3`, { token, body: { value: 5, female: 4, male: 4 } })).status, 400);
+
+    // a percentage target above 100 is refused
+    assert.equal((await api("POST", "/indicators", { token, body: { program, level: "Output", name: "Too much", unit: "percent", frequency: "Annual", source: "manual", targets: [{ period: "2026", value: 120 }] } })).status, 400);
+
+    // automatic: the same figure as the service delivery report
+    const auto = await api("POST", "/indicators", {
+        token,
+        body: { program, level: "Output", name: "People reached", frequency: "Annual", source: "auto", measure: "beneficiariesReached", targets: [{ period: "2026", value: 10 }] }
+    });
+    assert.equal(auto.status, 201, auto.data?.message);
+    const report = (await api("GET", `/report-center/serviceDelivery?period=year&year=2026&program=${program}`, { token })).data.data;
+    const reached = report.summary.find(item => item.label === "Beneficiaries reached").value;
+    assert.equal(auto.data.data.progress.rows.find(row => row.period === "2026").actual, reached);
+    // its values cannot be typed
+    assert.equal((await api("PUT", `/indicators/${auto.data.data._id}/values/2026`, { token, body: { value: 1 } })).status, 400);
+
+    // the indicators report: Q1 + Q2 targets (110) against 75 entered
+    const year = (await api("GET", `/report-center/indicators?period=year&year=2026&program=${program}`, { token })).data.data;
+    const row = year.sections.find(item => item.key === "indicators").rows.find(item => item.name === "Households with improved income");
+    assert.equal(row.target, 110);
+    assert.equal(row.actual, 75);
+
+    // data entry enters values but does not create indicators
+    assert.equal((await api("POST", "/indicators", { token: state.dataEntryToken, body: { program, level: "Output", name: "x", frequency: "Annual", source: "manual" } })).status, 403);
+    assert.equal((await api("PUT", `/indicators/${manualId}/values/2026-Q3`, { token: state.dataEntryToken, body: { value: 55 } })).status, 200);
+
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { me: false } } });
 
 });
 

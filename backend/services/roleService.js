@@ -77,11 +77,12 @@ const MODULES = {
     service: "Service deliveries", enrollment: "Enrollments", activity: "Activities", activity_run: "Activity runs",
     tor: "Terms of reference", attendance: "Attendance sessions", attendance_record: "Attendance records",
     donor: "Donors", donation: "Donations", notification: "Notifications", report: "Reports",
-    budget: "Budgets", expense: "Expenses"
+    budget: "Budgets", expense: "Expenses", indicator: "M&E indicators"
 };
 
 const ACTIONS = {
     read: "View", create: "Create", update: "Edit", delete: "Delete", approve: "Approve",
+    report: "Enter actual values",
     share: "Share with donors", create_activity: "Create activity from TOR", update_activity: "Link TOR to activity",
     "audit.read": "View audit log", assign_data_entry: "Give the Data Entry role", assign_viewer: "Give the Viewer role",
     assign_finance: "Give the Finance Officer role", assign_org_admin: "Give the Organization Admin role"

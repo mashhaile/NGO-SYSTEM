@@ -85,6 +85,16 @@ const MODULES = [
         description: "Program and project budgets with approval, revisions, and expenses charged to them.",
         permissions: ["budget", "expense"],
         records: [{ model: "Budget", label: "budgets" }, { model: "Expense", label: "expenses" }]
+    },
+    {
+        key: "me",
+        name: "M&E (indicators)",
+        group: "M&E",
+        description: "Logframe indicators per program and project: baseline, targets, actual values (automatic from the system's records or entered), progress and the indicators report.",
+        permissions: ["indicator"],
+        // new: only for the organizations it is switched on for
+        defaultEnabled: false,
+        records: [{ model: "Indicator", label: "indicators" }]
     }
 ];
 

@@ -411,7 +411,28 @@ const PERMISSIONS = {
 
     // Approve / return / void
     EXPENSE_APPROVE:
-        "expense.approve"
+        "expense.approve",
+
+
+    // =====================================================
+    // M&E: INDICATORS (logframe, targets, actual values)
+    // =====================================================
+
+    INDICATOR_CREATE:
+        "indicator.create",
+
+    INDICATOR_READ:
+        "indicator.read",
+
+    INDICATOR_UPDATE:
+        "indicator.update",
+
+    INDICATOR_DELETE:
+        "indicator.delete",
+
+    // Enter the actual value of an indicator for a period
+    INDICATOR_REPORT:
+        "indicator.report"
 
 };
 

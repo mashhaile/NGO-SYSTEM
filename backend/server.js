@@ -354,6 +354,12 @@ app.use(
     require("./routes/expenseRoutes")
 );
 
+// M&E: logframe indicators, targets, actual values (module "me")
+app.use(
+    "/api/v1/indicators",
+    require("./routes/indicatorRoutes")
+);
+
 app.use(
     "/api/v1/donation-trace",
     require("./routes/donationTraceRoutes")
