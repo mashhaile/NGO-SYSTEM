@@ -122,6 +122,20 @@ const MeSettingsCard = ({ limits, onChange }) => {
 
             </Stack>
 
+            {/* the three statuses the two limits make, as typed */}
+            {(() => {
+                const onTrack = Number(shown.onTrack);
+                const atRisk = Number(shown.atRisk);
+                const valid = onTrack >= 1 && onTrack <= 100 && atRisk >= 1 && atRisk < onTrack;
+                return (
+                    <Typography variant="body2" sx={{ mt: 1.5, color: valid ? "text.secondary" : "error.main" }}>
+                        {valid
+                            ? `🟢 On track: ${onTrack}% and above  ·  🟡 At risk: ${atRisk}–${onTrack - 1}%  ·  🔴 Off track: below ${atRisk}%`
+                            : "\"At risk from\" must be lower than \"On track from\", both between 1 and 100."}
+                    </Typography>
+                );
+            })()}
+
             {error && <Alert severity="error" sx={{ mt: 1.5 }}>{error}</Alert>}
             {saved && <Alert severity="success" sx={{ mt: 1.5 }} onClose={() => setSaved("")}>{saved}</Alert>}
 
