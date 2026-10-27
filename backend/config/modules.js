@@ -101,7 +101,7 @@ const MODULES = [
         name: "Procurement",
         group: "Finance",
         description: "Suppliers, purchase requests charged to budget lines, quotations and bid analysis (methods by amount, committees), purchase orders; approved requests and orders reserve their money as \"Committed\".",
-        permissions: ["supplier", "purchase_request", "quotation", "purchase_order", "committee"],
+        permissions: ["supplier", "purchase_request", "quotation", "purchase_order", "committee", "goods_receipt"],
         // checks requests against the budget lines
         requires: ["finance"],
         // new: only for the organizations it is switched on for

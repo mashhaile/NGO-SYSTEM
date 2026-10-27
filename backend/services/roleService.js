@@ -79,7 +79,7 @@ const MODULES = {
     donor: "Donors", donation: "Donations", notification: "Notifications", report: "Reports",
     budget: "Budgets", expense: "Expenses", indicator: "M&E indicators",
     supplier: "Suppliers", purchase_request: "Purchase requests", quotation: "Quotations and bid analysis",
-    purchase_order: "Purchase orders", committee: "Procurement committees"
+    purchase_order: "Purchase orders", committee: "Procurement committees", goods_receipt: "Goods received notes"
 };
 
 const ACTIONS = {

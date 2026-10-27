@@ -108,6 +108,21 @@ const STATUS_STYLES = {
         color: "info.dark"
     },
 
+    "partially received": {
+        bgcolor: "warning.light",
+        color: "warning.dark"
+    },
+
+    closed: {
+        bgcolor: "action.hover",
+        color: "text.primary"
+    },
+
+    recorded: {
+        bgcolor: "success.light",
+        color: "success.dark"
+    },
+
     blacklisted: {
         bgcolor: "error.light",
         color: "error.dark"

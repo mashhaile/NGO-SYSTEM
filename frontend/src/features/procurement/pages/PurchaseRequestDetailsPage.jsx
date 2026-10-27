@@ -231,9 +231,9 @@ const PurchaseRequestDetailsPage = () => {
                 </Alert>
             )}
 
-            {request.status === PURCHASE_REQUEST_STATUS.ORDERED && request.purchaseOrder && (
+            {[PURCHASE_REQUEST_STATUS.ORDERED, PURCHASE_REQUEST_STATUS.CLOSED].includes(request.status) && request.purchaseOrder && (
                 <Alert severity="success" sx={{ mb: 3 }}>
-                    Ordered:{" "}
+                    {request.status === PURCHASE_REQUEST_STATUS.CLOSED ? "Closed (order received and paid or closed short):" : "Ordered:"}{" "}
                     <Link component="button" underline="hover" onClick={() => navigate(`/purchase-orders/${request.purchaseOrder._id}`)}>
                         {request.purchaseOrder.poCode}
                     </Link>{" "}
@@ -266,7 +266,7 @@ const PurchaseRequestDetailsPage = () => {
             <StatsCards
                 valueSize="small"
                 items={[
-                    { label: request.status === PURCHASE_REQUEST_STATUS.ORDERED ? "Ordered" : "This request", value: formatMoney(line.takes ?? request.budgetAmount, budgetCurrency) },
+                    { label: [PURCHASE_REQUEST_STATUS.ORDERED, PURCHASE_REQUEST_STATUS.CLOSED].includes(request.status) ? "Order: still committed" : "This request", value: formatMoney(line.takes ?? request.budgetAmount, budgetCurrency) },
                     { label: `Line budget ${fiscalYearLabel(line.fiscalYear)}`, value: formatMoney(line.budget, budgetCurrency) },
                     { label: "Spent + committed by others", value: formatMoney(line.spent + line.committedByOthers, budgetCurrency) },
                     { label: "Left after this", value: formatMoney(line.remainingAfter, budgetCurrency) }

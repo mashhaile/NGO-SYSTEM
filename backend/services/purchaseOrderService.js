@@ -222,7 +222,7 @@ const updatePurchaseOrder = async (id, data, organizationId, userId) => {
 
     const order = await findOrder(id, organizationId);
 
-    if (order.status !== PURCHASE_ORDER_STATUS.ISSUED) {
+    if (![PURCHASE_ORDER_STATUS.ISSUED, PURCHASE_ORDER_STATUS.PARTIALLY_RECEIVED].includes(order.status)) {
         throw new ApiError(`A ${order.status.toLowerCase()} purchase order cannot be changed.`, 409);
     }
 
@@ -248,7 +248,12 @@ const cancelPurchaseOrder = async (id, organizationId, userId, reason) => {
         const order = await findOrder(id, organizationId, session);
 
         if (order.status !== PURCHASE_ORDER_STATUS.ISSUED) {
-            throw new ApiError(`This purchase order is ${order.status.toLowerCase()} and cannot be cancelled.`, 409);
+            throw new ApiError(
+                [PURCHASE_ORDER_STATUS.PARTIALLY_RECEIVED, PURCHASE_ORDER_STATUS.RECEIVED].includes(order.status)
+                    ? "Goods have been received on this order, so it cannot be cancelled. Pay what was received and close it short instead."
+                    : `This purchase order is ${order.status.toLowerCase()} and cannot be cancelled.`,
+                409
+            );
         }
 
         await Budget.updateOne({ _id: order.budget }, { $inc: { chargeVersion: 1 } }, { session });
@@ -320,7 +325,7 @@ const getPurchaseOrders = async (organizationId, query = {}) => {
     const [data, total] =
         await Promise.all([
             PurchaseOrder.find(filter)
-                .select("poCode orderDate deliveryDate category total currency budgetAmount budgetCurrency status supplier purchaseRequest project budget")
+                .select("poCode orderDate deliveryDate category total currency budgetAmount budgetCurrency paidTotal status supplier purchaseRequest project budget")
                 .populate("supplier", "supplierCode name")
                 .populate("purchaseRequest", "requestCode title")
                 .populate("project", "projectCode name")
@@ -353,10 +358,14 @@ const getPurchaseOrderById = async (id, organizationId) => {
             .populate("project", "projectCode name")
             .populate("issuedBy", USER_FIELDS)
             .populate("cancelledBy", USER_FIELDS)
+            .populate("closedBy", USER_FIELDS)
             .populate("history.by", USER_FIELDS)
             .lean();
 
     if (!order) throw notFound();
+
+    // goods received notes, payments and what is left to pay
+    order.fulfilment = await require("./orderFulfilmentService").fulfilmentOf(order);
 
     // how many quotations it won against
     const quoteCount = order.purchaseRequest?.sourcing?.quotes?.length || 0;

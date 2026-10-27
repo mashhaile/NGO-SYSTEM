@@ -274,6 +274,16 @@ const ExpenseDetailsPage = () => {
                     <InfoRow label="Project" value={expense.project?.name} />
                     <InfoRow label="Paid from donation" value={expense.donation ? `${expense.donation.donationCode} · ${expense.donation.title}` : "-"} />
                     <InfoRow label="Activity" value={expense.activity ? `${expense.activity.activityCode} · ${expense.activity.name}` : "-"} />
+                    {expense.purchaseOrder && (
+                        <InfoRow
+                            label="Pays purchase order"
+                            value={
+                                <Link component="button" underline="hover" onClick={() => navigate(`/purchase-orders/${expense.purchaseOrder._id}`)}>
+                                    {expense.purchaseOrder.poCode}
+                                </Link>
+                            }
+                        />
+                    )}
                 </FormSection>
             </PageCard>
 

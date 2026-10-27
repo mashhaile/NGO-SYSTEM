@@ -81,6 +81,7 @@ const DETAIL_POPULATE = [
     { path: "project", select: "projectCode name" },
     { path: "donation", select: "donationCode title amount currency" },
     { path: "activity", select: "activityCode name" },
+    { path: "purchaseOrder", select: "poCode status supplier total currency" },
     { path: "createdBy", select: USER_FIELDS },
     { path: "submittedBy", select: USER_FIELDS },
     { path: "approvedBy", select: USER_FIELDS },
@@ -504,11 +505,23 @@ const getExpenseById = async (id, organizationId) => {
 
     const counted = expense.status !== EXPENSE_STATUS.VOIDED;
 
-    // reserved by approved purchase requests (procurement)
-    const committed =
-        await require("./purchaseRequestService").lineCommitted(organizationId, expense.budget._id, expense.budgetLine, expense.fiscalYear);
+    // reserved by approved purchase requests and open orders
+    // (procurement); a payment not yet approved uses its order's
+    // own reserved money
+    const waitingPayment =
+        expense.purchaseOrder && ![EXPENSE_STATUS.APPROVED, EXPENSE_STATUS.VOIDED].includes(expense.status)
+            ? await require("./orderFulfilmentService").approvalPosition(
+                { ...expense, organization: organizationId, budget: expense.budget._id, purchaseOrder: expense.purchaseOrder._id },
+                { lineBudget, spent: totals.spent }
+            )
+            : null;
 
-    const remainingBefore = roundMoney(lineBudget - totals.spent - committed);
+    const committed =
+        waitingPayment
+            ? waitingPayment.committed
+            : await require("./purchaseRequestService").lineCommitted(organizationId, expense.budget._id, expense.budgetLine, expense.fiscalYear);
+
+    const remainingBefore = waitingPayment ? waitingPayment.remaining : roundMoney(lineBudget - totals.spent - committed);
 
     return {
         ...expense,
@@ -546,6 +559,11 @@ const updateExpense = async (id, data, organizationId, userId) => {
     const expense = await findExpense(id, organizationId);
 
     assertEditable(expense, "edited");
+
+    // a purchase order payment: same line and currency, at most what is payable
+    if (expense.purchaseOrder) {
+        await require("./orderFulfilmentService").checkPaymentEdit(expense, data);
+    }
 
     const charge =
         await resolveCharge(
@@ -673,11 +691,22 @@ const approveExpense = async (id, organizationId, userId, { comment = "", allowO
         const { spent } =
             await lineTotals(organizationId, charge.budget._id, charge.line._id, charge.fiscalYear, expense._id, session);
 
-        // money reserved by approved purchase requests (procurement)
-        const committed =
-            await require("./purchaseRequestService").lineCommitted(organizationId, charge.budget._id, charge.line._id, charge.fiscalYear, { session });
+        // money reserved by approved purchase requests and open orders
+        // (procurement); a payment of an order uses that order's own
+        // reserved money
+        const ordered =
+            expense.purchaseOrder
+                ? await require("./orderFulfilmentService").approvalPosition(expense, { lineBudget: charge.lineBudget, spent }, session)
+                : null;
 
-        const remaining = roundMoney(charge.lineBudget - spent - committed);
+        const committed =
+            ordered
+                ? ordered.committed
+                : await require("./purchaseRequestService").lineCommitted(organizationId, charge.budget._id, charge.line._id, charge.fiscalYear, { session });
+
+        // ordered: what the line can take for this payment, the order's
+        // unpaid rest after it still reserved
+        const remaining = ordered ? ordered.remaining : roundMoney(charge.lineBudget - spent - committed);
         const overBudget = expense.budgetAmount > remaining + 0.005;
 
         if (overBudget && !allowOverBudget) {
@@ -702,6 +731,11 @@ const approveExpense = async (id, organizationId, userId, { comment = "", allowO
         );
 
         await expense.save({ session });
+
+        // a purchase order payment: Committed -> Spent on the order
+        if (expense.purchaseOrder) {
+            await require("./orderFulfilmentService").paymentChanged(expense, 1, userId, session);
+        }
 
     });
 
@@ -768,6 +802,10 @@ const voidExpense = async (id, organizationId, userId, reason) => {
         expense.history.push(historyEntry("Voided", EXPENSE_STATUS.VOIDED, userId, reason));
 
         await expense.save({ session });
+
+        if (expense.purchaseOrder) {
+            await require("./orderFulfilmentService").paymentChanged(expense, -1, userId, session);
+        }
 
     });
 

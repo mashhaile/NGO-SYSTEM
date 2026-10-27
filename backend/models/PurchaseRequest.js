@@ -42,7 +42,9 @@ const PURCHASE_REQUEST_STATUS = {
     RETURNED: "Returned",
     REJECTED: "Rejected",
     CANCELLED: "Cancelled",
-    ORDERED: "Ordered"
+    ORDERED: "Ordered",
+    // its purchase order is closed (received and paid)
+    CLOSED: "Closed"
 };
 
 // the bid analysis of an approved request

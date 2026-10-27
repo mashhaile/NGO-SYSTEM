@@ -14,24 +14,35 @@ const {
 // quoted prices. Charged to the same budget line as the
 // request.
 //
-//   Issued -> Cancelled (reason)
-//   (step 3: goods received and payment)
+//   Issued -> Partially Received -> Received   (goods received notes)
+//   ... -> Closed   when everything is received and paid, or
+//                   closed short (reason) once what was
+//                   received is paid
+//   Issued -> Cancelled (reason)   while nothing is received
 //
-// An Issued order reserves its total on the budget line as
-// "Committed", instead of the request's estimate. Cancelling
-// it gives the request back (Approved) so another supplier
-// can be chosen, or the request cancelled.
+// An open order reserves what is not yet paid on the budget
+// line as "Committed" (budgetAmount - paidAmount), instead of
+// the request's estimate. Payments are expenses linked to the
+// order (source "procurement"); when one is approved its
+// amount moves from Committed to Spent. Cancelling the order
+// gives the request back (Approved) so another supplier can
+// be chosen, or the request cancelled.
 //
 // =====================================================
 
 const PURCHASE_ORDER_STATUS = {
     ISSUED: "Issued",
+    PARTIALLY_RECEIVED: "Partially Received",
+    RECEIVED: "Received",
+    CLOSED: "Closed",
     CANCELLED: "Cancelled"
 };
 
-// the statuses whose total is reserved on the budget line
+// the statuses whose unpaid amount is reserved on the budget line
 const PO_COMMITTING_STATUSES = [
-    PURCHASE_ORDER_STATUS.ISSUED
+    PURCHASE_ORDER_STATUS.ISSUED,
+    PURCHASE_ORDER_STATUS.PARTIALLY_RECEIVED,
+    PURCHASE_ORDER_STATUS.RECEIVED
 ];
 
 
@@ -102,6 +113,15 @@ const PurchaseOrderSchema =
             total: { type: Number, required: true, min: 0 },
             budgetCurrency: { type: String, uppercase: true, trim: true, default: "ETB" },
             budgetAmount: { type: Number, required: true, min: 0 },
+
+            // approved payments (expenses linked to this order):
+            // in the order's currency and in the budget's currency
+            paidTotal: { type: Number, default: 0 },
+            paidAmount: { type: Number, default: 0 },
+
+            closedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            closedAt: { type: Date, default: null },
+            closeReason: { type: String, default: "" },
 
             status: {
                 type: String,

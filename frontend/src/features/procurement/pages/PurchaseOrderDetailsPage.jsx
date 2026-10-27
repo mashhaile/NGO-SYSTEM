@@ -51,6 +51,9 @@ import {
 import ExpenseActionDialog
     from "../../expenses/components/ExpenseActionDialog";
 
+import FulfilmentCard
+    from "../components/FulfilmentCard";
+
 import useAuth
     from "../../auth/hooks/useAuth";
 
@@ -163,7 +166,10 @@ const PurchaseOrderDetailsPage = () => {
     }
 
     const issued = order.status === PURCHASE_ORDER_STATUS.ISSUED;
-    const canUpdate = issued && hasPermission(user, "purchase_order.update");
+    const canUpdate = hasPermission(user, "purchase_order.update");
+    const canEdit = canUpdate && [PURCHASE_ORDER_STATUS.ISSUED, PURCHASE_ORDER_STATUS.PARTIALLY_RECEIVED].includes(order.status);
+    const canCancel = canUpdate && issued;
+    const received = order.fulfilment?.received || {};
     const supplier = order.supplier || {};
 
     return (
@@ -192,8 +198,8 @@ const PurchaseOrderDetailsPage = () => {
                     >
                         Download PDF
                     </AppButton>
-                    {canUpdate && <AppButton variant="outlined" startIcon={<Edit />} onClick={() => openDialog("edit")}>Edit Delivery / Terms</AppButton>}
-                    {canUpdate && <AppButton variant="outlined" color="error" startIcon={<Block />} onClick={() => openDialog("cancel")}>Cancel Order</AppButton>}
+                    {canEdit && <AppButton variant="outlined" startIcon={<Edit />} onClick={() => openDialog("edit")}>Edit Delivery / Terms</AppButton>}
+                    {canCancel && <AppButton variant="outlined" color="error" startIcon={<Block />} onClick={() => openDialog("cancel")}>Cancel Order</AppButton>}
                 </Stack>
             </PageCard>
 
@@ -217,6 +223,7 @@ const PurchaseOrderDetailsPage = () => {
                                     <TableCell>Item</TableCell>
                                     <TableCell>Unit</TableCell>
                                     <TableCell align="right">Quantity</TableCell>
+                                    <TableCell align="right">Received</TableCell>
                                     <TableCell align="right">Unit price</TableCell>
                                     <TableCell align="right">Total</TableCell>
                                 </TableRow>
@@ -231,12 +238,15 @@ const PurchaseOrderDetailsPage = () => {
                                         </TableCell>
                                         <TableCell>{item.unit}</TableCell>
                                         <TableCell align="right">{Number(item.quantity).toLocaleString("en-US")}</TableCell>
+                                        <TableCell align="right" sx={{ color: (received[item._id]?.accepted || 0) >= item.quantity ? "success.dark" : "text.secondary" }}>
+                                            {received[item._id]?.accepted || 0}{received[item._id]?.rejected ? ` (+${received[item._id].rejected} rejected)` : ""}
+                                        </TableCell>
                                         <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>{formatMoney(item.unitPrice, order.currency)}</TableCell>
                                         <TableCell align="right" sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>{formatMoney(item.total, order.currency)}</TableCell>
                                     </TableRow>
                                 ))}
                                 <TableRow>
-                                    <TableCell colSpan={5} align="right" sx={{ fontWeight: 700 }}>Total</TableCell>
+                                    <TableCell colSpan={6} align="right" sx={{ fontWeight: 700 }}>Total</TableCell>
                                     <TableCell align="right" sx={{ whiteSpace: "nowrap", fontWeight: 700 }}>{formatMoney(order.total, order.currency)}</TableCell>
                                 </TableRow>
                             </TableBody>
@@ -244,6 +254,8 @@ const PurchaseOrderDetailsPage = () => {
                     </TableContainer>
                 </FormSection>
             </PageCard>
+
+            <FulfilmentCard order={order} user={user} onChange={setOrder} navigate={navigate} />
 
             <PageCard>
                 <FormSection title="Order">

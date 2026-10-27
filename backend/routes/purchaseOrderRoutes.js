@@ -72,4 +72,26 @@ router.post("/:id/cancel", ...base, authorize(PERMISSIONS.PURCHASE_ORDER_UPDATE)
     respond(req => service.cancelPurchaseOrder(req.params.id, org(req), user(req), req.body.comment), { message: "Purchase order cancelled" }));
 
 
+// ---------------------------------------------------------------- receiving and paying
+//
+// POST /:id/receipts                goods received note     goods_receipt.create
+// POST /receipts/:noteId/cancel     cancel a note (reason; no payments yet)   goods_receipt.update
+// POST /:id/payments                payment = an expense linked to the order (Draft)   expense.create
+// POST /:id/close                   close short (reason; what was received is paid)   purchase_order.update
+
+const fulfilment = require("../services/orderFulfilmentService");
+
+router.post("/:id/receipts", ...base, authorize(PERMISSIONS.GOODS_RECEIPT_CREATE),
+    respond(req => fulfilment.recordReceipt(req.params.id, req.body || {}, org(req), user(req)), { status: 201, message: "Goods received recorded" }));
+
+router.post("/receipts/:noteId/cancel", ...base, authorize(PERMISSIONS.GOODS_RECEIPT_UPDATE), validate(cancelPurchaseRequestSchema),
+    respond(req => fulfilment.cancelReceipt(req.params.noteId, org(req), user(req), req.body.comment), { message: "Goods received note cancelled" }));
+
+router.post("/:id/payments", ...base, authorize(PERMISSIONS.PURCHASE_ORDER_READ), authorize(PERMISSIONS.EXPENSE_CREATE),
+    respond(req => fulfilment.createPayment(req.params.id, req.body || {}, org(req), user(req)), { status: 201, message: "Payment recorded as an expense" }));
+
+router.post("/:id/close", ...base, authorize(PERMISSIONS.PURCHASE_ORDER_UPDATE), validate(cancelPurchaseRequestSchema),
+    respond(req => fulfilment.closeOrder(req.params.id, org(req), user(req), req.body.comment), { message: "Purchase order closed" }));
+
+
 module.exports = router;

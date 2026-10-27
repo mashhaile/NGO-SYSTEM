@@ -312,6 +312,9 @@ const ExpenseFormPage = () => {
     const selectedBudget = budgets.find(item => item._id === form.budget) || null;
     const selectedDonation = donations.find(item => item._id === form.donation) || null;
 
+    // a purchase order payment stays on the order's line and currency
+    const orderPayment = Boolean(existing?.purchaseOrder);
+
     // The donations that may pay for this budget's work (the server
     // checks the same): not cancelled; a restricted one only for its
     // own program / project / activity; an unrestricted one for anything.
@@ -340,6 +343,12 @@ const ExpenseFormPage = () => {
 
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
+            {orderPayment && (
+                <Alert severity="info" sx={{ mb: 3 }}>
+                    This expense pays purchase order {existing.purchaseOrder.poCode}: it stays on the order's budget line and currency, and is at most what was received and not yet paid.
+                </Alert>
+            )}
+
             <PageCard>
 
                 <FormSection title="Charge To">
@@ -349,6 +358,7 @@ const ExpenseFormPage = () => {
                         <AppAutoComplete
                             label="Project budget"
                             required
+                            disabled={orderPayment}
                             options={budgets}
                             value={selectedBudget}
                             placeholder="Select an approved project budget"
@@ -381,7 +391,7 @@ const ExpenseFormPage = () => {
                         <AppSelect
                             label="Budget line"
                             required
-                            disabled={!budget}
+                            disabled={!budget || orderPayment}
                             value={form.budgetLine}
                             onChange={(e) => change({ budgetLine: e.target.value })}
                             options={lines.map(item => {
@@ -407,7 +417,7 @@ const ExpenseFormPage = () => {
                         </Box>
                     )}
 
-                    {lineYear && budgetAmount > 0 && overBy > 0.005 && (
+                    {lineYear && budgetAmount > 0 && overBy > 0.005 && !orderPayment && (
                         <Alert severity="warning" sx={{ mt: 2 }}>
                             This expense is {formatMoney(overBy, budgetCurrency)} over what is left on this line for {fiscalYearLabel(fiscalYear)}.
                             You can still submit it; the approver will have to confirm approving over budget and give a reason.
@@ -464,6 +474,7 @@ const ExpenseFormPage = () => {
                             />
                             <AppSelect
                                 label="Currency"
+                                disabled={orderPayment}
                                 value={currency}
                                 onChange={(e) => change({ currency: e.target.value })}
                                 options={[...new Set([budgetCurrency, ...CURRENCIES])].map(value => ({ value, label: value }))}

@@ -23,7 +23,8 @@ export const PURCHASE_REQUEST_STATUS = {
     RETURNED: "Returned",
     REJECTED: "Rejected",
     CANCELLED: "Cancelled",
-    ORDERED: "Ordered"
+    ORDERED: "Ordered",
+    CLOSED: "Closed"
 };
 
 export const SOURCING_STATUS = {
@@ -35,6 +36,9 @@ export const SOURCING_STATUS = {
 
 export const PURCHASE_ORDER_STATUS = {
     ISSUED: "Issued",
+    PARTIALLY_RECEIVED: "Partially Received",
+    RECEIVED: "Received",
+    CLOSED: "Closed",
     CANCELLED: "Cancelled"
 };
 

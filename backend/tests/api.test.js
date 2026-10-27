@@ -2701,11 +2701,94 @@ test("procurement: methods by amount; quotations, bid analysis by an approver or
     await api("POST", sp("/sourcing/submit"), { token: fin });
     assert.equal((await api("POST", sp("/sourcing/approve"), { token: de, body: {} })).status, 403);
     assert.equal((await api("POST", sp("/sourcing/approve"), { token: admin, body: {} })).data.data.sourcing.status, "Approved");
-    assert.equal((await api("POST", sp("/purchase-order"), { token: fin, body: {} })).data.data.total, 3800);
+    const smallOrder = (await api("POST", sp("/purchase-order"), { token: fin, body: {} })).data.data;
+    assert.equal(smallOrder.total, 3800);
+    state.smallOrder = smallOrder;
+    state.smallRequest = small._id;
     assert.equal((await position()).committed, 3800);
 
     // back to the defaults
     assert.equal((await api("PUT", "/procurement/settings", { token: admin, body: { reset: true } })).data.data.methods.direct.upTo, 50000);
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
+
+});
+
+
+test("procurement: goods received (partial, rejected); payments are expenses that move Committed to Spent; the order closes when received and paid", { skip }, async () => {
+
+    const admin = state.tokenA;
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const sa = (await login("sa@test.local", "SuperTest2026x")).data.data.token;
+    const me = (await api("GET", "/auth/me", { token: admin })).data.data;
+    const orgA = String(me.organizationId?._id || me.organizationId);
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: true } } });
+
+    // the order from the last test: 4 toner at 950 = 3,800, all committed
+    const po = (path = "") => `/purchase-orders/${state.smallOrder._id}${path}`;
+    const tonerItem = state.smallOrder.items[0]._id;
+    const position = async () => (await lineOf(de, state.budgetOneId, "Personnel")).line.amounts.find(item => item.fiscalYear === 2026);
+    const before = await position();
+    assert.equal(before.committed, 3800);
+
+    assert.equal((await api("POST", po("/payments"), { token: fin, body: {} })).status, 409, "nothing received yet");
+
+    // ---------------- goods received: 3 accepted, 1 rejected
+    assert.equal((await api("POST", po("/receipts"), { token: de, body: { lines: [{ item: tonerItem, accepted: 5 }] } })).status, 400, "only 4 ordered");
+    assert.equal((await api("POST", po("/receipts"), { token: de, body: { lines: [{ item: tonerItem, accepted: 3, rejected: 1 }] } })).status, 400, "a rejection needs a remark");
+    const grn = await api("POST", po("/receipts"), { token: de, body: { deliveryNote: "DN-77", lines: [{ item: tonerItem, accepted: 3, rejected: 1, remark: "Box damaged" }] } });
+    assert.equal(grn.status, 201, grn.data?.message);
+    let order = grn.data.data;
+    assert.equal(order.status, "Partially Received");
+    assert.equal(order.fulfilment.receivedValue, 2850);
+    assert.equal(order.fulfilment.payable, 2850);
+    assert.match(order.fulfilment.receipts[0].grnCode, /^GRN-\d{6}$/);
+    assert.equal((await api("POST", po("/cancel"), { token: fin, body: { comment: "Changed our mind" } })).status, 409, "goods were received");
+
+    // ---------------- payment 1: what was received
+    assert.equal((await api("POST", po("/payments"), { token: fin, body: { amount: 3000 } })).status, 400, "only what was received");
+    const pay1 = await api("POST", po("/payments"), { token: fin, body: { referenceNumber: "INV-9001" } });
+    assert.equal(pay1.status, 201, pay1.data?.message);
+    assert.equal(pay1.data.data.amount, 2850);
+    assert.equal(pay1.data.data.source, "procurement");
+    assert.equal(pay1.data.data.status, "Draft");
+    assert.equal(pay1.data.data.line.overBudget, false, "the order's own committed money pays it");
+    assert.equal((await api("POST", po("/payments"), { token: fin, body: {} })).status, 400, "the rest is waiting for approval");
+    assert.equal((await api("PUT", `/expenses/${pay1.data.data._id}`, { token: fin, body: { amount: 2900 } })).status, 400, "not more than received");
+    assert.equal((await api("POST", `/purchase-orders/receipts/${order.fulfilment.receipts[0]._id}/cancel`, { token: fin, body: { comment: "Counted wrong" } })).status, 409, "the goods are being paid");
+
+    await api("POST", `/expenses/${pay1.data.data._id}/submit`, { token: fin });
+    const approved1 = await api("POST", `/expenses/${pay1.data.data._id}/approve`, { token: admin, body: {} });
+    assert.equal(approved1.status, 200, approved1.data?.message);
+    let year = await position();
+    assert.equal(year.committed, 950, "Committed -> Spent");
+    assert.equal(year.spent, before.spent + 2850);
+    assert.equal(year.remaining, before.remaining, "remaining does not change when committed money is spent");
+
+    // ---------------- the last toner arrives and is paid: the order closes itself
+    order = (await api("POST", po("/receipts"), { token: de, body: { lines: [{ item: tonerItem, accepted: 1 }] } })).data.data;
+    assert.equal(order.status, "Received");
+    assert.equal((await api("POST", po("/close"), { token: fin, body: { comment: "Enough" } })).status, 409, "950 received and not paid");
+    const pay2 = (await api("POST", po("/payments"), { token: fin, body: {} })).data.data;
+    assert.equal(pay2.amount, 950);
+    await api("POST", `/expenses/${pay2._id}/submit`, { token: fin });
+    assert.equal((await api("POST", `/expenses/${pay2._id}/approve`, { token: admin, body: {} })).status, 200);
+    order = (await api("GET", po(), { token: de })).data.data;
+    assert.equal(order.status, "Closed");
+    assert.equal(order.paidTotal, 3800);
+    assert.equal((await api("GET", `/purchase-requests/${state.smallRequest}`, { token: de })).data.data.status, "Closed");
+    year = await position();
+    assert.equal(year.committed, 0);
+    assert.equal(year.spent, before.spent + 3800);
+
+    // voiding a payment opens the order again
+    await api("POST", `/expenses/${pay2._id}/void`, { token: admin, body: { comment: "Paid twice by mistake" } });
+    order = (await api("GET", po(), { token: de })).data.data;
+    assert.equal(order.status, "Received");
+    assert.equal(order.fulfilment.payable, 950);
+    assert.equal((await api("GET", `/purchase-requests/${state.smallRequest}`, { token: de })).data.data.status, "Ordered");
+    assert.equal((await position()).committed, 950);
+
     await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
 
 });

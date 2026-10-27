@@ -101,6 +101,9 @@ const ExpenseSchema =
 
             source: { type: String, enum: ["direct", "procurement"], default: "direct" },
 
+            // procurement: the purchase order this expense pays
+            purchaseOrder: { type: mongoose.Schema.Types.ObjectId, ref: "PurchaseOrder", default: null },
+
             status: {
                 type: String,
                 enum: Object.values(EXPENSE_STATUS),

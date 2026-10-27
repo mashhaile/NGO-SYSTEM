@@ -492,6 +492,16 @@ const PERMISSIONS = {
     PURCHASE_ORDER_UPDATE:
         "purchase_order.update",
 
+    // Goods received notes (update: cancel one)
+    GOODS_RECEIPT_CREATE:
+        "goods_receipt.create",
+
+    GOODS_RECEIPT_READ:
+        "goods_receipt.read",
+
+    GOODS_RECEIPT_UPDATE:
+        "goods_receipt.update",
+
     // Procurement committees
     COMMITTEE_CREATE:
         "committee.create",

@@ -92,7 +92,7 @@ const DETAIL_POPULATE = [
     { path: "sourcing.startedBy", select: USER_FIELDS },
     { path: "sourcing.submittedBy", select: USER_FIELDS },
     { path: "sourcing.approvedBy", select: USER_FIELDS },
-    { path: "purchaseOrder", select: "poCode status total currency budgetAmount orderDate supplier" }
+    { path: "purchaseOrder", select: "poCode status total currency budgetAmount paidAmount paidTotal orderDate supplier" }
 ];
 
 
@@ -257,7 +257,7 @@ const convert = (estimatedTotal, currency, exchangeRate, budgetCurrency) => {
 // =====================================================
 
 // Committed = approved requests not yet ordered (their
-// estimate) + issued purchase orders (their total).
+// estimate) + open purchase orders (what is not yet paid).
 
 // Committed on one line for one year, leaving out one request
 // and its order (excludeId: the request)
@@ -280,7 +280,7 @@ const lineCommitted = async (organizationId, budgetId, lineId, fiscalYear, { exc
             ]).session(session),
             PurchaseOrder.aggregate([
                 { $match: { ...match, status: { $in: PO_COMMITTING_STATUSES }, ...(excludeId ? { purchaseRequest: { $ne: objectId(excludeId) } } : {}) } },
-                { $group: { _id: null, total: { $sum: "$budgetAmount" } } }
+                { $group: { _id: null, total: { $sum: { $max: [0, { $subtract: ["$budgetAmount", { $ifNull: ["$paidAmount", 0] }] }] } } } }
             ]).session(session)
         ]);
 
@@ -304,7 +304,7 @@ const committedByLine = async (organizationId, budgetIds) => {
     const [requests, orders] =
         await Promise.all([
             PurchaseRequest.aggregate([{ $match: { ...match, isDeleted: false, status: { $in: COMMITTING_STATUSES } } }, group]),
-            PurchaseOrder.aggregate([{ $match: { ...match, status: { $in: PO_COMMITTING_STATUSES } } }, group])
+            PurchaseOrder.aggregate([{ $match: { ...match, status: { $in: PO_COMMITTING_STATUSES } } }, { $group: { _id: { line: "$budgetLine", year: "$fiscalYear" }, total: { $sum: { $max: [0, { $subtract: ["$budgetAmount", { $ifNull: ["$paidAmount", 0] }] }] } } } }])
         ]);
 
     const totals = {};
@@ -575,8 +575,12 @@ const getPurchaseRequestById = async (id, organizationId) => {
     // what it takes (or would take) from the line: the order's
     // total once ordered, otherwise the estimate
     const counts = ![PURCHASE_REQUEST_STATUS.REJECTED, PURCHASE_REQUEST_STATUS.CANCELLED].includes(request.status);
-    const ordered = request.status === PURCHASE_REQUEST_STATUS.ORDERED && request.purchaseOrder;
-    const takes = ordered ? request.purchaseOrder.budgetAmount : request.budgetAmount;
+    // ordered: what its order has not yet paid (paid is in spent)
+    const ordered = [PURCHASE_REQUEST_STATUS.ORDERED, PURCHASE_REQUEST_STATUS.CLOSED].includes(request.status) && request.purchaseOrder;
+    const takes =
+        ordered
+            ? (request.purchaseOrder.status === "Closed" ? 0 : Math.max(0, roundMoney(request.purchaseOrder.budgetAmount - (request.purchaseOrder.paidAmount || 0))))
+            : request.budgetAmount;
 
     return {
         ...request,

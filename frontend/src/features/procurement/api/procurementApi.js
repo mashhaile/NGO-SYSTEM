@@ -109,6 +109,21 @@ export const updatePurchaseOrderApi = async (id, body) =>
 export const cancelPurchaseOrderApi = async (id, comment) =>
     (await axiosClient.post(`/purchase-orders/${id}/cancel`, { comment })).data?.data;
 
+// receiving and paying
+
+export const recordReceiptApi = async (id, body) =>
+    (await axiosClient.post(`/purchase-orders/${id}/receipts`, body)).data?.data;
+
+export const cancelReceiptApi = async (noteId, comment) =>
+    (await axiosClient.post(`/purchase-orders/receipts/${noteId}/cancel`, { comment })).data?.data;
+
+// creates a Draft expense linked to the order; returns the expense
+export const createPaymentApi = async (id, body) =>
+    (await axiosClient.post(`/purchase-orders/${id}/payments`, body)).data?.data;
+
+export const closeOrderApi = async (id, comment) =>
+    (await axiosClient.post(`/purchase-orders/${id}/close`, { comment })).data?.data;
+
 export const downloadPurchaseOrderPdfApi = async (id, fileName) => {
     const response = await axiosClient.get(`/purchase-orders/${id}/pdf`, { responseType: "blob" });
     const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
