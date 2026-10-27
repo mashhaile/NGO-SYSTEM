@@ -50,6 +50,19 @@ const respond = (work, { status = 200, message } = {}) => async (req, res, next)
 router.get("/", ...base, authorize(PERMISSIONS.PURCHASE_ORDER_READ),
     respond(req => service.getPurchaseOrders(org(req), req.query)));
 
+// a goods received note as a PDF (to sign and file with the invoice)
+router.get("/receipts/:noteId/pdf", ...base, authorize(PERMISSIONS.GOODS_RECEIPT_READ), async (req, res, next) => {
+    try {
+        const { buffer, fileName } = await service.buildReceiptPdf(req.params.noteId, org(req));
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+        res.send(buffer);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+
 router.get("/:id", ...base, authorize(PERMISSIONS.PURCHASE_ORDER_READ),
     respond(req => service.getPurchaseOrderById(req.params.id, org(req))));
 

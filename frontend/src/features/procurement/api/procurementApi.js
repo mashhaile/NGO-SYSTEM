@@ -124,6 +124,20 @@ export const createPaymentApi = async (id, body) =>
 export const closeOrderApi = async (id, comment) =>
     (await axiosClient.post(`/purchase-orders/${id}/close`, { comment })).data?.data;
 
+export const downloadReceiptPdfApi = (noteId, fileName) =>
+    downloadPdf(`/purchase-orders/receipts/${noteId}/pdf`, fileName || "goods-received-note.pdf");
+
+const downloadPdf = async (url, fileName) => {
+    const response = await axiosClient.get(url, { responseType: "blob" });
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(link.href);
+};
+
 export const downloadPurchaseOrderPdfApi = async (id, fileName) => {
     const response = await axiosClient.get(`/purchase-orders/${id}/pdf`, { responseType: "blob" });
     const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));

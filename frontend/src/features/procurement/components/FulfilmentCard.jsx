@@ -40,7 +40,8 @@ import {
     recordReceiptApi,
     cancelReceiptApi,
     createPaymentApi,
-    closeOrderApi
+    closeOrderApi,
+    downloadReceiptPdfApi
 } from "../api/procurementApi";
 
 import {
@@ -371,6 +372,13 @@ const FulfilmentCard = ({ order, user, onChange, navigate }) => {
                                 <StatusChip status={note.status} />
                                 <Box sx={{ flex: 1 }} />
                                 <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatMoney(note.value, order.currency)}</Typography>
+                                <Link
+                                    component="button"
+                                    underline="hover"
+                                    onClick={() => downloadReceiptPdfApi(note._id, `${note.grnCode}.pdf`).catch(err => setError(getApiErrorMessage(err, "The PDF could not be made.")))}
+                                >
+                                    PDF
+                                </Link>
                                 {can.cancelReceipt && note.status === "Recorded" && (
                                     <Link component="button" color="error" underline="hover" onClick={() => openDialog("cancelReceipt", note)}>Cancel</Link>
                                 )}

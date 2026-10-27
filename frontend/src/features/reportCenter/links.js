@@ -22,7 +22,9 @@ const APP_PAGES = {
     delivery: (id) => `/service-deliveries/${id}`,
     donation: (id) => `/donations/${id}/trace`,
     budget: (id) => `/budgets/${id}`,
-    activity: (id) => `/activities/${id}`
+    activity: (id) => `/activities/${id}`,
+    purchaseOrder: (id) => `/purchase-orders/${id}`,
+    supplier: (id) => `/suppliers/${id}`
 };
 
 export const linkPath = (link, row) => {

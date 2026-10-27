@@ -2789,7 +2789,30 @@ test("procurement: goods received (partial, rejected); payments are expenses tha
     assert.equal((await api("GET", `/purchase-requests/${state.smallRequest}`, { token: de })).data.data.status, "Ordered");
     assert.equal((await position()).committed, 950);
 
+    // ---------------- the goods received note as a PDF
+    const grnPdf = await fetch(`${BASE}/purchase-orders/receipts/${order.fulfilment.receipts[0]._id}/pdf`, { headers: { Authorization: `Bearer ${de}` } });
+    assert.equal(grnPdf.status, 200);
+    assert.match(grnPdf.headers.get("content-type"), /pdf/);
+
+    // ---------------- the procurement report
+    const catalog = (await api("GET", "/report-center", { token: de })).data.data.map(report => report.key);
+    assert.ok(catalog.includes("procurement"));
+    const report = await api("GET", "/report-center/procurement?period=year&year=2026", { token: de });
+    assert.equal(report.status, 200, report.data?.message);
+    const sectionOf = (key) => report.data.data.sections.find(item => item?.key === key);
+    const gamma = sectionOf("suppliers").rows.find(row => row.label === "Gamma Trading");
+    assert.equal(gamma.ordered, 3800);
+    assert.equal(gamma.received, 3800);
+    assert.equal(gamma.paid, 2850, "the voided payment does not count");
+    assert.ok(!sectionOf("suppliers").rows.some(row => row.label === "Alpha Computers"), "a cancelled order is not spend");
+    const open = sectionOf("open").rows.find(row => row.code === state.smallOrder.poCode);
+    assert.equal(open.toPay, 950);
+    assert.equal(open.flag, "Received, not paid");
+    const excel = await fetch(`${BASE}/report-center/procurement?period=year&year=2026&format=excel`, { headers: { Authorization: `Bearer ${de}` } });
+    assert.equal(excel.status, 200);
+
     await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
+    assert.ok(!(await api("GET", "/report-center", { token: de })).data.data.some(report => report.key === "procurement"), "module off: report hidden");
 
 });
 

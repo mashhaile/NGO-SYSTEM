@@ -519,7 +519,138 @@ const buildPurchaseOrderPdf = async (id, organizationId) => {
 };
 
 
+// ---------------------------------------------------------------- GRN PDF
+
+const buildReceiptPdf = async (noteId, organizationId) => {
+
+    const {
+        createPdfDocument,
+        drawTitle,
+        drawSectionTitle,
+        drawKeyValueGrid,
+        drawTable,
+        ensureSpace,
+        addPageFooters,
+        pdfDate
+    } = require("./reports/pdf");
+
+    if (!mongoose.isValidObjectId(noteId)) throw new ApiError("Goods received note not found.", 404);
+
+    const note =
+        await mongoose.model("GoodsReceipt").findOne({ _id: noteId, organization: organizationId })
+            .populate("supplier", "supplierCode name phone")
+            .populate("receivedBy", USER_FIELDS)
+            .lean();
+
+    if (!note) throw new ApiError("Goods received note not found.", 404);
+
+    const order =
+        await PurchaseOrder.findById(note.purchaseOrder)
+            .populate("project", "projectCode name")
+            .populate("purchaseRequest", "requestCode title")
+            .lean();
+
+    const organization = await Organization.findById(organizationId).select("name").lean();
+
+    const doc = createPdfDocument({ layout: "portrait" });
+
+    const chunks = [];
+    doc.on("data", chunk => chunks.push(chunk));
+    const finished = new Promise((resolve, reject) => {
+        doc.on("end", () => resolve(Buffer.concat(chunks)));
+        doc.on("error", reject);
+    });
+
+    const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+    drawTitle(doc, organization?.name || "Goods Received Note", `GOODS RECEIVED NOTE · ${note.grnCode}`);
+
+    if (note.status === "Cancelled") {
+        doc.font("Helvetica-Bold").fontSize(12).fillColor("#b91c1c")
+            .text(`CANCELLED ${pdfDate(note.cancelledAt)}: ${note.cancelReason}`, { align: "center" })
+            .fillColor("#000000");
+    }
+
+    doc.moveDown(0.8);
+
+    drawSectionTitle(doc, "DELIVERY");
+
+    drawKeyValueGrid(
+        doc,
+        [
+            { label: "GRN number", value: note.grnCode },
+            { label: "Received on", value: pdfDate(note.receivedDate) },
+            { label: "Purchase order", value: order?.poCode || "-" },
+            { label: "Delivery note", value: note.deliveryNote || "-" },
+            { label: "Supplier", value: `${note.supplier?.name || "-"} (${note.supplier?.supplierCode || ""})` },
+            { label: "Received by", value: note.receivedBy?.name || "-" },
+            { label: "Request", value: [order?.purchaseRequest?.requestCode, order?.purchaseRequest?.title].filter(Boolean).join(" - ") || "-" },
+            { label: "Project", value: order?.project?.name || "-" }
+        ],
+        { columns: 2, labelWidth: 90 }
+    );
+
+    doc.moveDown(0.8);
+
+    drawSectionTitle(doc, "GOODS");
+
+    const ordered = new Map((order?.items || []).map(item => [String(item._id), item]));
+
+    drawTable(
+        doc,
+        [
+            { key: "no", label: "#", align: "right" },
+            { key: "item", label: "Item" },
+            { key: "unit", label: "Unit" },
+            { key: "ordered", label: "Ordered", align: "right" },
+            { key: "accepted", label: "Accepted", align: "right" },
+            { key: "rejected", label: "Rejected", align: "right" },
+            { key: "remark", label: "Remark" }
+        ],
+        note.lines.map((line, index) => ({
+            no: String(index + 1),
+            item: line.description,
+            unit: line.unit,
+            ordered: String(ordered.get(String(line.item))?.quantity ?? "-"),
+            accepted: String(line.accepted),
+            rejected: String(line.rejected || 0),
+            remark: line.remark || ""
+        }))
+    );
+
+    if (note.notes) {
+        doc.moveDown(0.6);
+        doc.font("Helvetica").fontSize(9.5).text(`Notes: ${note.notes}`, doc.page.margins.left, doc.y, { width });
+    }
+
+    ensureSpace(doc, 110);
+    doc.moveDown(2.5);
+
+    const top = doc.y;
+    const column = width / 3;
+    ["Received by (store)", "Delivered by (supplier)", "Checked by"].forEach((label, index) => {
+        const x = doc.page.margins.left + index * column;
+        doc.moveTo(x + 5, top + 40).lineTo(x + column - 15, top + 40).stroke("#999999");
+        doc.font("Helvetica").fontSize(9).fillColor("#333333")
+            .text(label, x + 5, top + 46, { width: column - 20 })
+            .text("Name, signature, date", x + 5, top + 58, { width: column - 20 });
+    });
+    doc.fillColor("#000000");
+
+    addPageFooters(doc, { leftText: `${note.grnCode} · Goods received note` });
+
+    doc.end();
+
+    return {
+        buffer: await finished,
+        fileName: `${note.grnCode}.pdf`
+    };
+
+};
+
+
 module.exports = {
+    buildReceiptPdf,
     createPurchaseOrder,
     updatePurchaseOrder,
     cancelPurchaseOrder,
