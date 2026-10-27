@@ -81,6 +81,10 @@ import {
     DRAWER_WIDTH
 } from "./DashboardLayout";
 
+import {
+    useModuleOfPermissionOn
+} from "../../utils/modules";
+
 
 /* ==========================================================
    COLORS
@@ -380,6 +384,9 @@ const Sidebar = ({
 
     /* ---------------- what this user may see ---------------- */
 
+    // is the module of this permission on for the organization?
+    const moduleOn = useModuleOfPermissionOn();
+
     const can = (permission) =>
         isSuperAdmin ||
         !permission ||
@@ -387,15 +394,17 @@ const Sidebar = ({
         permissions.includes(permission);
 
     // Admin sections: only allowed items. Others: every item,
-    // the ones the user may not open marked as locked.
+    // the ones the user may not open marked as locked. Items
+    // of a module switched off for the organization are not
+    // shown at all (the platform admin's choice, not a role's).
     const sections =
         SECTIONS
             .filter(section => !section.superAdminOnly || isSuperAdmin)
             .map(section => ({
                 ...section,
-                items: section.adminOnly
-                    ? section.items.filter(item => can(item.permission))
-                    : section.items.map(item => ({ ...item, locked: !can(item.permission) }))
+                items: (isSuperAdmin ? section.items : section.items.filter(item => moduleOn(item.permission)))
+                    .filter(item => !section.adminOnly || can(item.permission))
+                    .map(item => (section.adminOnly ? item : { ...item, locked: !can(item.permission) }))
             }))
             .filter(section => section.items.length > 0);
 

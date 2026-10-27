@@ -62,7 +62,10 @@ const toLoginUser = (user) => ({
 const withRole = async (loginUser, user) => ({
     ...loginUser,
     permissions: await roleService.permissionsOf(user),
-    roleName: await roleService.roleNameOf(user)
+    roleName: await roleService.roleNameOf(user),
+    // the organization's modules that are on (screens hide
+    // fields of the others, e.g. the donor on a project)
+    modules: [...await require("./moduleService").enabledFor(user.organization)]
 });
 
 
@@ -390,6 +393,7 @@ const getCurrentUser = async (userId) => {
         roleName: await roleService.roleNameOf(user),
         status: user.status,
         permissions,
+        modules: [...await require("./moduleService").enabledFor(user.organization?._id || user.organization)],
 
         mustChangePassword:
             Boolean(user.mustChangePassword),

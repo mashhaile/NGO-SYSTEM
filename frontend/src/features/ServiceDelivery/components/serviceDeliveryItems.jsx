@@ -58,6 +58,7 @@ import {
     CURRENCIES
 } from "../../budgets/utils/budgetUtils";
 import { formatDate } from "../../../utils/date";
+import { useModuleOn } from "../../../utils/modules";
 
 
 // A service item may be priced in another currency (USD,
@@ -1718,6 +1719,9 @@ const ServiceDeliveryItemRow = ({
         enabled: Boolean(donationValue),
         staleTime: 30000
     });
+
+    // donor / donation fields belong to the funding module
+    const fundingOn = useModuleOn("funding");
 
     // The chosen donation's own record (status, amount)
     const selectedDonationRecord =
@@ -3864,6 +3868,8 @@ const ServiceDeliveryItemRow = ({
                 />
 
 
+                {/* donor and donation: only with the funding module */}
+                {fundingOn && (
                 <AppSelect
                     label="Donor"
                     value={
@@ -3886,8 +3892,10 @@ const ServiceDeliveryItemRow = ({
                     }
                     fullWidth
                 />
+                )}
 
 
+                {fundingOn && (
                 <AppSelect
                     label="Donation"
                     value={
@@ -3913,6 +3921,7 @@ const ServiceDeliveryItemRow = ({
                     }
                     fullWidth
                 />
+                )}
 
             </Box>
 
@@ -3940,7 +3949,7 @@ const ServiceDeliveryItemRow = ({
 
             {/* Donation trace: unlinked costs reach no donor. */}
 
-            {!donationValue && (
+            {fundingOn && !donationValue && (
 
                 <Alert
                     severity="warning"

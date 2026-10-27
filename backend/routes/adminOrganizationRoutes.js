@@ -74,6 +74,43 @@ router.get(
 
 
 // =====================================================
+// MODULES OF AN ORGANIZATION (on / off)
+// GET /api/v1/admin/organizations/:id/modules
+// PUT /api/v1/admin/organizations/:id/modules
+//     { modules: { tor: false, funding: true } }
+// =====================================================
+
+const moduleService =
+    require("../services/moduleService");
+
+const { getErrorStatus } =
+    require("../utils/errorStatus");
+
+const respond = (work) => async (req, res) => {
+    try {
+        res.json({ success: true, data: await work(req) });
+    }
+    catch (error) {
+        res.status(error.statusCode || getErrorStatus(error)).json({ success: false, message: error.message, errors: [] });
+    }
+};
+
+router.get(
+    "/:id/modules",
+    authMiddleware,
+    requireRole("super_admin"),
+    respond(req => moduleService.listForOrganization(req.params.id))
+);
+
+router.put(
+    "/:id/modules",
+    authMiddleware,
+    requireRole("super_admin"),
+    respond(req => moduleService.updateForOrganization(req.params.id, req.body?.modules || {}, req.user?.userId))
+);
+
+
+// =====================================================
 // UPDATE ORGANIZATION
 // PATCH /api/v1/admin/organizations/:id
 // =====================================================

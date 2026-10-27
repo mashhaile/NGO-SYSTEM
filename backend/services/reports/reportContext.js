@@ -57,7 +57,13 @@ const buildReportContext = async (req) => {
 
         user,
 
-        organization
+        organization,
+
+        // the organization's modules that are on: reports of
+        // the others are left out (also for the super admin
+        // viewing this organization)
+        modules:
+            await require("../moduleService").enabledFor(organizationId)
 
     };
 

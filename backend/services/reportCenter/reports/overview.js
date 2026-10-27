@@ -24,16 +24,23 @@ const generate = async (query, context, period) => {
 
     const money = hasPermission(context, "budget.read");
 
-    const run = (name) => require(`./${name}`).generate(query, context, period);
+    // a module that is off for the organization: its figures
+    // are left out (see config/modules.js)
+    const on = (module) => !context?.modules || context.modules.has(module);
+
+    const run = (name, module) =>
+        module && !on(module)
+            ? Promise.resolve(null)
+            : require(`./${name}`).generate(query, context, period);
 
     const [people, programs, activities, delivery, enterprises, donors, budgets] = await Promise.all([
         run("beneficiaries"),
         run("programs"),
-        run("activities"),
-        run("serviceDelivery"),
-        run("enterprises"),
-        run("donors"),
-        money ? run("budgets") : Promise.resolve(null)
+        run("activities", "activities"),
+        run("serviceDelivery", "serviceDelivery"),
+        run("enterprises", "enterprises"),
+        run("donors", "funding"),
+        money ? run("budgets", "finance") : Promise.resolve(null)
     ]);
 
     const results = [
@@ -83,7 +90,7 @@ const generate = async (query, context, period) => {
     ].filter(Boolean).map(item => summaryItem(item.label, item.value, item.format, { currency: item.currency, note: item.note }));
 
     const programSection = programs.sections.find(item => item.key === "programs");
-    const monthSection = delivery.sections.find(item => item.key === "month");
+    const monthSection = delivery?.sections.find(item => item.key === "month");
     const genderSection = people.sections.find(item => item.key === "gender");
 
     return buildReport({

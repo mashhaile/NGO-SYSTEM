@@ -334,6 +334,20 @@ const organizationSchema = new mongoose.Schema(
         },
 
         // =================================================
+        // MODULES SWITCHED ON / OFF BY THE PLATFORM ADMIN
+        // { tor: false, funding: true } (missing: the
+        // module's default; see config/modules.js)
+        // =================================================
+
+        modules: {
+
+            type: mongoose.Schema.Types.Mixed,
+
+            default: {}
+
+        },
+
+        // =================================================
         // ORGANIZATION BRANDING
         // =================================================
 

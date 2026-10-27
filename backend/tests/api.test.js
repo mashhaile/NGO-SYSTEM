@@ -2296,6 +2296,54 @@ test("service delivery: ETB cash paid from a USD donation is charged at the dona
 
 
 // =====================================================
+// MODULES SWITCHED PER ORGANIZATION BY THE SUPER ADMIN
+// =====================================================
+
+test("modules: the super admin switches modules off and on per organization; off is hidden, not deleted", { skip }, async () => {
+
+    const sa = (await login("sa@test.local", "SuperTest2026x")).data.data.token;
+    const me = (await api("GET", "/auth/me", { token: state.tokenA })).data.data;
+    const orgA = String(me.organizationId?._id || me.organizationId || me.user?.organizationId);
+    const tors = (await api("GET", "/tors", { token: state.tokenA })).data.data;
+    const torCount = (Array.isArray(tors) ? tors : tors.items || []).length;
+
+    // only the super admin manages modules
+    assert.equal((await api("GET", `/admin/organizations/${orgA}/modules`, { token: state.tokenA })).status, 403);
+    const list = (await api("GET", `/admin/organizations/${orgA}/modules`, { token: sa })).data.data;
+    assert.ok(list.modules.every(module => module.enabled), "all on at first");
+
+    // TOR and funding off
+    const off = await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { tor: false, funding: false } } });
+    assert.equal(off.status, 200);
+    assert.equal(off.data.data.modules.find(module => module.key === "tor").enabled, false);
+
+    const admin = (await api("GET", "/auth/me", { token: state.tokenA })).data.data;
+    const permissions = admin.permissions || admin.user?.permissions || [];
+    assert.ok(!permissions.some(permission => permission.startsWith("tor.") || permission.startsWith("donation.")), "their permissions are left out");
+    assert.ok(!(admin.modules || admin.user?.modules).includes("funding"));
+    assert.equal((await api("GET", "/tors", { token: state.tokenA })).status, 403);
+    assert.equal((await api("GET", "/donations", { token: state.tokenA })).status, 403);
+    const catalog = (await api("GET", "/report-center", { token: state.tokenA })).data.data.map(report => report.key);
+    assert.ok(!catalog.includes("donors") && catalog.includes("beneficiaries"));
+    assert.equal((await api("GET", "/report-center/donors?period=year&year=2026", { token: state.tokenA })).status, 403);
+
+    // TOR off: data entry creates activities directly
+    const dataEntry = (await api("GET", "/auth/me", { token: state.dataEntryToken })).data.data;
+    assert.ok((dataEntry.permissions || dataEntry.user?.permissions).includes("activity.create"));
+
+    // another organization is not affected
+    assert.equal((await api("GET", "/tors", { token: state.tokenB })).status, 200);
+
+    // on again: everything is back, nothing was deleted
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { tor: true, funding: true } } });
+    const back = (await api("GET", "/tors", { token: state.tokenA })).data.data;
+    assert.equal((Array.isArray(back) ? back : back.items || []).length, torCount);
+    assert.equal((await api("GET", "/donations", { token: state.tokenA })).status, 200);
+
+});
+
+
+// =====================================================
 // PASSWORDS: OWN AT FIRST SIGN-IN, THEN THE ADMIN MANAGES
 // =====================================================
 

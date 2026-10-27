@@ -47,6 +47,7 @@ import BudgetFigureCell
 import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { formatDate } from "../../../utils/date";
+import { useModuleOn } from "../../../utils/modules";
 
 
 const STATUS_OPTIONS =
@@ -157,6 +158,9 @@ const ProgramListPage = () => {
     const canUpdate = hasPermission(user, "program.update");
     const canDelete = hasPermission(user, "program.delete");
 
+
+    // columns of other modules show only when those are on
+    const financeOn = useModuleOn("finance");
 
     const columns = [
 
@@ -300,7 +304,7 @@ const ProgramListPage = () => {
             <PageCard>
                 <DataTable
                     rows={result.rows}
-                    columns={columns}
+                    columns={columns.filter(column => (column.field !== "budget" || financeOn))}
                     loading={result.loading}
                     paginationMode="server"
                     rowCount={result.total}

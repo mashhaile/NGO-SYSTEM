@@ -47,6 +47,7 @@ import {
     getProjectByIdService
 } from "../services/projectService";
 import { formatDate, formatDateTime } from "../../../utils/date";
+import { useModuleOn } from "../../../utils/modules";
 
 
 const ProjectDetailsPage = () => {
@@ -59,6 +60,10 @@ const ProjectDetailsPage = () => {
     const navigate = useNavigate();
 
     const { user } = useAuth();
+
+    // fields of other modules show only when those are on
+    const fundingOn = useModuleOn("funding");
+    const financeOn = useModuleOn("finance");
 
 
 const [
@@ -394,6 +399,7 @@ const [
                         />
                     )}
 
+                    {fundingOn && (
                     <InfoRow
                         label="Donor"
                         value={
@@ -402,6 +408,7 @@ const [
                             "-"
                         }
                     />
+                    )}
 
                     <InfoRow
                         label="Project Manager"
@@ -492,9 +499,14 @@ const [
                                 },
                                 { key: "dates", label: "Dates", render: row => `${formatDate(row.startDate)} - ${formatDate(row.endDate)}` },
                                 { key: "status", label: "Status", render: row => <StatusChip status={row.status || "Planned"} /> },
-                                { key: "budget", label: "Approved budget", align: "right", render: row => (row.budget ? money(row.budget, "approvedAmount") : "No budget yet") },
-                                { key: "spent", label: "Spent", align: "right", render: row => money(row.budget, "spent") },
-                                { key: "left", label: "Left", align: "right", render: row => money(row.budget, "remaining") }
+                                // budget columns: only with the finance module
+                                ...(financeOn
+                                    ? [
+                                        { key: "budget", label: "Approved budget", align: "right", render: row => (row.budget ? money(row.budget, "approvedAmount") : "No budget yet") },
+                                        { key: "spent", label: "Spent", align: "right", render: row => money(row.budget, "spent") },
+                                        { key: "left", label: "Left", align: "right", render: row => money(row.budget, "remaining") }
+                                    ]
+                                    : [])
                             ]}
                         />
                         )}

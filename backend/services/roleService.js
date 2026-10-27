@@ -41,7 +41,14 @@ const GRANTABLE = new Set(rolePermissions.organization_admin || []);
 
 // ---------------------------------------------------------------- permissions of a user
 
-const permissionsOf = async (user) => {
+// the role's permissions, without those of the organization's
+// modules that are switched off (see moduleService)
+const permissionsOf = async (user) =>
+    user?.organization && user?.role !== "super_admin"
+        ? require("./moduleService").filterPermissions(await rolePermissionsOf(user), await require("./moduleService").enabledFor(user.organization?._id || user.organization))
+        : rolePermissionsOf(user);
+
+const rolePermissionsOf = async (user) => {
 
     if (user?.customRole && mongoose.isValidObjectId(user.customRole)) {
         const role = await Role.findOne({ _id: user.customRole, organization: user.organization, isDeleted: false }).select("permissions").lean();

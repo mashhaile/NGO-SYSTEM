@@ -39,9 +39,22 @@ const DETAILS = [
 ];
 
 
-// money reports need the finance permission
+// a report of a module that is off is left out (see
+// config/modules.js); money reports need the finance permission
+const REPORT_MODULE = {
+    activities: "activities",
+    serviceDelivery: "serviceDelivery",
+    enterprises: "enterprises",
+    donors: "funding",
+    budgets: "finance"
+};
+
+const moduleOn = (context, key) =>
+    !key || !context?.modules || context.modules.has(key);
+
 const canSee = (report, context) =>
-    !report.permission || hasPermission(context, report.permission);
+    moduleOn(context, REPORT_MODULE[report.key]) &&
+    (!report.permission || hasPermission(context, report.permission));
 
 const getCatalog = (context) =>
     REPORTS
@@ -60,6 +73,10 @@ const runReport = async (key, query, context) => {
     const report = REPORTS.find(item => item.key === key);
 
     if (!report) throw new ApiError(`Unknown report: ${key}`, 404);
+
+    if (!moduleOn(context, REPORT_MODULE[report.key])) {
+        throw new ApiError("This report's module is not enabled for your organization.", 403);
+    }
 
     if (report.permission) assertPermission(context, report.permission, "this report");
 

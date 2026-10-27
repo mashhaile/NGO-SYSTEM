@@ -15,6 +15,8 @@ import {
     Payments
 } from "@mui/icons-material";
 
+import { useModuleOn } from "../../../utils/modules";
+
 
 // Received funding in other currencies, e.g. "+ EUR 15,000"
 // (never added to the ETB figure)
@@ -24,9 +26,21 @@ const otherCurrencies = (byCurrency = {}) =>
         .map(([currency, amount]) => `+ ${currency} ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(amount)}`)
         .join("  ");
 
+// the module each tile belongs to (the others are core)
+const MODULE_OF_CARD = {
+    "Donors": "funding",
+    "Total Funding (received)": "funding",
+    "Services": "serviceDelivery",
+    "Service Value": "serviceDelivery"
+};
+
 const SummaryCards = ({
     summary = {}
 }) => {
+
+    const fundingOn = useModuleOn("funding");
+    const servicesOn = useModuleOn("serviceDelivery");
+    const modules = new Set([fundingOn && "funding", servicesOn && "serviceDelivery"].filter(Boolean));
 
 
     const cards = [
@@ -134,7 +148,10 @@ const SummaryCards = ({
         >
 
             {
-                cards.map(
+                cards
+                    // tiles of a module that is off are left out
+                    .filter(card => !MODULE_OF_CARD[card.title] || modules.has(MODULE_OF_CARD[card.title]))
+                    .map(
                     (card) => {
 
                         const Icon =

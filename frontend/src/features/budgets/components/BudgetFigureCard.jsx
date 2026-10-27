@@ -25,6 +25,10 @@ import {
     fiscalYearLabel
 } from "../../../utils/fiscalYear";
 
+import {
+    useModuleOn
+} from "../../../utils/modules";
+
 
 // =====================================================
 // BUDGET CARD (program / project pages)
@@ -41,6 +45,10 @@ const BudgetFigureCard = ({ figure, level, entityId, user, navigate }) => {
 
     const what = level === "program" ? "program" : "project";
     const approved = figure?.status === "Approved";
+
+    // budgets belong to the finance module
+    const financeOn = useModuleOn("finance");
+    if (!financeOn) return null;
 
     return (
 

@@ -82,6 +82,8 @@ import {
 } from "../api/planApi";
 import { formatDate } from "../../../utils/date";
 
+import OrganizationModulesCard from "../components/OrganizationModulesCard";
+
 
 // =====================================================
 // PAGE
@@ -2603,6 +2605,11 @@ const isTrialing =
                 controls are managed by the Super Admin.
 
             </Alert>
+
+            {/* the organization's modules (on / off) */}
+            {organizationId && organizationId !== "—" && (
+                <OrganizationModulesCard organizationId={organizationId} />
+            )}
 
         </PageContainer>
     );

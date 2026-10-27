@@ -35,6 +35,7 @@ import ServiceDeliveryAllocations
     from "./serviceDeliveryAllocations";
 
 import { dayOf, rangeHint } from "../../../utils/date";
+import { useModuleOn } from "../../../utils/modules";
 
 
 // =====================================================
@@ -1629,6 +1630,10 @@ const ServiceDeliveryForm = ({
                 programs
             ]
         );
+
+
+    // the activity / run fields belong to the activities module
+    const activitiesOn = useModuleOn("activities");
 
 
     // a delivery under a project is dated inside it: its
@@ -3519,6 +3524,8 @@ const ServiceDeliveryForm = ({
                         />
 
 
+                        {/* activity and run: only with the activities module */}
+                        {activitiesOn && (
                         <AppSelect
 
                             label="Activity"
@@ -3549,8 +3556,10 @@ const ServiceDeliveryForm = ({
                             }
 
                         />
+                        )}
 
 
+                        {activitiesOn && (
                         <AppSelect
 
                             label="Activity Run"
@@ -3582,6 +3591,7 @@ const ServiceDeliveryForm = ({
                             }
 
                         />
+                        )}
 
 
                         <AppDatePicker

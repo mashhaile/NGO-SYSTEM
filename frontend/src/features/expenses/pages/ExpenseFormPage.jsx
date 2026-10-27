@@ -65,6 +65,8 @@ import {
     fiscalYearLabel
 } from "../../../utils/fiscalYear";
 
+import { useModuleOn } from "../../../utils/modules";
+
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -112,6 +114,10 @@ const ExpenseFormPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState("");
     const [error, setError] = useState("");
+
+    // the links belong to other modules
+    const fundingOn = useModuleOn("funding");
+    const activitiesOn = useModuleOn("activities");
 
 
     // ---------------- load ----------------
@@ -489,6 +495,8 @@ const ExpenseFormPage = () => {
                 <FormSection title="Links (optional)" subtitle="Which donation paid for it (for donor tracing) and which activity it was for.">
 
                     <FormGrid columns={2}>
+                        {/* each link only with its module */}
+                        {fundingOn && (
                         <AppAutoComplete
                             label="Paid from donation"
                             options={donationOptions}
@@ -506,6 +514,8 @@ const ExpenseFormPage = () => {
                             isOptionEqualToValue={(a, b) => a._id === b._id}
                             onChange={(value) => change({ donation: value?._id || "" })}
                         />
+                        )}
+                        {activitiesOn && (
                         <AppAutoComplete
                             label="Activity"
                             disabled={!budget}
@@ -516,6 +526,7 @@ const ExpenseFormPage = () => {
                             isOptionEqualToValue={(a, b) => a._id === b._id}
                             onChange={(value) => change({ activity: value?._id || "" })}
                         />
+                        )}
                     </FormGrid>
 
                 </FormSection>

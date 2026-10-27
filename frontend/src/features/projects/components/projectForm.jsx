@@ -1,5 +1,6 @@
 import { WORK_STATUS_OPTIONS, WORK_STATUS_HELP } from "../../../constants/workStatus";
 import { dayOf, formatDate, rangeHint } from "../../../utils/date";
+import { useModuleOn } from "../../../utils/modules";
 import {
     useEffect,
     useState
@@ -720,6 +721,9 @@ const ProjectForm = ({
     const selectedMainProject =
         mainProjects.find(project => getEntityId(project) === form.parentProject) || null;
 
+    // the donor field belongs to the funding module
+    const fundingOn = useModuleOn("funding");
+
     // the dates the project must fall in: its main project's
     // (a phase) or its program's, shown under the date fields
     const datesParent =
@@ -944,6 +948,8 @@ const ProjectForm = ({
                         />
 
 
+                        {/* donors: only when the funding module is on */}
+                        {fundingOn && (
                         <AppSelect
                             label="Donor"
                             value={
@@ -960,6 +966,7 @@ const ProjectForm = ({
                                 )
                             }
                         />
+                        )}
 
 
                         <AppSelect
