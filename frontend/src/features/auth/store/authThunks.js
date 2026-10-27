@@ -57,6 +57,34 @@ export const loadCurrentUserThunk = createAsyncThunk(
 );
 
 
+// A quiet refresh of the signed-in user (permissions, the
+// organization's modules): the page is not shown as loading,
+// and a failure (e.g. no network for a moment) changes nothing.
+export const refreshCurrentUserThunk = createAsyncThunk(
+    "auth/refreshCurrentUser",
+
+    async (_, thunkAPI) => {
+
+        try {
+
+            const response =
+                await getCurrentUserService();
+
+            return response.data;
+
+        } catch (error) {
+
+            return thunkAPI.rejectWithValue(
+                error.response?.data?.message ||
+                error.message
+            );
+
+        }
+
+    }
+);
+
+
 export const logoutThunk = createAsyncThunk(
     "auth/logout",
 

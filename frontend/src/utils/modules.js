@@ -38,17 +38,25 @@ const MODULE_OF_PREFIX = {
 export const moduleOfPermission = (permission) =>
     MODULE_OF_PREFIX[String(permission || "").split(".")[0]] || null;
 
-// true when the module is on (or not known yet: older sign-in)
-const isOn = (modules, key) =>
-    !key || !Array.isArray(modules) || modules.includes(key);
+// true when the module is on. A session without the module
+// list (signed in before modules existed): a module is taken
+// as on when the user has any of its permissions, so a module
+// switched off is hidden, not shown locked.
+const isOn = (user, key) => {
+    if (!key) return true;
+    if (Array.isArray(user?.modules)) return user.modules.includes(key);
+    const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+    if (!permissions.length || permissions.includes("*")) return true;
+    return permissions.some(permission => moduleOfPermission(permission) === key);
+};
 
 export const useModuleOn = (key) => {
     const user = useSelector(selectUser);
-    return isOn(user?.modules, key);
+    return isOn(user, key);
 };
 
 // for a list: (permission) => is its module on?
 export const useModuleOfPermissionOn = () => {
     const user = useSelector(selectUser);
-    return (permission) => isOn(user?.modules, moduleOfPermission(permission));
+    return (permission) => isOn(user, moduleOfPermission(permission));
 };

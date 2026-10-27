@@ -8,6 +8,7 @@ import {
 import {
     loginThunk,
     loadCurrentUserThunk,
+    refreshCurrentUserThunk,
     logoutThunk
 } from "./authThunks";
 
@@ -226,6 +227,22 @@ const authSlice = createSlice({
                 state.loading = false;
 
                 state.error = null;
+
+            }
+
+        );
+
+
+        // quiet refresh: only a successful answer updates the user
+        builder.addCase(
+
+            refreshCurrentUserThunk.fulfilled,
+
+            (state, action) => {
+
+                if (state.isAuthenticated && action.payload) {
+                    state.user = action.payload;
+                }
 
             }
 
