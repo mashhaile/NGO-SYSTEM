@@ -4,6 +4,8 @@
 //
 // GET    /                       list (?program, project, level, status, search)
 // GET    /measures               what automatic indicators can count
+// GET    /settings               the organization's limits (on track / at risk from)
+// PUT    /settings               change them, or { reset: true }   organization.update
 // POST   /                       create                     indicator.create
 // GET    /:id                    one, with its progress     indicator.read
 // PUT    /:id                    update                     indicator.update
@@ -46,6 +48,14 @@ const respond = (work, status = 200) => async (req, res) => {
 
 router.get("/measures", ...base, authorize(PERMISSIONS.INDICATOR_READ),
     respond(() => service.MEASURES.map(({ key, name, unit, module }) => ({ key, name, unit, module }))));
+
+// the organization's limits: on track from / at risk from (%)
+router.get("/settings", ...base, authorize(PERMISSIONS.INDICATOR_READ),
+    respond(req => service.getSettings(org(req))));
+
+// only the organization admin; { onTrack, atRisk } or { reset: true }
+router.put("/settings", ...base, authorize(PERMISSIONS.ORGANIZATION_UPDATE), authorize(PERMISSIONS.INDICATOR_READ),
+    respond(req => service.updateSettings(org(req), req.body || {}, user(req))));
 
 router.get("/", ...base, authorize(PERMISSIONS.INDICATOR_READ),
     respond(req => service.listIndicators(org(req), req.query)));

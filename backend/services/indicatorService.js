@@ -6,10 +6,12 @@
 // targets per period and actual values; progress per period
 // (target, actual, % achieved, status).
 //
-// Status of a period that has started and has a target:
-//   on track   >= 90% achieved
-//   at risk    60% - 89%
-//   off track  < 60%
+// Status of a period that has started and has a target, with
+// the organization's limits (defaults 90 and 60; the org
+// admin may change them):
+//   on track   >= onTrack % achieved
+//   at risk    atRisk - onTrack
+//   off track  < atRisk
 // "Decrease" indicators (fewer is better) are measured from
 // the baseline: going from 40% to a target of 20%, an
 // actual of 30% is half way (50%).
@@ -27,11 +29,85 @@ const ApiError = require("../utils/apiError");
 const generateSequence = require("../utils/generateSequence");
 const { MEASURES, measureOf, periodQuery, autoValue } = require("./indicatorMeasures");
 
-const ON_TRACK = 90;
-const AT_RISK = 60;
+// the defaults; each organization may set its own
+// (Organization.meSettings, M&E > Indicators > settings)
+const DEFAULT_LIMITS = { onTrack: 90, atRisk: 60 };
 
 const round1 = (value) => Math.round(Number(value) * 10) / 10;
 const idOf = (value) => String(value?._id || value || "");
+
+
+// ---------------------------------------------------------------- the organization's limits
+
+const limitsCache = new Map();
+const LIMITS_CACHE_MS = 15000;
+
+const limitsOf = async (organizationId) => {
+    const key = idOf(organizationId);
+    const hit = limitsCache.get(key);
+    if (hit && Date.now() - hit.at < LIMITS_CACHE_MS) return hit.limits;
+    const Organization = require("../models/organization");
+    const organization = mongoose.isValidObjectId(key)
+        ? await Organization.findById(key).select("meSettings").lean()
+        : null;
+    const own = organization?.meSettings || {};
+    const limits = {
+        onTrack: Number(own.onTrack) > 0 ? Number(own.onTrack) : DEFAULT_LIMITS.onTrack,
+        atRisk: Number(own.atRisk) > 0 ? Number(own.atRisk) : DEFAULT_LIMITS.atRisk
+    };
+    limitsCache.set(key, { at: Date.now(), limits });
+    return limits;
+};
+
+const getSettings = async (organizationId) => ({
+    ...(await limitsOf(organizationId)),
+    defaults: DEFAULT_LIMITS
+});
+
+// { onTrack, atRisk } or { reset: true } (back to the defaults)
+const updateSettings = async (organizationId, data = {}, userId = null) => {
+    const Organization = require("../models/organization");
+    const organization = await Organization.findById(organizationId);
+    if (!organization) throw new ApiError("Organization not found.", 404);
+    const before = await limitsOf(organizationId);
+
+    let next = {};
+    if (!data.reset) {
+        const onTrack = Number(data.onTrack);
+        const atRisk = Number(data.atRisk);
+        if (![onTrack, atRisk].every(value => Number.isFinite(value) && value >= 1 && value <= 100)) {
+            throw new ApiError("Please check: both limits must be between 1 and 100.", 400);
+        }
+        if (atRisk >= onTrack) throw new ApiError("Please check: \"At risk from\" must be lower than \"On track from\".", 400);
+        next = { onTrack, atRisk };
+    }
+
+    organization.meSettings = next;
+    organization.markModified("meSettings");
+    await organization.save();
+    limitsCache.delete(idOf(organizationId));
+    const after = await limitsOf(organizationId);
+
+    try {
+        await require("./auditLogService").createAuditLog({
+            organizationId,
+            userId,
+            action: "ME_SETTINGS_CHANGED",
+            module: "Indicator",
+            entityType: "Organization",
+            entityId: organization._id,
+            description: `On track from ${before.onTrack}% -> ${after.onTrack}%, at risk from ${before.atRisk}% -> ${after.atRisk}%${data.reset ? " (back to the defaults)" : ""}.`,
+            metadata: { before, after },
+            success: true,
+            severity: "info"
+        });
+    }
+    catch (error) {
+        console.error("M&E settings audit failed:", error.message);
+    }
+
+    return getSettings(organizationId);
+};
 
 
 // ---------------------------------------------------------------- periods
@@ -72,11 +148,11 @@ const achievement = (indicator, target, actual) => {
     return target > 0 ? round1((actual / target) * 100) : (actual > 0 ? 100 : null);
 };
 
-const statusOf = (percent, started) =>
+const statusOf = (percent, started, limits = DEFAULT_LIMITS) =>
     !started ? "Not started"
         : percent === null ? "No data"
-            : percent >= ON_TRACK ? "On track"
-                : percent >= AT_RISK ? "At risk"
+            : percent >= limits.onTrack ? "On track"
+                : percent >= limits.atRisk ? "At risk"
                     : "Off track";
 
 
@@ -90,6 +166,7 @@ const progressOf = async (indicator, cache = new Map()) => {
     const valueByPeriod = new Map(values.map(item => [item.period, item]));
     const targetByPeriod = new Map((indicator.targets || []).map(item => [item.period, item.value]));
     const today = new Date();
+    const limits = await limitsOf(indicator.organization);
 
     const rows = [];
     for (const period of sortPeriods([...targetByPeriod.keys(), ...valueByPeriod.keys()])) {
@@ -108,7 +185,7 @@ const progressOf = async (indicator, cache = new Map()) => {
             male: entered?.male ?? null,
             notes: entered?.notes || "",
             percent,
-            status: statusOf(percent, started),
+            status: statusOf(percent, started, limits),
             started
         });
     }
@@ -154,7 +231,7 @@ const yearFigures = async (indicator, year, cache = new Map()) => {
 
     const percent = achievement(indicator, target, actual);
     const started = new Date(Date.UTC(Number(year), 0, 1)) <= new Date();
-    return { target, actual, percent, status: statusOf(percent, started) };
+    return { target, actual, percent, status: statusOf(percent, started, await limitsOf(indicator.organization)) };
 
 };
 
@@ -366,5 +443,8 @@ module.exports = {
     setValue,
     deleteValue,
     progressOf,
-    yearFigures
+    yearFigures,
+    limitsOf,
+    getSettings,
+    updateSettings
 };

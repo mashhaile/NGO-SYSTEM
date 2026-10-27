@@ -17,7 +17,9 @@ import useAuth from "../../auth/hooks/useAuth";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
 import { getIndicatorsApi, getProgramOptionsApi } from "../api/indicatorApi";
-import { LEVELS, STATUS_HELP, nameOf, percentText, periodLabel, valueText } from "../utils/indicatorUtils";
+import { LEVELS, nameOf, percentText, periodLabel, statusHelp, valueText } from "../utils/indicatorUtils";
+import { useMeLimits } from "../indicatorHooks";
+import MeSettingsCard from "../components/MeSettingsCard";
 
 
 // =====================================================
@@ -39,6 +41,9 @@ const IndicatorListPage = () => {
     const { user } = useAuth();
     const permissions = user?.permissions || [];
     const canCreate = permissions.includes("*") || permissions.includes("indicator.create");
+    // the organization admin sets the on track / at risk limits
+    const canSet = permissions.includes("*") || permissions.includes("organization.update");
+    const [limits, setLimits] = useMeLimits();
 
     const [rows, setRows] = useState([]);
     const [programs, setPrograms] = useState([]);
@@ -62,7 +67,7 @@ const IndicatorListPage = () => {
                 .finally(() => { if (alive) setLoading(false); });
         }, search ? 300 : 0);
         return () => { alive = false; clearTimeout(timer); };
-    }, [search, program, level]);
+    }, [search, program, level, limits]);
 
     const columns = [
         {
@@ -142,11 +147,13 @@ const IndicatorListPage = () => {
 
             <PageHeader
                 title="Indicators"
-                subtitle={`M&E: each program's and project's indicators against their targets. ${STATUS_HELP}`}
+                subtitle={`M&E: each program's and project's indicators against their targets. ${statusHelp(limits)}`}
                 action={canCreate ? () => navigate("/indicators/create") : undefined}
                 actionLabel="New Indicator"
                 actionIcon={<Add />}
             />
+
+            {canSet && <MeSettingsCard limits={limits} onChange={setLimits} />}
 
             <SearchToolbar
                 search={search}

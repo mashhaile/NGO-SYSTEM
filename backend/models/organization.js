@@ -348,6 +348,20 @@ const organizationSchema = new mongoose.Schema(
         },
 
         // =================================================
+        // M&E: WHEN AN INDICATOR IS ON TRACK / AT RISK
+        // { onTrack: 90, atRisk: 60 } (% achieved; empty:
+        // the defaults, see services/indicatorService.js)
+        // =================================================
+
+        meSettings: {
+
+            type: mongoose.Schema.Types.Mixed,
+
+            default: {}
+
+        },
+
+        // =================================================
         // ORGANIZATION BRANDING
         // =================================================
 

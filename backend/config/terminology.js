@@ -52,8 +52,10 @@ const TERMS = [
         "Draft", "Submitted", "Approved", "Returned", "Voided",
         "Pledged", "Received", "Delivered",
         "Present", "Absent", "Late", "Excused",
-        "Participated", "Missed", "Referred"
-    ].map(word => ({ key: `status${word}`, group: "Statuses", singular: word, plural: word, status: true }))
+        "Participated", "Missed", "Referred",
+        // M&E indicator progress
+        "On track", "At risk", "Off track", "No data", "Not started"
+    ].map(word => ({ key: `status${word.replace(/\s+/g, "")}`, group: "Statuses", singular: word, plural: word, status: true }))
 ];
 
 

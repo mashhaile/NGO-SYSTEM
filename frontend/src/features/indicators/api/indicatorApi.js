@@ -29,6 +29,14 @@ export const setIndicatorValueApi = async (id, period, data) =>
 export const deleteIndicatorValueApi = async (id, period) =>
     (await axiosClient.delete(`/indicators/${id}/values/${period}`)).data?.data;
 
+// the organization's limits: { onTrack, atRisk, defaults }
+export const getMeSettingsApi = async () =>
+    (await axiosClient.get("/indicators/settings")).data?.data;
+
+// { onTrack, atRisk } or { reset: true }
+export const updateMeSettingsApi = async (data) =>
+    (await axiosClient.put("/indicators/settings", data)).data?.data;
+
 export const getProgramOptionsApi = async () =>
     (await axiosClient.get("/programs/lookup")).data?.data || [];
 

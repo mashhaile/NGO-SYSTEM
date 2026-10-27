@@ -48,5 +48,10 @@ export const percentText = (value) =>
 export const nameOf = (item) =>
     item ? [item.programCode || item.projectCode, item.name].filter(Boolean).join(" - ") : "";
 
-export const STATUS_HELP =
-    "On track: 90% or more of the target. At risk: 60-89%. Off track: below 60%.";
+export const DEFAULT_LIMITS = { onTrack: 90, atRisk: 60 };
+
+// "On track: 90% or more ..." with the organization's limits
+export const statusHelp = (limits = DEFAULT_LIMITS) =>
+    `On track: ${limits.onTrack}% or more of the target. At risk: ${limits.atRisk}-${limits.onTrack - 1}%. Off track: below ${limits.atRisk}%.`;
+
+export const STATUS_HELP = statusHelp();

@@ -41,7 +41,8 @@ import {
     setIndicatorValueApi
 } from "../api/indicatorApi";
 
-import { STATUS_HELP, nameOf, percentText, periodLabel, periodsOf, valueText } from "../utils/indicatorUtils";
+import { nameOf, percentText, periodLabel, periodsOf, statusHelp, valueText } from "../utils/indicatorUtils";
+import { useMeLimits } from "../indicatorHooks";
 
 
 // =====================================================
@@ -73,6 +74,7 @@ const IndicatorDetailsPage = () => {
     const [drafts, setDrafts] = useState({});
     const [saving, setSaving] = useState("");
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [limits] = useMeLimits();
 
     const load = useCallback(async () => {
         try {
@@ -223,7 +225,7 @@ const IndicatorDetailsPage = () => {
                                     </>
                                 )
                                 : <Typography color="text.secondary">No period with a target has started yet.</Typography>}
-                            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>{STATUS_HELP}</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>{statusHelp(limits)}</Typography>
                         </FormSection>
                     </Box>
                 </Stack>

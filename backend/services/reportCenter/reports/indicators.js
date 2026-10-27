@@ -35,8 +35,9 @@ const generate = async (query, context, period) => {
         .sort({ code: 1 })
         .lean();
 
-    const { yearFigures } = require("../../indicatorService");
+    const { yearFigures, limitsOf } = require("../../indicatorService");
     const cache = new Map();
+    const limits = await limitsOf(context.organizationId);
 
     const rows = [];
     for (const indicator of indicators) {
@@ -67,7 +68,7 @@ const generate = async (query, context, period) => {
     return buildReport({
         key: "indicators",
         title: "M&E: Indicators",
-        description: `Each indicator's target and actual for FY ${year}: numbers add up the year's periods, percentages take the latest. On track: 90% or more of the target; at risk: 60-89%; off track: below 60%.`,
+        description: `Each indicator's target and actual for FY ${year}: numbers add up the year's periods, percentages take the latest. On track: ${limits.onTrack}% or more of the target; at risk: ${limits.atRisk}-${limits.onTrack - 1}%; off track: below ${limits.atRisk}%.`,
         period,
         summary: [
             summaryItem("Indicators", rows.length),

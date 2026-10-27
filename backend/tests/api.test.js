@@ -2414,6 +2414,20 @@ test("M&E: indicators with targets; entered and automatic actuals; progress and 
     assert.equal((await api("POST", "/indicators", { token: state.dataEntryToken, body: { program, level: "Output", name: "x", frequency: "Annual", source: "manual" } })).status, 403);
     assert.equal((await api("PUT", `/indicators/${manualId}/values/2026-Q3`, { token: state.dataEntryToken, body: { value: 55 } })).status, 200);
 
+    // the organization's own limits: Q2 is 50% achieved (30 of 60)
+    const q2Status = async () => (await api("GET", `/indicators/${manualId}`, { token })).data.data.progress.rows.find(item => item.period === "2026-Q2").status;
+    assert.equal(await q2Status(), "Off track");
+    assert.deepEqual((await api("GET", "/indicators/settings", { token })).data.data.defaults, { onTrack: 90, atRisk: 60 });
+    assert.equal((await api("PUT", "/indicators/settings", { token, body: { onTrack: 50, atRisk: 80 } })).status, 400);
+    assert.equal((await api("PUT", "/indicators/settings", { token: state.dataEntryToken, body: { onTrack: 80, atRisk: 50 } })).status, 403);
+    const own = await api("PUT", "/indicators/settings", { token, body: { onTrack: 80, atRisk: 50 } });
+    assert.equal(own.status, 200);
+    assert.equal(own.data.data.onTrack, 80);
+    assert.equal(await q2Status(), "At risk");
+    // back to the defaults
+    assert.equal((await api("PUT", "/indicators/settings", { token, body: { reset: true } })).data.data.onTrack, 90);
+    assert.equal(await q2Status(), "Off track");
+
     await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { me: false } } });
 
 });
