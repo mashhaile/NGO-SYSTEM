@@ -97,6 +97,12 @@ const STATUS_STYLES = {
         color: "text.secondary"
     },
 
+    // suppliers
+    blacklisted: {
+        bgcolor: "error.light",
+        color: "error.dark"
+    },
+
     // M&E indicator progress
     "on track": {
         bgcolor: "success.light",

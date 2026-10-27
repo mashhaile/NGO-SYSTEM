@@ -504,6 +504,12 @@ const getExpenseById = async (id, organizationId) => {
 
     const counted = expense.status !== EXPENSE_STATUS.VOIDED;
 
+    // reserved by approved purchase requests (procurement)
+    const committed =
+        await require("./purchaseRequestService").lineCommitted(organizationId, expense.budget._id, expense.budgetLine, expense.fiscalYear);
+
+    const remainingBefore = roundMoney(lineBudget - totals.spent - committed);
+
     return {
         ...expense,
         line: {
@@ -514,9 +520,10 @@ const getExpenseById = async (id, organizationId) => {
             budget: lineBudget,
             spentByOthers: totals.spent,
             pendingByOthers: totals.pending,
-            remainingBefore: roundMoney(lineBudget - totals.spent),
-            remainingAfter: roundMoney(lineBudget - totals.spent - (counted ? expense.budgetAmount : 0)),
-            overBudget: counted && expense.budgetAmount > roundMoney(lineBudget - totals.spent) + 0.005
+            committed,
+            remainingBefore,
+            remainingAfter: roundMoney(remainingBefore - (counted ? expense.budgetAmount : 0)),
+            overBudget: counted && expense.budgetAmount > remainingBefore + 0.005
         }
     };
 
@@ -666,12 +673,16 @@ const approveExpense = async (id, organizationId, userId, { comment = "", allowO
         const { spent } =
             await lineTotals(organizationId, charge.budget._id, charge.line._id, charge.fiscalYear, expense._id, session);
 
-        const remaining = roundMoney(charge.lineBudget - spent);
+        // money reserved by approved purchase requests (procurement)
+        const committed =
+            await require("./purchaseRequestService").lineCommitted(organizationId, charge.budget._id, charge.line._id, charge.fiscalYear, { session });
+
+        const remaining = roundMoney(charge.lineBudget - spent - committed);
         const overBudget = expense.budgetAmount > remaining + 0.005;
 
         if (overBudget && !allowOverBudget) {
             throw new ApiError(
-                `${charge.line.category} (${fiscalYearLabel(charge.fiscalYear)}) has ${money(Math.max(0, remaining), charge.budget.currency)} left; this expense is ${money(expense.budgetAmount, charge.budget.currency)}. Confirm approving over budget, with a reason.`,
+                `${charge.line.category} (${fiscalYearLabel(charge.fiscalYear)}) has ${money(Math.max(0, remaining), charge.budget.currency)} left${committed > 0 ? ` (${money(committed, charge.budget.currency)} is committed to approved purchase requests)` : ""}; this expense is ${money(expense.budgetAmount, charge.budget.currency)}. Confirm approving over budget, with a reason.`,
                 400,
                 [{ field: "allowOverBudget", code: "OVER_BUDGET", remaining, amount: expense.budgetAmount }]
             );

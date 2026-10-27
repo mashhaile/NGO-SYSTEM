@@ -77,7 +77,8 @@ const MODULES = {
     service: "Service deliveries", enrollment: "Enrollments", activity: "Activities", activity_run: "Activity runs",
     tor: "Terms of reference", attendance: "Attendance sessions", attendance_record: "Attendance records",
     donor: "Donors", donation: "Donations", notification: "Notifications", report: "Reports",
-    budget: "Budgets", expense: "Expenses", indicator: "M&E indicators"
+    budget: "Budgets", expense: "Expenses", indicator: "M&E indicators",
+    supplier: "Suppliers", purchase_request: "Purchase requests"
 };
 
 const ACTIONS = {

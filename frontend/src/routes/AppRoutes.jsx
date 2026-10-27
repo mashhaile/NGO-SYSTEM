@@ -286,6 +286,14 @@ const BudgetListPage = lazyPage(() => import("../features/budgets/pages/BudgetLi
 const IndicatorListPage = lazyPage(() => import("../features/indicators/pages/IndicatorListPage"));
 const IndicatorFormPage = lazyPage(() => import("../features/indicators/pages/IndicatorFormPage"));
 const IndicatorDetailsPage = lazyPage(() => import("../features/indicators/pages/IndicatorDetailsPage"));
+
+// Procurement (module "procurement")
+const SupplierListPage = lazyPage(() => import("../features/procurement/pages/SupplierListPage"));
+const SupplierFormPage = lazyPage(() => import("../features/procurement/pages/SupplierFormPage"));
+const SupplierDetailsPage = lazyPage(() => import("../features/procurement/pages/SupplierDetailsPage"));
+const PurchaseRequestListPage = lazyPage(() => import("../features/procurement/pages/PurchaseRequestListPage"));
+const PurchaseRequestFormPage = lazyPage(() => import("../features/procurement/pages/PurchaseRequestFormPage"));
+const PurchaseRequestDetailsPage = lazyPage(() => import("../features/procurement/pages/PurchaseRequestDetailsPage"));
 const BudgetFormPage = lazyPage(() => import("../features/budgets/pages/BudgetFormPage"));
 const BudgetDetailsPage = lazyPage(() => import("../features/budgets/pages/BudgetDetailsPage"));
 const ExpenseListPage = lazyPage(() => import("../features/expenses/pages/ExpenseListPage"));
@@ -978,6 +986,24 @@ const AppRoutes = () => {
                         </PermissionRoute>
                     }
                 />
+
+                {/* Procurement: suppliers and purchase requests (module "procurement") */}
+                {[
+                    ["/suppliers", "supplier.read", <SupplierListPage />],
+                    ["/suppliers/create", "supplier.create", <SupplierFormPage />],
+                    ["/suppliers/:id", "supplier.read", <SupplierDetailsPage />],
+                    ["/suppliers/:id/edit", "supplier.update", <SupplierFormPage />],
+                    ["/purchase-requests", "purchase_request.read", <PurchaseRequestListPage />],
+                    ["/purchase-requests/create", "purchase_request.create", <PurchaseRequestFormPage />],
+                    ["/purchase-requests/:id", "purchase_request.read", <PurchaseRequestDetailsPage />],
+                    ["/purchase-requests/:id/edit", "purchase_request.update", <PurchaseRequestFormPage />]
+                ].map(([path, permission, page]) => (
+                    <Route
+                        key={path}
+                        path={path}
+                        element={<PermissionRoute permission={permission}>{page}</PermissionRoute>}
+                    />
+                ))}
 
                 <Route
                     path="/budgets"

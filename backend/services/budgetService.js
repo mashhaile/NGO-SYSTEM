@@ -29,6 +29,32 @@ const {
     totalsByLine
 } = require("./expenseService");
 
+const {
+    committedByLine
+} = require("./purchaseRequestService");
+
+
+// { [lineId]: { [fiscalYear]: { spent, pending, committed } } }:
+// expenses, and approved purchase requests (procurement)
+const actualsByLine = async (organizationId, budgetIds) => {
+
+    const [totals, committed] =
+        await Promise.all([
+            totalsByLine(organizationId, budgetIds),
+            committedByLine(organizationId, budgetIds)
+        ]);
+
+    for (const [line, years] of Object.entries(committed)) {
+        totals[line] = totals[line] || {};
+        for (const [year, amount] of Object.entries(years)) {
+            totals[line][year] = { spent: 0, pending: 0, ...totals[line][year], committed: amount };
+        }
+    }
+
+    return totals;
+
+};
+
 
 // =====================================================
 // RULES
@@ -452,33 +478,37 @@ const assertWithinProgram = async (budget) => {
 //   Spent     = approved expenses
 //   Pending   = draft / submitted / returned expenses (shown,
 //               not deducted)
-//   Committed = purchase orders (procurement, later): 0
+//   Committed = approved purchase requests (procurement)
 //   Remaining = Budget - Committed - Spent
 
 const withActuals = (items, actualsFor) =>
     items.map(item => {
-        const { spent = 0, pending = 0 } = actualsFor(item.fiscalYear) || {};
+        const { spent = 0, pending = 0, committed = 0 } = actualsFor(item.fiscalYear) || {};
         return {
             ...item,
-            committed: 0,
+            committed,
             spent,
             pending,
-            remaining: roundMoney(item.amount - spent)
+            remaining: roundMoney(item.amount - committed - spent)
         };
     });
 
 
-// Sum of { spent, pending } over every line for a year
+// Sum of { spent, pending, committed } over every line for a year
 
 const yearActuals = (totals, lineIds) => (year) =>
     lineIds.reduce(
         (sum, lineId) => {
             const entry = totals[String(lineId)]?.[year];
             return entry
-                ? { spent: roundMoney(sum.spent + entry.spent), pending: roundMoney(sum.pending + entry.pending) }
+                ? {
+                    spent: roundMoney(sum.spent + (entry.spent || 0)),
+                    pending: roundMoney(sum.pending + (entry.pending || 0)),
+                    committed: roundMoney(sum.committed + (entry.committed || 0))
+                }
                 : sum;
         },
-        { spent: 0, pending: 0 }
+        { spent: 0, pending: 0, committed: 0 }
     );
 
 
@@ -496,7 +526,7 @@ const buildSummary = async (budget) => {
     const sourceBudgets = budget.level === BUDGET_LEVEL.PROGRAM ? projects : [budget];
 
     const totals =
-        await totalsByLine(budget.organization, sourceBudgets.map(item => item._id));
+        await actualsByLine(budget.organization, sourceBudgets.map(item => item._id));
 
     const lineIds =
         sourceBudgets.flatMap(item => (item.lines || []).map(line => line._id));
@@ -508,10 +538,10 @@ const buildSummary = async (budget) => {
     const summary = {
         years,
         totalAmount: budget.totalAmount,
-        totalCommitted: 0,
+        totalCommitted: sum("committed"),
         totalSpent: sum("spent"),
         totalPending: sum("pending"),
-        totalRemaining: roundMoney(budget.totalAmount - sum("spent"))
+        totalRemaining: roundMoney(budget.totalAmount - sum("committed") - sum("spent"))
     };
 
     if (budget.level === BUDGET_LEVEL.PROGRAM) {
@@ -557,16 +587,17 @@ const buildSummary = async (budget) => {
 
             const spent = roundMoney(amounts.reduce((total, item) => total + item.spent, 0));
             const pending = roundMoney(amounts.reduce((total, item) => total + item.pending, 0));
+            const committed = roundMoney(amounts.reduce((total, item) => total + item.committed, 0));
 
             return {
                 _id: line._id,
                 category: line.category,
                 description: line.description,
                 total: line.total,
-                committed: 0,
+                committed,
                 spent,
                 pending,
-                remaining: roundMoney(line.total - spent),
+                remaining: roundMoney(line.total - committed - spent),
                 amounts
             };
 

@@ -469,5 +469,50 @@ for (const [role, permissions] of Object.entries(INDICATORS_FOR)) {
 }
 
 
+// =====================================
+// PROCUREMENT (module "procurement")
+// =====================================
+// Organization admins do everything; finance keeps the
+// supplier list and approves requests; data entry (program
+// staff) write and submit requests; viewers see them.
+
+const PROCUREMENT_FOR = {
+    [ROLES.ORG_ADMIN]: [
+        PERMISSIONS.SUPPLIER_CREATE,
+        PERMISSIONS.SUPPLIER_READ,
+        PERMISSIONS.SUPPLIER_UPDATE,
+        PERMISSIONS.SUPPLIER_DELETE,
+        PERMISSIONS.PURCHASE_REQUEST_CREATE,
+        PERMISSIONS.PURCHASE_REQUEST_READ,
+        PERMISSIONS.PURCHASE_REQUEST_UPDATE,
+        PERMISSIONS.PURCHASE_REQUEST_DELETE,
+        PERMISSIONS.PURCHASE_REQUEST_APPROVE
+    ],
+    [ROLES.FINANCE]: [
+        PERMISSIONS.SUPPLIER_CREATE,
+        PERMISSIONS.SUPPLIER_READ,
+        PERMISSIONS.SUPPLIER_UPDATE,
+        PERMISSIONS.SUPPLIER_DELETE,
+        PERMISSIONS.PURCHASE_REQUEST_CREATE,
+        PERMISSIONS.PURCHASE_REQUEST_READ,
+        PERMISSIONS.PURCHASE_REQUEST_UPDATE,
+        PERMISSIONS.PURCHASE_REQUEST_DELETE,
+        PERMISSIONS.PURCHASE_REQUEST_APPROVE
+    ],
+    [ROLES.DATA_ENTRY]: [
+        PERMISSIONS.SUPPLIER_READ,
+        PERMISSIONS.PURCHASE_REQUEST_CREATE,
+        PERMISSIONS.PURCHASE_REQUEST_READ,
+        PERMISSIONS.PURCHASE_REQUEST_UPDATE,
+        PERMISSIONS.PURCHASE_REQUEST_DELETE
+    ],
+    [ROLES.VIEWER]: [PERMISSIONS.SUPPLIER_READ, PERMISSIONS.PURCHASE_REQUEST_READ]
+};
+
+for (const [role, permissions] of Object.entries(PROCUREMENT_FOR)) {
+    if (Array.isArray(rolePermissions[role])) rolePermissions[role].push(...permissions);
+}
+
+
 module.exports =
     rolePermissions;

@@ -82,6 +82,7 @@ import {
     fiscalYearLabel
 } from "../../../utils/fiscalYear";
 import { formatDate, formatDateTime } from "../../../utils/date";
+import { useModuleOn } from "../../../utils/modules";
 
 
 const tableSx = {
@@ -108,6 +109,9 @@ const BudgetDetailsPage = () => {
     const navigate = useNavigate();
 
     const { user } = useAuth();
+
+    // approved purchase requests reserve money ("Committed")
+    const procurementOn = useModuleOn("procurement");
 
     const [budget, setBudget] = useState(null);
     const [expenses, setExpenses] = useState([]);
@@ -273,6 +277,7 @@ const BudgetDetailsPage = () => {
                 items={[
                     { label: "Budget", value: formatMoney(summary.totalAmount, currency) },
                     { label: "Spent", value: formatMoney(summary.totalSpent, currency) },
+                    ...(procurementOn ? [{ label: "Committed", value: formatMoney(summary.totalCommitted || 0, currency) }] : []),
                     { label: "Pending approval", value: formatMoney(summary.totalPending || 0, currency) },
                     { label: "Remaining", value: formatMoney(summary.totalRemaining, currency) }
                 ]}
@@ -422,7 +427,11 @@ const BudgetDetailsPage = () => {
                 <PageCard>
                     <FormSection
                         title="Budget Lines"
-                        subtitle="Spent = approved expenses. Pending = recorded but not yet approved (not deducted)."
+                        subtitle={
+                            procurementOn
+                                ? "Spent = approved expenses. Committed = approved purchase requests. Remaining = Budget − Committed − Spent. Pending = expenses recorded but not yet approved (not deducted)."
+                                : "Spent = approved expenses. Pending = recorded but not yet approved (not deducted)."
+                        }
                     >
                         <TableContainer sx={tableSx}>
                             <Table size="small">
@@ -434,6 +443,7 @@ const BudgetDetailsPage = () => {
                                         ))}
                                         <TableCell align="right">Budget</TableCell>
                                         <TableCell align="right">Spent</TableCell>
+                                        {procurementOn && <TableCell align="right">Committed</TableCell>}
                                         <TableCell align="right">Pending</TableCell>
                                         <TableCell align="right">Remaining</TableCell>
                                     </TableRow>
@@ -456,6 +466,7 @@ const BudgetDetailsPage = () => {
                                             ))}
                                             <TableCell align="right" sx={{ ...nowrap, fontWeight: 600 }}>{formatMoney(line.total, currency)}</TableCell>
                                             <TableCell align="right" sx={nowrap}>{formatMoney(line.spent, currency)}</TableCell>
+                                            {procurementOn && <TableCell align="right" sx={nowrap}>{formatMoney(line.committed || 0, currency)}</TableCell>}
                                             <TableCell align="right" sx={{ ...nowrap, color: "text.secondary" }}>{formatMoney(line.pending || 0, currency)}</TableCell>
                                             <TableCell align="right" sx={{ ...nowrap, fontWeight: 600, color: line.remaining < 0 ? "error.main" : "text.primary" }}>{formatMoney(line.remaining, currency)}</TableCell>
                                         </TableRow>
@@ -471,6 +482,7 @@ const BudgetDetailsPage = () => {
                                         ))}
                                         <TableCell align="right" sx={{ ...nowrap, fontWeight: 800 }}>{formatMoney(summary.totalAmount, currency)}</TableCell>
                                         <TableCell align="right" sx={{ ...nowrap, fontWeight: 700 }}>{formatMoney(summary.totalSpent, currency)}</TableCell>
+                                        {procurementOn && <TableCell align="right" sx={{ ...nowrap, fontWeight: 700 }}>{formatMoney(summary.totalCommitted || 0, currency)}</TableCell>}
                                         <TableCell align="right" sx={{ ...nowrap, color: "text.secondary" }}>{formatMoney(summary.totalPending || 0, currency)}</TableCell>
                                         <TableCell align="right" sx={{ ...nowrap, fontWeight: 800 }}>{formatMoney(summary.totalRemaining, currency)}</TableCell>
                                     </TableRow>

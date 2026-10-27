@@ -42,6 +42,8 @@ import {
     Savings,
     ReceiptLong,
     TrackChanges,
+    ShoppingCart,
+    LocalMall,
     Group,
     HowToReg,
     LockOutlined,
@@ -165,6 +167,14 @@ const SECTIONS = [
         items: [
             { label: "Budgets", path: "/budgets", icon: <Savings />, permission: "budget.read" },
             { label: "Expenses", path: "/expenses", icon: <ReceiptLong />, permission: "expense.read" }
+        ]
+    },
+
+    {
+        title: "Procurement",
+        items: [
+            { label: "Purchase Requests", path: "/purchase-requests", icon: <ShoppingCart />, permission: "purchase_request.read" },
+            { label: "Suppliers", path: "/suppliers", icon: <LocalMall />, permission: "supplier.read" }
         ]
     },
 

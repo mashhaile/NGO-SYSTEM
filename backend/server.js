@@ -360,6 +360,17 @@ app.use(
     require("./routes/indicatorRoutes")
 );
 
+// Procurement: suppliers and purchase requests (module "procurement")
+app.use(
+    "/api/v1/suppliers",
+    require("./routes/supplierRoutes")
+);
+
+app.use(
+    "/api/v1/purchase-requests",
+    require("./routes/purchaseRequestRoutes")
+);
+
 app.use(
     "/api/v1/donation-trace",
     require("./routes/donationTraceRoutes")

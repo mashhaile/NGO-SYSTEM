@@ -95,6 +95,18 @@ const MODULES = [
         // new: only for the organizations it is switched on for
         defaultEnabled: false,
         records: [{ model: "Indicator", label: "indicators" }]
+    },
+    {
+        key: "procurement",
+        name: "Procurement",
+        group: "Finance",
+        description: "Suppliers and purchase requests charged to budget lines, with approval; approved requests reserve their money as \"Committed\".",
+        permissions: ["supplier", "purchase_request"],
+        // checks requests against the budget lines
+        requires: ["finance"],
+        // new: only for the organizations it is switched on for
+        defaultEnabled: false,
+        records: [{ model: "Supplier", label: "suppliers" }, { model: "PurchaseRequest", label: "purchase requests" }]
     }
 ];
 

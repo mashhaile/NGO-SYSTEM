@@ -20,6 +20,14 @@ const {
     totalsByLine
 } = require("./expenseService");
 
+const {
+    committedByLine
+} = require("./purchaseRequestService");
+
+const PurchaseRequest = require("../models/PurchaseRequest");
+
+const { PURCHASE_REQUEST_STATUS } = PurchaseRequest;
+
 const budgetService = require("./budgetService");
 
 
@@ -53,9 +61,10 @@ const {
 //
 // Rules (checked on submit and again on approve):
 //   - a reason is required
-//   - a line with expenses (approved or pending) cannot be
-//     removed
-//   - no line-year can go below what is already spent
+//   - a line with expenses (approved or pending) or open
+//     purchase requests cannot be removed
+//   - no line-year can go below what is already spent plus
+//     committed (approved purchase requests)
 //   - project budgets: still within the program budget
 //   - program budgets: still cover what projects use
 //
@@ -118,30 +127,48 @@ const assertRevisionAllowed = async (budget, content) => {
 
     if (budget.level === BUDGET_LEVEL.PROJECT) {
 
-        const totals = await totalsByLine(budget.organization, [budget._id]);
+        const [totals, committed, requestLines] =
+            await Promise.all([
+                totalsByLine(budget.organization, [budget._id]),
+                committedByLine(budget.organization, [budget._id]),
+                // lines that open purchase requests are charged to
+                PurchaseRequest.distinct("budgetLine", {
+                    organization: budget.organization,
+                    budget: budget._id,
+                    isDeleted: false,
+                    status: { $nin: [PURCHASE_REQUEST_STATUS.REJECTED, PURCHASE_REQUEST_STATUS.CANCELLED] }
+                })
+            ]);
+        const withRequests = new Set(requestLines.map(String));
         const proposed = new Map(content.lines.map(line => [String(line._id || ""), line]));
 
         for (const line of budget.lines) {
 
-            const actual = totals[String(line._id)] || {};
-            const usedYears = Object.entries(actual).filter(([, entry]) => entry.spent > 0 || entry.pending > 0);
+            const actual = { ...(totals[String(line._id)] || {}) };
+            for (const [year, amount] of Object.entries(committed[String(line._id)] || {})) {
+                actual[year] = { spent: 0, pending: 0, ...actual[year], committed: amount };
+            }
+            const usedYears = Object.entries(actual).filter(([, entry]) => entry.spent > 0 || entry.pending > 0 || entry.committed > 0);
 
-            if (!usedYears.length) continue;
+            if (!usedYears.length && !withRequests.has(String(line._id))) continue;
 
             const next = proposed.get(String(line._id));
 
             if (!next) {
                 throw new ApiError(
-                    `${line.category}${line.description ? ` (${line.description})` : ""} has expenses and cannot be removed.`,
+                    `${line.category}${line.description ? ` (${line.description})` : ""} has ${usedYears.some(([, entry]) => entry.spent > 0 || entry.pending > 0) ? "expenses" : "purchase requests"} and cannot be removed.`,
                     400
                 );
             }
 
             for (const [year, entry] of usedYears) {
                 const amount = next.amounts.find(item => item.fiscalYear === Number(year))?.amount || 0;
-                if (amount + 0.005 < entry.spent) {
+                const used = (entry.spent || 0) + (entry.committed || 0);
+                if (amount + 0.005 < used) {
                     throw new ApiError(
-                        `${line.category} ${fiscalYearLabel(Number(year))}: ${money(entry.spent, budget.currency)} is already spent; the revised amount (${money(amount, budget.currency)}) cannot be lower.`,
+                        entry.committed > 0
+                            ? `${line.category} ${fiscalYearLabel(Number(year))}: ${money(entry.spent || 0, budget.currency)} is spent and ${money(entry.committed, budget.currency)} committed to approved purchase requests; the revised amount (${money(amount, budget.currency)}) cannot be lower than ${money(used, budget.currency)}.`
+                            : `${line.category} ${fiscalYearLabel(Number(year))}: ${money(entry.spent, budget.currency)} is already spent; the revised amount (${money(amount, budget.currency)}) cannot be lower.`,
                         400
                     );
                 }

@@ -432,7 +432,40 @@ const PERMISSIONS = {
 
     // Enter the actual value of an indicator for a period
     INDICATOR_REPORT:
-        "indicator.report"
+        "indicator.report",
+
+
+    // =====================================================
+    // PROCUREMENT: SUPPLIERS AND PURCHASE REQUESTS
+    // =====================================================
+
+    SUPPLIER_CREATE:
+        "supplier.create",
+
+    SUPPLIER_READ:
+        "supplier.read",
+
+    SUPPLIER_UPDATE:
+        "supplier.update",
+
+    SUPPLIER_DELETE:
+        "supplier.delete",
+
+    PURCHASE_REQUEST_CREATE:
+        "purchase_request.create",
+
+    PURCHASE_REQUEST_READ:
+        "purchase_request.read",
+
+    PURCHASE_REQUEST_UPDATE:
+        "purchase_request.update",
+
+    PURCHASE_REQUEST_DELETE:
+        "purchase_request.delete",
+
+    // Approve / return / reject / cancel
+    PURCHASE_REQUEST_APPROVE:
+        "purchase_request.approve"
 
 };
 

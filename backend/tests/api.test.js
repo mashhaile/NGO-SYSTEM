@@ -2310,7 +2310,7 @@ test("modules: the super admin switches modules off and on per organization; off
     // only the super admin manages modules
     assert.equal((await api("GET", `/admin/organizations/${orgA}/modules`, { token: state.tokenA })).status, 403);
     const list = (await api("GET", `/admin/organizations/${orgA}/modules`, { token: sa })).data.data;
-    assert.ok(list.modules.every(module => module.enabled || module.key === "me"), "all on at first, except new modules (M&E)");
+    assert.ok(list.modules.every(module => module.enabled || ["me", "procurement"].includes(module.key)), "all on at first, except new modules (M&E, procurement)");
     assert.equal(list.modules.find(module => module.key === "me").enabled, false);
 
     // TOR and funding off
@@ -2429,6 +2429,130 @@ test("M&E: indicators with targets; entered and automatic actuals; progress and 
     assert.equal(await q2Status(), "Off track");
 
     await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { me: false } } });
+
+});
+
+
+// =====================================================
+// PROCUREMENT: SUPPLIERS AND PURCHASE REQUESTS
+// (module "procurement", off until switched on)
+// =====================================================
+
+test("procurement: suppliers; purchase requests commit budget money only within what the line has left", { skip }, async () => {
+
+    const admin = state.tokenA;
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const sa = (await login("sa@test.local", "SuperTest2026x")).data.data.token;
+    const me = (await api("GET", "/auth/me", { token: admin })).data.data;
+    const orgA = String(me.organizationId?._id || me.organizationId);
+
+    // a new module: off until the platform admin switches it on
+    assert.equal((await api("GET", "/purchase-requests", { token: de })).status, 403);
+    assert.equal((await api("GET", "/suppliers", { token: fin })).status, 403);
+    const on = await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: true } } });
+    assert.equal(on.data.data.modules.find(module => module.key === "procurement").enabled, true);
+
+    // ---------------- suppliers
+    assert.equal((await api("POST", "/suppliers", { token: de, body: { name: "Abebe Stationery" } })).status, 403, "data entry only reads suppliers");
+    const supplier = await api("POST", "/suppliers", { token: fin, body: { name: "Abebe Stationery", categories: ["Goods"], tin: "0012345678", phone: "0911000000" } });
+    assert.equal(supplier.status, 201, supplier.data?.message);
+    assert.match(supplier.data.data.supplierCode, /^SUP-\d{6}$/);
+    const supplierId = supplier.data.data._id;
+    assert.equal((await api("POST", "/suppliers", { token: fin, body: { name: "abebe stationery" } })).status, 409, "a name once");
+    assert.equal((await api("PUT", `/suppliers/${supplierId}`, { token: fin, body: { status: "Blacklisted" } })).status, 400, "blacklisting needs a reason");
+
+    // ---------------- a request on Personnel (budget one, FY 2026)
+    const position = async () => (await lineOf(de, state.budgetOneId, "Personnel")).line.amounts.find(item => item.fiscalYear === 2026);
+    const before = await position();
+    const { line: personnel } = await lineOf(de, state.budgetOneId, "Personnel");
+    const newRequest = (body) =>
+        api("POST", "/purchase-requests", { token: de, body: { budget: state.budgetOneId, budgetLine: personnel._id, requestDate: "2026-04-01", title: "Laptops for field staff", ...body } });
+
+    assert.equal((await newRequest({ items: [] })).status, 400, "at least one item");
+    const created = await newRequest({
+        suggestedSupplier: supplierId,
+        items: [
+            { description: "Laptop", unit: "pcs", quantity: 2, unitPrice: 8000 },
+            { description: "Laptop bag", unit: "pcs", quantity: 2, unitPrice: 2000 }
+        ]
+    });
+    assert.equal(created.status, 201, created.data?.message);
+    const request = created.data.data;
+    assert.match(request.requestCode, /^PR-\d{6}$/);
+    assert.equal(request.status, "Draft");
+    assert.equal(request.estimatedTotal, 20000);
+    assert.equal(request.items[0].total, 16000);
+    assert.equal(request.fiscalYear, 2026);
+    assert.equal(request.category, "Personnel");
+    assert.equal(request.line.available, before.remaining);
+
+    // a draft reserves nothing
+    assert.equal((await position()).committed, 0);
+
+    // more than the line has left: saved, but not submitted
+    const tooBig = await newRequest({ title: "Vehicle", items: [{ description: "Pick-up", quantity: 1, unitPrice: before.remaining + 1000 }] });
+    assert.equal(tooBig.status, 201);
+    assert.equal(tooBig.data.data.line.overBudget, true, "the form can warn");
+    const refused = await api("POST", `/purchase-requests/${tooBig.data.data._id}/submit`, { token: de });
+    assert.equal(refused.status, 400);
+    assert.equal(refused.data.errors?.[0]?.code, "OVER_BUDGET");
+    assert.equal((await api("DELETE", `/purchase-requests/${tooBig.data.data._id}`, { token: de })).status, 200);
+
+    // submit -> approve: the estimate is committed
+    assert.equal((await api("POST", `/purchase-requests/${request._id}/submit`, { token: de })).status, 200);
+    assert.equal((await api("POST", `/purchase-requests/${request._id}/approve`, { token: de, body: {} })).status, 403, "data entry cannot approve");
+    const approved = await api("POST", `/purchase-requests/${request._id}/approve`, { token: fin, body: {} });
+    assert.equal(approved.status, 200, approved.data?.message);
+    assert.equal(approved.data.data.status, "Approved");
+    let year = await position();
+    assert.equal(year.committed, 20000);
+    assert.equal(year.remaining, before.remaining - 20000, "Remaining = Budget - Committed - Spent");
+    const budget = (await api("GET", `/budgets/${state.budgetOneId}`, { token: de })).data.data;
+    assert.ok(budget.summary.totalCommitted >= 20000);
+
+    // approved requests are locked; the requester was told
+    assert.equal((await api("PUT", `/purchase-requests/${request._id}`, { token: de, body: { title: "Changed" } })).status, 409);
+    assert.equal((await api("DELETE", `/purchase-requests/${request._id}`, { token: de })).status, 409);
+    const told = (await api("GET", "/notifications", { token: de })).data.data;
+    assert.ok((told.items || told.notifications || told).some(item => /Purchase request approved/.test(item.title)));
+
+    // a direct expense now sees the committed money
+    const expense = await newExpense(de, { budgetLine: personnel._id, description: "Consultant, all that is left", amount: before.remaining - 10000 });
+    assert.equal(expense.status, 201, expense.data?.message);
+    assert.equal(expense.data.data.line.committed, 20000);
+    assert.equal(expense.data.data.line.overBudget, true);
+    await api("DELETE", `/expenses/${expense.data.data._id}`, { token: de });
+
+    // return needs a comment; reject is final
+    const second = await newRequest({ title: "Printer toner", items: [{ description: "Toner", quantity: 4, unitPrice: 1500 }] });
+    await api("POST", `/purchase-requests/${second.data.data._id}/submit`, { token: de });
+    assert.equal((await api("POST", `/purchase-requests/${second.data.data._id}/reject`, { token: fin, body: {} })).status, 400);
+    const rejected = await api("POST", `/purchase-requests/${second.data.data._id}/reject`, { token: fin, body: { comment: "Bought centrally" } });
+    assert.equal(rejected.data.data.status, "Rejected");
+    assert.equal((await api("POST", `/purchase-requests/${second.data.data._id}/submit`, { token: de })).status, 409);
+
+    // a supplier in use is not deleted; an inactive one is not offered
+    assert.equal((await api("DELETE", `/suppliers/${supplierId}`, { token: fin })).status, 409);
+    assert.equal((await api("PUT", `/suppliers/${supplierId}`, { token: fin, body: { status: "Inactive" } })).status, 200);
+    assert.equal((await newRequest({ suggestedSupplier: supplierId, items: [{ description: "Pens", quantity: 10, unitPrice: 20 }] })).status, 400);
+    assert.ok(!(await api("GET", "/suppliers/options", { token: de })).data.data.some(item => item._id === supplierId));
+
+    // cancelling an approved request releases its money (with a reason)
+    assert.equal((await api("POST", `/purchase-requests/${request._id}/cancel`, { token: fin, body: {} })).status, 400);
+    const cancelled = await api("POST", `/purchase-requests/${request._id}/cancel`, { token: fin, body: { comment: "Donor sent laptops" } });
+    assert.equal(cancelled.data.data.status, "Cancelled");
+    year = await position();
+    assert.equal(year.committed, 0);
+    assert.equal(year.remaining, before.remaining);
+
+    // the list
+    const list = await api("GET", "/purchase-requests?status=Cancelled", { token: de });
+    assert.equal(list.data.data.length, 1);
+    assert.equal(list.data.data[0].itemCount, 2);
+
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
+    assert.equal((await api("GET", "/purchase-requests", { token: de })).status, 403);
 
 });
 
