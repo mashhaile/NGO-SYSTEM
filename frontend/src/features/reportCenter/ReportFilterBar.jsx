@@ -1,3 +1,4 @@
+import useProjectTypes from "../projects/useProjectTypes";
 import { WORK_STATUSES } from "../../constants/workStatus";
 import {
     useEffect,
@@ -99,6 +100,7 @@ const ReportFilterBar = ({ report, values, onChange }) => {
     const [projects, setProjects] = useState([]);
     const [regions, setRegions] = useState([]);
     const [genders, setGenders] = useState([]);
+    const projectTypes = useProjectTypes();
 
     useEffect(() => {
         let alive = true;
@@ -123,8 +125,9 @@ const ReportFilterBar = ({ report, values, onChange }) => {
         () =>
             projects
                 .filter(project => !values.program || String(project.program?._id || project.program) === String(values.program))
+                .filter(project => !values.projectType || String(project.projectType?._id || project.projectType || "") === String(values.projectType))
                 .map(project => ({ value: project._id, label: `${project.projectCode ? `${project.projectCode} – ` : ""}${project.name}` })),
-        [projects, values.program]
+        [projects, values.program, values.projectType]
     );
 
     const set = (name) => (event) => {
@@ -132,7 +135,7 @@ const ReportFilterBar = ({ report, values, onChange }) => {
         // only what changed: merged into the current filters, so
         // two quick changes (From, To) cannot undo each other
         const change = { [name]: value };
-        if (name === "program") change.project = "";
+        if (name === "program" || name === "projectType") change.project = "";
         onChange(change);
     };
 
@@ -175,6 +178,11 @@ const ReportFilterBar = ({ report, values, onChange }) => {
 
                 {wants("program") && (
                     <AppSelect label="Program" placeholder="All programs" value={values.program || ""} options={programs.map(program => ({ value: program._id, label: program.name }))} onChange={set("program")} />
+                )}
+
+                {/* Development, Humanitarian, Emergency ... */}
+                {wants("projectType") && projectTypes.length > 0 && (
+                    <AppSelect label="Project type" placeholder="All types" value={values.projectType || ""} options={projectTypes} onChange={set("projectType")} />
                 )}
 
                 {wants("project") && (

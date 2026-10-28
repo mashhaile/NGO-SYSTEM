@@ -337,7 +337,7 @@ module.exports = {
     key: "procurement",
     title: "Procurement",
     description: "Requests, orders, goods received and payments: spend per supplier, by method and month, open orders and exceptions.",
-    filters: ["program", "project"],
+    filters: ["program", "projectType", "project"],
     permission: "purchase_request.read",
     generate
 };

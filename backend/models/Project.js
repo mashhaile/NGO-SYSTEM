@@ -91,6 +91,18 @@ default:null
 
 
 
+// Development, Humanitarian, Emergency ... (the organization's
+// own list: Lookups > Projects > Project Type). Optional; a
+// phase takes its main project's type.
+projectType:{
+type:mongoose.Schema.Types.ObjectId,
+ref:"Lookup",
+default:null,
+index:true
+},
+
+
+
 // No budget field: a project's budget lives in the
 // Budgets module (services/budgetFigures.js).
 

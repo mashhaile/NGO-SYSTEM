@@ -327,7 +327,8 @@ test("super admin: a created organization also gets common lookups", { skip }, a
     const categories =
         await state.db.collection("lookups").distinct("category", { organization: organization._id });
 
-    assert.equal(categories.length, 12, `got: ${categories.join(", ")}`);
+    // 12 + Project Type
+    assert.equal(categories.length, 13, `got: ${categories.join(", ")}`);
 
 });
 
@@ -2813,6 +2814,52 @@ test("procurement: goods received (partial, rejected); payments are expenses tha
 
     await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
     assert.ok(!(await api("GET", "/report-center", { token: de })).data.data.some(report => report.key === "procurement"), "module off: report hidden");
+
+});
+
+
+// =====================================================
+// PROJECT TYPES (Development, Humanitarian, Emergency ...)
+// =====================================================
+
+test("project types: each organization's own list; a program mixes types; phases follow their main project; lists and reports filter by type", { skip }, async () => {
+
+    const token = state.tokenA;
+
+    // a new organization gets the common types (Lookups > Projects > Project Type)
+    const types = (await api("GET", "/lookups/module/Project/category/ProjectType", { token })).data.data;
+    const typeId = (value) => types.find(type => type.value === value)?._id;
+    assert.ok(typeId("Development") && typeId("Humanitarian") && typeId("Emergency"), types.map(type => type.value).join(", "));
+
+    // an emergency project in the same program as development projects
+    const flood = await api("POST", "/projects", { token, body: { program: state.budgetProgramId, name: "Flood Response", projectType: "Emergency", startDate: "2026-08-01", endDate: "2026-12-31" } });
+    assert.equal(flood.status < 300, true, flood.data?.message);
+    assert.equal(String(flood.data.data.projectType), String(typeId("Emergency")));
+    const wrong = await api("POST", "/projects", { token, body: { program: state.budgetProgramId, name: "Wrong Type", projectType: "Space Mission", startDate: "2026-08-01", endDate: "2026-12-31" } });
+    assert.ok(wrong.status >= 400 && wrong.status < 500, "a type not in the list is refused");
+
+    // a phase takes its main project's type
+    const phase = await api("POST", "/projects", { token, body: { program: state.budgetProgramId, parentProject: flood.data.data._id, name: "Flood Response Phase 1", projectType: "Development", startDate: "2026-08-01", endDate: "2026-09-30" } });
+    assert.equal(phase.status < 300, true, phase.data?.message);
+    assert.equal(String(phase.data.data.projectType), String(typeId("Emergency")));
+
+    // the list filters by type and shows it
+    const emergency = (await api("GET", `/projects?projectType=${typeId("Emergency")}&limit=50`, { token })).data.data;
+    assert.deepEqual(emergency.map(project => project.name).sort(), ["Flood Response", "Flood Response Phase 1"]);
+    assert.equal(emergency[0].projectType.value, "Emergency");
+
+    // changing the main project's type moves its phases along
+    await api("PUT", `/projects/${flood.data.data._id}`, { token, body: { projectType: typeId("Humanitarian") } });
+    const after = (await api("GET", `/projects/${phase.data.data._id}`, { token })).data.data;
+    assert.equal(after.projectType.value, "Humanitarian");
+
+    // reports: only the projects of that type
+    const all = (await api("GET", "/report-center/budgets?period=year&year=2026", { token })).data.data;
+    const humanitarian = (await api("GET", `/report-center/budgets?period=year&year=2026&projectType=${typeId("Humanitarian")}`, { token })).data.data;
+    assert.ok(all.details.rows.length > 0);
+    assert.equal(humanitarian.details.rows.length, 0, "the flood projects have no budget yet");
+    const development = (await api("GET", `/report-center/budgets?period=year&year=2026&projectType=${typeId("Development")}`, { token })).data.data;
+    assert.equal(development.details.rows.length, 0, "no project is Development yet");
 
 });
 

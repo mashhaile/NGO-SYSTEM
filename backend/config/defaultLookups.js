@@ -164,6 +164,21 @@ const DEFAULT_LOOKUPS = {
             "Capacity Building"
         ]
 
+    },
+
+
+    Project: {
+
+        // how the work is run (each organization keeps its own list)
+        ProjectType: [
+            "Development",
+            "Humanitarian",
+            "Emergency",
+            "Recovery",
+            "Resilience",
+            "Advocacy"
+        ]
+
     }
 
 };

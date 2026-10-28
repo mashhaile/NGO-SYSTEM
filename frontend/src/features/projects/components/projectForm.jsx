@@ -45,6 +45,9 @@ import {
     getProjectsService
 } from "../services/projectService";
 
+import axiosClient
+    from "../../../services/axiosClient";
+
 
 const initialState = {
     program: "",
@@ -54,6 +57,8 @@ const initialState = {
     description: "",
     donor: "",
     projectManager: "",
+    // Development, Humanitarian, Emergency ... (Lookups > Projects)
+    projectType: "",
     startDate: "",
     endDate: "",
     status: "Planned"
@@ -143,6 +148,28 @@ const ProjectForm = ({
             cancelled = true;
         };
 
+    }, []);
+
+
+    // the organization's project types (Lookups > Projects > Project Type)
+    const [
+        projectTypes,
+        setProjectTypes
+    ] = useState([]);
+
+    useEffect(() => {
+        let cancelled = false;
+        axiosClient.get("/lookups/module/Project/category/ProjectType")
+            .then(response => {
+                const list = response.data?.data;
+                if (!cancelled) setProjectTypes((Array.isArray(list) ? list : []).filter(type => type.isActive !== false));
+            })
+            .catch(() => {
+                if (!cancelled) setProjectTypes([]);
+            });
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
 
@@ -360,6 +387,11 @@ const ProjectForm = ({
 
             projectManager:
                 projectManagerId,
+
+            projectType:
+                getEntityId(
+                    initialData.projectType
+                ),
 
             startDate:
                 initialData.startDate
@@ -594,7 +626,12 @@ const ProjectForm = ({
 
             status:
                 form.status ||
-                "Planned"
+                "Planned",
+
+            // a phase takes its main project's type (set by the server)
+            ...(selectedMainProject
+                ? {}
+                : { projectType: form.projectType || null })
 
         };
 
@@ -944,6 +981,38 @@ const ProjectForm = ({
                                     "name",
                                     e.target.value
                                 )
+                            }
+                        />
+
+
+                        <AppSelect
+                            label="Project Type"
+                            value={
+                                selectedMainProject
+                                    ? getEntityId(selectedMainProject.projectType)
+                                    : form.projectType
+                            }
+                            placeholder="Not set"
+                            options={[
+                                ...projectTypes.map(type => ({ value: type._id, label: type.value })),
+                                // the main project's type, even if no longer in the list
+                                ...(selectedMainProject?.projectType && !projectTypes.some(type => type._id === getEntityId(selectedMainProject.projectType))
+                                    ? [{ value: getEntityId(selectedMainProject.projectType), label: selectedMainProject.projectType.value || "Main project's type" }]
+                                    : [])
+                            ]}
+                            onChange={(e) =>
+                                changeField(
+                                    "projectType",
+                                    e.target.value
+                                )
+                            }
+                            disabled={
+                                Boolean(selectedMainProject)
+                            }
+                            helperText={
+                                selectedMainProject
+                                    ? "A phase has its main project's type"
+                                    : "How the work is run, e.g. Development, Humanitarian, Emergency. The list is in Lookups > Projects."
                             }
                         />
 

@@ -269,7 +269,7 @@ module.exports = {
     key: "budgets",
     title: "Budget & spending",
     description: "Approved budgets against spending: by budget, category, donor and month, lines over budget.",
-    filters: ["program", "project"],
+    filters: ["program", "projectType", "project"],
     permission: "budget.read",
     generate
 };

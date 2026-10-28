@@ -242,6 +242,6 @@ module.exports = {
     key: "serviceDelivery",
     title: "Service delivery",
     description: "Goods, cash and services delivered: where, to whom, how much reached people, who paid.",
-    filters: ["program", "project", "region"],
+    filters: ["program", "projectType", "project", "region"],
     generate
 };

@@ -106,7 +106,7 @@ module.exports = {
     key: "indicators",
     title: "M&E: Indicators",
     description: "Logframe indicators: targets against actual values, % achieved and status, per program and project.",
-    filters: ["program", "project"],
+    filters: ["program", "projectType", "project"],
     permission: "indicator.read",
     generate
 };

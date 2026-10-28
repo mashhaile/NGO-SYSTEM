@@ -285,7 +285,7 @@ module.exports = {
     key: "beneficiaries",
     title: "Beneficiaries",
     description: "Who you serve: gender, age, location, programs, and what each person received.",
-    filters: ["program", "project", "region", "gender", "status"],
+    filters: ["program", "projectType", "project", "region", "gender", "status"],
     detail: "beneficiary",
     generate
 };

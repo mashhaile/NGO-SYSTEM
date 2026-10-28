@@ -52,6 +52,7 @@ import { hasPermission } from "../../../utils/permissions";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { formatDate } from "../../../utils/date";
 import { useModuleOn } from "../../../utils/modules";
+import useProjectTypes from "../useProjectTypes";
 
 
 const STATUS_OPTIONS =
@@ -77,6 +78,8 @@ const ProjectListPage = () => {
     const [search, setSearch] = useState("");
     const [program, setProgram] = useState("");
     const [status, setStatus] = useState("");
+    const [projectType, setProjectType] = useState("");
+    const projectTypes = useProjectTypes();
     const [programOptions, setProgramOptions] = useState([]);
 
     const [paginationModel, setPaginationModel] =
@@ -112,6 +115,7 @@ const ProjectListPage = () => {
                     search: search.trim(),
                     program: program || undefined,
                     status: status || undefined,
+                    projectType: projectType || undefined,
                     page: paginationModel.page + 1,
                     limit: paginationModel.pageSize
                 })
@@ -142,7 +146,7 @@ const ProjectListPage = () => {
             clearTimeout(timer);
         };
 
-    }, [search, program, status, paginationModel, reloadKey]);
+    }, [search, program, status, projectType, paginationModel, reloadKey]);
 
 
     const handleDelete = async () => {
@@ -225,6 +229,14 @@ const ProjectListPage = () => {
                     )
                     : "-";
             }
+        },
+
+        {
+            field: "projectType",
+            headerName: "Type",
+            minWidth: 120,
+            sortable: false,
+            valueGetter: (value) => value?.value || "-"
         },
 
         {
@@ -322,10 +334,12 @@ const ProjectListPage = () => {
                     setSearch("");
                     setProgram("");
                     setStatus("");
+                    setProjectType("");
                     resetPage();
                 }}
                 filters={[
                     { key: "program", label: "Program", value: program, onChange: (value) => { setProgram(value); resetPage(); }, options: programOptions },
+                    ...(projectTypes.length ? [{ key: "projectType", label: "Type", value: projectType, onChange: (value) => { setProjectType(value); resetPage(); }, options: projectTypes }] : []),
                     { key: "status", label: "Status", value: status, onChange: (value) => { setStatus(value); resetPage(); }, options: STATUS_OPTIONS }
                 ]}
             />

@@ -113,6 +113,22 @@ const SYSTEM_LOOKUP_FIELDS = {
     // SERVICE DELIVERY
     // =================================================
 
+    // =================================================
+    // PROJECT
+    // =================================================
+
+    Project: [
+
+        {
+            field: "projectType",
+            category: "ProjectType",
+            label: "Project Type",
+            multiple: false
+        }
+
+    ],
+
+
     ServiceDelivery: [
 
         {
@@ -193,6 +209,28 @@ const MODULE_ALIASES = {
 
     programs:
         "Program",
+
+
+    // -------------------------------------------------
+    // PROJECT
+    // -------------------------------------------------
+
+    project:
+        "Project",
+
+    projects:
+        "Project",
+
+
+    // -------------------------------------------------
+    // PROJECT
+    // -------------------------------------------------
+
+    project:
+        "Project",
+
+    projects:
+        "Project",
 
 
     // -------------------------------------------------

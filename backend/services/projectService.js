@@ -51,6 +51,14 @@ const withBudgets = async (organizationId, projects) => {
 const phases = require("./projectPhases");
 
 
+// Development, Humanitarian, Emergency ... (Lookups > Projects >
+// Project Type): a lookup id or value, or empty
+const resolveProjectType = (organizationId, value) =>
+    value === undefined || value === null || value === ""
+        ? null
+        : require("../utils/lookupResolver")(organizationId, "Project", "ProjectType", value);
+
+
 const isValidObjectId = (value) => {
 
     return mongoose.Types.ObjectId.isValid(value);
@@ -258,6 +266,10 @@ const createProject = async (
             projectManager:
                 projectManagerId,
 
+            // a phase takes its main project's type
+            projectType:
+                parent ? parent.projectType || null : await resolveProjectType(organizationId, data.projectType),
+
             startDate:
                 data.startDate,
 
@@ -377,6 +389,13 @@ const getProjects = async (
             status;
 
     }
+    // =================================================
+    // PROJECT TYPE
+    // =================================================
+    if (query.projectType && isValidObjectId(query.projectType)) {
+        filter.projectType =
+            query.projectType;
+    }
 
 
     // =================================================
@@ -468,6 +487,10 @@ const getProjects = async (
                 .populate(
                     "parentProject",
                     "projectCode name"
+                )
+                .populate(
+                    "projectType",
+                    "value"
                 )
 
                 .populate(
@@ -574,6 +597,11 @@ const getProjectById = async (
             .populate(
                 "projectManager",
                 "name email role status"
+            )
+
+            .populate(
+                "projectType",
+                "value"
             )
 
             .lean();
@@ -913,6 +941,16 @@ const updateProject = async (
     // =================================================
     // PHASES: inside the main project, not overlapping
     // =================================================
+    // =================================================
+    // PROJECT TYPE (a phase takes its main project's)
+    // =================================================
+    const typeBefore = project.projectType ? String(project.projectType) : null;
+    if (newParent) {
+        project.projectType = newParent.projectType || null;
+    }
+    else if (data.projectType !== undefined && !(newParent === undefined && project.parentProject)) {
+        project.projectType = await resolveProjectType(organizationId, data.projectType);
+    }
     if (newParent !== undefined) {
         const before = project.parentProject ? String(project.parentProject) : null;
         project.parentProject = newParent ? newParent._id : null;
@@ -938,6 +976,14 @@ const updateProject = async (
     // =================================================
 
     await project.save();
+
+    // its phases follow a main project's type
+    if (!project.parentProject && String(project.projectType || "") !== String(typeBefore || "")) {
+        await Project.updateMany(
+            { organization: organizationId, parentProject: project._id },
+            { $set: { projectType: project.projectType || null } }
+        );
+    }
 
 
     // =================================================
@@ -967,6 +1013,11 @@ const updateProject = async (
         .populate(
             "projectManager",
             "name email role status"
+        )
+
+        .populate(
+            "projectType",
+            "value"
         );
 
 };

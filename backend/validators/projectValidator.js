@@ -30,6 +30,10 @@ exports.createProjectSchema = Joi.object({
     projectManager:
         Joi.string()
             .allow(null),
+    // Development, Humanitarian, Emergency ... (lookup id or value)
+    projectType:
+        Joi.string()
+            .allow(null, ""),
     // a phase of this main project
     parentProject:
         Joi.string()
@@ -76,6 +80,9 @@ exports.updateProjectSchema = Joi.object({
     projectManager:
         Joi.string()
             .allow(null),
+    projectType:
+        Joi.string()
+            .allow(null, ""),
     parentProject:
         Joi.string()
             .allow(null, ""),

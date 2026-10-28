@@ -402,6 +402,11 @@ const [
                         />
                     )}
 
+                    <InfoRow
+                        label="Project Type"
+                        value={project.projectType?.value || "-"}
+                    />
+
                     {fundingOn && (
                     <InfoRow
                         label="Donor"

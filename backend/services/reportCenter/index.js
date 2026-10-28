@@ -89,6 +89,18 @@ const runReport = async (key, query, context) => {
         const organizationId = context.organizationId;
         query = { ...query, projectIds: await require("../projectPhases").projectAndPhases(query.project, organizationId) };
     }
+    // a project type (Development, Emergency ...): every project of
+    // that type, phases included (they take their main project's type)
+    else if (query.projectType && (report.filters || []).includes("projectType")) {
+        const mongoose = require("mongoose");
+        const ids =
+            mongoose.isValidObjectId(query.projectType)
+                ? (await require("../../models/Project").find({ organization: context.organizationId, isDeleted: { $ne: true }, projectType: query.projectType }).select("_id").lean()).map(project => project._id)
+                : [];
+        // none: a filter that matches nothing
+        const projectIds = ids.length ? ids : [new mongoose.Types.ObjectId()];
+        query = { ...query, project: String(projectIds[0]), projectIds };
+    }
 
     return report.generate(query, context, resolvePeriod(query));
 

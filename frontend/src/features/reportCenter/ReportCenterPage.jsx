@@ -54,7 +54,7 @@ import {
 //
 // =====================================================
 
-const FILTER_KEYS = ["period", "year", "half", "quarter", "month", "startDate", "endDate", "program", "project", "region", "gender", "status"];
+const FILTER_KEYS = ["period", "year", "half", "quarter", "month", "startDate", "endDate", "program", "projectType", "project", "region", "gender", "status"];
 
 const THIS_YEAR = new Date().getFullYear();
 

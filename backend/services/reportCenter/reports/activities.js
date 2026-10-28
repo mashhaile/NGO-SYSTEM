@@ -412,7 +412,7 @@ module.exports = {
     key: "activities",
     title: "Activities & training",
     description: "Trainings: people trained, completion, attendance. Other activities: what they delivered and to whom.",
-    filters: ["program", "project", "status"],
+    filters: ["program", "projectType", "project", "status"],
     detail: "activityRun",
     generate
 };
