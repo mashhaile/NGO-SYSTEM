@@ -61,10 +61,12 @@ const AuthInitializer = ({ children }) => {
     // KEEP PERMISSIONS AND MODULES CURRENT
     // ==========================================
     //
-    // When the window comes back into focus (at most once a
-    // minute), the user's permissions and the organization's
-    // modules are loaded again: a role or module changed by
-    // an administrator applies without signing out.
+    // When the window or the tab comes back (at most every 15
+    // seconds), and every 2 minutes while the page is visible,
+    // the user's permissions and the organization's modules
+    // are loaded again (quietly): a role or module changed by
+    // an administrator applies without signing out or
+    // reloading.
     //
     // ==========================================
 
@@ -72,14 +74,24 @@ const AuthInitializer = ({ children }) => {
 
         let last = Date.now();
 
-        const refresh = () => {
-            if (!getToken() || Date.now() - last < 60000) return;
+        const refresh = (minimum = 15000) => {
+            if (!getToken() || document.visibilityState === "hidden" || Date.now() - last < minimum) return;
             last = Date.now();
             dispatch(refreshCurrentUserThunk());
         };
 
-        window.addEventListener("focus", refresh);
-        return () => window.removeEventListener("focus", refresh);
+        const onFocus = () => refresh();
+        const onVisible = () => refresh();
+        const timer = setInterval(() => refresh(120000), 30000);
+
+        window.addEventListener("focus", onFocus);
+        document.addEventListener("visibilitychange", onVisible);
+
+        return () => {
+            window.removeEventListener("focus", onFocus);
+            document.removeEventListener("visibilitychange", onVisible);
+            clearInterval(timer);
+        };
 
     }, [dispatch]);
 
