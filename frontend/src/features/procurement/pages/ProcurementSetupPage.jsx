@@ -52,6 +52,9 @@ import {
 import useAuth
     from "../../auth/hooks/useAuth";
 
+import useProjectTypes
+    from "../../projects/useProjectTypes";
+
 import {
     getProcurementSettingsApi,
     updateProcurementSettingsApi,
@@ -88,6 +91,8 @@ const MethodsCard = ({ canEdit }) => {
 
     const [settings, setSettings] = useState(null);
     const [draft, setDraft] = useState(null);
+    const [emergencyDraft, setEmergencyDraft] = useState(null);
+    const projectTypes = useProjectTypes();
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [saved, setSaved] = useState("");
@@ -99,10 +104,14 @@ const MethodsCard = ({ canEdit }) => {
     if (!settings) return <PageCard>{error ? <Alert severity="error">{error}</Alert> : <LoadingState message="Loading..." />}</PageCard>;
 
     const shown = draft || settings.methods;
+    const emergency = emergencyDraft || settings.emergency;
+    const changeEmergency = (patch) => setEmergencyDraft({ ...emergency, ...patch });
     const change = (key, patch) => setDraft({ ...shown, [key]: { ...shown[key], ...patch } });
 
     const isDefault = METHOD_KEYS.every(key =>
-        ["upTo", "minQuotes", "committee"].every(field => settings.methods[key][field] === settings.defaults[key][field]));
+        ["upTo", "minQuotes", "committee"].every(field => settings.methods[key][field] === settings.defaults[key][field]))
+        && ["enabled", "minQuotes", "afterPurchase"].every(field => settings.emergency[field] === settings.emergencyDefaults[field])
+        && !settings.emergency.projectTypes.length;
 
     const send = async (body, message) => {
         setBusy(true);
@@ -111,6 +120,7 @@ const MethodsCard = ({ canEdit }) => {
         try {
             setSettings(await updateProcurementSettingsApi(body));
             setDraft(null);
+            setEmergencyDraft(null);
             setSaved(message);
         }
         catch (err) {
@@ -126,7 +136,13 @@ const MethodsCard = ({ canEdit }) => {
             ...(key === "tender" ? {} : { upTo: Number(shown[key].upTo) }),
             minQuotes: Number(shown[key].minQuotes),
             committee: Boolean(shown[key].committee)
-        }]))
+        }])),
+        emergency: {
+            enabled: Boolean(emergency.enabled),
+            minQuotes: Number(emergency.minQuotes),
+            afterPurchase: Boolean(emergency.afterPurchase),
+            projectTypes: emergency.projectTypes || []
+        }
     }, "Saved. Quotations started from now on use these limits.");
 
     const { direct, rfq } = shown;
@@ -199,6 +215,41 @@ const MethodsCard = ({ canEdit }) => {
                     </Table>
                 </TableContainer>
 
+                <Box sx={{ mt: 3, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
+                    <FormControlLabel
+                        control={<Checkbox checked={Boolean(emergency.enabled)} disabled={!canEdit} onChange={(e) => changeEmergency({ enabled: e.target.checked })} />}
+                        label={<Typography sx={{ fontWeight: 700 }}>Emergency procurement</Typography>}
+                    />
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        For projects of an emergency type, whatever the amount: fewer quotations, no committee, a reason is required, and every such purchase is listed as an exception in the procurement report.
+                    </Typography>
+                    {emergency.enabled && (
+                        <FormGrid columns={3}>
+                            <AppSelect
+                                label="For projects of type"
+                                multiple
+                                disabled={!canEdit}
+                                value={emergency.projectTypes || []}
+                                onChange={(e) => changeEmergency({ projectTypes: typeof e.target.value === "string" ? e.target.value.split(",") : e.target.value })}
+                                options={projectTypes}
+                                helperText={(emergency.projectTypes || []).length ? "" : "None chosen: the type named Emergency"}
+                            />
+                            <AppTextField
+                                label="Quotations needed"
+                                type="number"
+                                value={emergency.minQuotes}
+                                disabled={!canEdit}
+                                onChange={(e) => changeEmergency({ minQuotes: e.target.value })}
+                                inputProps={{ min: 1, max: 10, step: 1 }}
+                            />
+                            <FormControlLabel
+                                control={<Checkbox checked={Boolean(emergency.afterPurchase)} disabled={!canEdit} onChange={(e) => changeEmergency({ afterPurchase: e.target.checked })} />}
+                                label="The order may be issued before the approval (the approval follows)"
+                            />
+                        </FormGrid>
+                    )}
+                </Box>
+
                 {canEdit
                     ? (
                         <Stack direction="row" spacing={1} sx={{ mt: 2, justifyContent: "flex-end", alignItems: "center" }}>
@@ -206,14 +257,14 @@ const MethodsCard = ({ canEdit }) => {
                                 <span>
                                     <IconButton
                                         aria-label="Set the procurement methods to default"
-                                        disabled={(isDefault && !draft) || busy}
+                                        disabled={(isDefault && !draft && !emergencyDraft) || busy}
                                         onClick={() => send({ reset: true }, "Back to the defaults.")}
                                     >
                                         <RestartAlt />
                                     </IconButton>
                                 </span>
                             </Tooltip>
-                            <AppButton variant="contained" startIcon={<Save />} loading={busy} disabled={!draft} onClick={save}>
+                            <AppButton variant="contained" startIcon={<Save />} loading={busy} disabled={!draft && !emergencyDraft} onClick={save}>
                                 Save
                             </AppButton>
                         </Stack>

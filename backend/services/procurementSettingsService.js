@@ -16,7 +16,15 @@ const ApiError = require("../utils/apiError");
 //
 // Each organization admin sets its own limits, number of
 // quotes and whether a committee approves (Settings >
-// Procurement); "reset" goes back to the defaults. Changes
+// Procurement); "reset" goes back to the defaults.
+//
+// Emergency procurement: for projects of the chosen types
+// (Lookups > Projects > Project Type; empty: the type named
+// "Emergency"), whatever the amount: fewer quotations, no
+// committee, a reason, and (afterPurchase) the order may be
+// issued before the choice is approved; the approval follows.
+// Every such purchase is an exception in the procurement
+// report. Changes
 // apply to bid analyses started afterwards; one in progress
 // keeps the method it started with.
 //
@@ -27,7 +35,8 @@ const CURRENCY = "ETB";
 const METHOD_NAMES = {
     direct: "Direct purchase",
     rfq: "Request for quotation",
-    tender: "Tender"
+    tender: "Tender",
+    emergency: "Emergency procurement"
 };
 
 const DEFAULTS = {
@@ -35,6 +44,8 @@ const DEFAULTS = {
     rfq: { upTo: 300000, minQuotes: 3, committee: false },
     tender: { upTo: null, minQuotes: 3, committee: true }
 };
+
+const EMERGENCY_DEFAULTS = { enabled: true, minQuotes: 1, afterPurchase: true, projectTypes: [] };
 
 const KEYS = ["direct", "rfq", "tender"];
 
@@ -55,7 +66,20 @@ const clean = (stored = {}) =>
     }));
 
 
-// { currency, methods: { direct, rfq, tender }, defaults }
+const cleanEmergency = (stored = {}) => {
+    const value = { ...EMERGENCY_DEFAULTS, ...(stored || {}) };
+    return {
+        key: "emergency",
+        name: METHOD_NAMES.emergency,
+        enabled: value.enabled !== false,
+        minQuotes: Number(value.minQuotes),
+        afterPurchase: Boolean(value.afterPurchase),
+        projectTypes: (Array.isArray(value.projectTypes) ? value.projectTypes : []).map(String)
+    };
+};
+
+
+// { currency, methods: { direct, rfq, tender }, emergency, defaults }
 const getSettings = async (organizationId) => {
 
     const key = String(organizationId);
@@ -67,7 +91,9 @@ const getSettings = async (organizationId) => {
     const value = {
         currency: CURRENCY,
         methods: clean(organization?.procurementSettings?.methods),
-        defaults: clean({})
+        emergency: cleanEmergency(organization?.procurementSettings?.emergency),
+        defaults: clean({}),
+        emergencyDefaults: cleanEmergency({})
     };
 
     cache.set(key, { at: Date.now(), value });
@@ -98,7 +124,7 @@ const check = (methods) => {
 };
 
 
-// data: { methods: { direct: { upTo, minQuotes, committee }, ... } } or { reset: true }
+// data: { methods: { direct: { upTo, minQuotes, committee }, ... }, emergency: { enabled, minQuotes, afterPurchase, projectTypes } } or { reset: true }
 const updateSettings = async (organizationId, data, userId) => {
 
     const before = await getSettings(organizationId);
@@ -110,13 +136,25 @@ const updateSettings = async (organizationId, data, userId) => {
 
     check(methods);
 
+    const emergency =
+        data.reset ? cleanEmergency({}) : cleanEmergency({ ...before.emergency, ...(data.emergency || {}) });
+
+    if (!Number.isInteger(emergency.minQuotes) || emergency.minQuotes < 1 || emergency.minQuotes > 10) {
+        throw new ApiError("Emergency procurement: the number of quotations must be a whole number from 1 to 10.", 400);
+    }
+
+    if (emergency.projectTypes.length) {
+        const found = await require("../models/Lookup").countDocuments({ _id: { $in: emergency.projectTypes }, organization: organizationId, module: "Project", category: "ProjectType" });
+        if (found !== emergency.projectTypes.length) throw new ApiError("Emergency procurement: choose the project types from the list.", 400);
+    }
+
     const stored =
         Object.fromEntries(KEYS.map(key => [key, { upTo: methods[key].upTo, minQuotes: methods[key].minQuotes, committee: methods[key].committee }]));
 
     const organization =
         await Organization.findByIdAndUpdate(
             organizationId,
-            { $set: { procurementSettings: data.reset ? {} : { methods: stored } } },
+            { $set: { procurementSettings: data.reset ? {} : { methods: stored, emergency: { enabled: emergency.enabled, minQuotes: emergency.minQuotes, afterPurchase: emergency.afterPurchase, projectTypes: emergency.projectTypes } } } },
             { returnDocument: "after" }
         ).select("_id");
 
@@ -132,8 +170,8 @@ const updateSettings = async (organizationId, data, userId) => {
         module: "Procurement",
         entityType: "Organization",
         entityId: organization?._id || organizationId,
-        description: `${describe(methods)}${data.reset ? " (back to the defaults)" : ""}.`,
-        metadata: { before: before.methods, after: methods },
+        description: `${describe(methods)}; emergency: ${emergency.enabled ? `${emergency.minQuotes} quote(s)${emergency.afterPurchase ? ", approval after purchase" : ""}` : "off"}${data.reset ? " (back to the defaults)" : ""}.`,
+        metadata: { before: { methods: before.methods, emergency: before.emergency }, after: { methods, emergency } },
         success: true,
         severity: "info"
     });
@@ -163,7 +201,28 @@ const methodFor = (settings, etbValue, atLeast = null) => {
 };
 
 
+// The emergency rule when the project is of an emergency type,
+// otherwise null. No types chosen: the type named "Emergency".
+const emergencyFor = async (settings, organizationId, projectId) => {
+
+    if (!settings.emergency?.enabled || !projectId) return null;
+
+    const project = await require("../models/Project").findById(projectId).select("projectType").lean();
+    if (!project?.projectType) return null;
+
+    let types = settings.emergency.projectTypes;
+    if (!types.length) {
+        const named = await require("../models/Lookup").find({ organization: organizationId, module: "Project", category: "ProjectType", value: /^emergency$/i }).select("_id").lean();
+        types = named.map(type => String(type._id));
+    }
+
+    return types.includes(String(project.projectType)) ? settings.emergency : null;
+
+};
+
+
 module.exports = {
+    emergencyFor,
     CURRENCY,
     KEYS,
     METHOD_NAMES,

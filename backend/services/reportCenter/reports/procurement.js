@@ -71,7 +71,7 @@ const generate = async (query, context, period) => {
             PurchaseOrder.find(scope(organizationId, { ...work, ...dated("orderDate"), status: { $ne: "Cancelled" } }))
                 .populate("supplier", "supplierCode name")
                 .populate("project", "projectCode name")
-                .populate({ path: "purchaseRequest", select: "requestCode title requestDate approvedAt sourcing.method sourcing.methodName sourcing.minQuotes sourcing.quotes._id sourcing.quotes.total sourcing.selectedQuote sourcing.selectionReason sourcing.fewerQuotesReason sourcing.committeeName" })
+                .populate({ path: "purchaseRequest", select: "requestCode title requestDate approvedAt sourcing.method sourcing.methodName sourcing.minQuotes sourcing.quotes._id sourcing.quotes.total sourcing.selectedQuote sourcing.selectionReason sourcing.fewerQuotesReason sourcing.committeeName sourcing.method sourcing.emergencyReason sourcing.orderedBeforeApproval sourcing.status" })
                 .sort({ orderDate: 1 })
                 .lean(),
             PurchaseOrder.find(scope(organizationId, { ...work, status: { $in: OPEN } }))
@@ -213,6 +213,9 @@ const generate = async (query, context, period) => {
         if (chosen && chosen.total > lowest + 0.005) {
             exceptionRows.push({ id: toId(order._id), code: order.poCode, supplier: order.supplier?.name || "", issue: "Not the lowest quotation", detail: `${round2(chosen.total)} vs lowest ${round2(lowest)}`, reason: sourcing.selectionReason || "-", currency: order.currency });
         }
+        if (sourcing.method === "emergency") {
+            exceptionRows.push({ id: toId(order._id), code: order.poCode, supplier: order.supplier?.name || "", issue: "Emergency procurement", detail: `${quotes.length} quotation(s)${sourcing.orderedBeforeApproval ? `, ordered before approval (${sourcing.status === "Approved" ? "approved since" : "approval pending"})` : ""}`, reason: sourcing.emergencyReason || "-", currency: order.currency });
+        }
         if (quotes.length < (sourcing.minQuotes || 1)) {
             exceptionRows.push({ id: toId(order._id), code: order.poCode, supplier: order.supplier?.name || "", issue: "Fewer quotations than required", detail: `${quotes.length} of ${sourcing.minQuotes} (${sourcing.methodName})`, reason: sourcing.fewerQuotesReason || "-", currency: order.currency });
         }
@@ -297,7 +300,7 @@ const generate = async (query, context, period) => {
                 column("issue", "Issue"),
                 column("detail", "Detail"),
                 column("reason", "Reason given")
-            ], exceptionRows, { link: { kind: "purchaseOrder", idKey: "id" }, note: "Orders whose bid analysis did not choose the lowest quotation, or had fewer quotations than the method asks for." })
+            ], exceptionRows, { link: { kind: "purchaseOrder", idKey: "id" }, note: "Emergency purchases, and orders whose bid analysis did not choose the lowest quotation or had fewer quotations than the method asks for." })
         ],
         details: {
             title: "Purchase orders in the period",

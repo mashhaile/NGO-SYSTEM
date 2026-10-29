@@ -213,7 +213,14 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
                         </Box>
                     )}
 
-                    {chosen && (
+                    {request.emergencyRule && startMethod !== "standard" && (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            <strong>Emergency procurement</strong> (an emergency project): at least {request.emergencyRule.minQuotes} quotation{request.emergencyRule.minQuotes === 1 ? "" : "s"}, no committee, a reason is required
+                            {request.emergencyRule.afterPurchase ? "; the order may be issued before the approval, which follows" : ""}. It is listed as an exception in the procurement report.
+                        </Alert>
+                    )}
+
+                    {chosen && (!request.emergencyRule || startMethod === "standard") && (
                         <Alert severity="info" sx={{ mb: 2 }}>
                             {formatMoney(value, "ETB")} → <strong>{chosen.name}</strong>: at least {chosen.minQuotes} quotation{chosen.minQuotes === 1 ? "" : "s"}
                             {chosen.committee ? ", approved by a committee" : ", approved by an approver"}.
@@ -222,7 +229,20 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
 
                     {can.start && (
                         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "center" } }}>
-                            {byAmount && byAmount.key !== "tender" && (
+                            {request.emergencyRule && (
+                                <Box sx={{ minWidth: 300 }}>
+                                    <AppSelect
+                                        label="Method"
+                                        value={startMethod === "standard" ? "standard" : "emergency"}
+                                        onChange={(e) => setStartMethod(e.target.value === "standard" ? "standard" : "")}
+                                        options={[
+                                            { value: "emergency", label: "Emergency procurement" },
+                                            { value: "standard", label: `Normal method by amount${byAmount ? ` (${byAmount.name})` : ""}` }
+                                        ]}
+                                    />
+                                </Box>
+                            )}
+                            {!request.emergencyRule && byAmount && byAmount.key !== "tender" && (
                                 <Box sx={{ minWidth: 260 }}>
                                     <AppSelect
                                         label="Method"
@@ -237,7 +257,7 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
                                 variant="contained"
                                 startIcon={<PlayArrow />}
                                 loading={busy === "start"}
-                                disabled={value === null}
+                                disabled={value === null && !(request.emergencyRule && startMethod !== "standard")}
                                 onClick={() => run("start", () => startSourcingApi(request._id, { method: startMethod || undefined, etbRate: etbRate ? Number(etbRate) : undefined }))}
                             >
                                 Start Quotations
@@ -262,6 +282,7 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
         selectedQuote: idOf(sourcing.selectedQuote),
         selectionReason: sourcing.selectionReason || "",
         fewerQuotesReason: sourcing.fewerQuotesReason || "",
+        emergencyReason: sourcing.emergencyReason || "",
         committee: idOf(sourcing.committee)
     };
     const form = choice || saved;
@@ -274,6 +295,9 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
     const fewer = quotes.length < sourcing.minQuotes;
 
     const committeeMode = sourcing.needsCommittee;
+    const isEmergency = sourcing.method === "emergency";
+    const orderedFirst = Boolean(sourcing.orderedBeforeApproval);
+    const canOrderFirst = isEmergency && sourcing.afterPurchase && sourcing.status === SOURCING_STATUS.SUBMITTED && requestApproved && can.order;
     const seat = (sourcing.panel || []).find(member => idOf(member.user) === me);
     const approvals = (sourcing.panel || []).filter(member => member.decision === "Approve").length;
 
@@ -292,7 +316,7 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
 
             <FormSection
                 title="Quotations and Bid Analysis"
-                subtitle={`${sourcing.methodName}: at least ${sourcing.minQuotes} quotation${sourcing.minQuotes === 1 ? "" : "s"}, ${committeeMode ? "approved by a committee" : "approved by an approver"}. Prices in ${request.currency}.`}
+                subtitle={isEmergency ? `Emergency procurement: at least ${sourcing.minQuotes} quotation${sourcing.minQuotes === 1 ? "" : "s"}, a reason, approved by an approver${sourcing.afterPurchase ? " (the order may come first)" : ""}. Prices in ${request.currency}.` : `${sourcing.methodName}: at least ${sourcing.minQuotes} quotation${sourcing.minQuotes === 1 ? "" : "s"}, ${committeeMode ? "approved by a committee" : "approved by an approver"}. Prices in ${request.currency}.`}
             >
 
                 <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: "center", flexWrap: "wrap" }}>
@@ -451,6 +475,17 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
                                 />
                             </Box>
                         )}
+                        {isEmergency && (
+                            <Box sx={{ mt: 2 }}>
+                                <AppTextField
+                                    label="The emergency (required)"
+                                    value={form.emergencyReason}
+                                    onChange={(e) => change({ emergencyReason: e.target.value })}
+                                    placeholder="e.g. Flood on 28 May in Fogera; 300 families without clean water"
+                                    helperText="Why normal procurement cannot wait. Shown to the approver and in the procurement report."
+                                />
+                            </Box>
+                        )}
                         {fewer && (
                             <Box sx={{ mt: 2 }}>
                                 <AppTextField
@@ -479,6 +514,8 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
                         <InfoRow label="Chosen" value={winner ? `${winner.supplier?.name} · ${formatMoney(winner.total, request.currency)}${idOf(winner._id) === idOf(lowestId) ? " (lowest)" : ""}` : "-"} />
                         {sourcing.selectionReason && <InfoRow label="Why not the lowest" value={sourcing.selectionReason} />}
                         {sourcing.fewerQuotesReason && <InfoRow label="Fewer quotations" value={sourcing.fewerQuotesReason} />}
+                        {sourcing.emergencyReason && <InfoRow label="The emergency" value={sourcing.emergencyReason} />}
+                        {orderedFirst && <InfoRow label="Ordered" value={sourcing.status === SOURCING_STATUS.APPROVED ? "Before the approval; approved since" : "Before the approval (emergency); waiting for the approval"} />}
                         {sourcing.submittedBy?.name && <InfoRow label="Submitted by" value={`${sourcing.submittedBy.name}, ${formatDate(sourcing.submittedAt)}`} />}
                         {sourcing.approvedBy?.name && !committeeMode && <InfoRow label="Approved by" value={`${sourcing.approvedBy.name}, ${formatDate(sourcing.approvedAt)}`} />}
                     </Box>
@@ -506,10 +543,20 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
 
                 {/* actions after submission */}
 
-                {sourcing.status === SOURCING_STATUS.SUBMITTED && requestApproved && (
+                {canOrderFirst && (
+                    <Alert
+                        severity="warning"
+                        sx={{ mb: 2 }}
+                        action={<AppButton size="small" variant="contained" startIcon={<ReceiptLong />} onClick={() => openDialog("order")}>Issue Order Now</AppButton>}
+                    >
+                        Emergency procurement: the purchase order can be issued now. The approval follows.
+                    </Alert>
+                )}
+
+                {sourcing.status === SOURCING_STATUS.SUBMITTED && (requestApproved || orderedFirst) && (
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                         {!committeeMode && can.approve && (
-                            <AppButton variant="contained" color="success" startIcon={<CheckCircle />} onClick={() => openDialog("approve")}>Approve Bid Analysis</AppButton>
+                            <AppButton variant="contained" color="success" startIcon={<CheckCircle />} onClick={() => openDialog("approve")}>{orderedFirst ? "Approve (already ordered)" : "Approve Bid Analysis"}</AppButton>
                         )}
                         {committeeMode && seat && !seat.decision && (
                             <>
@@ -517,7 +564,7 @@ const SourcingCard = ({ request, user, onChange, navigate }) => {
                                 <AppButton variant="outlined" color="error" startIcon={<ThumbDown />} onClick={() => openDialog("object")}>Object</AppButton>
                             </>
                         )}
-                        {can.approve && (
+                        {can.approve && !orderedFirst && (
                             <AppButton variant="outlined" color="warning" startIcon={<Undo />} onClick={() => openDialog("return")}>Return for Changes</AppButton>
                         )}
                     </Stack>

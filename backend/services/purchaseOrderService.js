@@ -107,9 +107,20 @@ const createPurchaseOrder = async (requestId, data, organizationId, userId) => {
             );
         }
 
-        if (request.sourcing?.status !== SOURCING_STATUS.APPROVED) {
-            throw new ApiError("The bid analysis must be approved before the purchase order is issued.", 409);
+        // emergency procurement may order first; the approval follows
+        const orderFirst =
+            request.sourcing?.method === "emergency" && request.sourcing.afterPurchase && request.sourcing.status === SOURCING_STATUS.SUBMITTED;
+
+        if (request.sourcing?.status !== SOURCING_STATUS.APPROVED && !orderFirst) {
+            throw new ApiError(
+                request.sourcing?.method === "emergency" && request.sourcing.afterPurchase
+                    ? "Submit the emergency purchase (quotation and reason) first; then the order can be issued before it is approved."
+                    : "The bid analysis must be approved before the purchase order is issued.",
+                409
+            );
         }
+
+        if (orderFirst) request.sourcing.orderedBeforeApproval = true;
 
         const quote = request.sourcing.quotes.find(item => idOf(item._id) === idOf(request.sourcing.selectedQuote));
 
@@ -191,7 +202,7 @@ const createPurchaseOrder = async (requestId, data, organizationId, userId) => {
         request.status = PURCHASE_REQUEST_STATUS.ORDERED;
         request.purchaseOrder = order._id;
         request.updatedBy = userId;
-        request.history.push(historyEntry("Purchase order issued", PURCHASE_REQUEST_STATUS.ORDERED, userId, order.poCode));
+        request.history.push(historyEntry(orderFirst ? "Purchase order issued before approval (emergency)" : "Purchase order issued", PURCHASE_REQUEST_STATUS.ORDERED, userId, order.poCode));
 
         await request.save({ session });
 
@@ -276,6 +287,7 @@ const cancelPurchaseOrder = async (id, organizationId, userId, reason) => {
             if (request.sourcing) {
                 request.sourcing.status = SOURCING_STATUS.DRAFT;
                 request.sourcing.selectedQuote = null;
+                request.sourcing.orderedBeforeApproval = false;
                 request.sourcing.selectionReason = "";
                 request.sourcing.panel = [];
                 request.sourcing.reviewComment = `${order.poCode} was cancelled: ${reason}. Choose another quotation, or cancel the request.`;

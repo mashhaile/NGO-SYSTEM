@@ -126,17 +126,33 @@ const startSourcing = async (id, organizationId, userId, data = {}) => {
         throw new ApiError("Quotations are already entered. Remove them to start again with another method.", 409);
     }
 
-    if (data.method && !settingsService.KEYS.includes(data.method)) throw new ApiError("Unknown procurement method.", 400);
+    // "standard": the normal method by amount for an emergency project
+    if (data.method && data.method !== "standard" && !settingsService.KEYS.includes(data.method)) throw new ApiError("Unknown procurement method.", 400);
 
     const settings = await settingsService.getSettings(organizationId);
-    const etbValue = etbValueOf(request, data.etbRate);
-    const method = settingsService.methodFor(settings, etbValue, data.method || null);
+
+    // a project of an emergency type: emergency procurement, whatever the amount
+    const emergency =
+        data.method === "standard" || (data.method && data.method !== "emergency")
+            ? null
+            : await settingsService.emergencyFor(settings, organizationId, request.project);
+
+    if (data.method === "emergency" && !emergency) {
+        throw new ApiError("Emergency procurement is for projects of an emergency type (Procurement Setup).", 400);
+    }
+
+    const etbValue = emergency ? (() => { try { return etbValueOf(request, data.etbRate); } catch { return 0; } })() : etbValueOf(request, data.etbRate);
+    const method =
+        emergency
+            ? { key: "emergency", name: emergency.name, minQuotes: emergency.minQuotes, committee: false }
+            : settingsService.methodFor(settings, etbValue, data.method === "standard" ? null : data.method || null);
 
     request.sourcing = {
         method: method.key,
         methodName: method.name,
         minQuotes: method.minQuotes,
         needsCommittee: method.committee,
+        afterPurchase: Boolean(emergency?.afterPurchase),
         etbValue,
         quotes: [],
         status: SOURCING_STATUS.DRAFT,
@@ -286,6 +302,7 @@ const updateBid = async (id, data, organizationId, userId) => {
 
     if (data.selectionReason !== undefined) sourcing.selectionReason = String(data.selectionReason || "").trim();
     if (data.fewerQuotesReason !== undefined) sourcing.fewerQuotesReason = String(data.fewerQuotesReason || "").trim();
+    if (data.emergencyReason !== undefined) sourcing.emergencyReason = String(data.emergencyReason || "").trim();
 
     if (data.committee !== undefined) {
         if (data.committee) {
@@ -327,6 +344,10 @@ const checkSelection = async (organizationId, request, session = null) => {
     const quotes = sourcing.quotes || [];
 
     if (!quotes.length) throw new ApiError("Enter at least one quotation.", 400);
+
+    if (sourcing.method === "emergency" && String(sourcing.emergencyReason || "").length < 3) {
+        throw new ApiError("Emergency procurement: say what the emergency is and why normal procurement cannot wait.", 400);
+    }
     if (!sourcing.selectedQuote) throw new ApiError("Choose the winning quotation.", 400);
 
     const selected = quotes.find(quote => idOf(quote._id) === idOf(sourcing.selectedQuote));
@@ -416,8 +437,10 @@ const submitBid = async (id, organizationId, userId) => {
             organizationId,
             permission: "quotation.approve",
             byUserId: userId,
-            title: "Bid analysis waiting for approval",
-            message: `${label}: the bid analysis (${sourcing.quotes.length} quotation${sourcing.quotes.length === 1 ? "" : "s"}) was submitted for approval.`,
+            title: sourcing.method === "emergency" ? "Emergency purchase waiting for approval" : "Bid analysis waiting for approval",
+            message: sourcing.method === "emergency"
+                ? `${label}: emergency procurement (${sourcing.emergencyReason})${sourcing.afterPurchase ? ". The order may be issued now; your approval follows." : " was submitted for approval."}`
+                : `${label}: the bid analysis (${sourcing.quotes.length} quotation${sourcing.quotes.length === 1 ? "" : "s"}) was submitted for approval.`,
             link
         });
     }
@@ -455,11 +478,11 @@ const afterApproval = async (organizationId, id, userId) => {
         to: approved.sourcing.submittedBy,
         byUserId: userId,
         title: "Bid analysis approved",
-        message: `${label}: ${winner?.supplier?.name || "the chosen supplier"} (${money(winner?.total || 0, approved.currency)}) was approved. The purchase order can be issued.`,
+        message: `${label}: ${winner?.supplier?.name || "the chosen supplier"} (${money(winner?.total || 0, approved.currency)}) was approved.${approved.sourcing.orderedBeforeApproval ? " (The order was already issued.)" : " The purchase order can be issued."}`,
         link
     });
 
-    await notifications.notifyPermission({
+    if (!approved.sourcing.orderedBeforeApproval) await notifications.notifyPermission({
         organizationId,
         permission: "purchase_order.create",
         byUserId: userId,
@@ -480,7 +503,8 @@ const approveBid = async (id, organizationId, userId, { comment = "" } = {}) => 
 
         const request = await findRequest(id, organizationId, session);
 
-        assertApprovedRequest(request);
+        // an emergency order issued before approval is approved afterwards
+        if (!request.sourcing?.orderedBeforeApproval) assertApprovedRequest(request);
 
         if (request.sourcing?.status !== SOURCING_STATUS.SUBMITTED) {
             throw new ApiError("Only a submitted bid analysis can be approved.", 409);
@@ -578,6 +602,10 @@ const decideBid = async (id, organizationId, userId, { decision, comment = "" } 
 const returnBid = async (id, organizationId, userId, comment) => {
 
     const request = await findRequest(id, organizationId);
+
+    if (request.sourcing?.orderedBeforeApproval) {
+        throw new ApiError("The order was already issued (emergency procurement). It cannot be returned; approve it with your comment, or cancel the order.", 409);
+    }
 
     assertApprovedRequest(request);
 

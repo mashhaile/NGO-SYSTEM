@@ -2864,6 +2864,78 @@ test("project types: each organization's own list; a program mixes types; phases
 });
 
 
+test("emergency procurement: projects of an emergency type need fewer quotations and may order before the approval, which follows; the report lists them", { skip }, async () => {
+
+    const admin = state.tokenA;
+    const de = state.dataEntryToken;
+    const fin = state.financeToken;
+    const sa = (await login("sa@test.local", "SuperTest2026x")).data.data.token;
+    const me = (await api("GET", "/auth/me", { token: admin })).data.data;
+    const orgA = String(me.organizationId?._id || me.organizationId);
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: true } } });
+
+    const rule = (await api("GET", "/procurement/settings", { token: de })).data.data.emergency;
+    assert.equal(rule.enabled, true);
+    assert.equal(rule.minQuotes, 1);
+    assert.equal(rule.afterPurchase, true);
+
+    // budget one's project becomes an Emergency project
+    const types = (await api("GET", "/lookups/module/Project/category/ProjectType", { token: admin })).data.data;
+    const emergencyType = types.find(type => type.value === "Emergency")._id;
+    assert.equal((await api("PUT", `/projects/${state.projectOne}`, { token: admin, body: { projectType: emergencyType } })).status, 200);
+
+    const { line: personnel } = await lineOf(de, state.budgetOneId, "Personnel");
+    const made = await api("POST", "/purchase-requests", { token: de, body: { budget: state.budgetOneId, budgetLine: personnel._id, requestDate: "2026-06-01", title: "Water tanks for flood victims", items: [{ description: "Water tank 1000 L", quantity: 1, unitPrice: 2000 }] } });
+    assert.equal(made.status, 201, made.data?.message);
+    const pr = (path = "") => `/purchase-requests/${made.data.data._id}${path}`;
+    await api("POST", pr("/submit"), { token: de });
+    await api("POST", pr("/approve"), { token: fin, body: {} });
+
+    // emergency procurement, whatever the amount
+    const started = (await api("POST", pr("/sourcing/start"), { token: fin, body: {} })).data.data.sourcing;
+    assert.equal(started.method, "emergency");
+    assert.equal(started.minQuotes, 1);
+    assert.equal(started.needsCommittee, false);
+    assert.equal(started.afterPurchase, true);
+
+    const supplier = (await api("POST", "/suppliers", { token: fin, body: { name: "Delta Plastics" } })).data.data._id;
+    const quoted = await api("POST", pr("/quotes"), { token: fin, body: { supplier, items: [{ item: made.data.data.items[0]._id, unitPrice: 1900 }] } });
+    await api("PUT", pr("/sourcing"), { token: fin, body: { selectedQuote: quoted.data.data.sourcing.quotes[0]._id } });
+    assert.match((await api("POST", pr("/sourcing/submit"), { token: fin })).data.message, /emergency/i, "a reason is needed");
+    await api("PUT", pr("/sourcing"), { token: fin, body: { emergencyReason: "Flood on 28 May; families without water" } });
+    assert.equal((await api("POST", pr("/sourcing/submit"), { token: fin })).status, 200);
+
+    // the order before the approval
+    const order = await api("POST", pr("/purchase-order"), { token: fin, body: {} });
+    assert.equal(order.status, 201, order.data?.message);
+    let request = (await api("GET", pr(), { token: de })).data.data;
+    assert.equal(request.status, "Ordered");
+    assert.equal(request.sourcing.orderedBeforeApproval, true);
+    assert.equal(request.sourcing.status, "Submitted");
+
+    // the approval follows (it cannot be returned any more)
+    assert.equal((await api("POST", pr("/sourcing/return"), { token: fin, body: { comment: "Too expensive" } })).status, 409);
+    const approved = await api("POST", pr("/sourcing/approve"), { token: admin, body: { comment: "Agreed, emergency" } });
+    assert.equal(approved.status, 200, approved.data?.message);
+    assert.equal(approved.data.data.sourcing.status, "Approved");
+
+    // an exception in the procurement report
+    const report = (await api("GET", "/report-center/procurement?period=year&year=2026", { token: de })).data.data;
+    const exception = report.sections.find(item => item?.key === "exceptions").rows.find(row => row.code === order.data.data.poCode);
+    assert.equal(exception.issue, "Emergency procurement");
+    assert.match(exception.detail, /ordered before approval \(approved since\)/);
+    assert.match(exception.reason, /Flood/);
+
+    // the organization can switch the rule off
+    assert.equal((await api("PUT", "/procurement/settings", { token: admin, body: { emergency: { enabled: false } } })).data.data.emergency.enabled, false);
+    await api("PUT", "/procurement/settings", { token: admin, body: { reset: true } });
+
+    await api("PUT", `/projects/${state.projectOne}`, { token: admin, body: { projectType: null } });
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
+
+});
+
+
 // =====================================================
 // PASSWORDS: OWN AT FIRST SIGN-IN, THEN THE ADMIN MANAGES
 // =====================================================

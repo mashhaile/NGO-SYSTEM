@@ -55,7 +55,7 @@ const SOURCING_STATUS = {
     RETURNED: "Returned"
 };
 
-const PROCUREMENT_METHODS = ["direct", "rfq", "tender"];
+const PROCUREMENT_METHODS = ["direct", "rfq", "tender", "emergency"];
 
 // the statuses whose estimate is reserved on the budget line
 const COMMITTING_STATUSES = [
@@ -135,6 +135,12 @@ const sourcingSchema =
             selectionReason: { type: String, trim: true, default: "" },
             // needed when there are fewer quotes than the method asks for
             fewerQuotesReason: { type: String, trim: true, default: "" },
+
+            // emergency procurement: why it is an emergency; whether the
+            // order may be issued before the choice is approved, and was
+            emergencyReason: { type: String, trim: true, default: "" },
+            afterPurchase: { type: Boolean, default: false },
+            orderedBeforeApproval: { type: Boolean, default: false },
 
             committee: { type: mongoose.Schema.Types.ObjectId, ref: "ProcurementCommittee", default: null },
             committeeName: { type: String, default: "" },

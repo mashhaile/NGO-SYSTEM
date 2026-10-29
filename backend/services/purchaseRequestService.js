@@ -582,8 +582,16 @@ const getPurchaseRequestById = async (id, organizationId) => {
             ? (request.purchaseOrder.status === "Closed" ? 0 : Math.max(0, roundMoney(request.purchaseOrder.budgetAmount - (request.purchaseOrder.paidAmount || 0))))
             : request.budgetAmount;
 
+    // before the quotations start: whether emergency procurement applies
+    const settingsService = require("./procurementSettingsService");
+    const emergency =
+        request.status === PURCHASE_REQUEST_STATUS.APPROVED && !request.sourcing
+            ? await settingsService.emergencyFor(await settingsService.getSettings(organizationId), organizationId, request.project?._id || request.project)
+            : null;
+
     return {
         ...request,
+        emergencyRule: emergency ? { minQuotes: emergency.minQuotes, afterPurchase: emergency.afterPurchase } : null,
         line: {
             _id: request.budgetLine,
             category: line?.category || request.category,
