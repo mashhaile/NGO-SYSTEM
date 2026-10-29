@@ -3738,6 +3738,15 @@ const ServiceDeliveryForm = ({
                         project={
                             formData?.project
                         }
+                        // the work the donations must be allowed to pay for
+                        work={{
+                            program: formData?.program || "",
+                            project: formData?.project || "",
+                            activity: formData?.activity || "",
+                            activityRun: formData?.activityRun || "",
+                            parentProject:
+                                (projects || []).find(item => String(item?._id) === String(formData?.project))?.parentProject || ""
+                        }}
                     />
 
                 </FormSection>

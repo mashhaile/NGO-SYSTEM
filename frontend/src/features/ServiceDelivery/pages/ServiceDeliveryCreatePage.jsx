@@ -944,7 +944,9 @@ const ServiceDeliveryCreatePage = () => {
 
 
     // =================================================
-    // LOAD BENEFICIARIES WHEN PROGRAM CHANGES
+    // LOAD BENEFICIARIES WHEN THE PROGRAM OR PROJECT CHANGES
+    // (a project: the people enrolled in it; only a program:
+    // the people enrolled in any of its projects)
     // =================================================
 
     useEffect(() => {
@@ -999,7 +1001,13 @@ const ServiceDeliveryCreatePage = () => {
                     const response =
                         await getBeneficiariesLookupService(
                             programId,
-                            fromUrl("beneficiaries").split(",").filter(Boolean)
+                            [
+                                ...fromUrl("beneficiaries").split(",").filter(Boolean),
+                                // the people already chosen stay offered
+                                ...(formData?.beneficiaries || []).map(record => String(record?.beneficiary?._id || record?.beneficiary || record?._id || record || "")).filter(Boolean)
+                            ],
+                            // a project chosen: only its enrolled people
+                            formData?.project ? String(formData.project) : ""
                         );
 
 
@@ -1056,7 +1064,8 @@ const ServiceDeliveryCreatePage = () => {
         };
 
     }, [
-        formData?.program
+        formData?.program,
+        formData?.project
     ]);
 
 

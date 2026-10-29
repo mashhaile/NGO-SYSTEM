@@ -1665,11 +1665,30 @@ const normalizeDonationOptions = (
 // SERVICE DELIVERY ITEM ROW
 // =====================================================
 
+// May this donation pay for this work? (the same rule as the server,
+// services/donationFunding.js): not cancelled; unrestricted pays for
+// anything; restricted only for its own program / project (a main
+// project: its phases too) / activity / activity run.
+const idOfValue = (value) => String(value?._id || value || "");
+
+const donationMayPay = (option, work = {}) => {
+    // the options carry the donation itself in "original"
+    const donation = option?.original || option;
+    if (donation?.status === "Cancelled") return false;
+    if (String(donation?.fundingRestriction || "Unrestricted") !== "Restricted") return true;
+    const key = ["activityRun", "activity", "project", "program"].find(name => idOfValue(donation?.[name]));
+    if (!key) return true;
+    const scope = idOfValue(donation[key]);
+    if (key === "project" && idOfValue(work.parentProject) === scope) return true;
+    return idOfValue(work[key]) === scope;
+};
+
 const ServiceDeliveryItemRow = ({
     item,
     index,
     setItems,
     project,
+    work = {},
     deliveryId,
     serviceCategories,
     unitOptions,
@@ -1924,20 +1943,48 @@ const ServiceDeliveryItemRow = ({
         );
 
 
+    // donors with at least one donation allowed for this work
+    // (the one already chosen stays)
+    const filteredDonorOptions =
+        useMemo(
+            () => {
+                const payers = new Set(
+                    donationOptions
+                        .filter(donation => donationMayPay(donation, work))
+                        .map(donation => String(normalizeLookupValue(donation?.donor) || ""))
+                );
+                return donorOptions.filter(donor =>
+                    payers.has(String(normalizeLookupValue(donor?.value ?? donor?._id ?? donor))) ||
+                    String(normalizeLookupValue(donor?.value ?? donor?._id ?? donor)) === String(donorValue || "")
+                );
+            },
+            [donorOptions, donationOptions, work, donorValue]
+        );
+
+
     const filteredDonationOptions =
         useMemo(
             () => {
+
+                // only donations allowed to pay for this work (the one
+                // already chosen stays, so an older record still shows it)
+                const allowed =
+                    donationOptions.filter(
+                        donation =>
+                            donationMayPay(donation, work) ||
+                            String(normalizeLookupValue(donation?._id)) === String(normalizeLookupValue(item?.donation))
+                    );
 
                 if (
                     !donorValue
                 ) {
 
-                    return donationOptions;
+                    return allowed;
 
                 }
 
 
-                return donationOptions.filter(
+                return allowed.filter(
                     donation => {
 
                         const donationDonor =
@@ -1962,7 +2009,9 @@ const ServiceDeliveryItemRow = ({
             },
             [
                 donorValue,
-                donationOptions
+                donationOptions,
+                work,
+                item?.donation
             ]
         );
 
@@ -3876,7 +3925,12 @@ const ServiceDeliveryItemRow = ({
                         donorValue
                     }
                     options={
-                        donorOptions
+                        filteredDonorOptions
+                    }
+                    helperText={
+                        !donorsLoading && filteredDonorOptions.length === 0
+                            ? "No donation can pay for this work: only unrestricted donations and those restricted to this program / project are offered."
+                            : undefined
                     }
                     onChange={
                         (event) =>
@@ -3888,7 +3942,7 @@ const ServiceDeliveryItemRow = ({
                     }
                     disabled={
                         donorsLoading ||
-                        donorOptions.length === 0
+                        filteredDonorOptions.length === 0
                     }
                     fullWidth
                 />
@@ -4518,7 +4572,8 @@ const ServiceDeliveryItems = ({
     setItems,
     serviceCategories = [],
     units = [],
-    project = null
+    project = null,
+    work = {}
 }) => {
 
     // editing: this delivery's own links are not "taken"
@@ -5056,6 +5111,9 @@ const ServiceDeliveryItems = ({
                             }
                             project={
                                 normalizeLookupValue(project) || null
+                            }
+                            work={
+                                work
                             }
                             deliveryId={
                                 deliveryId || null

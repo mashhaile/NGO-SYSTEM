@@ -1434,10 +1434,13 @@ const deleteBeneficiary = async (
 
 // include: people always offered (e.g. just registered at a
 // distribution site, not enrolled in the program)
+// projectId: only the people enrolled in that project (a main
+// project: in its phases) instead of the whole program
 const getBeneficiaryLookup = async (
     organizationId,
     programId = "",
-    include = []
+    include = [],
+    projectId = ""
 ) => {
 
     const query = {
@@ -1458,10 +1461,15 @@ const getBeneficiaryLookup = async (
     // FILTER BY PROGRAM THROUGH ENROLLMENT
     // ------------------------------------------------------
 
-    if (programId) {
+    if (programId || projectId) {
 
         const Enrollment =
             require("../models/enrollment");
+
+        const projectIds =
+            projectId
+                ? await require("./projectPhases").projectAndPhases(projectId, organizationId)
+                : [];
 
 
         const enrollments =
@@ -1470,8 +1478,9 @@ const getBeneficiaryLookup = async (
                 organization:
                     organizationId,
 
-                program:
-                    programId,
+                ...(projectIds.length
+                    ? { project: { $in: projectIds } }
+                    : { program: programId }),
 
                 isDeleted:
                     false

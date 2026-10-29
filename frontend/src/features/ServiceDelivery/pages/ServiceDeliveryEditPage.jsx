@@ -1,5 +1,6 @@
 import {
     useEffect,
+    useRef,
     useState
 } from "react";
 
@@ -2642,9 +2643,12 @@ const ServiceDeliveryEditPage = () => {
     // LOAD BENEFICIARIES
     // =================================================
 
+    // a project: only the people enrolled in it (and those already on
+    // the delivery); only a program: anyone enrolled in its projects
     const loadBeneficiariesByProgram = async (
         programId,
-        keepSelected = []
+        keepSelected = [],
+        projectId = ""
     ) => {
 
         if (
@@ -2664,7 +2668,9 @@ const ServiceDeliveryEditPage = () => {
 
             const response =
                 await getBeneficiariesLookupService(
-                    programId
+                    programId,
+                    [],
+                    projectId ? String(projectId) : ""
                 );
 
 
@@ -2993,7 +2999,8 @@ const ServiceDeliveryEditPage = () => {
 
                 await loadBeneficiariesByProgram(
                     programId,
-                    existingBeneficiaryObjects
+                    existingBeneficiaryObjects,
+                    delivery?.project?._id || delivery?.project || ""
                 );
 
             }
@@ -3264,6 +3271,48 @@ const ServiceDeliveryEditPage = () => {
         },
         [
             id
+        ]
+    );
+
+
+    // another project chosen: offer the people enrolled in it,
+    // keeping those already on the delivery
+    const lastProject =
+        useRef(null);
+
+    useEffect(
+        () => {
+
+            const projectId =
+                String(formData?.project || "");
+
+            if (loading) return;
+
+            if (lastProject.current === null) {
+                lastProject.current = projectId;
+                return;
+            }
+
+            if (lastProject.current === projectId) return;
+
+            lastProject.current = projectId;
+
+            const chosen =
+                new Set((formData?.beneficiaries || []).map(record => String(record?.beneficiary?._id || record?.beneficiary || record?._id || record || "")));
+
+            if (formData?.program) {
+                loadBeneficiariesByProgram(
+                    formData.program,
+                    beneficiaries.filter(person => chosen.has(String(person?._id))),
+                    projectId
+                );
+            }
+
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            formData?.project,
+            loading
         ]
     );
 
