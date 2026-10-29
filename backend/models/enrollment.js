@@ -39,6 +39,29 @@ program:{
 
 
 // =====================================
+// PROJECT (or a phase of a project)
+// =====================================
+// People are enrolled in a project; the program comes from
+// it. A project in phases enrolls in each phase (the same or
+// new people); the main project shows its phases' people.
+// Older enrollments made before projects may have none.
+
+project:{
+
+    type:mongoose.Schema.Types.ObjectId,
+
+    ref:"Project",
+
+    default:null,
+
+    index:true
+
+},
+
+
+
+
+// =====================================
 // BENEFICIARY
 // =====================================
 
@@ -234,7 +257,11 @@ timestamps:true
 
 
 // Prevent duplicate enrollment
-// Same beneficiary cannot enroll twice in same program
+// Same beneficiary cannot enroll twice in the same project
+// (or phase); they can be in several projects of a program.
+// Older enrollments without a project: once per program.
+// (The older unique index per program is dropped by
+// scripts/migrateEnrollmentsToProjects.js.)
 
 enrollmentSchema.index(
 
@@ -243,6 +270,8 @@ enrollmentSchema.index(
 organization:1,
 
 program:1,
+
+project:1,
 
 beneficiary:1,
 
@@ -285,6 +314,7 @@ enrollmentSchema.plugin(
         rules: [
             { order: ["enrollmentDate", "completionDate"] },
             { inside: { model: "Program", ref: "program", fields: ["enrollmentDate"], title: "program" } },
+            { inside: { model: "Project", ref: "project", fields: ["enrollmentDate"], title: "project" } },
             { notFuture: "completionDate", because: "Record the completion when it happens." },
             {
                 fields: ["beneficiary", "enrollmentDate"],
@@ -304,7 +334,7 @@ enrollmentSchema.plugin(
 // what the status of its parents allows (see plugins/statusRules)
 enrollmentSchema.plugin(
     require("./plugins/statusRules"),
-    { what: "This enrollment", parents: [{ ref: "program", model: "Program", label: "program", kind: "plan" }], inactive: [{ ref: "beneficiary", model: "Beneficiary", label: "beneficiary" }] }
+    { what: "This enrollment", parents: [{ ref: "program", model: "Program", label: "program", kind: "plan" }, { ref: "project", model: "Project", label: "project", kind: "plan" }], inactive: [{ ref: "beneficiary", model: "Beneficiary", label: "beneficiary" }] }
 );
 
 

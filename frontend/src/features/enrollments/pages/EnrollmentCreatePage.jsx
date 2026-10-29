@@ -199,7 +199,7 @@ const EnrollmentCreatePage = ()=>{
                 title="Create Enrollment"
 
 
-                subtitle="Enroll a beneficiary into a program"
+                subtitle="Enroll a beneficiary in a project (or a phase of a project)"
 
 
                 action={()=>navigate("/enrollments")}

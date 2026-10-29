@@ -162,10 +162,10 @@ const ServiceDeliveryCreatePage = () => {
                 .filter(Boolean),
 
         program:
-            "",
+            fromUrl("program"),
 
         project:
-            "",
+            fromUrl("project"),
 
         activity:
             "",

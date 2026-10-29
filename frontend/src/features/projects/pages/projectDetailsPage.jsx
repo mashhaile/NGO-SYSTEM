@@ -66,6 +66,7 @@ const ProjectDetailsPage = () => {
 
     // fields of other modules show only when those are on
     const fundingOn = useModuleOn("funding");
+    const enrollmentsOn = useModuleOn("enrollments");
     const financeOn = useModuleOn("finance");
 
 
@@ -406,6 +407,18 @@ const [
                         label="Project Type"
                         value={project.projectType?.value || "-"}
                     />
+
+                    {/* people enrolled in it (a main project: in its phases) */}
+                    {enrollmentsOn && (
+                        <InfoRow
+                            label="Enrolled people"
+                            value={
+                                <Link component="button" underline="hover" onClick={() => navigate(`/enrollments?project=${project._id}`)}>
+                                    {project.phases?.length ? "See the people enrolled in its phases" : "See the people enrolled"}
+                                </Link>
+                            }
+                        />
+                    )}
 
                     {fundingOn && (
                     <InfoRow

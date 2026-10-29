@@ -3015,6 +3015,66 @@ test("humanitarian: the same person does not get the same service twice in the p
 
 
 // =====================================================
+// ENROLLMENT PER PROJECT (or phase)
+// =====================================================
+
+test("enrollment: per project or phase (the program comes from it); once per project; a person in several projects of a program; older ones get their project", { skip }, async () => {
+
+    const token = state.tokenA;
+    const genders = (await api("GET", "/lookups/module/Beneficiary/category/Gender", { token })).data.data;
+    const person = async (firstName) =>
+        (await api("POST", "/beneficiaries", { token, body: { firstName, lastName: "Enrolled", gender: genders[0]._id, dateOfBirth: "1990-01-01" } })).data.data._id;
+
+    const program = (await api("POST", "/programs", { token, body: { name: "Enrollment Program", startDate: "2026-01-01" } })).data.data._id;
+    const otherProgram = (await api("POST", "/programs", { token, body: { name: "Other Enrollment Program", startDate: "2026-01-01" } })).data.data._id;
+    const project = async (name, extra = {}) => {
+        const made = await api("POST", "/projects", { token, body: { program: extra.program || program, name, startDate: "2026-02-01", endDate: "2026-12-31", ...extra } });
+        assert.equal(made.status < 300, true, made.data?.message);
+        return made.data.data._id;
+    };
+    const single = await project("Literacy Classes");
+    const main = await project("Food Response");
+    const phase1 = await project("Food Response Phase 1", { parentProject: main, endDate: "2026-06-30" });
+    const phase2 = await project("Food Response Phase 2", { parentProject: main, startDate: "2026-07-01" });
+    const elsewhere = await project("Elsewhere", { program: otherProgram });
+
+    const almaz = await person("Almaz");
+    const enroll = (body) => api("POST", "/enrollments", { token, body: { status: "Active", enrollmentDate: "2026-03-01", ...body } });
+
+    // the project decides the program
+    const first = await enroll({ project: single, beneficiary: almaz });
+    assert.equal(first.status < 300, true, first.data?.message);
+    assert.equal(String(first.data.data.program._id || first.data.data.program), program);
+    assert.equal(first.data.data.project.name, "Literacy Classes");
+
+    // once per project; several projects (phases) of one program are fine
+    assert.equal((await enroll({ project: single, beneficiary: almaz })).status, 409);
+    assert.equal((await enroll({ project: phase1, beneficiary: almaz })).status < 300, true);
+    assert.equal((await enroll({ project: phase2, beneficiary: almaz, enrollmentDate: "2026-07-05" })).status < 300, true, "the same person in the next phase");
+
+    // a main project with phases: its phases enroll
+    assert.match((await enroll({ project: main, beneficiary: await person("Hana") })).data.message, /phases/);
+    // inside the project's dates; a project of another program is refused
+    assert.equal((await enroll({ project: single, beneficiary: await person("Kebede"), enrollmentDate: "2026-01-15" })).status, 400);
+    assert.equal((await enroll({ project: elsewhere, program, beneficiary: await person("Selam") })).status, 400);
+
+    // the main project lists the people of its phases
+    const ofMain = (await api("GET", `/enrollments?project=${main}&limit=50`, { token })).data;
+    assert.equal((ofMain.data || ofMain).length, 2);
+
+    // an older enrollment (program only) gets its project later
+    const tsegaye = await person("Tsegaye");
+    const older = await enroll({ program, beneficiary: tsegaye });
+    assert.equal(older.status < 300, true, older.data?.message);
+    const none = (await api("GET", `/enrollments?project=none&program=${program}`, { token })).data;
+    assert.equal((none.data || none).length, 1);
+    assert.equal((await api("PUT", `/enrollments/${older.data.data._id}`, { token, body: { project: elsewhere } })).status, 400, "another program");
+    assert.equal((await api("PUT", `/enrollments/${older.data.data._id}`, { token, body: { project: single } })).status < 300, true);
+
+});
+
+
+// =====================================================
 // PASSWORDS: OWN AT FIRST SIGN-IN, THEN THE ADMIN MANAGES
 // =====================================================
 

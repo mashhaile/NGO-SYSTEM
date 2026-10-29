@@ -6,13 +6,22 @@ const Joi = require("joi");
 // CREATE
 // ==========================================
 
+// project (or a phase): the program comes from it. Older
+// clients may still send only the program.
 const createEnrollmentSchema = Joi.object({
 
     program:
 
         Joi.string()
 
-        .required(),
+        .allow("", null),
+
+
+    project:
+
+        Joi.string()
+
+        .allow("", null),
 
 
     beneficiary:
@@ -57,7 +66,7 @@ const createEnrollmentSchema = Joi.object({
         .optional()
 
 
-});
+}).or("program", "project");
 
 
 
@@ -68,6 +77,12 @@ const createEnrollmentSchema = Joi.object({
 // ==========================================
 
 const updateEnrollmentSchema = Joi.object({
+
+    // an older enrollment (without a project) can be given its project
+    project:
+
+        Joi.string(),
+
 
     status:
 

@@ -206,7 +206,16 @@ const EnrollmentDetailsPage = () => {
 
             <PageCard>
 
-                <FormSection title="Program">
+                <FormSection title="Project and Program">
+
+                    <InfoRow
+                        label="Project"
+                        value={
+                            enrollment.project
+                                ? `${enrollment.project.projectCode ? `${enrollment.project.projectCode} – ` : ""}${enrollment.project.name}${enrollment.project.phaseNumber ? ` (Phase ${enrollment.project.phaseNumber})` : ""}`
+                                : "Not set (an older enrollment): choose it with Edit"
+                        }
+                    />
 
                     <InfoRow
                         label="Program"

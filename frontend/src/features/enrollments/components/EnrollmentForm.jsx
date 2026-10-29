@@ -17,14 +17,33 @@ import {
 } from "../../../components/ui";
 
 import {
-    getProgramsLookupService,
     getBeneficiariesLookupService
 } from "../services/lookupService";
 
+import {
+    getProjectsService
+} from "../../projects/services/projectService";
+
 import { dayOf, rangeHint } from "../../../utils/date";
 
+
+// =====================================================
+// ENROLLMENT FORM
+// =====================================================
+//
+// A person is enrolled in a project, or in a phase of a
+// project (each phase has its own people, the same or new);
+// the program comes from the project. A main project that
+// has phases is not offered: its phases are.
+//
+// Editing: the person and the project stay; an older
+// enrollment without a project can be given one (of the
+// same program).
+//
+// =====================================================
+
 const initialState = {
-    program: null,
+    project: null,
     beneficiary: null,
     enrollmentDate: "",
     status: "Pending",
@@ -33,20 +52,50 @@ const initialState = {
     remarks: ""
 };
 
+const idOf = (value) => String(value?._id || value || "");
+
+const projectLabel = (project) =>
+    project
+        ? `${project.projectCode ? `${project.projectCode} – ` : ""}${project.name}${project.program?.name ? `  (${project.program.name})` : ""}`
+        : "";
+
+
 const EnrollmentForm = ({
     initialData = {},
     onSubmit,
     loading = false
 }) => {
 
+    const isEdit = Boolean(initialData && initialData._id);
+
     const [formData, setFormData] = useState(initialState);
 
-    const [programs, setPrograms] = useState([]);
+    const [projects, setProjects] = useState([]);
 
     const [beneficiaries, setBeneficiaries] = useState([]);
 
     useEffect(() => {
-        loadLookups();
+
+        let cancelled = false;
+
+        Promise.all([
+            getProjectsService({ limit: 1000 }).catch(() => null),
+            getBeneficiariesLookupService().catch(() => [])
+        ])
+            .then(([projectResponse, beneficiaryData]) => {
+                if (cancelled) return;
+                const data = projectResponse?.data?.data ?? projectResponse?.data ?? [];
+                const list = Array.isArray(data) ? data : data?.items || [];
+                // a main project with phases enrolls through its phases
+                const mains = new Set(list.filter(project => project.parentProject).map(project => idOf(project.parentProject)));
+                setProjects(list.filter(project => !mains.has(idOf(project._id)) && !["Cancelled", "Completed"].includes(project.status)));
+                setBeneficiaries(beneficiaryData || []);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+
     }, []);
 
     useEffect(() => {
@@ -55,7 +104,7 @@ const EnrollmentForm = ({
 
             setFormData({
 
-                program: initialData.program || null,
+                project: initialData.project || null,
 
                 beneficiary: initialData.beneficiary || null,
 
@@ -79,30 +128,6 @@ const EnrollmentForm = ({
 
     }, [initialData]);
 
-    const loadLookups = async () => {
-
-        try {
-
-            const [
-                programData,
-                beneficiaryData
-            ] = await Promise.all([
-                getProgramsLookupService(),
-                getBeneficiariesLookupService()
-            ]);
-
-
-            setPrograms(programData || []);
-            setBeneficiaries(beneficiaryData || []);
-
-        } catch (error) {
-
-            console.error("Lookup loading error:", error);
-
-        }
-
-    };
-
     const changeField = (field, value) => {
 
         setFormData(prev => ({
@@ -112,15 +137,23 @@ const EnrollmentForm = ({
 
     };
 
+    // editing: the project can only be chosen when it is not set yet,
+    // and then only in the enrollment's program
+    const projectLocked = isEdit && Boolean(initialData.project);
+    const projectChoices =
+        isEdit && !initialData.project
+            ? projects.filter(project => idOf(project.program) === idOf(initialData.program))
+            : projects;
+
     const submitHandler = (e) => {
 
         e.preventDefault();
 
         const payload = {
 
-            program: formData.program?._id,
+            ...(projectLocked ? {} : { project: idOf(formData.project) }),
 
-            beneficiary: formData.beneficiary?._id,
+            ...(isEdit ? {} : { beneficiary: idOf(formData.beneficiary) }),
 
             enrollmentDate: formData.enrollmentDate,
 
@@ -134,16 +167,15 @@ const EnrollmentForm = ({
 
         };
 
-
         onSubmit(payload);
 
     };
 
 
-    // the chosen program, with its dates (from the program list)
-    const programForDates =
-        programs.find(item => item._id === (formData.program?._id || formData.program)) ||
-        (typeof formData.program === "object" ? formData.program : null);
+    // the chosen project, with its dates and program (from the list)
+    const chosen =
+        projects.find(project => idOf(project._id) === idOf(formData.project)) ||
+        (typeof formData.project === "object" ? formData.project : null);
 
     return (
         <Box
@@ -153,108 +185,65 @@ const EnrollmentForm = ({
 
             <Grid container spacing={3}>
 
-               <Grid size={{xs:12,md:6}}>
+                <Grid size={{ xs: 12, md: 6 }}>
 
-    <Autocomplete
+                    <Autocomplete
+                        options={projectChoices}
+                        value={chosen}
+                        disabled={projectLocked}
+                        getOptionLabel={projectLabel}
+                        isOptionEqualToValue={(option, value) => idOf(option) === idOf(value)}
+                        onChange={(e, value) => changeField("project", value)}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Project (or phase)"
+                                required={!projectLocked}
+                                helperText={
+                                    chosen?.program?.name
+                                        ? `Program: ${chosen.program.name}`
+                                        : isEdit && !initialData.project
+                                            ? `This enrollment has no project yet. Choose one of ${initialData.program?.name || "its program"}.`
+                                            : "A project in phases: choose the phase."
+                                }
+                            />
+                        )}
+                    />
 
-        options={programs}
+                </Grid>
 
-        value={formData.program}
+                <Grid size={{ xs: 12, md: 6 }}>
 
-        getOptionLabel={(option)=>
-            option
-            ?
-            `${option.programCode} - ${option.name}`
-            :
-            ""
-        }
+                    <Autocomplete
+                        options={beneficiaries}
+                        value={formData.beneficiary}
+                        disabled={isEdit}
+                        getOptionLabel={(option) =>
+                            option
+                                ? `${option.beneficiaryNumber} - ${option.fullName || [option.firstName, option.lastName].filter(Boolean).join(" ")}`
+                                : ""
+                        }
+                        isOptionEqualToValue={(option, value) => idOf(option) === idOf(value)}
+                        onChange={(e, value) => changeField("beneficiary", value)}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Beneficiary"
+                                required={!isEdit}
+                            />
+                        )}
+                    />
 
-        isOptionEqualToValue={(option,value)=>
-            option?._id === value?._id
-        }
+                </Grid>
 
-        onChange={(e,value)=>
-            changeField(
-                "program",
-                value
-            )
-        }
-
-        renderInput={(params)=>(
-
-            <TextField
-
-                {...params}
-
-                label="Program"
-
-                required
-
-            />
-
-        )}
-
-    />
-
-</Grid>
-
-                <Grid size={{xs:12,md:6}}>
-
-    <Autocomplete
-
-        options={beneficiaries}
-
-        value={formData.beneficiary}
-
-        getOptionLabel={(option)=>
-            option
-            ?
-            `${option.beneficiaryNumber} - ${
-                option.fullName ||
-                [option.firstName, option.lastName].filter(Boolean).join(" ")
-            }`
-            :
-            ""
-        }
-
-        isOptionEqualToValue={(option,value)=>
-            option?._id === value?._id
-        }
-
-        onChange={(e,value)=>
-            changeField(
-                "beneficiary",
-                value
-            )
-        }
-
-        renderInput={(params)=>(
-
-            <TextField
-
-                {...params}
-
-                label="Beneficiary"
-
-                required
-
-            />
-
-        )}
-
-    />
-
-</Grid>
-
-                <Grid
-                    size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
 
                     <AppDatePicker
                         label="Enrollment Date"
-                        // an enrollment is dated inside its program
-                        helperText={rangeHint("program", programForDates?.startDate, programForDates?.endDate)}
-                        minDate={dayOf(programForDates?.startDate)}
-                        maxDate={dayOf(programForDates?.endDate)}
+                        // an enrollment is dated inside its project
+                        helperText={rangeHint("project", chosen?.startDate, chosen?.endDate)}
+                        minDate={dayOf(chosen?.startDate)}
+                        maxDate={dayOf(chosen?.endDate)}
                         value={formData.enrollmentDate || null}
                         onChange={(date) =>
                             changeField(
@@ -268,44 +257,25 @@ const EnrollmentForm = ({
 
                 </Grid>
 
-                <Grid
-                    size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
 
                     <TextField
                         select
                         fullWidth
                         label="Status"
                         value={formData.status}
-                        onChange={(e) =>
-                            changeField(
-                                "status",
-                                e.target.value
-                            )
-                        }
+                        onChange={(e) => changeField("status", e.target.value)}
                     >
-
-                        {[
-                            "Pending",
-                            "Active",
-                            "Completed",
-                            "Dropped"
-                        ].map(status => (
-
-                            <MenuItem
-                                key={status}
-                                value={status}
-                            >
+                        {["Pending", "Active", "Completed", "Dropped"].map(status => (
+                            <MenuItem key={status} value={status}>
                                 {status}
                             </MenuItem>
-
                         ))}
-
                     </TextField>
 
                 </Grid>
 
-                <Grid
-                    size={{ xs: 12 }}>
+                <Grid size={{ xs: 12 }}>
 
                     <TextField
                         fullWidth
@@ -313,21 +283,14 @@ const EnrollmentForm = ({
                         rows={3}
                         label="Remarks"
                         value={formData.remarks}
-                        onChange={(e) =>
-                            changeField(
-                                "remarks",
-                                e.target.value
-                            )
-                        }
+                        onChange={(e) => changeField("remarks", e.target.value)}
                     />
 
                 </Grid>
 
             </Grid>
 
-            <Stack sx={{ justifyContent: "flex-end", mt: 3 }}
-                direction="row"
-            >
+            <Stack sx={{ justifyContent: "flex-end", mt: 3 }} direction="row">
 
                 <Button
                     variant="contained"
@@ -335,11 +298,7 @@ const EnrollmentForm = ({
                     startIcon={<Save />}
                     disabled={loading}
                 >
-
-                    {loading
-                        ? "Saving..."
-                        : "Save Enrollment"}
-
+                    {loading ? "Saving..." : "Save Enrollment"}
                 </Button>
 
             </Stack>

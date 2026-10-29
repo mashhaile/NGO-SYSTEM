@@ -10,7 +10,9 @@ import {
 
 import {
     Alert,
+    Autocomplete,
     Box,
+    TextField,
     Link,
     Stack,
     Table,
@@ -44,6 +46,8 @@ import axiosClient
     from "../../../services/axiosClient";
 
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { useModuleOn } from "../../../utils/modules";
+import { getProjectsService } from "../../projects/services/projectService";
 import { hasPermission } from "../../../utils/permissions";
 import useAuth from "../../auth/hooks/useAuth";
 
@@ -52,15 +56,18 @@ import useAuth from "../../auth/hooks/useAuth";
 // QUICK REGISTRATION (humanitarian module)
 // =====================================================
 //
-// For a distribution site: the place is set once, then
+// For a distribution site: the project (or phase) and the
+// place are set once, then
 // each person takes a few seconds: name, father's name,
 // sex, age, phone (optional), household size. Age gives an
 // estimated date of birth (1 July of that year). Enter
 // saves and clears for the next person.
 //
-// The people registered here can then receive a delivery
-// together (the delivery form opens with them and the
-// place filled in). Details can be completed later on each
+// Each person is enrolled in the project at once (when the
+// Enrollments module is on). The people registered here can
+// then receive a delivery
+// together (the delivery form opens with them, the project
+// and the place filled in). Details can be completed later on each
 // person's page.
 //
 // =====================================================
@@ -80,10 +87,27 @@ const QuickRegistrationPage = () => {
     const [person, setPerson] = useState(emptyPerson);
     const [genders, setGenders] = useState([]);
     const [registered, setRegistered] = useState([]);
+    const [projects, setProjects] = useState([]);
+    const [project, setProject] = useState(null);
+    const [warning, setWarning] = useState("");
+
+    const enrollmentsOn = useModuleOn("enrollments");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
     const firstField = useRef(null);
+
+    // projects people can be enrolled in: a project on its own or a phase
+    useEffect(() => {
+        getProjectsService({ limit: 1000 })
+            .then(response => {
+                const data = response?.data?.data ?? response?.data ?? [];
+                const list = Array.isArray(data) ? data : data?.items || [];
+                const mains = new Set(list.filter(item => item.parentProject).map(item => String(item.parentProject?._id || item.parentProject)));
+                setProjects(list.filter(item => !mains.has(String(item._id)) && !["Cancelled", "Completed"].includes(item.status)));
+            })
+            .catch(() => setProjects([]));
+    }, []);
 
     useEffect(() => {
         axiosClient.get("/lookups/module/Beneficiary/category/Gender")
@@ -97,6 +121,9 @@ const QuickRegistrationPage = () => {
 
         event?.preventDefault?.();
         setError("");
+        setWarning("");
+
+        if (!project) return setError("Choose the project (or phase) of this distribution first.");
 
         const age = Number(person.age);
 
@@ -127,7 +154,26 @@ const QuickRegistrationPage = () => {
                 kebele: site.kebele
             });
             const saved = response.data?.data;
+
+            // enrolled in the project at once
+            let enrolled = false;
+            if (enrollmentsOn) {
+                try {
+                    await axiosClient.post("/enrollments", {
+                        project: project._id,
+                        beneficiary: saved._id,
+                        status: "Active",
+                        enrollmentDate: new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10)
+                    });
+                    enrolled = true;
+                }
+                catch (enrollError) {
+                    setWarning(`${person.firstName} was registered but not enrolled: ${getApiErrorMessage(enrollError, "the enrollment failed")}`);
+                }
+            }
+
             setRegistered(prev => [{
+                enrolled,
                 _id: saved._id,
                 number: saved.beneficiaryNumber,
                 name: `${person.firstName.trim()} ${person.lastName.trim()}`,
@@ -150,6 +196,7 @@ const QuickRegistrationPage = () => {
     const deliveryLink = () => {
         const params = new URLSearchParams({
             beneficiaries: registered.map(item => item._id).join(","),
+            ...(project ? { program: String(project.program?._id || project.program), project: project._id } : {}),
             ...Object.fromEntries(["region", "regionCode", "zone", "zoneCode", "woreda", "woredaCode"].filter(key => site[key]).map(key => [key, site[key]]))
         });
         return `/service-deliveries/create?${params}`;
@@ -167,7 +214,26 @@ const QuickRegistrationPage = () => {
             />
 
             <PageCard>
-                <FormSection title="Distribution site" subtitle="Set once for the session.">
+                <FormSection title="Project and distribution site" subtitle={`Set once for the session.${enrollmentsOn ? " Everyone registered is enrolled in the project." : ""}`}>
+                    <Box sx={{ mb: 2 }}>
+                        <Autocomplete
+                            options={projects}
+                            value={project}
+                            disabled={registered.length > 0}
+                            getOptionLabel={(option) => option ? `${option.projectCode ? `${option.projectCode} – ` : ""}${option.name}${option.program?.name ? `  (${option.program.name})` : ""}` : ""}
+                            isOptionEqualToValue={(a, b) => a._id === b._id}
+                            onChange={(e, value) => setProject(value)}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    size="small"
+                                    label="Project (or phase)"
+                                    required
+                                    helperText={registered.length ? "Fixed for this session (people are already registered in it)" : "A project in phases: choose the phase"}
+                                />
+                            )}
+                        />
+                    </Box>
                     <FormGrid columns={4}>
                         <LocationCascadeFields value={site} onChange={(patch) => setSite(prev => ({ ...prev, ...patch }))} />
                         <AppTextField label="Kebele" value={site.kebele} onChange={(e) => setSite(prev => ({ ...prev, kebele: e.target.value }))} />
@@ -178,6 +244,7 @@ const QuickRegistrationPage = () => {
             <PageCard>
                 <FormSection title="Person" subtitle="Press Enter to save and go to the next person.">
                     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                    {warning && <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setWarning("")}>{warning}</Alert>}
                     <Box component="form" onSubmit={save}>
                         <FormGrid columns={3}>
                             <AppTextField label="Name" required inputRef={firstField} autoFocus value={person.firstName} onChange={(e) => change({ firstName: e.target.value })} />
@@ -210,6 +277,7 @@ const QuickRegistrationPage = () => {
                                             <TableCell>Sex</TableCell>
                                             <TableCell align="right">Age</TableCell>
                                             <TableCell align="right">Household</TableCell>
+                                            {enrollmentsOn && <TableCell>Enrolled</TableCell>}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -222,6 +290,7 @@ const QuickRegistrationPage = () => {
                                                 <TableCell>{item.sex}</TableCell>
                                                 <TableCell align="right">{item.age}</TableCell>
                                                 <TableCell align="right">{item.householdSize || "-"}</TableCell>
+                                                {enrollmentsOn && <TableCell>{item.enrolled ? "Yes" : "No"}</TableCell>}
                                             </TableRow>
                                         ))}
                                     </TableBody>

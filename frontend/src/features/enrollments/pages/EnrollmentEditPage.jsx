@@ -110,7 +110,7 @@ const EnrollmentEditPage = () => {
 
             <PageHeader
                 title="Edit Enrollment"
-                subtitle="Update the program, dates or status"
+                subtitle="Update the dates or status (or choose the project of an older enrollment)"
                 action={() =>
                     navigate(`/enrollments/${id}`)
                 }

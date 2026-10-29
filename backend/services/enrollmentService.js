@@ -19,6 +19,27 @@ getPagination
 
 }=require("../utils/pagination");
 
+const ApiError = require("../utils/apiError");
+
+// The project (or phase) of an enrollment: of this organization,
+// and not a main project that has phases (its phases enroll)
+const projectOf = async (projectId, organizationId) => {
+
+    if (projectId === undefined || projectId === null || projectId === "") return null;
+
+    if (!require("mongoose").isValidObjectId(projectId)) throw new ApiError("Project not found.", 404);
+
+    const project = await require("../models/Project").findOne({ _id: projectId, organization: organizationId, isDeleted: false }).select("name program parentProject").lean();
+
+    if (!project) throw new ApiError("Project not found.", 404);
+
+    await require("./projectPhases").assertNotMainProject(project._id, organizationId, "the enrollment");
+
+    return project;
+
+};
+
+
 // ==========================================
 // CREATE ENROLLMENT
 // ==========================================
@@ -35,9 +56,31 @@ userId
 
 
     // =====================================
+    // THE PROJECT (or phase) DECIDES THE PROGRAM
+    // =====================================
+
+    const project = await projectOf(data.project, organizationId);
+
+    if(project){
+
+        if(data.program && String(data.program) !== String(project.program)){
+            throw new ApiError(`${project.name} is not in the program chosen.`, 400);
+        }
+
+        data.program = String(project.program);
+
+    }
+
+    if(!data.program){
+        throw new ApiError("Choose the project.", 400);
+    }
+
+
+    // =====================================
     // CHECK DUPLICATE ENROLLMENT
     // Same beneficiary cannot enroll twice
-    // in same program
+    // in the same project (older enrollments
+    // without a project: in the same program)
     // =====================================
 
     const existingEnrollment = await Enrollment.findOne({
@@ -45,6 +88,8 @@ userId
         organization: organizationId,
 
         program: data.program,
+
+        project: project ? project._id : null,
 
         beneficiary: data.beneficiary,
 
@@ -56,9 +101,13 @@ userId
 
     if(existingEnrollment){
 
-        throw new Error(
+        throw new ApiError(
 
-            "This beneficiary is already enrolled in this program"
+            project
+                ? `This beneficiary is already enrolled in ${project.name}.`
+                : "This beneficiary is already enrolled in this program",
+
+            409
 
         );
 
@@ -74,6 +123,9 @@ userId
 
 
         program:data.program,
+
+
+        project:project ? project._id : null,
 
 
         beneficiary:data.beneficiary,
@@ -137,6 +189,15 @@ userId
         "program",
 
         "programCode name"
+
+    )
+
+
+    .populate(
+
+        "project",
+
+        "projectCode name parentProject phaseNumber"
 
     )
 
@@ -279,6 +340,19 @@ filter.program=program;
 
 }
 
+// a project (a main project: the people of its phases)
+// "none": older enrollments still without a project
+if(query.project === "none"){
+
+filter.project=null;
+
+}
+else if(query.project){
+
+filter.project={ $in: await require("./projectPhases").projectAndPhases(query.project, organizationId) };
+
+}
+
 
 
 
@@ -333,6 +407,14 @@ Enrollment.find(filter)
 "program",
 
 "programCode name"
+
+)
+
+.populate(
+
+"project",
+
+"projectCode name parentProject phaseNumber"
 
 )
 
@@ -468,6 +550,14 @@ isDeleted:false
 
 )
 
+.populate(
+
+"project",
+
+"projectCode name status startDate endDate parentProject phaseNumber"
+
+)
+
 
 
 .populate(
@@ -582,6 +672,32 @@ throw new Error(
 
 
 delete data.organization;
+
+delete data.program;
+
+delete data.beneficiary;
+
+if(data.project !== undefined){
+
+    const project = await projectOf(data.project, organizationId);
+
+    if(!project){
+        throw new ApiError("Choose the project.", 400);
+    }
+
+    if(String(project.program) !== String(enrollment.program)){
+        throw new ApiError(`${project.name} is in another program. Enroll the person in it instead.`, 400);
+    }
+
+    const taken = await Enrollment.exists({ organization: organizationId, project: project._id, beneficiary: enrollment.beneficiary, isDeleted: false, _id: { $ne: enrollment._id } });
+
+    if(taken){
+        throw new ApiError(`This beneficiary is already enrolled in ${project.name}.`, 409);
+    }
+
+    data.project = project._id;
+
+}
 
 
 

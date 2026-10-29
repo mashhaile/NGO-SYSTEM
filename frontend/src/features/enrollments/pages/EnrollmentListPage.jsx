@@ -5,7 +5,8 @@ import {
 
 
 import {
-    useNavigate
+    useNavigate,
+    useSearchParams
 } from "react-router-dom";
 
 
@@ -84,10 +85,38 @@ const beneficiaryName = (beneficiary) =>
 // ENROLLMENT LIST PAGE
 // =====================================================
 
+import {
+    getProjectsService
+} from "../../projects/services/projectService";
+
+
 const EnrollmentListPage = () => {
 
     const navigate =
         useNavigate();
+
+    // ?project=<id> from a project's page ("none": not set yet)
+    const [searchParams] =
+        useSearchParams();
+
+    const [project, setProject] =
+        useState(searchParams.get("project") || "");
+
+    const [projectOptions, setProjectOptions] =
+        useState([]);
+
+    useEffect(() => {
+        getProjectsService({ limit: 1000 })
+            .then(response => {
+                const data = response?.data?.data ?? response?.data ?? [];
+                const list = Array.isArray(data) ? data : data?.items || [];
+                setProjectOptions([
+                    { value: "none", label: "Project not set (older enrollments)" },
+                    ...list.map(item => ({ value: item._id, label: `${item.projectCode ? `${item.projectCode} – ` : ""}${item.name}` }))
+                ]);
+            })
+            .catch(() => setProjectOptions([]));
+    }, []);
 
     const {
         user
@@ -139,6 +168,7 @@ const EnrollmentListPage = () => {
                 getEnrollmentsApi({
                     search: search.trim(),
                     status: status || undefined,
+                    project: project || undefined,
                     page: paginationModel.page + 1,
                     limit: paginationModel.pageSize
                 })
@@ -178,7 +208,7 @@ const EnrollmentListPage = () => {
             clearTimeout(timer);
         };
 
-    }, [search, status, paginationModel, reloadKey]);
+    }, [search, status, project, paginationModel, reloadKey]);
 
 
     // =================================================
@@ -262,24 +292,29 @@ const EnrollmentListPage = () => {
         },
 
         {
-            field: "program",
-            headerName: "Program",
-            flex: 1.5,
-            minWidth: 220,
+            field: "project",
+            headerName: "Project / Program",
+            flex: 1.6,
+            minWidth: 240,
             sortable: false,
-            renderCell: (params) =>
-                params.value
-                    ? (
-                        <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    {params.value
+                        ? (
                             <Typography variant="body2" noWrap title={params.value.name}>
                                 {params.value.name}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
-                                {params.value.programCode}
+                        )
+                        : (
+                            <Typography variant="body2" sx={{ color: "warning.dark" }}>
+                                Project not set
                             </Typography>
-                        </Box>
-                    )
-                    : "-"
+                        )}
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }} noWrap>
+                        {params.row.program?.name || ""}
+                    </Typography>
+                </Box>
+            )
         },
 
         {
@@ -355,7 +390,7 @@ const EnrollmentListPage = () => {
 
             <PageHeader
                 title="Enrollments"
-                subtitle="Beneficiaries enrolled in programs."
+                subtitle="Beneficiaries enrolled in projects (or phases of a project)."
                 {...(
                     hasPermission(user, "enrollment.create")
                         ? {
@@ -378,9 +413,20 @@ const EnrollmentListPage = () => {
                 onReset={() => {
                     setSearch("");
                     setStatus("");
+                    setProject("");
                     resetPage();
                 }}
                 filters={[
+                    {
+                        key: "project",
+                        label: "Project",
+                        value: project,
+                        onChange: (value) => {
+                            setProject(value);
+                            resetPage();
+                        },
+                        options: projectOptions
+                    },
                     {
                         key: "status",
                         label: "Status",
@@ -431,7 +477,7 @@ const EnrollmentListPage = () => {
                 title="Delete Enrollment"
                 message={
                     deleteTarget
-                        ? `Delete the enrollment of ${beneficiaryName(deleteTarget.beneficiary) || "this beneficiary"} in ${deleteTarget.program?.name || "this program"}? This cannot be undone.`
+                        ? `Delete the enrollment of ${beneficiaryName(deleteTarget.beneficiary) || "this beneficiary"} in ${deleteTarget.project?.name || deleteTarget.program?.name || "this project"}? This cannot be undone.`
                         : ""
                 }
                 loading={deleting}
