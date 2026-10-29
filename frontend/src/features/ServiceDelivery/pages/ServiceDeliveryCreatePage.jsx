@@ -5,7 +5,8 @@ import {
 
 
 import {
-    useNavigate
+    useNavigate,
+    useSearchParams
 } from "react-router-dom";
 
 
@@ -65,10 +66,26 @@ import {
 // PAGE
 // =====================================================
 
+import useDuplicateCheck
+    from "../components/useDuplicateCheck";
+
+
 const ServiceDeliveryCreatePage = () => {
+
+    // humanitarian module: the same people, the same service, the same period
+    const [saveChecked, duplicateDialog] =
+        useDuplicateCheck();
 
     const navigate =
         useNavigate();
+
+    // from Quick Registration: the people just registered and the site
+    // (?beneficiaries=id,id&region=..&regionCode=..&zone=..)
+    const [searchParams] =
+        useSearchParams();
+
+    const fromUrl = (key) =>
+        searchParams.get(key) || "";
 
 
     const [
@@ -140,7 +157,9 @@ const ServiceDeliveryCreatePage = () => {
             "Individual",
 
         beneficiaries:
-            [],
+            fromUrl("beneficiaries")
+                .split(",")
+                .filter(Boolean),
 
         program:
             "",
@@ -158,22 +177,22 @@ const ServiceDeliveryCreatePage = () => {
             null,
 
         region:
-            "",
+            fromUrl("region"),
 
         regionCode:
-            "",
+            fromUrl("regionCode"),
 
         zone:
-            "",
+            fromUrl("zone"),
 
         zoneCode:
-            "",
+            fromUrl("zoneCode"),
 
         woreda:
-            "",
+            fromUrl("woreda"),
 
         woredaCode:
-            "",
+            fromUrl("woredaCode"),
 
         deliveryLocation:
             "",
@@ -947,6 +966,18 @@ const ServiceDeliveryCreatePage = () => {
 
             setBeneficiaries([]);
 
+            // from Quick Registration: their names before a program is chosen
+            const passed =
+                fromUrl("beneficiaries").split(",").filter(Boolean);
+
+            if (passed.length) {
+                getBeneficiariesLookupService("", passed)
+                    .then(response => {
+                        if (!cancelled) setBeneficiaries(extractList(response).filter(item => passed.includes(String(item._id))));
+                    })
+                    .catch(() => {});
+            }
+
 
             return () => {
 
@@ -967,7 +998,8 @@ const ServiceDeliveryCreatePage = () => {
 
                     const response =
                         await getBeneficiariesLookupService(
-                            programId
+                            programId,
+                            fromUrl("beneficiaries").split(",").filter(Boolean)
                         );
 
 
@@ -1484,7 +1516,8 @@ const ServiceDeliveryCreatePage = () => {
             // CREATE
             // -----------------------------------------
 
-            await createServiceDeliveryService(
+            await saveChecked(
+                createServiceDeliveryService,
                 payload
             );
 
@@ -1497,6 +1530,9 @@ const ServiceDeliveryCreatePage = () => {
         catch (
             error
         ) {
+
+            // went back from the duplicate check: nothing to report
+            if (error?.cancelled) return;
 
             console.error(
                 "SERVICE DELIVERY CREATE ERROR:",
@@ -1624,6 +1660,8 @@ const ServiceDeliveryCreatePage = () => {
                 />
 
             </PageCard>
+
+            {duplicateDialog}
 
         </PageContainer>
 

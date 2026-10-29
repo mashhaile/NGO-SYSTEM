@@ -107,6 +107,18 @@ const MODULES = [
         // new: only for the organizations it is switched on for
         defaultEnabled: false,
         records: [{ model: "Supplier", label: "suppliers" }, { model: "PurchaseRequest", label: "purchase requests" }, { model: "PurchaseOrder", label: "purchase orders" }]
+    },
+    {
+        key: "humanitarian",
+        name: "Humanitarian response",
+        group: "Work",
+        description: "For emergency and humanitarian distributions: duplicate check (the same person does not receive the same service twice in a period), quick registration at distribution sites, and the 3W/4W report (who did what, where, when).",
+        // no permissions of its own: it changes service delivery and
+        // beneficiary screens and adds a report
+        permissions: [],
+        requires: ["serviceDelivery"],
+        defaultEnabled: false,
+        records: []
     }
 ];
 

@@ -381,6 +381,12 @@ app.use(
     require("./routes/procurementRoutes")
 );
 
+// Humanitarian response: duplicate check settings (module "humanitarian")
+app.use(
+    "/api/v1/humanitarian",
+    require("./routes/humanitarianRoutes")
+);
+
 app.use(
     "/api/v1/donation-trace",
     require("./routes/donationTraceRoutes")

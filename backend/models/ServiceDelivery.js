@@ -956,6 +956,24 @@ const serviceDeliverySchema = new mongoose.Schema(
 
 
     // ======================================
+    // Saved although the same person already
+    // received the same service in the period
+    // (humanitarian duplicate check), and why
+    // ======================================
+
+    duplicateConfirmed: {
+        type: Boolean,
+        default: false
+    },
+
+    duplicateReason: {
+        type: String,
+        default: "",
+        trim: true
+    },
+
+
+    // ======================================
     // Person Responsible
     // ======================================
 

@@ -755,6 +755,13 @@ const BeneficiaryDetailsPage = () => {
                         }
                     />
 
+                    {beneficiary.householdSize ? (
+                        <InfoRow
+                            label="Household size"
+                            value={beneficiary.householdSize}
+                        />
+                    ) : null}
+
                     <InfoRow
                         label="Address"
                         value={

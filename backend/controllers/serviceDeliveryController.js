@@ -312,7 +312,11 @@ const createServiceDeliveryController = async (
             success: false,
 
             message:
-                getErrorMessage(error)
+                getErrorMessage(error),
+
+            // e.g. the earlier deliveries of a duplicate
+            errors:
+                Array.isArray(error.errors) ? error.errors : []
 
         });
 
@@ -359,7 +363,11 @@ const getServiceDeliveriesController = async (
             success: false,
 
             message:
-                getErrorMessage(error)
+                getErrorMessage(error),
+
+            // e.g. the earlier deliveries of a duplicate
+            errors:
+                Array.isArray(error.errors) ? error.errors : []
 
         });
 
@@ -404,7 +412,11 @@ const getServiceDeliveryByIdController = async (
             success: false,
 
             message:
-                getErrorMessage(error)
+                getErrorMessage(error),
+
+            // e.g. the earlier deliveries of a duplicate
+            errors:
+                Array.isArray(error.errors) ? error.errors : []
 
         });
 
@@ -491,7 +503,11 @@ const updateServiceDeliveryController = async (
             success: false,
 
             message:
-                getErrorMessage(error)
+                getErrorMessage(error),
+
+            // e.g. the earlier deliveries of a duplicate
+            errors:
+                Array.isArray(error.errors) ? error.errors : []
 
         });
 
@@ -577,7 +593,11 @@ const deleteServiceDeliveryController = async (
             success: false,
 
             message:
-                getErrorMessage(error)
+                getErrorMessage(error),
+
+            // e.g. the earlier deliveries of a duplicate
+            errors:
+                Array.isArray(error.errors) ? error.errors : []
 
         });
 

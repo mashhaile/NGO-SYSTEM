@@ -2478,7 +2478,15 @@ const applyServiceDeliveryStateSemantics = (
 // PAGE
 // =====================================================
 
+import useDuplicateCheck
+    from "../components/useDuplicateCheck";
+
+
 const ServiceDeliveryEditPage = () => {
+
+    // humanitarian module: the same people, the same service, the same period
+    const [saveChecked, duplicateDialog] =
+        useDuplicateCheck();
 
     const {
         id
@@ -3952,8 +3960,8 @@ if (allocationConflicts.length > 0) {
             // UPDATE
             // =============================================
 
-            await updateServiceDeliveryService(
-                id,
+            await saveChecked(
+                (body) => updateServiceDeliveryService(id, body),
                 payload
             );
 
@@ -3971,6 +3979,9 @@ if (allocationConflicts.length > 0) {
         catch (
             error
         ) {
+
+            // went back from the duplicate check: nothing to report
+            if (error?.cancelled) return;
 
             console.error(
                 "Failed updating service delivery:",
@@ -4255,6 +4266,8 @@ if (allocationConflicts.length > 0) {
                 />
 
             </PageCard>
+
+            {duplicateDialog}
 
         </PageContainer>
 

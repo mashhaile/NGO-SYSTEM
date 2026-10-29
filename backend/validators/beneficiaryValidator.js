@@ -245,6 +245,13 @@ const createBeneficiarySchema = Joi.object({
         .allow("")
         .optional(),
 
+    householdSize: Joi.number()
+        .integer()
+        .min(1)
+        .max(50)
+        .allow(null)
+        .optional(),
+
     address: Joi.string()
         .allow("")
         .optional(),
@@ -450,6 +457,12 @@ const updateBeneficiarySchema = Joi.object({
 
     kebele: Joi.string()
         .allow(""),
+
+    householdSize: Joi.number()
+        .integer()
+        .min(1)
+        .max(50)
+        .allow(null),
 
     address: Joi.string()
         .allow(""),

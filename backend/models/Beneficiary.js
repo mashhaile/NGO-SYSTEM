@@ -172,6 +172,13 @@ const beneficiarySchema = new mongoose.Schema(
             trim: true
         },
 
+        // people in the household (humanitarian registration); optional
+        householdSize: {
+            type: Number,
+            min: 1,
+            default: null
+        },
+
         address: {
             type: String,
             default: "",

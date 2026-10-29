@@ -4125,7 +4125,18 @@ const createServiceDelivery = async (
         organizationId
     );
 
+    // humanitarian module: the same person, the same service, the same period
+    const duplicateCheck =
+        (data.status || DEFAULT_SERVICE_DELIVERY_STATUS) === "Cancelled"
+            ? { duplicateConfirmed: false, duplicateReason: "" }
+            : await require("./humanitarianService").assertNoDuplicates(
+                { organizationId, beneficiaryIds, items, deliveryDate: data.deliveryDate || new Date(), project: data.project || null },
+                data
+            );
+
     const serviceData = {
+
+        ...duplicateCheck,
 
         organization:
             organizationId,
@@ -5801,6 +5812,24 @@ const updateServiceDelivery = async (
                 ? beneficiaryIds[0]
                 : null;
 
+    }
+
+    // humanitarian module: the same person, the same service, the same period
+    if ((data.status ?? service.status) !== "Cancelled" && beneficiaryIds.length) {
+        Object.assign(
+            updateData,
+            await require("./humanitarianService").assertNoDuplicates(
+                {
+                    organizationId,
+                    beneficiaryIds,
+                    items: finalItems,
+                    deliveryDate: data.deliveryDate ?? service.deliveryDate,
+                    project: finalProject || null,
+                    excludeDeliveryId: service._id
+                },
+                data
+            )
+        );
     }
 
     // ==================================================

@@ -377,6 +377,20 @@ const organizationSchema = new mongoose.Schema(
         },
 
         // =================================================
+        // HUMANITARIAN RESPONSE: DUPLICATE CHECK
+        // { duplicateCheck: { enabled, period, days, sameProject } }
+        // (empty: the defaults, see services/humanitarianService.js)
+        // =================================================
+
+        humanitarianSettings: {
+
+            type: mongoose.Schema.Types.Mixed,
+
+            default: {}
+
+        },
+
+        // =================================================
         // ORGANIZATION BRANDING
         // =================================================
 

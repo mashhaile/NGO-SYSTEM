@@ -109,7 +109,8 @@ export const deleteBeneficiaryApi =
 
 export const getBeneficiaryLookupApi =
     async (
-        program = ""
+        program = "",
+        include = []
     ) => {
 
         const response =
@@ -117,7 +118,8 @@ export const getBeneficiaryLookupApi =
                 "/beneficiaries/lookup",
                 {
                     params: {
-                        program
+                        program,
+                        ...(include.length ? { include: include.join(",") } : {})
                     }
                 }
             );

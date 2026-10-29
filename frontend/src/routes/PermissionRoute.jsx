@@ -49,9 +49,13 @@ const NoAccess = ({ moduleOff = false }) => {
 };
 
 
+// module: a module the page belongs to although its permission
+// is of another one (e.g. Quick Registration: beneficiary.create,
+// module "humanitarian")
 const PermissionRoute = ({
     children,
-    permission
+    permission,
+    module: pageModule = null
 }) => {
 
     const {
@@ -86,6 +90,10 @@ const PermissionRoute = ({
         const module = moduleOfPermission(permission);
         const moduleOff = Boolean(module) && Array.isArray(user.modules) && !user.modules.includes(module);
         return <NoAccess moduleOff={moduleOff} />;
+    }
+
+    if (pageModule && user.role !== "super_admin" && Array.isArray(user.modules) && !user.modules.includes(pageModule)) {
+        return <NoAccess moduleOff />;
     }
 
     return children;

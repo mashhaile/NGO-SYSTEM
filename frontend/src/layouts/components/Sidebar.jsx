@@ -43,6 +43,8 @@ import {
     ReceiptLong,
     TrackChanges,
     ShoppingCart,
+    PersonAddAlt1,
+    Public,
     LocalMall,
     Group,
     HowToReg,
@@ -85,7 +87,8 @@ import {
 } from "./DashboardLayout";
 
 import {
-    useModuleOfPermissionOn
+    useModuleOfPermissionOn,
+    useModuleCheck
 } from "../../utils/modules";
 
 
@@ -167,6 +170,15 @@ const SECTIONS = [
         items: [
             { label: "Budgets", path: "/budgets", icon: <Savings />, permission: "budget.read" },
             { label: "Expenses", path: "/expenses", icon: <ReceiptLong />, permission: "expense.read" }
+        ]
+    },
+
+    {
+        title: "Humanitarian",
+        items: [
+            { label: "Quick Registration", path: "/humanitarian/quick-registration", icon: <PersonAddAlt1 />, permission: "beneficiary.create", module: "humanitarian" },
+            { label: "3W / 4W Report", path: "/reports?report=threeW", icon: <Public />, permission: "report.read", module: "humanitarian" },
+            { label: "Humanitarian Setup", path: "/humanitarian/setup", icon: <Tune />, permission: "service.read", module: "humanitarian" }
         ]
     },
 
@@ -406,6 +418,8 @@ const Sidebar = ({
 
     // is the module of this permission on for the organization?
     const moduleOn = useModuleOfPermissionOn();
+    // items of a module whose permission belongs to another (module: "humanitarian")
+    const moduleKeyOn = useModuleCheck();
 
     const can = (permission) =>
         isSuperAdmin ||
@@ -422,7 +436,7 @@ const Sidebar = ({
             .filter(section => !section.superAdminOnly || isSuperAdmin)
             .map(section => ({
                 ...section,
-                items: (isSuperAdmin ? section.items : section.items.filter(item => moduleOn(item.permission)))
+                items: (isSuperAdmin ? section.items : section.items.filter(item => moduleOn(item.permission) && (!item.module || moduleKeyOn(item.module))))
                     .filter(item => !section.adminOnly || can(item.permission))
                     .map(item => (section.adminOnly ? item : { ...item, locked: !can(item.permission) }))
             }))

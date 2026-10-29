@@ -297,6 +297,10 @@ const PurchaseRequestDetailsPage = lazyPage(() => import("../features/procuremen
 const PurchaseOrderListPage = lazyPage(() => import("../features/procurement/pages/PurchaseOrderListPage"));
 const PurchaseOrderDetailsPage = lazyPage(() => import("../features/procurement/pages/PurchaseOrderDetailsPage"));
 const ProcurementSetupPage = lazyPage(() => import("../features/procurement/pages/ProcurementSetupPage"));
+
+// Humanitarian response (module "humanitarian")
+const QuickRegistrationPage = lazyPage(() => import("../features/humanitarian/pages/QuickRegistrationPage"));
+const HumanitarianSetupPage = lazyPage(() => import("../features/humanitarian/pages/HumanitarianSetupPage"));
 const BudgetFormPage = lazyPage(() => import("../features/budgets/pages/BudgetFormPage"));
 const BudgetDetailsPage = lazyPage(() => import("../features/budgets/pages/BudgetDetailsPage"));
 const ExpenseListPage = lazyPage(() => import("../features/expenses/pages/ExpenseListPage"));
@@ -988,6 +992,16 @@ const AppRoutes = () => {
                             <IndicatorFormPage />
                         </PermissionRoute>
                     }
+                />
+
+                {/* Humanitarian response (module "humanitarian") */}
+                <Route
+                    path="/humanitarian/quick-registration"
+                    element={<PermissionRoute permission="beneficiary.create" module="humanitarian"><QuickRegistrationPage /></PermissionRoute>}
+                />
+                <Route
+                    path="/humanitarian/setup"
+                    element={<PermissionRoute permission="service.read" module="humanitarian"><HumanitarianSetupPage /></PermissionRoute>}
                 />
 
                 {/* Procurement: suppliers and purchase requests (module "procurement") */}

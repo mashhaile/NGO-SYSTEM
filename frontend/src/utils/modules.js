@@ -61,6 +61,12 @@ export const useModuleOn = (key) => {
     return isOn(user, key);
 };
 
+// (key) => is that module on? (for a list of items)
+export const useModuleCheck = () => {
+    const user = useSelector(selectUser);
+    return (key) => isOn(user, key);
+};
+
 // for a list: (permission) => is its module on?
 export const useModuleOfPermissionOn = () => {
     const user = useSelector(selectUser);

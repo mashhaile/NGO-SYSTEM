@@ -951,6 +951,8 @@ const updateBeneficiary = async (
 
         "kebele",
 
+        "householdSize",
+
         "address",
 
         "documents",
@@ -1430,9 +1432,12 @@ const deleteBeneficiary = async (
 //
 // ==========================================================
 
+// include: people always offered (e.g. just registered at a
+// distribution site, not enrolled in the program)
 const getBeneficiaryLookup = async (
     organizationId,
-    programId = ""
+    programId = "",
+    include = []
 ) => {
 
     const query = {
@@ -1485,7 +1490,8 @@ const getBeneficiaryLookup = async (
 
 
         if (
-            beneficiaryIds.length === 0
+            beneficiaryIds.length === 0 &&
+            !include.length
         ) {
 
             return [];
@@ -1496,7 +1502,10 @@ const getBeneficiaryLookup = async (
         query._id = {
 
             $in:
-                beneficiaryIds
+                [
+                    ...beneficiaryIds,
+                    ...include.filter(id => require("mongoose").isValidObjectId(id))
+                ]
 
         };
 

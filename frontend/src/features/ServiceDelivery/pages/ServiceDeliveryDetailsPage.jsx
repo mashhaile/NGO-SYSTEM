@@ -1879,6 +1879,13 @@ const ServiceDeliveryDetailsPage = () => {
                 }
             />
 
+            {/* humanitarian duplicate check: saved again on purpose */}
+            {delivery.duplicateConfirmed && (
+                <Alert severity="warning" sx={{ mb: 3 }}>
+                    <strong>Repeated delivery:</strong> some of these people had already received the same service in the period. Reason given: {delivery.duplicateReason || "-"}
+                </Alert>
+            )}
+
             {/* =================================================
                 ACTIONS + STATUS
             ================================================= */}

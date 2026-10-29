@@ -2311,7 +2311,7 @@ test("modules: the super admin switches modules off and on per organization; off
     // only the super admin manages modules
     assert.equal((await api("GET", `/admin/organizations/${orgA}/modules`, { token: state.tokenA })).status, 403);
     const list = (await api("GET", `/admin/organizations/${orgA}/modules`, { token: sa })).data.data;
-    assert.ok(list.modules.every(module => module.enabled || ["me", "procurement"].includes(module.key)), "all on at first, except new modules (M&E, procurement)");
+    assert.ok(list.modules.every(module => module.enabled || ["me", "procurement", "humanitarian"].includes(module.key)), "all on at first, except new modules (M&E, procurement, humanitarian)");
     assert.equal(list.modules.find(module => module.key === "me").enabled, false);
 
     // TOR and funding off
@@ -2932,6 +2932,84 @@ test("emergency procurement: projects of an emergency type need fewer quotations
 
     await api("PUT", `/projects/${state.projectOne}`, { token: admin, body: { projectType: null } });
     await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { procurement: false } } });
+
+});
+
+
+// =====================================================
+// HUMANITARIAN RESPONSE (module "humanitarian")
+// =====================================================
+
+test("humanitarian: the same person does not get the same service twice in the period unless confirmed with a reason; 3W/4W report", { skip }, async () => {
+
+    const { token, item, create, shares, people } = await serviceDeliverySetup();
+    const sa = (await login("sa@test.local", "SuperTest2026x")).data.data.token;
+    const me = (await api("GET", "/auth/me", { token })).data.data;
+    const orgA = String(me.organizationId?._id || me.organizationId);
+
+    const kitsFor = (date, extra = {}) => {
+        const kits = item("Hygiene Kit", "Set", 3, 750);
+        return create({ deliveryDate: date, recipientType: "Individual", allocationMethod: "Individual", items: [kits], beneficiaries: shares(kits, 1, 750), ...extra });
+    };
+
+    // a new module: off until switched on (no check, no settings, no report)
+    assert.equal((await api("GET", "/humanitarian/settings", { token })).status, 403);
+    assert.equal((await kitsFor("2026-09-01")).status < 300, true);
+    assert.equal((await kitsFor("2026-09-02")).status < 300, true, "off: no duplicate check");
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { humanitarian: true } } });
+
+    const settings = (await api("GET", "/humanitarian/settings", { token })).data.data.duplicateCheck;
+    assert.equal(settings.enabled, true);
+    assert.equal(settings.period, "month");
+
+    // the same month: refused, with who and when
+    const again = await kitsFor("2026-09-20");
+    assert.equal(again.status, 409, again.data?.message);
+    assert.equal(again.data.errors.length >= 3, true);
+    assert.equal(again.data.errors[0].code, "DUPLICATE_DELIVERY");
+    assert.match(again.data.message, /already received the same service in the same month/);
+
+    // confirmed: a reason is needed, then it is saved and marked
+    assert.equal((await kitsFor("2026-09-20", { confirmDuplicates: true })).status, 400);
+    const confirmed = await kitsFor("2026-09-20", { confirmDuplicates: true, duplicateReason: "Second kit for newborns" });
+    assert.equal(confirmed.status < 300, true, confirmed.data?.message);
+    assert.equal(confirmed.data.data.duplicateConfirmed, true);
+
+    // another month is fine; a cancelled delivery does not count
+    assert.equal((await kitsFor("2026-10-02")).status < 300, true);
+    assert.equal((await kitsFor("2026-10-05", { status: "Cancelled" })).status < 300, true);
+
+    // the organization's own period: within 30 days
+    const days = await api("PUT", "/humanitarian/settings", { token, body: { duplicateCheck: { period: "days", days: 30 } } });
+    assert.equal(days.data.data.duplicateCheck.period, "days");
+    assert.equal((await kitsFor("2026-10-20")).status, 409, "18 days after 2 October");
+    assert.equal((await api("PUT", "/humanitarian/settings", { token: state.dataEntryToken, body: { reset: true } })).status, 403, "only the organization admin");
+    await api("PUT", "/humanitarian/settings", { token, body: { reset: true } });
+
+    // household size on a person (quick registration)
+    const genders = (await api("GET", "/lookups/module/Beneficiary/category/Gender", { token })).data.data;
+    const quick = await api("POST", "/beneficiaries", { token, body: { firstName: "Zewdu", lastName: "Alemu", gender: genders.find(g => g.value === "Male")._id, dateOfBirth: "1986-07-01", householdSize: 6, woreda: "Fogera" } });
+    assert.equal(quick.status < 300, true, quick.data?.message);
+    assert.equal(quick.data.data.householdSize, 6);
+
+    // the 3W / 4W report
+    const catalog = (await api("GET", "/report-center", { token })).data.data.map(report => report.key);
+    assert.ok(catalog.includes("threeW"));
+    const report = await api("GET", "/report-center/threeW?period=month&year=2026&month=9", { token });
+    assert.equal(report.status, 200, report.data?.message);
+    const summary = Object.fromEntries(report.data.data.summary.map(item => [item.label, item.value]));
+    assert.equal(summary["People reached"], people.length);
+    assert.equal(summary.Women, people.length, "the three test people are adult women");
+    assert.equal(summary["Repeated deliveries (confirmed)"], 1);
+    const row = report.data.data.details.rows.find(item => item.activity === "Hygiene Kit");
+    assert.equal(row.sector.length > 0, true);
+    assert.equal(row.people, people.length, "counted once per row");
+    assert.equal(row.deliveries, 3);
+    const excel = await fetch(`${BASE}/report-center/threeW?period=month&year=2026&month=9&format=excel`, { headers: { Authorization: `Bearer ${token}` } });
+    assert.equal(excel.status, 200);
+
+    await api("PUT", `/admin/organizations/${orgA}/modules`, { token: sa, body: { modules: { humanitarian: false } } });
+    assert.ok(!(await api("GET", "/report-center", { token })).data.data.some(report => report.key === "threeW"));
 
 });
 

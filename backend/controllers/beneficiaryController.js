@@ -603,7 +603,9 @@ const getBeneficiaryLookupController = async (
 
                 organizationId,
 
-                req.query.program
+                req.query.program,
+
+                String(req.query.include || "").split(",").filter(Boolean)
 
             );
 

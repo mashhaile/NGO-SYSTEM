@@ -1164,12 +1164,21 @@ const serverControlledFields = {
 // CREATE SCHEMA
 // ======================================================
 
+// The same person already received the same service in the
+// period (humanitarian module): saved anyway only with a reason
+const duplicateFields = {
+    confirmDuplicates: Joi.boolean(),
+    duplicateReason: Joi.string().trim().allow("").max(1000)
+};
+
 const createServiceDeliverySchema =
     Joi.object({
 
         ...createFields,
 
-        ...serverControlledFields
+        ...serverControlledFields,
+
+        ...duplicateFields
 
     });
 
@@ -1482,9 +1491,10 @@ const updateFields = {
 // ======================================================
 
 const updateServiceDeliverySchema =
-    Joi.object(
-        updateFields
-    )
+    Joi.object({
+        ...updateFields,
+        ...duplicateFields
+    })
     .min(1);
 
 

@@ -90,12 +90,14 @@ export const deleteBeneficiaryService = async (
 // =====================================================
 
 export const getBeneficiariesLookupService = async (
-    programId = ""
+    programId = "",
+    include = []
 ) => {
 
     const response =
         await getBeneficiaryLookupApi(
-            programId
+            programId,
+            include
         );
 
     return response?.data || [];
